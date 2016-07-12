@@ -1,0 +1,201 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="custom-element-demo.html">
+
+<dom-module id="catalog-element-readme">
+  <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
+  <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
+  <template>
+    <style>
+      a {
+        color: #1565C0;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      #info-container {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        margin: 16px 0;
+        font-size: 14px;
+        line-height: 32px;
+      }
+
+      #metadata, #health {
+        padding: 16px;
+        flex: 1 1 200px;
+      }
+
+      #metadata {
+        background: #ECEFF1;
+      }
+
+      #health {
+        background: var(--theme-accent-color);
+        color: white;
+        padding-left: 40px;
+      }
+
+      svg.octicon {
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+
+      #health > div > svg {
+        height: 14px;
+        width: 16px;
+        margin: -2px 8px 0 -24px;
+        fill: white;
+        vertical-align: middle;
+      }
+
+      .dependencies-container > span {
+        color: #666;
+      }
+
+      .keywords-container > a:not(:last-of-type):after, .dependencies-container > span:not(:last-of-type):after {
+        content: ',';
+      }
+
+      .markdown-body {
+        width: 100%;
+      }
+
+      /** Readme.md override */
+      .markdown-body .anchor {
+        margin-left: 0;
+        padding-right: 0;
+      }
+
+      .markdown-body > *:first-child {
+        display: none;
+      }
+
+    </style>
+
+    <template is="dom-if" if="[[data]]">
+      <template is="dom-if" if="[[data.bower]]">
+        <div>[[data.bower.description]]</div>
+      </template>
+
+      <div id="info-container">
+        <div id="metadata">
+          <div>Last updated [[_timeSinceString(data.updated_at)]] ago</div>
+          <div class="dependencies-container">
+            Dependencies
+            <template is="dom-repeat" items="[[_dependencies()]]">
+              <span>[[item]]</span>
+            </template>
+          </div>
+          <template is="dom-if" if="[[data.bower.keywords.length]]">
+            <div class="keywords-container">
+              Keywords
+              <template is="dom-repeat" items="[[data.bower.keywords]]">
+                <a href="/tag/[[item]]">[[item]]</a>
+              </template>
+            </div>
+          </template>
+          <template is="dom-if" if="[[data.bower.license]]">
+            <!-- TODO: This should link to the SPDX license (https://spdx.org/licenses/) or the license file if a URL -->
+            <div>[[data.bower.license]]</div>
+          </template>
+        </div>
+        <div id="health">
+          <div><svg aria-hidden="true" class="octicon octicon-star" height="16" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>[[data.stars]] stars</div>
+          <div><svg aria-hidden="true" class="octicon octicon-eye" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M8.06 2C3 2 0 8 0 8s3 6 8.06 6c4.94 0 7.94-6 7.94-6S13 2 8.06 2z m-0.06 10c-2.2 0-4-1.78-4-4 0-2.2 1.8-4 4-4 2.22 0 4 1.8 4 4 0 2.22-1.78 4-4 4z m2-4c0 1.11-0.89 2-2 2s-2-0.89-2-2 0.89-2 2-2 2 0.89 2 2z"></path></svg>[[data.subscribers]] watching</div>
+          <div><svg aria-hidden="true" class="octicon octicon-repo-forked" height="16" version="1.1" viewBox="0 0 10 16" width="10"><path d="M8 1c-1.11 0-2 0.89-2 2 0 0.73 0.41 1.38 1 1.72v1.28L5 8 3 6v-1.28c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2S0 1.89 0 3c0 0.73 0.41 1.38 1 1.72v1.78l3 3v1.78c-0.59 0.34-1 0.98-1 1.72 0 1.11 0.89 2 2 2s2-0.89 2-2c0-0.73-0.41-1.38-1-1.72V9.5l3-3V4.72c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2zM2 4.2c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3 10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3-10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z"></path></svg>[[data.forks]] forks</div>
+          <div>[[data.open_issues]] open issues</div>
+        </div>
+      </div>
+    </template>
+
+    <article id="contents" class="markdown-body"></article>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-element-readme',
+
+      properties: {
+        data: Object
+      },
+
+      observers: [
+        'dataChanged(data)'
+      ],
+
+      ready: function() {
+        this.scopeSubtree(this.$.contents, true);
+      },
+
+      dataChanged: function(data) {
+        if (data) {
+          var readme = data.readme;
+
+          // Render readme.
+          // TODO: Start with the contents hidden.
+          this.$.contents.innerHTML = data.readme;
+
+          var codeBlocks = [].slice.call(document.querySelectorAll('pre'));
+
+          // Find and replace all inline demos.
+          while (codeBlocks.length) {
+            var block = codeBlocks.shift();
+            var demoMatch = block.textContent.match(/<custom-element-demo[^]*?>[^]*<\/custom-element-demo>/);
+            if (!demoMatch)
+              continue;
+
+            var dummyParse = document.createElement('template');
+            dummyParse.innerHTML = block.textContent;
+            var dummyDemoElement = dummyParse.content.firstChild;
+            var demoElement = document.createElement('custom-element-demo');
+            demoElement.setAttribute('width', dummyDemoElement.getAttribute('width'));
+            demoElement.setAttribute('height', dummyDemoElement.getAttribute('height'));
+
+            // Swap elements out.
+            var parent = block.parentElement;
+            parent.parentElement.replaceChild(demoElement, parent);
+
+            // Find and set code.
+            var code = dummyDemoElement.firstElementChild.innerHTML;
+            var nextBlockRegex = /<next-code-block><\/next-code-block>/;
+            if (code.match(nextBlockRegex) && codeBlocks.length) {
+              var nextBlock = codeBlocks.shift();
+              code = code.replace(nextBlockRegex, nextBlock.textContent);
+              nextBlock.remove();
+            }
+
+            demoElement.data = this.data;
+            demoElement.code = code;
+          }
+        }
+      },
+
+      _dependencies: function() {
+        if (!this.data || !this.data.bower || !this.data.bower.dependencies)
+          return [];
+        return Object.keys(this.data.bower.dependencies);
+      },
+
+      _timeSinceString: function(time) {
+        var ms = Date.now() - Date.parse(time);
+        if (ms < 1000 * 60)
+          return "less than a minute";
+        if (ms < 1000 * 60 * 60)
+          return "less than an hour";
+        if (ms < 1000 * 60 * 60 * 24)
+          return Math.round(ms / 1000 / 60 / 60) + " hours";
+        if (ms < 1000 * 60 * 60 * 24 * 30)
+          return Math.round(ms / 1000 / 60 / 60 / 24) + " days";
+        return Math.round(ms / 1000 / 60 / 60 / 24 / 365 * 12) + " months";
+      },
+
+    });
+  </script>
+</dom-module>

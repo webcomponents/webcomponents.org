@@ -1,0 +1,8 @@
+{
+  "name": "catalog",
+  "short_name": "catalog",
+  "start_url": "/",
+  "background_color": "#fff",
+  "display": "standalone",
+  "theme_color": "#fff"
+}

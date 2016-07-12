@@ -1,0 +1,44 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="custom-element-demo">
+  <style>
+    #iframe {
+      border: none;
+    }
+  </style>
+  <template>
+    <iframe id="iframe"></iframe>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'custom-element-demo',
+
+      properties: {
+        data: Object,
+
+        width: Number,
+
+        height: Number,
+
+        code: String
+      },
+
+      observers: [
+        'codeChanged(data, code)'
+      ],
+
+      codeChanged: function(data, code) {
+        this.$.iframe.src = 'https://user-content-dot-custom-elements.appspot.com/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/inline/';
+        // TODO: need default values
+        this.$.iframe.width = this.width;
+        this.$.iframe.height = this.height;
+        this.$.iframe.onload = function() {
+          this.$.iframe.contentWindow.postMessage(this.code, '*');
+        }.bind(this);
+      }
+
+    });
+  </script>
+</dom-module>
