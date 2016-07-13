@@ -2,5 +2,7 @@ language: node_js
   - "6"
 before_script:
   - npm install -g gulp
+install:
+  - npm install
 script:
   - gulp lint
