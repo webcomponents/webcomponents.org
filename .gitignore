@@ -1,0 +1,6 @@
+**/lib
+**/bower_components
+**/node_modules
+secrets.yaml
+*.pyc
+*~
