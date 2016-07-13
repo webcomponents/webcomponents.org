@@ -5,16 +5,33 @@
 
 ## Front-end client
 ### Running
-```
+```bash
 dev_appserver.py .
 ```
 ### Testing
-```
+```bash
 wct --root client
 ```
 
 ### Deploying
-```
+```bash
 gulp lint
 appcfg.py update app.yaml
+```
+
+## Hydrolysis
+### Setup
+Install the gcloud SDK from https://cloud.google.com/sdk/downloads#versioned
+
+
+Configure your project and authentication
+```bash
+gcloud auth login whoeveryouare@gmail.com
+gcloud config set project custom-elements
+```
+
+Make sure the subscriptions and topics are setup
+```bash
+gcloud alpha pubsub topics create hydro hydroResponse
+gcloud alpha pubsub subscriptions create hydroResponse --topic hydroResponse --push-endpoint https://custom-elements.appspot.com/_ah/push-handlers/hydrolyzer
 ```
