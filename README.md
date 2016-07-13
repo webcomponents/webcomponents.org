@@ -16,5 +16,5 @@ wct --root client
 ### Deploying
 ```
 gulp lint
-appcfg.py app.yaml
+appcfg.py update app.yaml
 ```
