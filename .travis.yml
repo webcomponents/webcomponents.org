@@ -1,5 +1,5 @@
 language: node_js
-  - "6"
+node_js: stable
 before_script:
   - npm install -g gulp
 install:
