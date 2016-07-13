@@ -57,7 +57,7 @@
         Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
       },
 
-      _pageChanged: function(page, oldPage) {
+      _pageChanged: function(page) {
         if (page != null) {
           this.importHref(
             this.resolveUrl('catalog-' + page + '.html'),

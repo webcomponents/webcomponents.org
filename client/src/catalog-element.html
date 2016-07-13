@@ -279,13 +279,13 @@
       _elements: function() {
         if (!this.docs)
           return [];
-        return Object.keys(this.docs.elementsByTagName).map(elem => this.docs.elementsByTagName[elem]);
+        return Object.keys(this.docs.elementsByTagName).map(function(elem) { return this.docs.elementsByTagName[elem] });
       },
 
       _behaviors: function() {
         if (!this.docs)
           return [];
-        return Object.keys(this.docs.behaviorsByName).map(elem => this.docs.behaviorsByName[elem]);
+        return Object.keys(this.docs.behaviorsByName).map(function(elem) { return this.docs.behaviorsByName[elem] });
       },
 
       _routeChanged: function(route, visible) {
@@ -343,12 +343,12 @@
 
       _updateActiveLinks: function() {
         var links = Polymer.dom(this.$.drawer).querySelectorAll('a');
-        for (var a of links) {
+        links.forEach(function(a) {
           if (a.getAttribute('href') === this.route.prefix + this.route.path)
             a.setAttribute('active', '');
           else
             a.removeAttribute('active');
-        }
+        });
       },
 
       _handleSearch: function(event) {

@@ -29,7 +29,7 @@
         'codeChanged(data, code)'
       ],
 
-      codeChanged: function(data, code) {
+      codeChanged: function() {
         this.$.iframe.src = 'https://user-content-dot-custom-elements.appspot.com/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/inline/';
         // TODO: need default values
         this.$.iframe.width = this.width;
