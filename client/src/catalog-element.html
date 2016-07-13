@@ -279,13 +279,17 @@
       _elements: function() {
         if (!this.docs)
           return [];
-        return Object.keys(this.docs.elementsByTagName).map(function(elem) { return this.docs.elementsByTagName[elem] });
+        return Object.keys(this.docs.elementsByTagName).map(function(elem) {
+          return this.docs.elementsByTagName[elem];
+        });
       },
 
       _behaviors: function() {
         if (!this.docs)
           return [];
-        return Object.keys(this.docs.behaviorsByName).map(function(elem) { return this.docs.behaviorsByName[elem] });
+        return Object.keys(this.docs.behaviorsByName).map(function(elem) {
+          return this.docs.behaviorsByName[elem];
+        });
       },
 
       _routeChanged: function(route, visible) {
@@ -304,7 +308,7 @@
             // repo $1
             '^/([^/]+)' +
             // optional version $2
-            '(?:/(v?\\d+\.\\d+\.\\d+))?' +
+            '(?:/(v?\\d+\\.\\d+\\.\\d+))?' +
             // optional
             '(?:/' +
               // 'demo' $3, demo name or sub-element $4
