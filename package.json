@@ -7,7 +7,31 @@
   },
   "devDependencies": {
     "eslint-plugin-html": "^1.5.1",
+    "eslint-config-google": "^0.5.0",
     "gulp": "^3.9.1",
     "gulp-eslint": "^3.0.1"
+  },
+  "eslintConfig": {
+    "extends": "google",
+    "env": {
+      "browser": true
+    },
+    "plugins": [
+      "html"
+    ],
+    "globals": {
+      "CustomElements": true,
+      "HTMLImports": true,
+      "Polymer": true
+    },
+    "rules": {
+      "new-cap": 0,
+      "max-len": 0,
+      "no-warning-comments": 0,
+      "curly": 0,
+      "comma-dangle": 0,
+      "eqeqeq": 0,
+      "no-eq-null": 0
+    }
   }
 }
