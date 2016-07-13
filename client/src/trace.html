@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<input id=target type=text value="/api/search/foo..."></input>
+<button id=btn>Trace!</button><br>
+<a id=result></a>
+<script>
+btn.onclick = () => {
+  result.textContent = '';
+  var view = new Uint8Array(new ArrayBuffer(16));
+  crypto.getRandomValues(view);
+  var id = Array.from(view).map(x => (x < 16 ? '0' : '') + x.toString(16)).join('');
+  fetch(target.value, {
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      'X-Cloud-Trace-Context': id,
+      o: 1,
+    },
+  }).then(response => {
+    result.href = `http://console.developer.google.com/traces/details/${id}`;
+    result.textContent = id;
+  })
+}
+</script>

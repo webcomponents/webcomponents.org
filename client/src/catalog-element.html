@@ -1,0 +1,363 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-viewer.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="catalog-element-readme.html">
+
+<dom-module id="catalog-element">
+  <template>
+    <style>
+      :host {
+        display: block;
+        --border-color: #ddd;
+        --theme-accent-color: #6A1B9A;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      /* Drawer */
+
+      app-drawer {
+        --app-drawer-content-container: {
+          background-color: white;
+          border-right: 1px solid var(--border-color);
+          overflow: auto;
+        }
+        font-size: 14px;
+      }
+
+      .menu-item {
+        padding: 12px 16px;
+        position: relative;
+      }
+
+      app-drawer a {
+        color: inherit;
+        display: flex;
+        text-decoration: none;
+      }
+
+      #elementTitle {
+        background: var(--theme-accent-color);
+        color: white;
+      }
+
+      app-drawer a[active] {
+        color: #3F51B5;
+        font-weight: 500;
+      }
+
+      app-drawer a:hover {
+        text-decoration: none;
+      }
+
+      app-drawer .section-title {
+        font-weight: 600;
+      }
+
+      .menu-item.indent {
+        margin-left: 8px;
+      }
+
+      app-drawer a div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      iron-icon[icon=search] {
+        position: absolute;
+        margin-left: 16px;
+        margin-top: 11px;
+        color: #616161;
+      }
+
+      input[type=search] {
+        -webkit-appearance: none;
+        border: 0;
+        border-bottom: 1px solid var(--border-color);
+        height: 46px;
+        line-height: 46px;
+        margin: 0 0 8px 0;
+        padding-left: 50px;
+        padding-right: 16px;
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-weight: 400;
+        width: 100%;
+      }
+
+      input[type=search]:focus {
+        outline: 0;
+        background-color: #ECEFF1;
+        border-color: #cfd8dc;
+      }
+
+      h2[title] {
+        display: inline-block;
+        font-weight: 400;
+        font-size: 18px;
+        letter-spacing: 0;
+        line-height: 32px;
+        margin: 0;
+      }
+
+      h2[title].repo-title, .repo-title {
+        font-weight: 500;
+      }
+
+      #version {
+        position: absolute;
+        right: 0;
+        top: 50px;
+        right: 16px;
+      }
+
+      /* Content page */
+
+      @media (min-width: 641px) {
+        paper-icon-button {
+          display: none;
+        }
+      }
+
+      app-header {
+        background: #F44336;
+      }
+
+      #content {
+        padding: 16px 32px;
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      #demo-frame {
+        border: none;
+        width: 100%;
+        height: 100vh;
+        position: absolute;
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+    </style>
+
+    <app-route
+      route="[[route]]"
+      pattern="/:owner"
+      data="{{routeMatch}}"
+      tail="{{routeTail}}"></app-route>
+
+    <iron-ajax
+      id="metaAjax"
+      url="https://api-dot-custom-elements.appspot.com/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      handle-as="json"
+      last-response="{{data}}"
+      on-response="_handleResponse"></iron-ajax>
+
+    <iron-ajax
+      id="docsAjax"
+      url="https://api-dot-custom-elements.appspot.com/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      handle-as="json"
+      last-response="{{docs}}"
+      on-response="_handleResponse"></iron-ajax>
+
+    <app-drawer-layout>
+      <app-drawer id="drawer" swipe-open>
+        <div class="menu-item">&lt;/&gt; elements.io</div>
+        <iron-icon icon="search"></iron-icon>
+        <input type="search" placeholder="Search" on-keypress="_handleSearch">
+        <a href="/element/[[routeMatch.owner]]/[[repo]]" id="elementTitle">
+          <div class="menu-item" selected>
+            <h2 title>[[routeMatch.owner]] /</h2>
+            <h2 title class="repo-title">[[repo]]</h2>
+            <template is="dom-if" if="[[data]]">
+              <span id="version">[[data.version]]</span>
+            </template>
+          </div>
+        </a>
+        <a class="menu-item" href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View on Github</a>
+
+        <template is="dom-if" if="[[bundledElements]]">
+          <div class="menu-item section-title">Demos</div>
+
+          <template is="dom-repeat" items="[[bundledElements]]" as="element">
+            <template is="dom-repeat" items=[[element.demos]] as="demo">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/demo/[[demo.path]]">
+                <div>[[demo.desc]]</div>
+              </a>
+            </template>
+          </template>
+
+          <div class="menu-item section-title">Docs</div>
+
+          <template is="dom-repeat" items="[[bundledElements]]" as="element">
+            <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[element.is]]">
+              <div>[[element.is]]</div>
+            </a>
+          </template>
+          <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
+            <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[behavior.is]]">
+              <div>[[behavior.is]]</div>
+            </a>
+          </template>
+        </template>
+
+      </app-drawer>
+
+      <template is="dom-if" if="[[!demo]]">
+        <div id="content">
+          <paper-icon-button icon="menu" on-tap="tapped"></paper-icon-button>
+          <template is="dom-if" if="[[_showMainView(subElement, demo)]]">
+            <h2 title>
+              <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank"><svg aria-hidden="true" class="octicon octicon-mark-github" height="28" version="1.1" viewBox="0 0 16 16" width="32"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59 0.4 0.07 0.55-0.17 0.55-0.38 0-0.19-0.01-0.82-0.01-1.49-2.01 0.37-2.53-0.49-2.69-0.94-0.09-0.23-0.48-0.94-0.82-1.13-0.28-0.15-0.68-0.52-0.01-0.53 0.63-0.01 1.08 0.58 1.23 0.82 0.72 1.21 1.87 0.87 2.33 0.66 0.07-0.52 0.28-0.87 0.51-1.07-1.78-0.2-3.64-0.89-3.64-3.95 0-0.87 0.31-1.59 0.82-2.15-0.08-0.2-0.36-1.02 0.08-2.12 0 0 0.67-0.21 2.2 0.82 0.64-0.18 1.32-0.27 2-0.27 0.68 0 1.36 0.09 2 0.27 1.53-1.04 2.2-0.82 2.2-0.82 0.44 1.1 0.16 1.92 0.08 2.12 0.51 0.56 0.82 1.27 0.82 2.15 0 3.07-1.87 3.75-3.65 3.95 0.29 0.25 0.54 0.73 0.54 1.48 0 1.07-0.01 1.93-0.01 2.2 0 0.21 0.15 0.46 0.55 0.38C13.71 14.53 16 11.53 16 8 16 3.58 12.42 0 8 0z"></path></svg></a>
+              <a href="/author/[[routeMatch.owner]]/">[[routeMatch.owner]]</a> /
+              <span class="repo-title"><a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a></span>
+            </h2>
+
+            <catalog-element-readme data="[[data]]"></catalog-element-readme>
+          </template>
+
+          <template is="dom-if" if="[[subElement]]">
+            <h2 title>[[subElement]]</h2>
+            <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
+          </template>
+        </div>
+      </template>
+
+      <!-- TODO(samli): Lacking drawer button -->
+      <template is="dom-if" if="[[demo]]">
+        <iframe id="demo-frame"
+                src="https://user-content-dot-custom-elements.appspot.com/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
+        </iframe>
+      </template>
+
+    </app-drawer-layout>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-element',
+
+      properties: {
+        visible: Boolean,
+
+        route: String
+      },
+
+      observers: [
+        '_routeChanged(route, visible)'
+      ],
+
+      tapped: function() {
+        this.$.drawer.toggle();
+      },
+
+      ready: function() {
+        this._loaded = true;
+        this._routeChanged(this.route, this.visible);
+        this.async(this._updateActiveLinks);
+      },
+
+      _showMainView: function(subElement, demo) {
+        return !(subElement || demo);
+      },
+
+      _elements: function() {
+        if (!this.docs)
+          return [];
+        return Object.keys(this.docs.elementsByTagName).map(elem => this.docs.elementsByTagName[elem]);
+      },
+
+      _behaviors: function() {
+        if (!this.docs)
+          return [];
+        return Object.keys(this.docs.behaviorsByName).map(elem => this.docs.behaviorsByName[elem]);
+      },
+
+      _routeChanged: function(route, visible) {
+        if (!visible) {
+          this.data = {};
+          this.descriptor = {};
+          this.bundledElements = [];
+          this.bundledBehaviors = [];
+        }
+
+        if (!visible || !this._loaded || route.prefix !== '/element')
+          return;
+
+        // Split the URL - /:repo/?version/?[subElement|demo/path]
+        var match = this.routeTail.path.match(
+            // repo $1
+            '^/([^/]+)' +
+            // optional version $2
+            '(?:/(v?\\d+\.\\d+\.\\d+))?' +
+            // optional
+            '(?:/' +
+              // 'demo' $3, demo name or sub-element $4
+              '(demo/)?(.*)' +
+            ')?');
+        this.repo = match[1];
+        this.versionRoute = match[2] ? '/' + match[2] : '';
+        this.subElement = (match[3] || !match[4]) ? null : match[4];
+        this.demo = (match[3] && match[4]) ? match[4] : null;
+
+        // Generate requests
+        if (!this._cachedData || this._cachedData !== this.repo) {
+          this.$.metaAjax.generateRequest();
+          this.$.docsAjax.generateRequest();
+          this._cachedData = this.repo;
+        } else {
+          this._updateDescriptor();
+          this._updateActiveLinks();
+        }
+        if (!this.$.drawer.persistent)
+          this.$.drawer.close();
+      },
+
+      _handleResponse: function() {
+        this._updateDescriptor();
+        Polymer.RenderStatus.afterNextRender(this, this._updateActiveLinks);
+      },
+
+      _updateDescriptor: function() {
+        if (!this.docs)
+          return;
+        this.bundledElements = this._elements();
+        this.bundledBehaviors = this._behaviors();
+        this.descriptor = this.docs.elementsByTagName[this.subElement] || this.docs.behaviorsByName[this.subElement];
+      },
+
+      _updateActiveLinks: function() {
+        var links = Polymer.dom(this.$.drawer).querySelectorAll('a');
+        for (var a of links) {
+          if (a.getAttribute('href') === this.route.prefix + this.route.path)
+            a.setAttribute('active', '');
+          else
+            a.removeAttribute('active');
+        }
+      },
+
+      _handleSearch: function(event) {
+        // Check for enter event
+        // TODO: this shouldn't trigger a page reload
+        if (event.keyCode === 13)
+          window.location.href = "/search/" + event.target.value;
+      },
+
+    });
+  </script>
+</dom-module>

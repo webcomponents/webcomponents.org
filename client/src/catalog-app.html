@@ -1,0 +1,72 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<dom-module id="catalog-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+      route="{{route}}"
+      pattern="/:page"
+      data="{{routeData}}"
+      tail="{{subroute}}"></app-route>
+
+    <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+      <catalog-collection name="collection" route="[[subroute]]"></catalog-collection>
+      <catalog-element name="element" route="[[subroute]]"></catalog-element>
+      <catalog-search name="search" route="{{subroute}}"></catalog-search>
+    </iron-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-app',
+
+      properties: {
+
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        }
+
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)'
+      ],
+
+      created: function() {
+        window.performance && performance.mark && performance.mark('catalog-app.created');
+        this.removeAttribute('unresolved');
+      },
+
+      _routePageChanged: function(page) {
+        this.page = page || 'search';
+        // Scroll to the top of the page on every *route* change. Use `Polymer.AppLayout.scroll`
+        // with `behavior: 'silent'` to disable header scroll effects during the scroll.
+        Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+      },
+
+      _pageChanged: function(page, oldPage) {
+        if (page != null) {
+          this.importHref(
+            this.resolveUrl('catalog-' + page + '.html'),
+            function() {
+              // page loaded
+            }, null, true);
+        }
+      },
+
+    });
+  </script>
+</dom-module>

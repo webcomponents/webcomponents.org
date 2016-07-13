@@ -1,0 +1,31 @@
+<!doctype html>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
+
+<!-- Import the element to test -->
+<link rel="import" href="../src/catalog-element-readme.html">
+
+<test-fixture id="basic">
+  <template>
+     <catalog-element-readme></catalog-element-readme>
+  </template>
+</test-fixture>
+
+<script>
+  suite('catalog-element-readme inline demo test', function() {
+    var readmeElement;
+    setup(function() {
+      readmeElement = fixture('basic');
+    });
+    test('Should create custom-element-demo', function() {
+      readmeElement.data = { readme: '<div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">custom</span><span class="pl-e">-element-demo</span> <span class="pl-e">width</span>=<span class="pl-s"><span class="pl-pds">"</span>500<span class="pl-pds">"</span></span> <span class="pl-e">height</span>=<span class="pl-s"><span class="pl-pds">"</span>500<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">template</span>&gt; <span class="pl-s1"> &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>../../webcomponentsjs/webcomponents-lite.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</span> &lt;<span class="pl-ent">link</span> <span class="pl-e">rel</span>=<span class="pl-s"><span class="pl-pds">"</span>import<span class="pl-pds">"</span></span> <span class="pl-e">href</span>=<span class="pl-s"><span class="pl-pds">"</span>../../iron-demo-helpers/demo-snippet.html<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">link</span> <span class="pl-e">rel</span>=<span class="pl-s"><span class="pl-pds">"</span>import<span class="pl-pds">"</span></span> <span class="pl-e">href</span>=<span class="pl-s"><span class="pl-pds">"</span>../../iron-demo-helpers/demo-pages-shared-styles.html<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">link</span> <span class="pl-e">rel</span>=<span class="pl-s"><span class="pl-pds">"</span>import<span class="pl-pds">"</span></span> <span class="pl-e">href</span>=<span class="pl-s"><span class="pl-pds">"</span>../../iron-icons/iron-icons.html<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">link</span> <span class="pl-e">rel</span>=<span class="pl-s"><span class="pl-pds">"</span>import<span class="pl-pds">"</span></span> <span class="pl-e">href</span>=<span class="pl-s"><span class="pl-pds">"</span>../../paper-styles/color.html<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">link</span> <span class="pl-e">rel</span>=<span class="pl-s"><span class="pl-pds">"</span>import<span class="pl-pds">"</span></span> <span class="pl-e">href</span>=<span class="pl-s"><span class="pl-pds">"</span>../paper-button.html<span class="pl-pds">"</span></span>&gt; &lt;<span class="pl-ent">next</span><span class="pl-e">-code-block</span>&gt;&lt;/<span class="pl-ent">next</span><span class="pl-e">-code-block</span>&gt; &lt;/<span class="pl-ent">template</span>&gt; &lt;/<span class="pl-ent">custom</span><span class="pl-e">-element-demo</span>&gt;</pre></div> <div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">paper</span><span class="pl-e">-button</span>&gt;Flat button&lt;/<span class="pl-ent">paper</span><span class="pl-e">-button</span>&gt; &lt;<span class="pl-ent">paper</span><span class="pl-e">-button</span> <span class="pl-e">raised</span>&gt;Raised button&lt;/<span class="pl-ent">paper</span><span class="pl-e">-button</span>&gt; &lt;<span class="pl-ent">paper</span><span class="pl-e">-button</span> <span class="pl-e">noink</span>&gt;No ripple effect&lt;/<span class="pl-ent">paper</span><span class="pl-e">-button</span>&gt; &lt;<span class="pl-ent">paper</span><span class="pl-e">-button</span> <span class="pl-e">toggles</span>&gt;Toggle-able button&lt;/<span class="pl-ent">paper</span><span class="pl-e">-button</span>&gt;</pre></div>' };
+
+      var demos = Polymer.dom(readmeElement.root).querySelectorAll('custom-element-demo');
+      assert.equal(demos.length, 1, 'one inline demo created');
+      assert.equal(demos[0].getAttribute('width'), 500);
+      assert.equal(demos[0].getAttribute('height'), 500);
+      assert.isNull(demos[0].code.match('next-code-block'), 'next-code-block should have been stripped');
+    })
+  });
+</script>

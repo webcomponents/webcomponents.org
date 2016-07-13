@@ -1,0 +1,57 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>catalog</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#abc">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="import" href="/src/catalog-app.html" async>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+
+      catalog-app[unresolved] {
+        opacity: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <catalog-app unresolved></catalog-app>
+    <script>
+      window.performance && performance.mark && performance.mark('index.html');
+
+      Polymer = {lazyRegister: true};
+
+      (function() {
+        if ('registerElement' in document
+            && 'import' in document.createElement('link')
+            && 'content' in document.createElement('template')) {
+          // platform is good!
+        } else {
+          // mini-fill <link rel=prefetch>
+          // (only needed for Safari, but relatively harmless and not detectable)
+          var l$ = document.querySelectorAll('link[rel=prefetch]');
+          for (var i=0, r; i < l$.length; i++) {
+            r = new XMLHttpRequest();
+            r.open('GET', l$[i].href);
+            r.send();
+          }
+          // polyfill the platform!
+          var e = document.createElement('script');
+          e.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
+          document.body.appendChild(e);
+        }
+      })();
+    </script>
+  </body>
+</html>
