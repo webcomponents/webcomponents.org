@@ -6,10 +6,11 @@
     "type": "git"
   },
   "devDependencies": {
-    "eslint-plugin-html": "^1.5.1",
     "eslint-config-google": "^0.5.0",
+    "eslint-plugin-html": "^1.5.1",
     "gulp": "^3.9.1",
-    "gulp-eslint": "^3.0.1"
+    "gulp-eslint": "^3.0.1",
+    "web-component-tester": "^4.3.1"
   },
   "eslintConfig": {
     "extends": "google",
