@@ -162,14 +162,19 @@
 
             // Find and set code.
             var code = dummyDemoElement.firstElementChild.innerHTML;
+            // Strip empty new line & one level of indentation.
+            code = code.replace(/^\n/, "").replace(/^ {4}/gm, '').replace(/\n\s*$/, '');
             var nextBlockRegex = /<next-code-block><\/next-code-block>/;
+            var snippet = '';
             if (code.match(nextBlockRegex) && codeBlocks.length) {
               var nextBlock = codeBlocks.shift();
+              snippet = nextBlock.textContent;
               code = code.replace(nextBlockRegex, nextBlock.textContent);
               nextBlock.remove();
             }
 
             demoElement.data = this.data;
+            demoElement.snippet = snippet;
             demoElement.code = code;
           }
         }
