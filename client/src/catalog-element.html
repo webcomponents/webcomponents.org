@@ -281,7 +281,7 @@
           return [];
         return Object.keys(this.docs.elementsByTagName).map(function(elem) {
           return this.docs.elementsByTagName[elem];
-        });
+        }.bind(this));
       },
 
       _behaviors: function() {
@@ -289,7 +289,7 @@
           return [];
         return Object.keys(this.docs.behaviorsByName).map(function(elem) {
           return this.docs.behaviorsByName[elem];
-        });
+        }.bind(this));
       },
 
       _routeChanged: function(route, visible) {
@@ -352,7 +352,7 @@
             a.setAttribute('active', '');
           else
             a.removeAttribute('active');
-        });
+        }.bind(this));
       },
 
       _handleSearch: function(event) {

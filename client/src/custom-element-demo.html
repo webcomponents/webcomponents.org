@@ -1,13 +1,41 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/prism-element/prism-highlighter.html">
 
 <dom-module id="custom-element-demo">
   <style>
-    #iframe {
+    #expandSourceButton {
+      display: block;
+      width: 30px;
+      height: 14px;
+      line-height: 8px;
+      margin-bottom: 8px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: white;
+      font-size: 8px;
+      cursor: pointer;
+    }
+
+    #demoContainer {
+      width: 100%;
+      border: 1px solid #f7f7f7;
+    }
+
+    #demo {
       border: none;
+      width: 100%;
+      height: 0px;
+      transition: height 300ms cubic-bezier(0, 0, 0.2, 1);
     }
   </style>
   <template>
-    <iframe id="iframe"></iframe>
+    <prism-highlighter></prism-highlighter>
+    <div id="demoContainer">
+      <iframe id="demo"></iframe>
+    </div>
+    <pre id="source"></pre>
   </template>
 
   <script>
@@ -22,21 +50,51 @@
 
         height: Number,
 
-        code: String
+        code: String,
+
+        snippet: String,
       },
 
       observers: [
-        'codeChanged(data, code)'
+        'updateDemo(data, code)',
+        'updateSource(snippet)',
+        'updateSource(code)',
       ],
 
-      codeChanged: function() {
-        this.$.iframe.src = 'https://user-content-dot-custom-elements.appspot.com/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/inline/';
-        // TODO: need default values
-        this.$.iframe.width = this.width;
-        this.$.iframe.height = this.height;
-        this.$.iframe.onload = function() {
-          this.$.iframe.contentWindow.postMessage(this.code, '*');
+      _expandSource: function() {
+        this.$.source.innerHTML = this.highlight(this.code);
+      },
+
+      highlight: function(code) {
+        return this.fire('syntax-highlight', {code: code}).detail.code;
+      },
+
+      updateSource: function() {
+        this.$.source.innerHTML = this.highlight(this.snippet || this.code);
+
+        if (this.snippet) {
+          // TODO: Make this button accessible.
+          var expandButton = document.createElement('span');
+          expandButton.id = 'expandSourceButton';
+          expandButton.textContent = '...';
+          expandButton.addEventListener('click', this._expandSource.bind(this));
+          Polymer.dom(this.$.source).insertBefore(expandButton, this.$.source.firstChild);
+        }
+      },
+
+      updateDemo: function() {
+        this.$.demo.src = 'https://user-content-dot-custom-elements.appspot.com/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
+        this.$.demo.style.minWidth = this.width;
+        this.$.demo.style.minHeight = this.height;
+        this.$.demo.onload = function() {
+          this.$.demo.contentWindow.postMessage(this.code, '*');
         }.bind(this);
+
+        window.addEventListener('message', this._demoLoaded.bind(this), false);
+      },
+
+      _demoLoaded: function(event) {
+        this.$.demo.style.height = event.data.height + 'px';
       }
 
     });
