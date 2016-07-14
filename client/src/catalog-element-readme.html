@@ -139,8 +139,7 @@
           // Render readme.
           // TODO: Start with the contents hidden.
           this.$.contents.innerHTML = data.readme;
-
-          var codeBlocks = [].slice.call(document.querySelectorAll('pre'));
+          var codeBlocks = [].slice.call(Polymer.dom(this.root).querySelectorAll('pre'));
 
           // Find and replace all inline demos.
           while (codeBlocks.length) {
