@@ -2,6 +2,9 @@
 <link rel="import" href="../bower_components/prism-element/prism-highlighter.html">
 
 <dom-module id="custom-element-demo">
+  <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
+  <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
+  <link rel="import" type="css" href="../bower_components/prism/themes/prism.css">
   <style>
     #expandSourceButton {
       display: block;
@@ -35,7 +38,9 @@
     <div id="demoContainer">
       <iframe id="demo"></iframe>
     </div>
-    <pre id="source"></pre>
+    <div class="markdown-body">
+      <pre id="source"></pre>
+    </div>
   </template>
 
   <script>
