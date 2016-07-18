@@ -3,22 +3,6 @@
 [![Travis](https://img.shields.io/travis/customelements/v2.svg?maxAge=2592000)]()
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000)]()
 
-## Front-end client
-### Running
-```bash
-dev_appserver.py .
-```
-### Testing
-```bash
-wct --root client
-```
-
-### Deploying
-```bash
-gulp lint
-appcfg.py update app.yaml
-```
-
 ## Hydrolysis
 ### Setup
 Install the gcloud SDK from https://cloud.google.com/sdk/downloads#versioned
