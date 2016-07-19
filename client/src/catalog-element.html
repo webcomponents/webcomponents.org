@@ -192,12 +192,10 @@
         <template is="dom-if" if="[[bundledElements]]">
           <div class="menu-item section-title">Demos</div>
 
-          <template is="dom-repeat" items="[[bundledElements]]" as="element">
-            <template is="dom-repeat" items=[[element.demos]] as="demo">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/demo/[[demo.path]]">
-                <div>[[demo.desc]]</div>
-              </a>
-            </template>
+          <template is="dom-repeat" items=[[bundledDemos]] as="demo">
+            <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/demo/[[demo.path]]">
+              <div>[[demo.desc]]</div>
+            </a>
           </template>
 
           <div class="menu-item section-title">Docs</div>
@@ -291,6 +289,23 @@
         }.bind(this));
       },
 
+      _demos: function() {
+        if (!this.docs || !this.bundledElements)
+          return [];
+
+        // Dedupe demos since elements can point to the same demo.
+        var demosByPath = {};
+        this.bundledElements.forEach(function(elem) {
+          elem.demos.forEach(function(demo) {
+            demosByPath[demo.path] = demo;
+          });
+        });
+
+        return Object.keys(demosByPath).map(function(demoPath) {
+          return demosByPath[demoPath];
+        });
+      },
+
       _routeChanged: function(route, visible) {
         if (!visible) {
           this.data = {};
@@ -341,6 +356,7 @@
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
+        this.bundledDemos = this._demos();
         this.descriptor = this.docs.elementsByTagName[this.subElement] || this.docs.behaviorsByName[this.subElement];
       },
 
