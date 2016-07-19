@@ -40,14 +40,14 @@
       border-color: #cfd8dc;
     }
 
-    iron-list, input[type=search] {
+    iron-list, input[type=search], #emptyResults {
       border: 1px solid #d0d0d0;
       border-radius: 3px;
     }
 
     /* Search results */
 
-    iron-list {
+    iron-list, #emptyResults {
       flex: 1 0 200px;
       background: #FAFAFA;
     }
@@ -108,6 +108,13 @@
     .repo-description {
       color: #757575;
     }
+
+    #emptyResults {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+    }
     </style>
 
     <app-route
@@ -118,15 +125,20 @@
     <iron-ajax
       auto
       id="ajax"
+      loading="{{loading}}"
       url="https://api-dot-custom-elements.appspot.com/search/[[routeData.query]]"
       handle-as="json"
       last-response="{{data}}"
+      on-request="handleRequest"
+      on-response="handleResponse"
       debounce-duration="300"></iron-ajax>
 
     <div id="container">
       <input type="search" id="search" placeholder="Search" on-keyup="_onSearchKeyUp" on-focus="_onSearchFocus">
 
-      <iron-list items="[[data]]" as="item">
+      <div id="emptyResults" hidden="[[data.length]]">[[emptyResultsMessage(routeData, loading)]]</div>
+
+      <iron-list id="results" items="[[data]]" as="item" hidden="[[!data.length]]">
         <template>
           <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]">
             <div class="row">
@@ -163,13 +175,29 @@
         }
       },
 
+      observers: [
+        'onNavigation(visible, route.prefix)'
+      ],
+
       ready: function() {
         // TODO: Should listen to request/response events on iron-ajax and show a spinner
         this.$.search.value = this.routeData.query || "";
+        this.$.search.focus();
+        this.$.activeRequests = null;
+      },
+
+      onNavigation: function(visible, prefix) {
+        if (!visible)
+          return;
+
+        // Return to the same search results as before.
+        if (prefix == '/search' && !this.route.path) {
+          this.$.search.focus();
+          this.set('route.path', this.$.search.value);
+        }
       },
 
       visiblityChanged: function(visible) {
-        // Prevent firing requests when search page is not visible
         if (visible)
           this.$.ajax.setAttribute('auto', '');
         else
@@ -177,11 +205,30 @@
       },
 
       _onSearchKeyUp: function() {
-        this.set('routeData.query', this.$.search.value);
+        this.set('route.path', this.$.search.value);
       },
 
       _onSearchFocus: function() {
         this.$.search.select();
+      },
+
+      handleRequest: function(event) {
+        if (!this.routeData.query)
+          event.detail.request.abort();
+      },
+
+      handleResponse: function() {
+        this.$.results.fire('iron-resize');
+      },
+
+      emptyResultsMessage: function(routeData, loading) {
+        if (!routeData || !routeData.query)
+          return 'Use the search box above to find elements';
+
+        if (loading)
+          return 'Loading results';
+
+        return 'No results found';
       },
 
     });

@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-viewer.html">
@@ -35,7 +36,6 @@
       }
 
       .menu-item {
-        width: 100%;
         padding: 12px 16px;
         position: relative;
       }
@@ -77,16 +77,14 @@
         position: absolute;
         margin-left: 16px;
         margin-top: 11px;
-        color: #616161;
+        color: #bdbdbd;
       }
 
       input[type=search] {
         -webkit-appearance: none;
         border: 0;
-        border-bottom: 1px solid var(--border-color);
         height: 46px;
         line-height: 46px;
-        margin: 0 0 8px 0;
         padding-left: 50px;
         padding-right: 16px;
         -webkit-font-smoothing: antialiased;
@@ -94,6 +92,7 @@
         font-family: 'Roboto', 'Noto', sans-serif;
         font-weight: 400;
         width: 100%;
+        background: #424242;
       }
 
       input[type=search]:focus {
@@ -138,6 +137,20 @@
         min-width: 200px;
         max-width: 980px;
         margin: 0 auto;
+        animation: fade 167ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      #content.hidden {
+        animation: none;
       }
 
       #demo-frame {
@@ -153,14 +166,16 @@
 
     </style>
 
+    <app-location route="{{routeLocation}}"></app-location>
     <app-route
-      route="[[route]]"
+      route="{{route}}"
       pattern="/:owner"
       data="{{routeMatch}}"
       tail="{{routeTail}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
+      loading="{{loading}}"
       url="https://api-dot-custom-elements.appspot.com/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
@@ -175,9 +190,8 @@
 
     <app-drawer-layout>
       <app-drawer id="drawer" swipe-open>
-        <div class="menu-item">&lt;/&gt; elements.io</div>
         <iron-icon icon="search"></iron-icon>
-        <input type="search" placeholder="Search" on-keypress="_handleSearch">
+        <input type="search" placeholder="Search" on-tap="_navigateToSearch">
         <a href="/element/[[routeMatch.owner]]/[[repo]]" id="elementTitle">
           <div class="menu-item" selected>
             <h2 title>[[routeMatch.owner]] /</h2>
@@ -215,7 +229,7 @@
       </app-drawer>
 
       <template is="dom-if" if="[[!demo]]">
-        <div id="content">
+        <div id="content" hidden="[[loading]]">
           <paper-icon-button icon="menu" on-tap="tapped"></paper-icon-button>
           <template is="dom-if" if="[[_showMainView(subElement, demo)]]">
             <h2 title>
@@ -256,7 +270,8 @@
       },
 
       observers: [
-        '_routeChanged(route, visible)'
+        '_routeChanged(route, visible)',
+        'onload(loading)'
       ],
 
       tapped: function() {
@@ -306,14 +321,17 @@
         });
       },
 
-      _routeChanged: function(route, visible) {
-        if (!visible) {
-          this.data = {};
-          this.descriptor = {};
-          this.bundledElements = [];
-          this.bundledBehaviors = [];
-        }
+      onload: function(loading) {
+        if (!this.visible || !loading)
+          return;
 
+        this.data = {};
+        this.descriptor = {};
+        this.bundledElements = [];
+        this.bundledBehaviors = [];
+      },
+
+      _routeChanged: function(route, visible) {
         if (!visible || !this._loaded || route.prefix !== '/element')
           return;
 
@@ -370,11 +388,8 @@
         }.bind(this));
       },
 
-      _handleSearch: function(event) {
-        // Check for enter event
-        // TODO: this shouldn't trigger a page reload
-        if (event.keyCode === 13)
-          window.location.href = "/search/" + event.target.value;
+      _navigateToSearch: function(event) {
+        this.set('routeLocation.path', '/search');
       },
 
     });
