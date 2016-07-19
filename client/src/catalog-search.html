@@ -190,9 +190,12 @@
         if (!visible)
           return;
 
+        document.title = 'Search';
+
         // Return to the same search results as before.
         if (prefix == '/search' && !this.route.path) {
           this.$.search.focus();
+          // TODO: this causes back button to require 2 backs to go back.
           this.set('route.path', this.$.search.value);
         }
       },

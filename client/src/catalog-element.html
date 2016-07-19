@@ -351,6 +351,8 @@
         this.subElement = (match[3] || !match[4]) ? null : match[4];
         this.demo = (match[3] && match[4]) ? match[4] : null;
 
+        document.title = this.routeMatch.owner + '/' + this.repo;
+
         // Generate requests
         if (!this._cachedData || this._cachedData !== this.repo) {
           this.$.metaAjax.generateRequest();
@@ -365,6 +367,7 @@
       },
 
       _handleResponse: function() {
+        document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
         Polymer.RenderStatus.afterNextRender(this, this._updateActiveLinks);
       },
