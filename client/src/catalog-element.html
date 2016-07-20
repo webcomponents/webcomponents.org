@@ -171,20 +171,19 @@
       route="{{route}}"
       pattern="/:owner"
       data="{{routeMatch}}"
-      tail="{{routeTail}}"
-      query-params="{{queryParams}}"></app-route>
+      tail="{{routeTail}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
       loading="{{loading}}"
-      url="[[queryParams.base]]/api/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_handleResponse"></iron-ajax>
 
     <iron-ajax
       id="docsAjax"
-      url="[[queryParams.base]]/api/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
       on-response="_handleResponse"></iron-ajax>
@@ -239,7 +238,7 @@
               <span class="repo-title"><a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a></span>
             </h2>
 
-            <catalog-element-readme data="[[data]]"></catalog-element-readme>
+            <catalog-element-readme data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           </template>
 
           <template is="dom-if" if="[[subElement]]">
@@ -252,7 +251,7 @@
       <!-- TODO(samli): Lacking drawer button -->
       <template is="dom-if" if="[[demo]]">
         <iframe id="demo-frame"
-                src="https://user-content-dot-custom-elements.appspot.com/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
+                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
         </iframe>
       </template>
 
@@ -267,7 +266,9 @@
       properties: {
         visible: Boolean,
 
-        route: String
+        route: String,
+
+        baseUrls: Object
       },
 
       observers: [
@@ -368,7 +369,8 @@
       },
 
       _handleResponse: function() {
-        document.title = this.data.owner + '/' + this.data.repo;
+        if (this.data)
+          document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
         Polymer.RenderStatus.afterNextRender(this, this._updateActiveLinks);
       },

@@ -58,6 +58,8 @@
         code: String,
 
         snippet: String,
+
+        baseUrl: String,
       },
 
       observers: [
@@ -88,7 +90,7 @@
       },
 
       updateDemo: function() {
-        this.$.demo.src = 'https://user-content-dot-custom-elements.appspot.com/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
+        this.$.demo.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
         this.$.demo.style.minWidth = this.width;
         this.$.demo.style.minHeight = this.height;
         this.$.demo.onload = function() {

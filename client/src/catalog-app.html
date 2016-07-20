@@ -17,11 +17,12 @@
       route="{{route}}"
       pattern="/:page"
       data="{{routeData}}"
-      tail="{{subroute}}"></app-route>
+      tail="{{subroute}}"
+      query-params="{{queryParams}}"></app-route>
 
     <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <catalog-collection name="collection" route="[[subroute]]"></catalog-collection>
-      <catalog-element name="element" route="[[subroute]]"></catalog-element>
+      <catalog-element name="element" route="[[subroute]]" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-search name="search" route="{{subroute}}"></catalog-search>
     </iron-pages>
   </template>
@@ -66,6 +67,20 @@
               // page loaded
             }, null, true);
         }
+      },
+
+      baseUrls: function(queryParams) {
+        var isLocalhost = window.location.hostname == 'localhost';
+        var result = { 'api': '', 'userContent': 'https://user-content-dot-' + window.location.hostname };
+        if (isLocalhost) {
+          result.api = 'https://custom-elements-staging.appspot.com';
+          result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
+        }
+        if (queryParams.instance) {
+          result.api = 'https://' + queryParams.instance;
+          result.userContent = 'https://user-content-dot-' + queryParams.instance;
+        }
+        return result;
       },
 
     });
