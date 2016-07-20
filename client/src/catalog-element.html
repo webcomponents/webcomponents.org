@@ -171,19 +171,20 @@
       route="{{route}}"
       pattern="/:owner"
       data="{{routeMatch}}"
-      tail="{{routeTail}}"></app-route>
+      tail="{{routeTail}}"
+      query-params="{{queryParams}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
       loading="{{loading}}"
-      url="https://api-dot-custom-elements.appspot.com/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      url="[[queryParams.base]]/api/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_handleResponse"></iron-ajax>
 
     <iron-ajax
       id="docsAjax"
-      url="https://api-dot-custom-elements.appspot.com/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      url="[[queryParams.base]]/api/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
       on-response="_handleResponse"></iron-ajax>

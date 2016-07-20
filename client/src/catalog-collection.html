@@ -106,11 +106,12 @@
     <app-route
       route="[[route]]"
       pattern="/:owner/:repo"
-      data="{{routeMatch}}"></app-route>
+      data="{{routeMatch}}"
+      query-params="{{queryParams}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
-      url="https://api-dot-custom-elements.appspot.com/meta/[[routeMatch.owner]]/[[routeMatch.repo]]"
+      url="[[queryParams.base]]/api/meta/[[routeMatch.owner]]/[[routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_handleResponse"></iron-ajax>
