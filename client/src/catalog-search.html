@@ -120,13 +120,14 @@
     <app-route
       route="{{route}}"
       pattern="/:query"
-      data="{{routeData}}"></app-route>
+      data="{{routeData}}"
+      query-params="{{queryParams}}"></app-route>
 
     <iron-ajax
       auto
       id="ajax"
       loading="{{loading}}"
-      url="https://api-dot-custom-elements.appspot.com/search/[[routeData.query]]"
+      url="[[queryParams.base]]/api/search/[[routeData.query]]"
       handle-as="json"
       last-response="{{data}}"
       on-request="handleRequest"

@@ -6,3 +6,10 @@
 ## Client & hydrolysis
 For instructions, view their sub-directories `client/` and `hydro/`.
 
+## Deployment
+Deploy client & hydro per their documentation.
+
+Deploy dispatcher.
+```bash
+appcfg.py update_dispatch dispatch.yaml -A custom-elements-staging
+```
