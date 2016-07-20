@@ -12,10 +12,9 @@ gcloud config set project custom-elements
 
 Make sure the subscriptions and topics are setup
 ```bash
-gcloud alpha pubsub topics create hydro hydro-response
-gcloud alpha pubsub subscriptions create hydro-response --topic hydro-response --push-endpoint https://custom-elements.appspot.com/_ah/push-handlers/hydro
+gcloud alpha pubsub topics create hydro-response
+gcloud alpha pubsub subscriptions create hydro-response --topic hydro-response --push-endpoint https://manage-dot-custom-elements.appspot.com/_ah/push-handlers/hydro
 ```
-
 
 ## Running it locally
 Install all of the dependencies (node, npm packages)
