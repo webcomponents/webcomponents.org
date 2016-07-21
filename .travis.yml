@@ -4,3 +4,4 @@ install:
   - npm install
 script:
   - gulp lint
+  - grunt lint
