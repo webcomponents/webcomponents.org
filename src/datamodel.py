@@ -1,6 +1,6 @@
 from google.appengine.ext import ndb
 
-import versionTag
+import versiontag
 
 class CollectionReference(ndb.Model):
   version = ndb.KeyProperty(kind="Version", required=True)
@@ -16,14 +16,14 @@ class Library(ndb.Model):
   collections = ndb.StructuredProperty(CollectionReference, repeated=True)
 
   @staticmethod
-  def getOrCreate(key):
+  def get_or_create(key):
     library = key.get()
     if library is None:
       library = Library(id=key.id())
     return library
 
   @staticmethod
-  def getOrCreateList(keys):
+  def get_or_create_list(keys):
     libraries = ndb.get_multi(keys)
     for i in range(len(keys)):
       if libraries[i] is None:
@@ -31,28 +31,28 @@ class Library(ndb.Model):
     return libraries
 
   @staticmethod
-  def maybeCreateWithKind(owner, repo, kind):
-    library = Library.getOrCreate(ndb.Key(Library, '%s/%s' % (owner, repo)))
+  def maybe_create_with_kind(owner, repo, kind):
+    library = Library.get_or_create(ndb.Key(Library, '%s/%s' % (owner, repo)))
     library.kind = kind
     library.put()
     return library
 
   @staticmethod
-  def versionsForKey(key):
+  def versions_for_key(key):
     versions = Version.query(ancestor=key).map(lambda v: v.key.id())
-    versions.sort(versionTag.compare)
+    versions.sort(versiontag.compare)
     return versions
 
   @staticmethod
   @ndb.tasklet
-  def versionsForKey_async(key):
+  def versions_for_key_async(key):
     versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
-    versions = map(lambda key: key.id(), versions)
-    versions.sort(versionTag.compare)
+    versions = [key.id() for key in versions]
+    versions.sort(versiontag.compare)
     raise ndb.Return(versions)
 
   def versions(self):
-    return Library.versionsForKey(self.key)
+    return Library.versions_for_key(self.key)
 
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)

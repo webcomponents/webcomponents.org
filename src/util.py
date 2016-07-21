@@ -8,76 +8,73 @@ import re
 import sys
 import yaml
 
-github_token = None
+GITHUB_TOKEN = None
 try:
   with open('secrets.yaml', 'r') as f:
-    secrets = yaml.load(f)
-    github_token = secrets['github_token']
-except:
+    GITHUB_TOKEN = yaml.load(f)['github_token']
+except (OSError, IOError):
   logging.error("No Secret Token")
 
-def addSecret(url):
+def add_secret(url):
   access = ''
-  if github_token is not None:
-    access = '?access_token=' + github_token
+  if GITHUB_TOKEN is not None:
+    access = '?access_token=' + GITHUB_TOKEN
   return url + access
 
-def chooseTopic():
+def choose_topic():
   hydro_prefix = os.environ['HYDRO_TOPIC_PREFIX']
   client = pubsub.Client()
-  topics_with_active_subscriptions = []
+  active_topics = []
   topics, topics_token = client.list_topics()
   while True:
     for topic in topics:
       if topic.name.startswith(hydro_prefix):
-        topics_with_active_subscriptions.append(topic)
+        active_topics.append(topic)
     if topics_token is None:
       break
     topics, topics_token = client.list_topics(page_token=topics_token)
-  if not topics_with_active_subscriptions:
+  if not active_topics:
     # Create the 1st instance's topic
     topic = client.topic('%s1' % hydro_prefix)
     if not topic.exists():
       topic.create()
       assert topic.exists()
-    topics_with_active_subscriptions.append(topic)
+    active_topics.append(topic)
 
-  return random.choice(topics_with_active_subscriptions)
+  return random.choice(active_topics)
 
-def publishHydrolyzePending(url, owner, repo, version):
+def publish_hydrolyze_pending(url, owner, repo, version):
   try:
-    topic = chooseTopic()
+    topic = choose_topic()
     topic.publish("", url=url, owner=owner, repo=repo, version=version, responseTopic=os.environ['HYDRO_RESPONSE_TOPIC'])
+  # TODO: Which exception is this for?
+  # pylint: disable=bare-except
   except:
-    logging.error('Failed to publish %s' % logging.error(sys.exc_info()[0]))
+    logging.error('Failed to publish %s', logging.error(sys.exc_info()[0]))
 
-def githubUrl(prefix, owner=None, repo=None, detail=None):
+def github_url(prefix, owner=None, repo=None, detail=None):
   if owner is None:
     result = 'https://api.github.com/%s' % (prefix,)
   else:
     result = 'https://api.github.com/%s/%s/%s' % (prefix, owner, repo)
   if detail is not None:
     result = result + '/' + detail
-  return addSecret(result)
+  return add_secret(result)
 
-def contentUrl(owner, repo, version, path):
+def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
 # TODO: Make newTask take a task URL instead of components and start using
 # functions like this
-def libraryIngestionTask(owner, repo, kind):
+def library_ingestion_task(owner, repo, kind):
   return '/task/ingest/library/%s/%s/%s/0' % (owner, repo, kind)
 
-def newTask(url, owner, repo, **kw):
-  if kw.has_key('stage'):
-    stage = kw['stage']
-  else:
-    stage = 0
+def new_task(url, owner, repo, **kw):
   if kw.has_key('detail'):
     detail = '/' + kw['detail']
   else:
     detail = ''
-  return taskqueue.add(method='GET', url='/task/' + url + '/' + owner + '/' + repo + detail + '/' + str(stage))
+  return taskqueue.add(method='GET', url='/task/' + url + '/' + owner + '/' + repo + detail)
 
-def inlineDemoTransform(markdown):
+def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)

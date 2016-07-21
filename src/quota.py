@@ -2,7 +2,6 @@ from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
 
 import json
-import logging
 
 import util
 
@@ -12,13 +11,13 @@ class QuotaRecord(ndb.Model):
   # the number of remaining requests which have already been reserved
   reserved = ndb.IntegerProperty(required=True)
 
-key = ndb.Key('QuotaRecord', 'Quota')
+KEY = ndb.Key('QuotaRecord', 'Quota')
 
 @ndb.transactional
 def reserve(count):
-  instance = QuotaRecord.get_or_insert(key.id(), remaining=10000, reserved=0)
+  instance = QuotaRecord.get_or_insert(KEY.id(), remaining=10000, reserved=0)
   if instance.remaining - instance.reserved < count:
-    response = urlfetch.fetch(util.githubUrl('rate_limit'))
+    response = urlfetch.fetch(util.github_url('rate_limit'))
     instance.remaining = int(response.headers['X-RateLimit-Remaining'])
     if instance.remaining - instance.reserved < count:
       return False
@@ -28,13 +27,13 @@ def reserve(count):
 
 @ndb.transactional
 def used(used_count=1, new_remaining=None):
-  instance = QuotaRecord.get_or_insert(key.id(), remaining=10000, reserved=0)
+  instance = QuotaRecord.get_or_insert(KEY.id(), remaining=10000, reserved=0)
   if not new_remaining == None:
     instance.remaining = new_remaining
   instance.reserved -= used_count
   instance.put()
 
-class GitHub:
+class GitHub(object):
   def __init__(self):
     self.reservation = 0
 
@@ -47,17 +46,17 @@ class GitHub:
   def markdown(self, content):
     if self.reservation == 0:
       raise Exception('reservation exceeded')
-    response = urlfetch.fetch(util.githubUrl('markdown'), method='POST',
-                              payload=json.dumps({'text': util.inlineDemoTransform(content)}))
+    response = urlfetch.fetch(util.github_url('markdown'), method='POST',
+                              payload=json.dumps({'text': util.inline_demo_transform(content)}))
     used(1, int(response.headers['X-RateLimit-Remaining']))
     if response.status_code == 403:
       raise Exception('reservation exceeded')
     return response
 
-  def githubResource(self, name, owner, repo, context=None):
+  def github_resource(self, name, owner, repo, context=None):
     if self.reservation == 0:
       raise Exception('reservation exceeded')
-    response = urlfetch.fetch(util.githubUrl('repos', owner, repo, context))
+    response = urlfetch.fetch(util.github_url(name, owner, repo, context))
     used(1, int(response.headers['X-RateLimit-Remaining']))
     if response.status_code == 403:
       raise Exception('reservation exceeded')

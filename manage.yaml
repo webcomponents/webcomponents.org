@@ -21,9 +21,9 @@ skip_files:
 
 handlers:
 - url: /.*
-  script: manage.app
+  script: src.manage.app
   login: admin
-  
+
 env_variables:
   HYDRO_TOPIC_PREFIX: 'hydro-instance'
   HYDRO_RESPONSE_TOPIC: 'hydro-response'
