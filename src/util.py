@@ -67,7 +67,7 @@ def content_url(owner, repo, version, path):
 # TODO: Make newTask take a task URL instead of components and start using
 # functions like this
 def library_ingestion_task(owner, repo, kind):
-  return '/task/ingest/library/%s/%s/%s/0' % (owner, repo, kind)
+  return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)
 
 def new_task(url, owner, repo, **kw):
   if kw.has_key('detail'):
