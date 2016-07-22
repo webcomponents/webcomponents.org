@@ -66,7 +66,7 @@ class IngestLibrary(webapp2.RequestHandler):
       return
 
     data = json.loads(response.content)
-    if isinstance(data, object):
+    if not isinstance(data, object):
       library.error = 'repo contians no valid version tags'
       github.release()
       library.put()
