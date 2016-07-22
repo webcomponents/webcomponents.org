@@ -150,6 +150,10 @@
             if (!demoMatch)
               continue;
 
+            // Don't show inline demos in browsers not supporting template.
+            if (!('content' in document.createElement('template')))
+              continue;
+
             var dummyParse = document.createElement('template');
             dummyParse.innerHTML = block.textContent;
             var dummyDemoElement = dummyParse.content.firstChild;
@@ -172,7 +176,7 @@
               var nextBlock = codeBlocks.shift();
               snippet = nextBlock.textContent;
               code = code.replace(nextBlockRegex, nextBlock.textContent);
-              nextBlock.remove();
+              nextBlock.parentElement.removeChild(nextBlock);
             }
 
             demoElement.data = this.data;
