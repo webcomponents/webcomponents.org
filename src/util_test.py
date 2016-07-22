@@ -1,5 +1,5 @@
-import util
 import unittest
+import util
 
 class InlineDemoTransformTest(unittest.TestCase):
   def test_comment_strip(self):

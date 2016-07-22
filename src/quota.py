@@ -28,7 +28,7 @@ def reserve(count):
 @ndb.transactional
 def used(used_count=1, new_remaining=None):
   instance = QuotaRecord.get_or_insert(KEY.id(), remaining=10000, reserved=0)
-  if not new_remaining == None:
+  if new_remaining is not None:
     instance.remaining = new_remaining
   instance.reserved -= used_count
   instance.put()

@@ -3,11 +3,6 @@ from google.appengine.ext import ndb
 from google.appengine.api import search
 from google.appengine.api import urlfetch
 
-from datamodel import Library, Version, Content, CollectionReference
-import quota
-import versiontag
-import util
-
 import base64
 import datetime
 import json
@@ -15,6 +10,11 @@ import logging
 import urllib
 import webapp2
 import sys
+
+from datamodel import Library, Version, Content, CollectionReference
+import quota
+import versiontag
+import util
 
 
 class AddLibrary(webapp2.RequestHandler):
@@ -66,7 +66,7 @@ class IngestLibrary(webapp2.RequestHandler):
       return
 
     data = json.loads(response.content)
-    if type(data) == type({}):
+    if isinstance(data, object):
       library.error = 'repo contians no valid version tags'
       github.release()
       library.put()
