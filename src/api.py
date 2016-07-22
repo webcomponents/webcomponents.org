@@ -137,7 +137,7 @@ class GetDataMeta(webapp2.RequestHandler):
       for dep in version.dependencies:
         parsed_dep = Dependency.fromString(dep)
         dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
-        version_futures.append(Library.versionsForKey_async(dep_key))
+        version_futures.append(Library.versions_for_key_async(dep_key))
       for i, dep in enumerate(version.dependencies):
         parsed_dep = Dependency.fromString(dep)
         versions = version_futures[i].get_result()
