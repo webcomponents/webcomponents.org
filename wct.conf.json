@@ -1,0 +1,3 @@
+{
+  "suites": ["client/test/index.html"]
+}
