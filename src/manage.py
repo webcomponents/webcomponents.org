@@ -11,7 +11,7 @@ import urllib
 import webapp2
 import sys
 
-from datamodel import Library, Version, Content, CollectionReference
+from datamodel import Library, Version, Content, CollectionReference, Dependency
 import quota
 import versiontag
 import util
@@ -66,7 +66,7 @@ class IngestLibrary(webapp2.RequestHandler):
       return
 
     data = json.loads(response.content)
-    if isinstance(data, object):
+    if not isinstance(data, object):
       library.error = 'repo contians no valid version tags'
       github.release()
       library.put()
@@ -158,18 +158,6 @@ class IngestVersion(webapp2.RequestHandler):
       index = search.Index('repo')
       index.put(document)
     self.response.set_status(200)
-
-class Dependency(object):
-  def __init__(self, owner, repo, version):
-    self.owner = owner
-    self.repo = repo
-    self.version = version
-
-  @staticmethod
-  def from_string(dep_string):
-    bits = dep_string.split('#')
-    owner, repo = bits[0].split('/')
-    return Dependency(owner, repo, bits[1])
 
 class IngestDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, version):

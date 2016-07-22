@@ -63,3 +63,16 @@ class Version(ndb.Model):
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)
   updated = ndb.DateTimeProperty(auto_now_add=True)
+
+class Dependency(object):
+  def __init__(self, owner, repo, version):
+    self.owner = owner
+    self.repo = repo
+    self.version = version
+
+  @staticmethod
+  def from_string(dep_string):
+    bits = dep_string.split('#')
+    owner, repo = bits[0].split('/')
+    return Dependency(owner, repo, bits[1])
+
