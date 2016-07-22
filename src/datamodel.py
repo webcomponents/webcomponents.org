@@ -25,9 +25,9 @@ class Library(ndb.Model):
   @staticmethod
   def get_or_create_list(keys):
     libraries = ndb.get_multi(keys)
-    for i in range(len(keys)):
+    for i, key in enumerate(keys):
       if libraries[i] is None:
-        libraries[i] = Library(id=keys[i].id())
+        libraries[i] = Library(id=key.id())
     return libraries
 
   @staticmethod
