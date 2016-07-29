@@ -127,7 +127,7 @@
       auto
       id="ajax"
       loading="{{loading}}"
-      url="[[queryParams.base]]/api/search/[[routeData.query]]"
+      url="[[baseUrls.api]]/api/search/[[routeData.query]]"
       handle-as="json"
       last-response="{{data}}"
       on-request="handleRequest"
@@ -173,7 +173,8 @@
         route: {
           type: String,
           notifies: true
-        }
+        },
+        baseUrls: Object,
       },
 
       observers: [
