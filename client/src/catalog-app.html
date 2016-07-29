@@ -22,7 +22,7 @@
     <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <catalog-collection name="collection" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="[[subroute]]" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
-      <catalog-search name="search" route="{{subroute}}"></catalog-search>
+      <catalog-search name="search" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
     </iron-pages>
   </template>
 
