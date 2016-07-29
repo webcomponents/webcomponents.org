@@ -1,0 +1,9 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/catalog-app.html",
+  "fragments": [
+    "src/catalog-collection.html",
+    "src/catalog-element.html",
+    "src/catalog-search.html"
+  ]
+}
