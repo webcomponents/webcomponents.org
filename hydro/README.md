@@ -24,16 +24,16 @@ Install all of the dependencies (node, npm packages)
 ```
 
 ```bash
-node hydro.js GOOGLE-CLOUD-PROJECT SUBSCRIPTION
+node main.js GOOGLE-CLOUD-PROJECT SUBSCRIPTION
 ```
 or, if you want local pubsub emulation...
 ```bash
-hydro.sh GOOGLE-CLOUD-PROJECT SUBSCRIPTION pubsub
+main.sh GOOGLE-CLOUD-PROJECT SUBSCRIPTION pubsub
 ```
 
 ## Deploying
 ```bash
-deploy-hydro.sh <instance-num>
+deploy.sh <instance-num>
 ```
 
 ## Destroy and recreate all of the pubsubs

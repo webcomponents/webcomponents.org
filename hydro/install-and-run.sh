@@ -26,5 +26,5 @@ if [[ $IN_GCE_INSTANCE -ge 1 ]]
 then
   GCLOUD_PROJECT=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/project -H "Metadata-Flavor: Google")
   TOPIC=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/topic -H "Metadata-Flavor: Google")
-  node /usr/local/lib/hydro/hydro.js $GCLOUD_PROJECT $TOPIC &
+  node /usr/local/lib/hydro/main.js $GCLOUD_PROJECT $TOPIC &
 fi
