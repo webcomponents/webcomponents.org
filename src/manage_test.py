@@ -3,7 +3,7 @@ import webtest
 import re
 
 from manage import app
-from dataModel import Library
+from datamodel import Library
 import util
 
 from google.appengine.api import urlfetch_stub

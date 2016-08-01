@@ -1,4 +1,4 @@
-application: custom-elements
+application: custom-elements-staging
 module: manage
 version: 1
 runtime: python27
