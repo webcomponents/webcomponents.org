@@ -98,7 +98,6 @@ class GetDataMeta(webapp2.RequestHandler):
       except:
         bower_json = {}
     readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    full_name_match = re.match(r'(.*)/(.*)', metadata['full_name'])
     result = {
         'version': ver,
         'versions': versions,
@@ -109,8 +108,9 @@ class GetDataMeta(webapp2.RequestHandler):
         'contributors': library.contributor_count,
         'open_issues': metadata['open_issues'],
         'updated_at': metadata['updated_at'],
-        'owner': full_name_match.groups()[0],
-        'repo': full_name_match.groups()[1],
+        'owner': metadata['owner']['login'],
+        'avatar_url': metadata['owner']['avatar_url'],
+        'repo': metadata['name'],
         'bower': None if bower is None else {
             'description': bower_json.get('description', ''),
             'license': bower_json.get('license', ''),

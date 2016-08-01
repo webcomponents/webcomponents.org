@@ -7,7 +7,7 @@ Install the gcloud SDK from https://cloud.google.com/sdk/downloads#versioned
 Configure your project and authentication
 ```bash
 gcloud auth login whoeveryouare@gmail.com
-gcloud config set project custom-elements
+gcloud config set project custom-elements-staging
 ```
 
 Make sure the subscriptions and topics are setup
