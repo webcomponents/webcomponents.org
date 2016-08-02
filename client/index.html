@@ -51,6 +51,9 @@
           e.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
           document.body.appendChild(e);
         }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/service-worker.js');
+        }
       })();
     </script>
   </body>
