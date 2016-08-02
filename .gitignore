@@ -4,3 +4,4 @@
 secrets.yaml
 *.pyc
 *~
+client/build

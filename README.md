@@ -6,10 +6,19 @@
 ## Client & hydrolysis
 For instructions, view their sub-directories `client/` and `hydro/`.
 
-## Deployment
-Deploy client & hydro per their documentation.
-
-Deploy dispatcher.
+## Running tests
 ```bash
-appcfg.py update_dispatch dispatch.yaml -A custom-elements-staging
+python tests.py $APPENGINE_SDK
 ```
+
+## Deployment
+
+Deploy to staging.
+```bash
+grunt lint
+appcfg.py update_dispatch dispatch.yaml
+appcfg.py update manage.yaml
+appcfg.py update api.yaml
+```
+
+Deploy client & hydro per their documentation.
