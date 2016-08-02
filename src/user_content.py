@@ -1,10 +1,10 @@
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
-from datamodel import Library, Version, Content
-
-import webapp2
 import json
+import webapp2
+
+from datamodel import Library, Version, Content
 
 class GetResource(webapp2.RequestHandler):
   def get(self, owner, repo, tag, name=None, path=None):
