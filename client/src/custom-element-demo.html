@@ -100,12 +100,12 @@
 
       _setDemo: function() {
         if (this._frameReady)
-          this._sendMessageToDemo();
+          this._setDemoInFrame();
         else
-          this.$.frame.onload = this._sendMessageToDemo.bind(this);
+          this.$.frame.onload = this._setDemoInFrame.bind(this);
       },
 
-      _sendMessageToDemo: function() {
+      _setDemoInFrame: function() {
         this._frameReady = true;
         this.$.frame.contentWindow.postMessage(this.code, '*');
       },

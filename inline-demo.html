@@ -15,8 +15,6 @@
   window.addEventListener('message', receiveMessage, false);
 
   function receiveMessage(event) {
-    var source = event.source;
-
     var container = document.getElementById('container');
     var iframe = document.createElement('iframe');
     container.innerHTML = '';
@@ -27,6 +25,7 @@
     iframe.contentDocument.write(event.data);
     iframe.contentDocument.close();
 
+    var source = event.source;
     iframe.onload = function() {
       source.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
     }
