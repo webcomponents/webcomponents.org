@@ -17,9 +17,14 @@ wct --root client
 ### Deploying to staging
 ```bash
 gulp lint
-appcfg.py update app.yaml
+cd client
+polymer build
+cp client.yaml build/bundled
+appcfg.py update build/bundled/client.yaml
 ```
 
 ### Deploying to prod
 ```bash
-appcfg.py update app.yaml -A custom-elements
+# as above
+appcfg.py update build/bundled/client.yaml -A custom-elements
+```
