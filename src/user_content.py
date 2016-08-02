@@ -1,10 +1,10 @@
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
-from dataModel import Library, Version, Content
-
-import webapp2
 import json
+import webapp2
+
+from datamodel import Library, Version, Content
 
 class GetResource(webapp2.RequestHandler):
   def get(self, owner, repo, tag, name=None, path=None):
@@ -64,6 +64,7 @@ class GetResource(webapp2.RequestHandler):
     else:
       self.response.set_status(301)
       self.response.headers['Location'] = str(resolved)
+      self.response.headers['cache-control'] = 'max-age=315569000'
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([

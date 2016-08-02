@@ -26,7 +26,7 @@
       border: 1px solid #f7f7f7;
     }
 
-    #demo {
+    #frame {
       border: none;
       width: 100%;
       height: 0px;
@@ -36,7 +36,7 @@
   <template>
     <prism-highlighter></prism-highlighter>
     <div id="demoContainer">
-      <iframe id="demo"></iframe>
+      <iframe id="frame"></iframe>
     </div>
     <div class="markdown-body">
       <pre id="source"></pre>
@@ -63,9 +63,10 @@
       },
 
       observers: [
-        'updateDemo(data, code)',
-        'updateSource(snippet)',
-        'updateSource(code)',
+        '_setDemo(data, code)',
+        '_setFrame(baseUrl, data)',
+        '_updateSource(snippet)',
+        '_updateSource(code)',
       ],
 
       _expandSource: function() {
@@ -76,7 +77,7 @@
         return this.fire('syntax-highlight', {code: code}).detail.code;
       },
 
-      updateSource: function() {
+      _updateSource: function() {
         this.$.source.innerHTML = this.highlight(this.snippet || this.code);
 
         if (this.snippet) {
@@ -89,19 +90,28 @@
         }
       },
 
-      updateDemo: function() {
-        this.$.demo.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
-        this.$.demo.style.minWidth = this.width;
-        this.$.demo.style.minHeight = this.height;
-        this.$.demo.onload = function() {
-          this.$.demo.contentWindow.postMessage(this.code, '*');
-        }.bind(this);
+      _setFrame: function() {
+        this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
+        this.$.frame.style.minWidth = this.width ? this.width + 'px' : 0;
+        this.$.frame.style.minHeight = this.height ? this.height + 'px' : 0;
 
-        window.addEventListener('message', this._demoLoaded.bind(this), false);
+        window.addEventListener('message', this._onDemoLoad.bind(this), false);
       },
 
-      _demoLoaded: function(event) {
-        this.$.demo.style.height = event.data.height + 'px';
+      _setDemo: function() {
+        if (this._frameReady)
+          this._setDemoInFrame();
+        else
+          this.$.frame.onload = this._setDemoInFrame.bind(this);
+      },
+
+      _setDemoInFrame: function() {
+        this._frameReady = true;
+        this.$.frame.contentWindow.postMessage(this.code, '*');
+      },
+
+      _onDemoLoad: function(event) {
+        this.$.frame.style.height = event.data.height + 'px';
       }
 
     });
