@@ -1,4 +1,5 @@
 application: custom-elements-staging
+module: default
 version: 1
 runtime: python27
 api_version: 1
@@ -14,6 +15,10 @@ handlers:
 - url: /manifest.json
   upload: manifest.json
   static_files: manifest.json
+  secure: always
+- url: /service-worker.js
+  upload: service-worker.js
+  static_files: service-worker.js
   secure: always
 - url: /bower_components
   static_dir: bower_components
