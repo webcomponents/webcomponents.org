@@ -10,7 +10,7 @@ module.exports = {
       },
     },
     urlPattern: /\/api\/.*/,
-    handler: 'networkFirst',
+    handler: 'fastest',
     options: {
       cache: {
         maxEntries: 1000,
