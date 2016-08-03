@@ -23,14 +23,28 @@
 
     #demoContainer {
       width: 100%;
+      height: 0px;
+      overflow: hidden;
       border: 1px solid #f7f7f7;
+      opacity: 0;
+    }
+
+    #demoContainer.reveal {
+      animation: reveal 300ms cubic-bezier(0, 0, 0.2, 1);
+      opacity: 1;
+      transition: opacity 300ms 100ms cubic-bezier(0, 0, 0.2, 1);
+    }
+
+    @keyframes reveal {
+      from {
+        height: 0px;
+      }
     }
 
     #frame {
       border: none;
       width: 100%;
       height: 0px;
-      transition: height 300ms cubic-bezier(0, 0, 0.2, 1);
     }
   </style>
   <template>
@@ -92,8 +106,8 @@
 
       _setFrame: function() {
         this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
-        this.$.frame.style.minWidth = this.width ? this.width + 'px' : 0;
-        this.$.frame.style.minHeight = this.height ? this.height + 'px' : 0;
+        this.$.frame.style.minWidth = this.width || 0;
+        this.$.frame.style.minHeight = this.height || 0;
 
         window.addEventListener('message', this._onDemoLoad.bind(this), false);
       },
@@ -111,7 +125,9 @@
       },
 
       _onDemoLoad: function(event) {
+        this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
+        this.$.demoContainer.style.height = event.data.height + 'px';
       }
 
     });
