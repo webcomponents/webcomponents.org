@@ -26,8 +26,14 @@
     iframe.contentDocument.close();
 
     var source = event.source;
+
     iframe.onload = function() {
-      source.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
+      postHeight(source, iframe);
+      window.addEventListener('resize', postHeight.bind(null, source, iframe));
     }
+  }
+
+  function postHeight(sourceWindow, iframe) {
+    sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
   }
 </script>
