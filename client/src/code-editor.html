@@ -35,6 +35,7 @@
       ready: function() {
         this._isReady = true;
         this.scopeSubtree(this.$.container, true);
+        /* global CodeMirror */
         this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: true, viewportMargin: Infinity});
         Polymer.RenderStatus.afterNextRender(this, this.codeMirror.refresh.bind(this.codeMirror));
         this.codeMirror.on('changes', this._onChanges.bind(this));
