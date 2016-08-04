@@ -77,15 +77,17 @@ class GithubRateLimitTest(ManageTestBase):
 
   def test_request_without_reserve(self):
     github = quota.GitHub()
-    with self.assertRaises(Exception):
+    with self.assertRaises(quota.QuotaExceededError):
       github.github_resource('repos', 'org', 'repo')
 
   def test_limit_exceeded(self):
     quota.used(used_count=0, new_remaining=1)
     github = quota.GitHub()
     github.reserve(1)
-    self.respond_to_rate_limit('0')
-    with self.assertRaises(Exception):
+    self.respond_to_github('https://api.github.com/repos/org/repo', {
+        'status': 403,
+    }, remaining='0')
+    with self.assertRaises(quota.QuotaExceededError):
       github.github_resource('repos', 'org', 'repo')
 
   def test_limit_reset(self):

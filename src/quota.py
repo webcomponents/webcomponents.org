@@ -11,6 +11,9 @@ class QuotaRecord(ndb.Model):
   # the number of remaining requests which have already been reserved
   reserved = ndb.IntegerProperty(required=True)
 
+class QuotaExceededError(Exception):
+  pass
+
 KEY = ndb.Key('QuotaRecord', 'Quota')
 
 @ndb.transactional
@@ -53,24 +56,24 @@ class GitHub(object):
 
   def markdown(self, content):
     if self.reservation == 0:
-      raise Exception('reservation exceeded')
+      raise QuotaExceededError('reservation exceeded')
     response = urlfetch.fetch(util.github_url('markdown'), method='POST',
                               payload=json.dumps({'text': util.inline_demo_transform(content)}))
     used(1, int(response.headers['X-RateLimit-Remaining']))
     if response.status_code == 403:
-      raise Exception('reservation exceeded')
+      raise QuotaExceededError('reservation exceeded')
     return response
 
   def github_resource(self, name, owner, repo, context=None, etag=None):
     if self.reservation == 0:
-      raise Exception('reservation exceeded')
+      raise QuotaExceededError('reservation exceeded')
     headers = {}
     if etag is not None:
       headers['If-None-Match'] = etag
     response = urlfetch.fetch(util.github_url(name, owner, repo, context), headers=headers)
     used(1, int(response.headers['X-RateLimit-Remaining']))
     if response.status_code == 403:
-      raise Exception('reservation exceeded')
+      raise QuotaExceededError('reservation exceeded')
     return response
 
   def release(self):
