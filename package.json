@@ -5,6 +5,9 @@
   "repository": {
     "type": "git"
   },
+  "scripts": {
+    "install": "pip install -t lib gcloud semver webtest"
+  },
   "devDependencies": {
     "eslint-config-google": "^0.5.0",
     "eslint-plugin-html": "^1.5.1",
