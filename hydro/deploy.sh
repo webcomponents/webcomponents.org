@@ -8,7 +8,9 @@ INSTANCE=instance$INSTANCE_NUM
 
 # Extract current project name from gcloud info.
 GCLOUD_PROJECT=$(gcloud info | grep "Project" | cut -d "[" -f2 | cut -d "]" -f1)
-TOPIC=hydro-$INSTANCE
+
+# Topic must match that in ../manage.yaml
+TOPIC=analysis-requests
 
 # Ensure that we have a valid instance, either by creating one, or by using one.
 if gcloud compute instances describe $INSTANCE --zone $ZONE > /dev/null ; then

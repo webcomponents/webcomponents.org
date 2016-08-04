@@ -12,8 +12,8 @@ gcloud config set project custom-elements-staging
 
 Make sure the subscriptions and topics are setup
 ```bash
-gcloud alpha pubsub topics create hydro-response
-gcloud alpha pubsub subscriptions create hydro-response --topic hydro-response --push-endpoint https://manage-dot-custom-elements.appspot.com/_ah/push-handlers/hydro
+gcloud alpha pubsub topics create analysis-responses
+gcloud alpha pubsub subscriptions create analysis-responses --topic analysis-responses --push-endpoint https://manage-dot-custom-elements.appspot.com/_ah/push-handlers/analysis
 ```
 
 ## Running it locally

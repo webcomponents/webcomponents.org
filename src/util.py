@@ -3,7 +3,6 @@ from google.appengine.api import taskqueue
 
 import logging
 import os
-import random
 import re
 import sys
 import yaml
@@ -21,32 +20,26 @@ def add_secret(url):
     access = '?access_token=' + GITHUB_TOKEN
   return url + access
 
-def choose_topic():
-  hydro_prefix = os.environ['HYDRO_TOPIC_PREFIX']
-  client = pubsub.Client()
-  active_topics = []
-  topics, topics_token = client.list_topics()
-  while True:
-    for topic in topics:
-      if topic.name.startswith(hydro_prefix):
-        active_topics.append(topic)
-    if topics_token is None:
-      break
-    topics, topics_token = client.list_topics(page_token=topics_token)
-  if not active_topics:
-    # Create the 1st instance's topic
-    topic = client.topic('%s1' % hydro_prefix)
+ANALYSIS_REQUEST_TOPIC = None
+def get_topic():
+  if ANALYSIS_REQUEST_TOPIC is None:
+    topic = os.environ['ANALYSIS_REQUEST_TOPIC']
+    client = pubsub.Client()
+    client.topic(topic)
     if not topic.exists():
       topic.create()
       assert topic.exists()
-    active_topics.append(topic)
+    ANALYSIS_REQUEST_TOPIC = topic
+  return ANALYSIS_REQUEST_TOPIC
 
-  return random.choice(active_topics)
-
-def publish_hydrolyze_pending(url, owner, repo, version):
+def publish_analysis_request(owner, repo, version):
   try:
-    topic = choose_topic()
-    topic.publish("", url=url, owner=owner, repo=repo, version=version, responseTopic=os.environ['HYDRO_RESPONSE_TOPIC'])
+    get_topic().publish(
+      "",
+      owner=owner,
+      repo=repo,
+      version=version,
+      responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
   # TODO: Which exception is this for?
   # pylint: disable=bare-except
   except:

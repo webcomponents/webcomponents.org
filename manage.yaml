@@ -25,5 +25,5 @@ handlers:
   login: admin
 
 env_variables:
-  HYDRO_TOPIC_PREFIX: 'hydro-instance'
-  HYDRO_RESPONSE_TOPIC: 'hydro-response'
+  ANALYSIS_REQUEST_TOPIC: 'analysis-requests'
+  ANALYSIS_RESPONSE_TOPIC: 'analysis-responses'
