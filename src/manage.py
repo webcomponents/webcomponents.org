@@ -218,6 +218,11 @@ def delete_library(response, library_key):
   index = search.Index('repo')
   index.delete([library_key.id()])
 
+class GithubStatus(webapp2.RequestHandler):
+  def get(self):
+    for key, value in quota.rate_limit().items():
+      self.response.write('%s: %s<br>' % (key, value))
+
 class DeleteLibrary(webapp2.RequestHandler):
   def get(self, owner, repo):
     self.response.headers['Content-Type'] = 'text/plain'
@@ -252,6 +257,7 @@ class DeleteEverything(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
+    webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary, name='add'),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
