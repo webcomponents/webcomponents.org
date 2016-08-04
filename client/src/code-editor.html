@@ -1,0 +1,57 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="codemirror-import.html">
+
+<dom-module id="code-editor">
+  <!-- rel=stylesheet works nicely in shady DOM, and rel=import works nicely in shadow DOM -->
+  <link rel="stylesheet" href="../bower_components/codemirror/lib/codemirror.css">
+  <link rel="import" type="css" href="../bower_components/codemirror/lib/codemirror.css">
+  <style>
+    #container .CodeMirror {
+      padding: 16px;
+      background: #f7f7f7;
+      font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      line-height: 1.45;
+      height: auto;
+    }
+  </style>
+
+  <template>
+    <div id="container"></div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'code-editor',
+
+      properties: {
+        value: String,
+      },
+
+      observers: [
+        '_valueChanged(value)'
+      ],
+
+      ready: function() {
+        this._isReady = true;
+        this.scopeSubtree(this.$.container, true);
+        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: true, viewportMargin: Infinity});
+        Polymer.RenderStatus.afterNextRender(this, this.codeMirror.refresh.bind(this.codeMirror));
+        this.codeMirror.on('changes', this._onChanges.bind(this));
+        if (this.value)
+          this._valueChanged(this.value);
+      },
+
+      _onChanges: function() {
+        this.fire('code-change', {value: this.codeMirror.getValue()});
+      },
+
+      _valueChanged: function(value) {
+        if (!this._isReady)
+          return;
+        this.codeMirror.setValue(value);
+      }
+
+    });
+  </script>
+</dom-module>
