@@ -34,9 +34,11 @@
     #editorBar {
       padding: 16px 16px 0;
       background: #f7f7f7;
+      display: flex;
+      align-items: center;
     }
 
-    #expandSource {
+    button {
       text-align: center;
       border: 1px solid #bbb;
       border-radius: 2px;
@@ -49,6 +51,10 @@
     </div>
     <div id="editorBar">
       <button id="expandSource" on-tap="_expandSource">Expand source</button>
+      <form action="http://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" on-submit="e">
+        <input type="hidden" id="html" name="html">
+        <button on-tap="_openAsFiddle">Export as Fiddle</on>
+      </form>
     </div>
     <code-editor id="editor" on-code-change="_codeChange"></code-editor>
   </template>
@@ -77,6 +83,10 @@
         '_setFrame(baseUrl, data)',
         '_sourceChanged(snippet, code)',
       ],
+
+      _openAsFiddle: function() {
+        this.$.html.value = '<base href="' + this.$.frame.src + '">\n' + this._fullSource();
+      },
 
       _expandSource: function() {
         this._collapsed = false;
