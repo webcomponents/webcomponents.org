@@ -110,13 +110,11 @@
         else
           this._code = event.detail.value;
 
-        if (!this._updateTimer && oldSource === this._fullSource())
+        // Don't update demo if the source hasn't changed since it flashes.
+        if (!this.isDebouncerActive('updateDemo') && oldSource === this._fullSource())
           return;
 
-        // Only update after 200ms of no edits.
-        if (this._updateTimer)
-          clearTimeout(this._updateTimer);
-        this._updateTimer = setTimeout(this._setDemo.bind(this), 200);
+        this.debounce('updateDemo', this._setDemo, 200);
       },
 
       _setFrame: function() {
@@ -128,7 +126,6 @@
       },
 
       _setDemo: function() {
-        delete this._updateTimer;
         if (this._frameReady)
           this._setDemoInFrame();
         else
