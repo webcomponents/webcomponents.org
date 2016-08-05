@@ -8,8 +8,7 @@ from datamodel import Library, Version, Content
 
 class GetResource(webapp2.RequestHandler):
   def get(self, owner, repo, tag, name=None, path=None):
-    self.response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
-    self.response.headers['Access-Control-Allow-Credentials'] = 'true'
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
 
     owner = owner.lower()
