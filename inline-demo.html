@@ -8,6 +8,18 @@
     width: 100vw;
     height: 100vh;
     border: none;
+    position: absolute;
+    top: 0;
+    opacity: 0;
+    transition: -webkit-filter 500ms, opacity 250ms;
+  }
+
+  iframe.fadeOut {
+    -webkit-filter: grayscale(100%);
+  }
+
+  iframe.fadeIn {
+    opacity: 1;
   }
 </style>
 <div id="container"></div>
@@ -16,24 +28,40 @@
 
   function receiveMessage(event) {
     var container = document.getElementById('container');
+    var oldFrame = container.firstElementChild;
+    if (oldFrame)
+      oldFrame.classList.add('fadeOut');
+
+    if (container.children.length > 1)
+      container.removeChild(container.lastElementChild);
+
     var iframe = document.createElement('iframe');
-    container.innerHTML = '';
+    iframe.onload = iframeLoaded.bind(iframe, event.source, oldFrame);
     container.appendChild(iframe);
 
     iframe.contentDocument.open();
     iframe.contentDocument.write('<!doctype html>');
     iframe.contentDocument.write(event.data);
     iframe.contentDocument.close();
+  }
 
-    var source = event.source;
-
-    iframe.onload = function() {
-      postHeight(source, iframe);
-      window.addEventListener('resize', postHeight.bind(null, source, iframe));
-    }
+  function iframeLoaded(source, oldFrame) {
+    postHeight(source, this);
+    requestAnimationFrame(function() {
+      this.classList.add('fadeIn');
+      window.addEventListener('resize', postHeight.bind(null, source));
+      if (oldFrame) {
+        oldFrame.classList.remove('fadeIn');
+        setTimeout(function() {
+          if (oldFrame && oldFrame.parentElement)
+            oldFrame.parentElement.removeChild(oldFrame);
+        }, 500);
+      }
+    });
   }
 
   function postHeight(sourceWindow, iframe) {
-    sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
+    if (iframe && iframe.contentDocument)
+      sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
   }
 </script>
