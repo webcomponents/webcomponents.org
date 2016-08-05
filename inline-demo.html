@@ -10,57 +10,57 @@
     border: none;
     position: absolute;
     top: 0;
-    opacity: 0;
-    transition: -webkit-filter 500ms, opacity 250ms;
-  }
-
-  iframe.fadeOut {
-    -webkit-filter: grayscale(100%);
-  }
-
-  iframe.fadeIn {
     opacity: 1;
+    transition: -webkit-filter 500ms, opacity 300ms;
+  }
+
+  iframe.grey {
+    -webkit-filter: grayscale(100%);
+    z-index: 1;
+  }
+
+  iframe.fade {
+    opacity: 0;
   }
 </style>
 <div id="container"></div>
 <script>
   window.addEventListener('message', receiveMessage, false);
+  var iframe;
 
   function receiveMessage(event) {
     var container = document.getElementById('container');
     var oldFrame = container.firstElementChild;
     if (oldFrame)
-      oldFrame.classList.add('fadeOut');
+      oldFrame.classList.add('grey');
 
     if (container.children.length > 1)
       container.removeChild(container.lastElementChild);
 
-    var iframe = document.createElement('iframe');
-    iframe.onload = iframeLoaded.bind(iframe, event.source, oldFrame);
+    iframe = document.createElement('iframe');
     container.appendChild(iframe);
 
     iframe.contentDocument.open();
     iframe.contentDocument.write('<!doctype html>');
     iframe.contentDocument.write(event.data);
     iframe.contentDocument.close();
+
+    iframe.onload = iframeLoaded.bind(iframe, event.source, oldFrame);
   }
 
   function iframeLoaded(source, oldFrame) {
     postHeight(source, this);
-    requestAnimationFrame(function() {
-      this.classList.add('fadeIn');
-      window.addEventListener('resize', postHeight.bind(null, source));
-      if (oldFrame) {
-        oldFrame.classList.remove('fadeIn');
-        setTimeout(function() {
-          if (oldFrame && oldFrame.parentElement)
-            oldFrame.parentElement.removeChild(oldFrame);
-        }, 500);
-      }
-    });
+    window.addEventListener('resize', postHeight.bind(null, source));
+    if (oldFrame) {
+      oldFrame.classList.add('fade');
+      setTimeout(function() {
+        if (oldFrame && oldFrame.parentElement)
+          oldFrame.parentElement.removeChild(oldFrame);
+      }, 500);
+    }
   }
 
-  function postHeight(sourceWindow, iframe) {
+  function postHeight(sourceWindow) {
     if (iframe && iframe.contentDocument)
       sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
   }
