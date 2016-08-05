@@ -163,6 +163,9 @@
       },
 
       _onDemoLoad: function(event) {
+        if (this._lastHeight && event.data.height <= this._lastHeight)
+          return;
+        this._lastHeight = event.data.height;
         this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
         this.$.demoContainer.style.height = event.data.height + 'px';
