@@ -14,7 +14,6 @@ before_script:
 -  npm install -g bower
 - (cd client; bower install)
 script:
-- gulp lint
 - grunt lint
 - xvfb-run wct
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s 'default'; fi
