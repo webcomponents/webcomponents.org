@@ -170,7 +170,8 @@
             if (code.match(nextBlockRegex) && codeBlocks.length) {
               var nextBlock = codeBlocks.shift();
               snippet = nextBlock.textContent;
-              nextBlock.remove();
+              if (nextBlock.parentNode)
+                nextBlock.parentNode.removeChild(nextBlock);
             }
 
             demoElement.data = this.data;
