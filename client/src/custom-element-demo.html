@@ -1,5 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="code-editor.html">
 
 <dom-module id="custom-element-demo">
   <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
@@ -44,6 +43,20 @@
       border-radius: 2px;
       background: white;
     }
+
+    #lazyEditor {
+      display: none;
+      padding: 20px;
+      background: #f7f7f7;
+      font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      line-height: 1.45;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    code-editor[unresolved] + #lazyEditor {
+      display: block;
+    }
   </style>
   <template>
     <div id="demoContainer">
@@ -56,7 +69,8 @@
         <button on-tap="_openAsFiddle">Export as Fiddle</on>
       </form>
     </div>
-    <code-editor id="editor" on-code-change="_codeChange"></code-editor>
+    <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
+    <pre id="lazyEditor"></pre>
   </template>
 
   <script>
@@ -105,6 +119,7 @@
         this._snippet = snippet;
         this._code = code;
         this._collapsed = Boolean(this.snippet);
+        this.$.lazyEditor.textContent = this.snippet || this._fullSource();
         this.$.editor.value = this.snippet || this._fullSource();
 
         if (this._collapsed)
