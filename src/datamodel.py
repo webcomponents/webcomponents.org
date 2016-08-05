@@ -7,20 +7,21 @@ class CollectionReference(ndb.Model):
   semver = ndb.StringProperty()
 
 class Library(ndb.Model):
+  kind = ndb.StringProperty()
+
   metadata = ndb.TextProperty()
   contributors = ndb.TextProperty()
+  tags = ndb.TextProperty()
+
+  metadata_etag = ndb.StringProperty()
+  contributors_etag = ndb.StringProperty()
+  tags_etag = ndb.StringProperty()
+
   contributor_count = ndb.IntegerProperty()
-  error = ndb.StringProperty()
-  updated = ndb.DateTimeProperty(auto_now_add=True)
-  kind = ndb.StringProperty()
   collections = ndb.StructuredProperty(CollectionReference, repeated=True)
 
-  @staticmethod
-  def get_or_create(key):
-    library = key.get()
-    if library is None:
-      library = Library(id=key.id())
-    return library
+  error = ndb.StringProperty()
+  updated = ndb.DateTimeProperty(auto_now_add=True)
 
   @staticmethod
   def get_or_create_list(keys):
@@ -32,7 +33,7 @@ class Library(ndb.Model):
 
   @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
-    library = Library.get_or_create(ndb.Key(Library, '%s/%s' % (owner, repo)))
+    library = Library.get_or_insert('%s/%s' % (owner, repo))
     library.kind = kind
     library.put()
     return library
@@ -62,6 +63,7 @@ class Version(ndb.Model):
 
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)
+  etag = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
 
 class Dependency(object):
