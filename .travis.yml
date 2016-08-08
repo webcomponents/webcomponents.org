@@ -16,7 +16,7 @@ before_script:
 script:
 - grunt lint
 - xvfb-run wct
-- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
+- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s 'default'; fi
 env:
   global:
   - secure: hwsxx5wg82V14R7A1qX6C/EOVZl/bC91sxtcj7pODHqw8WIG5ECzms4QLkpFS+e7pEZqQ5fiF9A9AWidtXaowu/wrGMGhRrB4ZsUvnmeoql9YcKpmm9HnUY7Ers8aC2g2wbNKg7zpOqytQHt8MDtXtCmLibapMU/CMKMhvoFWF/eNcVa6RwqGvtx1NAWyLZP2rnSVYyxxupUABssRqk8zMf/Fp+RGa2tuRQajyXhI6Zj2f3+FTpzzvHtEiFLHNhPq06/BaDPzkgDuXg1J+qIUfUA42FZWUFfDJ0MSDQBai/d9oyKZO8oqfydAU4WljfjP7c26b0/5kErEwoWASJWc6/O10G8LW+7k2FiAKkGvX7LcTylATBPWkaYyxynTef/m8L8PYwLk5ENXsb1nJGxcDLLW03eHfw3LyMl5rbD83HQH+WQAZAmuQpJvJqPo+GGU2EpXWOJFgI3AM4uD6zU7B69qdMwcUwUSGq0mIf2CPeHdgw00cMoVJIK+ziedVXiBADyBpAx106mhOUxH6wCMhEmrosnA8t/TNm4B4OI0NhD+TbFCYkOX04CtJJhBuZy9izF+rIWUeORO4l3+vqX+q6kt1se/Tcp3L6FoQoraG+pFzngU4e3birx/VRfdaaC6eLebyJNw+EErGutq7/40GnEC84l8xmlXZZ4UmPWddU=
