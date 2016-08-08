@@ -8,16 +8,36 @@
     width: 100vw;
     height: 100vh;
     border: none;
+    position: absolute;
+    top: 0;
+    opacity: 1;
+    transition: -webkit-filter 500ms, opacity 300ms;
+  }
+
+  iframe.grey {
+    -webkit-filter: grayscale(100%);
+    z-index: 1;
+  }
+
+  iframe.fade {
+    opacity: 0;
   }
 </style>
 <div id="container"></div>
 <script>
   window.addEventListener('message', receiveMessage, false);
+  var iframe;
 
   function receiveMessage(event) {
     var container = document.getElementById('container');
-    var iframe = document.createElement('iframe');
-    container.innerHTML = '';
+    var oldFrame = container.firstElementChild;
+    if (oldFrame)
+      oldFrame.classList.add('grey');
+
+    if (container.children.length > 1)
+      container.removeChild(container.lastElementChild);
+
+    iframe = document.createElement('iframe');
     container.appendChild(iframe);
 
     iframe.contentDocument.open();
@@ -25,15 +45,23 @@
     iframe.contentDocument.write(event.data);
     iframe.contentDocument.close();
 
-    var source = event.source;
+    iframe.onload = iframeLoaded.bind(iframe, event.source, oldFrame);
+  }
 
-    iframe.onload = function() {
-      postHeight(source, iframe);
-      window.addEventListener('resize', postHeight.bind(null, source, iframe));
+  function iframeLoaded(source, oldFrame) {
+    postHeight(source, this);
+    window.addEventListener('resize', postHeight.bind(null, source));
+    if (oldFrame) {
+      oldFrame.classList.add('fade');
+      setTimeout(function() {
+        if (oldFrame && oldFrame.parentElement)
+          oldFrame.parentElement.removeChild(oldFrame);
+      }, 500);
     }
   }
 
-  function postHeight(sourceWindow, iframe) {
-    sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
+  function postHeight(sourceWindow) {
+    if (iframe && iframe.contentDocument)
+      sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
   }
 </script>

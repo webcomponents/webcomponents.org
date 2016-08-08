@@ -4,6 +4,7 @@
   "fragments": [
     "src/catalog-collection.html",
     "src/catalog-element.html",
-    "src/catalog-search.html"
+    "src/catalog-search.html",
+    "src/lazy-resources.html"
   ]
 }
