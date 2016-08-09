@@ -63,10 +63,7 @@
       _pageChanged: function(page) {
         if (page != null) {
           this.importHref(
-            this.resolveUrl('catalog-' + page + '.html'),
-            function() {
-              this._ensureLazyLoaded();
-            }, null, true);
+            this.resolveUrl('catalog-' + page + '.html'), null, null, true);
         }
       },
 
@@ -82,17 +79,6 @@
           result.userContent = 'https://user-content-dot-' + queryParams.instance;
         }
         return result;
-      },
-
-      _ensureLazyLoaded: function() {
-        // load lazy resources after render and set `loadComplete` when done.
-        if (!this.loadComplete) {
-          Polymer.RenderStatus.afterNextRender(this, function() {
-            this.importHref(this.resolveUrl('lazy-resources.html'), function() {
-              this.loadComplete = true;
-            });
-          });
-        }
       },
 
     });

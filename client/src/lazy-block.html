@@ -1,0 +1,53 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="lazy-block">
+  <script>
+    (function () {
+      var blockers = new Map();
+      var loaded = false;
+
+      Polymer({
+
+        is: 'lazy-block',
+
+        properties: {
+          condition: Boolean
+        },
+
+        observers: [
+          '_conditionSet(condition)'
+        ],
+
+        ready: function() {
+          blockers.set(this, false);
+        },
+
+        _conditionSet: function(condition) {
+          if (!Boolean(condition))
+            return;
+
+          blockers.delete(this);
+          if (!blockers.size)
+            this._loadResources();
+          else if (this.parentElement)
+            this._remove();
+        },
+
+        _remove: function() {
+          this.parentElement.removeChild(this);
+        },
+
+        _loadResources: function() {
+          if (loaded)
+            return;
+          loaded = true;
+
+          Polymer.RenderStatus.afterNextRender(this, function() {
+            this.importHref(this.resolveUrl('lazy-resources.html'), this._remove.bind(this));
+          });
+        },
+
+      });
+    })();
+  </script>
+</dom-module>
