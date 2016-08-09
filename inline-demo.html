@@ -26,42 +26,55 @@
 <div id="container"></div>
 <script>
   window.addEventListener('message', receiveMessage, false);
-  var iframe;
+  var currentFrame;
+  var loadingFrame;
+  var sourceWindow;
+  window.addEventListener('resize', postHeight);
 
   function receiveMessage(event) {
+    // Allow messaging back to original window.
+    sourceWindow = event.source;
+
     var container = document.getElementById('container');
-    var oldFrame = container.firstElementChild;
-    if (oldFrame)
-      oldFrame.classList.add('grey');
+    if (currentFrame)
+      currentFrame.classList.add('grey');
 
-    if (container.children.length > 1)
-      container.removeChild(container.lastElementChild);
+    if (loadingFrame) {
+      loadingFrame.onload = null;
+      container.removeChild(loadingFrame);
+    }
 
-    iframe = document.createElement('iframe');
-    container.appendChild(iframe);
+    loadingFrame = document.createElement('iframe');
+    container.appendChild(loadingFrame);
 
-    iframe.contentDocument.open();
-    iframe.contentDocument.write('<!doctype html>');
-    iframe.contentDocument.write(event.data);
-    iframe.contentDocument.close();
+    loadingFrame.contentDocument.open();
+    loadingFrame.contentDocument.write('<!doctype html>');
+    loadingFrame.contentDocument.write(event.data);
+    loadingFrame.contentDocument.close();
 
-    iframe.onload = iframeLoaded.bind(iframe, event.source, oldFrame);
+    loadingFrame.onload = iframeLoaded.bind(null);
   }
 
-  function iframeLoaded(source, oldFrame) {
-    postHeight(source, this);
-    window.addEventListener('resize', postHeight.bind(null, source));
+  function iframeLoaded(source) {
+    var oldFrame = currentFrame;
+    currentFrame = loadingFrame;
+    loadingFrame = null;
+
+    postHeight();
+
     if (oldFrame) {
       oldFrame.classList.add('fade');
-      setTimeout(function() {
-        if (oldFrame && oldFrame.parentElement)
-          oldFrame.parentElement.removeChild(oldFrame);
-      }, 500);
+      setTimeout(removeFrame.bind(null, oldFrame), 500);
     }
   }
 
-  function postHeight(sourceWindow) {
-    if (iframe && iframe.contentDocument)
-      sourceWindow.postMessage({height: iframe.contentDocument.documentElement.offsetHeight}, '*');
+  function removeFrame(frame) {
+    if (frame && frame.parentElement)
+      frame.parentElement.removeChild(frame);
+  }
+
+  function postHeight() {
+    if (sourceWindow && currentFrame && currentFrame.contentDocument)
+      sourceWindow.postMessage({height: currentFrame.contentDocument.documentElement.offsetHeight}, '*');
   }
 </script>
