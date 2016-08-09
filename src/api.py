@@ -1,13 +1,15 @@
 from google.appengine.ext import ndb
 from google.appengine.api import search
+from google.appengine.api import urlfetch
 
+import logging
 import json
 import re
 import webapp2
+import yaml
 
 from datamodel import Library, Version, Content, Dependency
 import versiontag
-
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -203,8 +205,28 @@ class GetDependencies(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(dependencies))
 
+class GetAccessToken(webapp2.RequestHandler):
+  def post(self):
+    code = self.request.get('code')
+
+    client_id = None
+    client_secret = None
+    try:
+      with open('secrets.yaml', 'r') as secrets:
+        config = yaml.load(secrets)
+        client_id = config['github_client_id']
+        client_secret = config['github_client_secret']
+    except (OSError, IOError):
+      logging.error('No Github client id/secret configured in secrets.yaml')
+
+    response = urlfetch.fetch('https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' %
+                              (client_id, client_secret, code), method='POST')
+
+    self.response.write(response.content)
+
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
+    webapp2.Route(r'/api/add', handler=GetAccessToken),
     webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetDataMeta),
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetDataMeta),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),
