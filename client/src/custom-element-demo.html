@@ -1,26 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/prism-element/prism-highlighter.html">
 
 <dom-module id="custom-element-demo">
   <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
   <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
-  <link rel="import" type="css" href="../bower_components/prism/themes/prism.css">
   <style>
-    #expandSourceButton {
-      display: block;
-      width: 30px;
-      height: 14px;
-      line-height: 8px;
-      margin-bottom: 8px;
-      text-align: center;
-      vertical-align: middle;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      background: white;
-      font-size: 8px;
-      cursor: pointer;
-    }
-
     #demoContainer {
       width: 100%;
       height: 0px;
@@ -46,15 +29,48 @@
       width: 100%;
       height: 0px;
     }
+
+    #editorBar {
+      padding: 16px 16px 0;
+      background: #f7f7f7;
+      display: flex;
+      align-items: center;
+    }
+
+    button {
+      text-align: center;
+      border: 1px solid #bbb;
+      border-radius: 2px;
+      background: white;
+    }
+
+    #lazyEditor {
+      display: none;
+      padding: 20px;
+      background: #f7f7f7;
+      font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      line-height: 1.45;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    code-editor[unresolved] + #lazyEditor {
+      display: block;
+    }
   </style>
   <template>
-    <prism-highlighter></prism-highlighter>
     <div id="demoContainer">
       <iframe id="frame"></iframe>
     </div>
-    <div class="markdown-body">
-      <pre id="source"></pre>
+    <div id="editorBar">
+      <button id="expandSource" on-tap="_expandSource">Expand source</button>
+      <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
+        <input type="hidden" id="html" name="html">
+        <button on-tap="_openAsFiddle">Export as Fiddle</on>
+      </form>
     </div>
+    <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
+    <pre id="lazyEditor"></pre>
   </template>
 
   <script>
@@ -79,29 +95,51 @@
       observers: [
         '_setDemo(data, code)',
         '_setFrame(baseUrl, data)',
-        '_updateSource(snippet)',
-        '_updateSource(code)',
+        '_sourceChanged(snippet, code)',
       ],
 
+      _openAsFiddle: function() {
+        this.$.html.value = '<base href="' + this.$.frame.src + '">\n' + this._fullSource();
+      },
+
       _expandSource: function() {
-        this.$.source.innerHTML = this.highlight(this.code);
+        this._collapsed = false;
+        this._code = this._fullSource();
+        delete this._snippet;
+        this.$.editor.value = this._code;
+        this.$.editorBar.setAttribute('hidden', '');
       },
 
-      highlight: function(code) {
-        return this.fire('syntax-highlight', {code: code}).detail.code;
+      _fullSource: function() {
+        var nextBlockRegex = /<next-code-block><\/next-code-block>/;
+        return this._code.replace(nextBlockRegex, this._snippet);
       },
 
-      _updateSource: function() {
-        this.$.source.innerHTML = this.highlight(this.snippet || this.code);
+      _sourceChanged: function(snippet, code) {
+        this._snippet = snippet;
+        this._code = code;
+        this._collapsed = Boolean(this.snippet);
+        this.$.lazyEditor.textContent = this.snippet || this._fullSource();
+        this.$.editor.value = this.snippet || this._fullSource();
 
-        if (this.snippet) {
-          // TODO: Make this button accessible.
-          var expandButton = document.createElement('span');
-          expandButton.id = 'expandSourceButton';
-          expandButton.textContent = '...';
-          expandButton.addEventListener('click', this._expandSource.bind(this));
-          Polymer.dom(this.$.source).insertBefore(expandButton, this.$.source.firstChild);
-        }
+        if (this._collapsed)
+          this.$.expandSource.removeAttribute('hidden');
+        else
+          this.$.expandSource.setAttribute('hidden', '');
+      },
+
+      _codeChange: function(event) {
+        var oldSource = this._fullSource();
+        if (this._collapsed)
+          this._snippet = event.detail.value;
+        else
+          this._code = event.detail.value;
+
+        // Don't update demo if the source hasn't changed since it flashes.
+        if (!this.isDebouncerActive('updateDemo') && oldSource === this._fullSource())
+          return;
+
+        this.debounce('updateDemo', this._setDemo, 200);
       },
 
       _setFrame: function() {
@@ -121,10 +159,13 @@
 
       _setDemoInFrame: function() {
         this._frameReady = true;
-        this.$.frame.contentWindow.postMessage(this.code, '*');
+        this.$.frame.contentWindow.postMessage(this._fullSource(), '*');
       },
 
       _onDemoLoad: function(event) {
+        if (this._lastHeight && event.data.height <= this._lastHeight)
+          return;
+        this._lastHeight = event.data.height;
         this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
         this.$.demoContainer.style.height = event.data.height + 'px';

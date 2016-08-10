@@ -24,6 +24,7 @@
       <catalog-collection name="collection" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="[[subroute]]" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-search name="search" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-add name="add" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-add>
     </iron-pages>
   </template>
 
@@ -64,7 +65,7 @@
           this.importHref(
             this.resolveUrl('catalog-' + page + '.html'),
             function() {
-              // page loaded
+              this._ensureLazyLoaded();
             }, null, true);
         }
       },
@@ -81,6 +82,17 @@
           result.userContent = 'https://user-content-dot-' + queryParams.instance;
         }
         return result;
+      },
+
+      _ensureLazyLoaded: function() {
+        // load lazy resources after render and set `loadComplete` when done.
+        if (!this.loadComplete) {
+          Polymer.RenderStatus.afterNextRender(this, function() {
+            this.importHref(this.resolveUrl('lazy-resources.html'), function() {
+              this.loadComplete = true;
+            });
+          });
+        }
       },
 
     });

@@ -8,20 +8,19 @@ from datamodel import Library, Version, Content
 
 class GetResource(webapp2.RequestHandler):
   def get(self, owner, repo, tag, name=None, path=None):
-    self.response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
-    self.response.headers['Access-Control-Allow-Credentials'] = 'true'
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
 
     owner = owner.lower()
     repo = repo.lower()
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, tag)
 
-    hydro = Content.get_by_id('hydrolyzer', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if hydro is None:
+    analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+    if analysis is None:
       self.response.set_status(404)
       return
 
-    dependencies = json.loads(hydro.content).get('bowerDependencies', None)
+    dependencies = json.loads(analysis.content).get('bowerDependencies', None)
     if dependencies is None:
       self.response.set_status(404)
       return

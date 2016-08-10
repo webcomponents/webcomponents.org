@@ -26,7 +26,6 @@
       assert.equal(demos.length, 1, 'one inline demo created');
       assert.equal(demos[0].getAttribute('width'), 500);
       assert.equal(demos[0].getAttribute('height'), 500);
-      assert.isNull(demos[0].code.match('next-code-block'), 'next-code-block should have been stripped');
     })
   });
 </script>

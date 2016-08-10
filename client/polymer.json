@@ -2,8 +2,10 @@
   "entrypoint": "index.html",
   "shell": "src/catalog-app.html",
   "fragments": [
+    "src/catalog-add.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
-    "src/catalog-search.html"
+    "src/catalog-search.html",
+    "src/lazy-resources.html"
   ]
 }

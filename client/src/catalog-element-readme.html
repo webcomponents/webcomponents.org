@@ -132,15 +132,14 @@
         'dataChanged(data)'
       ],
 
-      ready: function() {
-        this.scopeSubtree(this.$.contents, true);
-      },
-
       dataChanged: function(data) {
         if (data) {
           // Render readme.
           // TODO: Start with the contents hidden.
           this.$.contents.innerHTML = data.readme;
+          // Only scope once so inline demos don't have conflicting styles.
+          this.scopeSubtree(this.$.contents, false);
+
           var codeBlocks = [].slice.call(Polymer.dom(this.root).querySelectorAll('pre'));
 
           // Find and replace all inline demos.
@@ -171,8 +170,8 @@
             if (code.match(nextBlockRegex) && codeBlocks.length) {
               var nextBlock = codeBlocks.shift();
               snippet = nextBlock.textContent;
-              code = code.replace(nextBlockRegex, nextBlock.textContent);
-              nextBlock.remove();
+              if (nextBlock.parentNode)
+                nextBlock.parentNode.removeChild(nextBlock);
             }
 
             demoElement.data = this.data;

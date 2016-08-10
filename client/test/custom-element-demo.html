@@ -24,23 +24,23 @@
       demoElement.snippet = 'short';
 
       var root = Polymer.dom(demoElement.root);
-      var expandSourceButton = root.querySelector('#expandSourceButton');
-      assert(expandSourceButton, 'expand source button present');
-      expandSourceButton.remove();
+      var expandSource = root.querySelector('#expandSource');
+      assert.isFalse(expandSource.hasAttribute('hidden'), 'expand source button present');
 
-      var source = root.querySelector('#source');
-      assert.equal(source.textContent, 'short', 'showing snippet over full source');
+      var source = root.querySelector('#editor');
+      assert.equal(source.value, 'short', 'showing snippet over full source');
     });
 
     test('Show source when snippets aren\'t present', function() {
       demoElement.code = 'longer';
+      demoElement.snippet = '';
 
       var root = Polymer.dom(demoElement.root);
-      var expandSourceButton = root.querySelector('#expandSourceButton');
-      assert.isNull(expandSourceButton, 'expand source button present');
+      var expandSource = root.querySelector('#expandSource');
+      assert.isTrue(expandSource.hasAttribute('hidden'), 'expand source button not present');
 
-      var source = root.querySelector('#source');
-      assert.equal(source.textContent, 'longer', 'showing full source');
+      var source = root.querySelector('#editor');
+      assert.equal(source.value, 'longer', 'showing full source');
     });
   });
 </script>

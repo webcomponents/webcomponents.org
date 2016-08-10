@@ -30,6 +30,10 @@ class IngestLibrary(webapp2.RequestHandler):
     owner = owner.lower()
     repo = repo.lower()
     library = Library.maybe_create_with_kind(owner, repo, kind)
+    library_dirty = False
+    if library.error is not None:
+      library_dirty = True
+      library.error = None
 
     logging.info('created library')
 
@@ -38,51 +42,63 @@ class IngestLibrary(webapp2.RequestHandler):
       self.response.set_status(500)
       return
 
-    response = github.github_resource('repos', owner, repo)
+    response = github.github_resource('repos', owner, repo, etag=library.metadata_etag)
+    if response.status_code != 304:
+      if response.status_code == 200:
+        library.metadata = response.content
+        library.metadata_etag = response.headers.get('ETag', None)
+        library_dirty = True
+      else:
+        library.error = 'repo metadata not found (%d)' % response.status_code
+        github.release()
+        library.put()
+        return
 
-    if not response.status_code == 200:
-      library.error = 'repo metadata not found'
-      github.release()
+    response = github.github_resource('repos', owner, repo, 'contributors', etag=library.contributors_etag)
+    if response.status_code != 304:
+      if response.status_code == 200:
+        library.contributors = response.content
+        library.contributors_etag = response.headers.get('ETag', None)
+        library.contributor_count = len(json.loads(response.content))
+        library_dirty = True
+      else:
+        library.error = 'repo contributors not found (%d)' % response.status_code
+        github.release()
+        library.put()
+        return
+
+
+    response = github.github_resource('repos', owner, repo, 'git/refs/tags', etag=library.tags_etag)
+    if response.status_code != 304:
+      if response.status_code == 200:
+        library.tags = response.content
+        library.tags_etag = response.headers.get('ETag', None)
+        library_dirty = True
+
+        data = json.loads(response.content)
+        if not isinstance(data, object):
+          library.error = 'repo contians no valid version tags'
+          github.release()
+          library.put()
+          return
+        for version in data:
+          tag = version['ref'][10:]
+          if not versiontag.is_valid(tag):
+            continue
+          sha = version['object']['sha']
+          version_object = Version(parent=library.key, id=tag, sha=sha)
+          version_object.put()
+          util.new_task('ingest/version', owner, repo, detail=tag)
+          util.publish_analysis_request(owner, repo, tag)
+      else:
+        library.error = 'repo tags not found (%d)' % response.status_code
+        github.release()
+        library.put()
+        return
+
+    if library_dirty:
       library.put()
-      return
-
-    library.metadata = response.content
-
-    response = github.github_resource('repos', owner, repo, 'contributors')
-    if not response.status_code == 200:
-      library.error = 'repo contributors not found'
-      github.release()
-      library.put()
-      return
-
-    library.contributors = response.content
-    library.contributor_count = len(json.loads(response.content))
-
-    response = github.github_resource('repos', owner, repo, 'git/refs/tags')
-    if not response.status_code == 200:
-      library.error = 'repo tags not found'
-      github.release()
-      library.put()
-      return
-
-    data = json.loads(response.content)
-    if not isinstance(data, object):
-      library.error = 'repo contians no valid version tags'
-      github.release()
-      library.put()
-      return
-
-    library.put()
-
-    for version in data:
-      tag = version['ref'][10:]
-      if not versiontag.is_valid(tag):
-        continue
-      sha = version['object']['sha']
-      version_object = Version(parent=library.key, id=tag, sha=sha)
-      version_object.put()
-      util.new_task('ingest/version', owner, repo, detail=tag)
-      util.publish_analysis_request(owner, repo, tag)
+    github.release()
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -97,10 +113,12 @@ class IngestVersion(webapp2.RequestHandler):
 
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
 
-    blob = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'))
+    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'))
+    readme = response.content
 
     try:
-      content = Content(parent=key, id='readme', content=blob.content)
+      content = Content(parent=key, id='readme', content=readme)
+      content.etag = response.headers.get('ETag', None)
       content.put()
     except db.BadValueError:
       ver = key.get()
@@ -109,11 +127,11 @@ class IngestVersion(webapp2.RequestHandler):
       self.response.set_status(200)
       return
 
-    response = github.markdown(blob.content)
+    response = github.markdown(readme)
     content = Content(parent=key, id='readme.html', content=response.content)
     content.put()
 
-    blob = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'))
+    response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'))
     try:
       json.loads(blob.content)
     # TODO: Which exception is this for?
@@ -125,7 +143,8 @@ class IngestVersion(webapp2.RequestHandler):
       self.response.set_status(200)
       return
 
-    content = Content(parent=key, id='bower', content=blob.content)
+    content = Content(parent=key, id='bower', content=response.content)
+    content.etag = response.headers.get('ETag', None)
     content.put()
 
     versions = Library.versions_for_key(key.parent())
@@ -133,7 +152,7 @@ class IngestVersion(webapp2.RequestHandler):
       library = key.parent().get()
       if library.kind == "collection":
         util.new_task('ingest/dependencies', owner, repo, detail=version)
-      bower = json.loads(blob.content)
+      bower = json.loads(response.content)
       metadata = json.loads(library.metadata)
       logging.info('adding search index for %s', version)
       description = bower.get("description", metadata.get("description", ""))
@@ -188,12 +207,12 @@ class IngestAnalysis(webapp2.RequestHandler):
     repo = attributes['repo']
     version = attributes['version']
 
-    logging.info('Ingesting hydro data %s/%s/%s', owner, repo, version)
+    logging.info('Ingesting analysis data %s/%s/%s', owner, repo, version)
     parent = Version.get_by_id(version, parent=ndb.Key(Library, '%s/%s' % (owner, repo)))
 
-    # Don't accept the hydro data unless the version still exists in the datastore
+    # Don't accept the analysis data unless the version still exists in the datastore
     if parent is not None:
-      content = Content(parent=parent.key, id='hydrolyzer', content=data)
+      content = Content(parent=parent.key, id='analysis', content=data)
       try:
         content.put()
       # TODO: Which exception is this for?
@@ -213,6 +232,11 @@ def delete_library(response, library_key):
 
   index = search.Index('repo')
   index.delete([library_key.id()])
+
+class GithubStatus(webapp2.RequestHandler):
+  def get(self):
+    for key, value in quota.rate_limit().items():
+      self.response.write('%s: %s<br>' % (key, value))
 
 class DeleteLibrary(webapp2.RequestHandler):
   def get(self, owner, repo):
@@ -248,11 +272,12 @@ class DeleteEverything(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
+    webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary, name='add'),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary, name='nom'),
     webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies, name='nomdep'),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion, name='nomver'),
-    webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis, name='nomhyd'),
+    webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis, name='nomalyze'),
 ], debug=True)

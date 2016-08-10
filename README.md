@@ -15,7 +15,7 @@ python tests.py $APPENGINE_SDK
 
 Deploy to staging.
 ```bash
-grunt lint
+grunt lint #lints both client and python
 appcfg.py update_dispatch dispatch.yaml
 appcfg.py update manage.yaml
 appcfg.py update api.yaml

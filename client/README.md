@@ -16,7 +16,6 @@ wct --root client
 
 ### Deploying to staging
 ```bash
-gulp lint
 cd client
 polymer build
 cp client.yaml build/bundled
