@@ -1,5 +1,18 @@
 'use strict';
 
+function removeProperties(obj, properties) {
+  if (!properties || !obj) return;
+  if (typeof obj === 'object') {
+    for (var prop of properties) {
+      delete obj[prop];
+    }
+    Object.keys(obj).forEach(x => removeProperties(obj[x], properties));
+  } else if (Array.isArray(obj)) {
+    obj.forEach(val => removeProperties(val, properties));
+  }
+}
+
+
 /**
  * Service for communicating with the catalog servers.
  * Handles polling for requests, sending responses etc...
@@ -85,17 +98,6 @@ class CattledogPubsub {
     });
   }
 
-  static removeProperties(obj, properties) {
-    if (!properties || !obj) return;
-    if (typeof obj === 'object') {
-      for (var prop of properties) {
-        delete obj[prop];
-      }
-      Object.keys(obj).forEach(x => Cattledog.removeProperties(obj[x], properties));
-    } else if (Array.isArray(obj)) {
-      obj.forEach(val => Cattledog.removeProperties(val, properties));
-    }
-  }
 
   /**
    * Posts response data and attributes to the given topic.
@@ -106,7 +108,7 @@ class CattledogPubsub {
       console.log("CATALOG: Posting response to " + topicName);
 
       // omit ridiculously huge (or circular) fields from JSON stringify
-      Cattledog.removeProperties(data, ["scriptElement", "javascriptNode"]);
+      removeProperties(data, ["scriptElement", "javascriptNode"]);
       this.pubsub.topic(topicName).publish({
         data: data,
         attributes: attributes

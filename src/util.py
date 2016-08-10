@@ -22,10 +22,9 @@ def add_secret(url):
 
 ANALYSIS_REQUEST_TOPIC = None
 def get_topic():
+  global ANALYSIS_REQUEST_TOPIC
   if ANALYSIS_REQUEST_TOPIC is None:
-    topic = os.environ['ANALYSIS_REQUEST_TOPIC']
-    client = pubsub.Client()
-    client.topic(topic)
+    topic = pubsub.Client().topic(os.environ['ANALYSIS_REQUEST_TOPIC'])
     if not topic.exists():
       topic.create()
       assert topic.exists()
