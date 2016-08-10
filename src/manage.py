@@ -89,11 +89,7 @@ class IngestLibrary(webapp2.RequestHandler):
           version_object = Version(parent=library.key, id=tag, sha=sha)
           version_object.put()
           util.new_task('ingest/version', owner, repo, detail=tag)
-          util.publish_hydrolyze_pending(
-              '/task/ingest/hydrolyzer/%s/%s/%s' % (owner, repo, tag),
-              owner,
-              repo,
-              tag)
+          util.publish_analysis_request(owner, repo, tag)
       else:
         library.error = 'repo tags not found (%d)' % response.status_code
         github.release()
@@ -103,7 +99,6 @@ class IngestLibrary(webapp2.RequestHandler):
     if library_dirty:
       library.put()
     github.release()
-
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -202,7 +197,7 @@ class IngestDependencies(webapp2.RequestHandler):
     libraries.append(ver)
     ndb.put_multi(libraries)
 
-class Hydro(webapp2.RequestHandler):
+class IngestAnalysis(webapp2.RequestHandler):
   def post(self):
     message_json = json.loads(urllib.unquote(self.request.body).rstrip('='))
     message = message_json['message']
@@ -212,12 +207,12 @@ class Hydro(webapp2.RequestHandler):
     repo = attributes['repo']
     version = attributes['version']
 
-    logging.info('Ingesting hydro data %s/%s/%s', owner, repo, version)
+    logging.info('Ingesting analysis data %s/%s/%s', owner, repo, version)
     parent = Version.get_by_id(version, parent=ndb.Key(Library, '%s/%s' % (owner, repo)))
 
-    # Don't accept the hydro data unless the version still exists in the datastore
+    # Don't accept the analysis data unless the version still exists in the datastore
     if parent is not None:
-      content = Content(parent=parent.key, id='hydrolyzer', content=data)
+      content = Content(parent=parent.key, id='analysis', content=data)
       try:
         content.put()
       # TODO: Which exception is this for?
@@ -284,5 +279,5 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary, name='nom'),
     webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies, name='nomdep'),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion, name='nomver'),
-    webapp2.Route(r'/_ah/push-handlers/hydro', handler=Hydro, name='nomhyd'),
+    webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis, name='nomalyze'),
 ], debug=True)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: deploy-hydro.sh <instance-num>
+# Usage: deploy.sh <instance-num>
 
 
 ZONE=us-central1-f
@@ -8,7 +8,9 @@ INSTANCE=instance$INSTANCE_NUM
 
 # Extract current project name from gcloud info.
 GCLOUD_PROJECT=$(gcloud info | grep "Project" | cut -d "[" -f2 | cut -d "]" -f1)
-TOPIC=hydro-$INSTANCE
+
+# Topic must match that in ../manage.yaml
+TOPIC=analysis-requests
 
 # Ensure that we have a valid instance, either by creating one, or by using one.
 if gcloud compute instances describe $INSTANCE --zone $ZONE > /dev/null ; then
@@ -26,12 +28,12 @@ else
   fi
 fi
 
-echo "Attempting to deploy hydro to $INSTANCE"
+echo "Attempting to deploy analysis to $INSTANCE"
 n=1
 until [ $n -ge 11 ]
 do
   echo "Attempt $n of 10"
-  gcloud compute copy-files . $INSTANCE:/usr/local/lib/hydro --zone $ZONE && break
+  gcloud compute copy-files . $INSTANCE:/usr/local/lib/analysis --zone $ZONE && break
   echo "Attempt $n failed"
   n=$[$n+1]
   sleep 5
