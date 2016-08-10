@@ -20,16 +20,15 @@ def add_secret(url):
     access = '?access_token=' + GITHUB_TOKEN
   return url + access
 
-ANALYSIS_REQUEST_TOPIC = None
+ANALYSIS = {}
 def get_topic():
-  global ANALYSIS_REQUEST_TOPIC
-  if ANALYSIS_REQUEST_TOPIC is None:
+  if 'topic' not in ANALYSIS:
     topic = pubsub.Client().topic(os.environ['ANALYSIS_REQUEST_TOPIC'])
     if not topic.exists():
       topic.create()
       assert topic.exists()
-    ANALYSIS_REQUEST_TOPIC = topic
-  return ANALYSIS_REQUEST_TOPIC
+    ANALYSIS['topic'] = topic
+  return ANALYSIS['topic']
 
 def publish_analysis_request(owner, repo, version):
   try:
