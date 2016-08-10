@@ -6,6 +6,6 @@
     "src/catalog-collection.html",
     "src/catalog-element.html",
     "src/catalog-search.html",
-    "src/code-editor.html"
+    "src/lazy-resources.html"
   ]
 }
