@@ -3,7 +3,7 @@
 const Bower = require('./bower').Bower;
 const Hydrolysis = require('./hydrolysis').Hydrolysis;
 const Catalog = require('./catalog').Catalog;
-const Hydro = require('./hydro').Hydro;
+const Analysis = require('./analysis').Analysis;
 
 const gcloud = require('gcloud');
 const repeat = require('repeat');
@@ -26,12 +26,12 @@ function processTasksForever() {
       subscription);
   catalog.init().then(() => {
     console.log("Using project [" + project + "] and subscription [" + subscription + "]");
-    var hydro = new Hydro(
+    var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
       catalog);
       repeat(function(done) {
-        hydro.processNextTask().then(function() {
+        analysis.processNextTask().then(function() {
           done();
         }, function(error) {
           console.error("ERROR: " + error);

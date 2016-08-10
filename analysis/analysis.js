@@ -3,9 +3,9 @@
 /**
  * Encapsulates the processing of each task.
  */
-class Hydro {
+class Analysis {
   /**
-   * Creates a Hydro using the given bower, hydrolysis and catalog services.
+   * Creates an Analysis using the given bower, hydrolysis and catalog services.
    * @param {Bower} bower - The Bower service.
    * @param {Hydrolysis} hydrolysis - The Hydrolysis service.
    * @param {Catalog} catalog - The Catalog service.
@@ -58,5 +58,5 @@ class Hydro {
 }
 
 module.exports = {
-  Hydro: Hydro
+  Analysis: Analysis
 };

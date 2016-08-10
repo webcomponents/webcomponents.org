@@ -1,7 +1,7 @@
 #!/bin/bash
 # Simple little hacky script to set environment vars if pub sub is running.
 #
-# Usage: hydro.sh project subscription ?pubsub?
+# Usage: main.sh project subscription ?pubsub?
 #
 
 if [ "$3" == "pubsub" ]

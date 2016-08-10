@@ -14,7 +14,7 @@ skip_files:
 - ^(.*/)?.*\.py[co]$
 - ^(.*/)?.*/RCS/.*$
 - ^(.*/)?\..*$
-- hydro
+- analysis
 - scripts
 - client
 - node_modules

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: deploy-hydro.sh <instance-num>
+# Usage: deploy.sh <instance-num>
 
 
 ZONE=us-central1-f
@@ -28,12 +28,12 @@ else
   fi
 fi
 
-echo "Attempting to deploy hydro to $INSTANCE"
+echo "Attempting to deploy analysis to $INSTANCE"
 n=1
 until [ $n -ge 11 ]
 do
   echo "Attempt $n of 10"
-  gcloud compute copy-files . $INSTANCE:/usr/local/lib/hydro --zone $ZONE && break
+  gcloud compute copy-files . $INSTANCE:/usr/local/lib/analysis --zone $ZONE && break
   echo "Attempt $n failed"
   n=$[$n+1]
   sleep 5
