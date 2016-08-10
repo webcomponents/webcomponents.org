@@ -2,11 +2,6 @@
 # We're in a GCE instance if we're running under a google service account.
 IN_GCE_INSTANCE=$(gcloud info | grep gserviceaccount | cut -d "[" -f2 | cut -d "]" -f1 | wc -l)
 
-# Installs dependencies for analysis.
-sudo apt-get update
-sudo apt-get install -y make
-sudo apt-get install -y git
-
 if [[ $IN_GCE_INSTANCE -ge 1 ]] ; then
   # make a place that the code can be uploaded to.
   mkdir -m 777 /usr/local/lib/analysis
@@ -16,6 +11,9 @@ else
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.1/install.sh | bash
   NVM_SH=~/.nvm/nvm.sh
 fi
+
+# Install dependencies for analysis - if they can't be installed, exit.
+sudo apt-get update && sudo apt-get install -y make git || exit
 
 . $NVM_SH && \
 nvm install v4.4.5 && \
