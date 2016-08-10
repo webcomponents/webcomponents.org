@@ -17,6 +17,12 @@ python tests.py $APPENGINE_SDK
 ```
 
 ## Deployment
+To increase Github API quota, acqure a Github token and store it:
+```bash
+cat > secrets.yaml
+github_token: 'your-github-token'
+^D
+```
 
 Deploy to staging.
 ```bash
