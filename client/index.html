@@ -28,11 +28,16 @@
   <body>
     <catalog-app unresolved></catalog-app>
     <script>
-      window.performance && performance.mark && performance.mark('index.html');
-
-      Polymer = {lazyRegister: true};
-
       (function() {
+        if (window.Polymer) {
+          console.error('Polymer already initialized!');
+          return;
+        }
+
+        window.performance && performance.mark && performance.mark('index.html');
+
+        Polymer = {lazyRegister: true};
+
         if ('registerElement' in document
             && 'import' in document.createElement('link')
             && 'content' in document.createElement('template')) {

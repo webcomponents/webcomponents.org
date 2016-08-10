@@ -2,7 +2,7 @@
 
 <dom-module id="lazy-block">
   <script>
-    (function () {
+    (function() {
       var blockers = new Map();
       var loaded = false;
 
@@ -23,7 +23,7 @@
         },
 
         _conditionSet: function(condition) {
-          if (!Boolean(condition))
+          if (!condition)
             return;
 
           blockers.delete(this);
@@ -43,7 +43,8 @@
           loaded = true;
 
           Polymer.RenderStatus.afterNextRender(this, function() {
-            this.importHref(this.resolveUrl('lazy-resources.html'), this._remove.bind(this));
+            // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
+            this.importHref('/src/code-editor.html', this._remove.bind(this));
           });
         },
 
