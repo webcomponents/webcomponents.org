@@ -34,11 +34,11 @@ def get_topic():
 def publish_analysis_request(owner, repo, version):
   try:
     get_topic().publish(
-      "",
-      owner=owner,
-      repo=repo,
-      version=version,
-      responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
+        "",
+        owner=owner,
+        repo=repo,
+        version=version,
+        responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
   # TODO: Which exception is this for?
   # pylint: disable=bare-except
   except:
