@@ -16,6 +16,10 @@ if [[ $IN_GCE_INSTANCE -ge 1 ]] ; then
   # Install Stackdriver monitoring for instance data
   curl -O "https://repo.stackdriver.com/stack-install.sh"
   sudo bash stack-install.sh --write-gcm
+
+  # Install Stackdriver logging agent
+  curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+  sudo bash install-logging-agent.sh
 fi
 
 # Install nvm to maintain correct node/npm versions
