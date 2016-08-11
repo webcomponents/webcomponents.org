@@ -3,7 +3,7 @@ node_js: stable
 dist: trusty
 sudo: required
 addons:
-  firefox: '46.0'
+  firefox: latest
   sauce_connect: true
   apt:
     sources:
