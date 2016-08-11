@@ -18,8 +18,9 @@ import util
 
 
 class AddLibrary(webapp2.RequestHandler):
-  def get(self, kind, owner, repo):
-    util.new_task('ingest/library', owner, repo, detail=kind)
+  def get(self, owner, repo, kind):
+    task_url = util.ingest_library_task(owner, repo, kind)
+    util.new_task(task_url)
     self.response.write('OK')
 
 class IngestLibrary(webapp2.RequestHandler):
@@ -88,7 +89,8 @@ class IngestLibrary(webapp2.RequestHandler):
           sha = version['object']['sha']
           version_object = Version(parent=library.key, id=tag, sha=sha)
           version_object.put()
-          util.new_task('ingest/version', owner, repo, detail=tag)
+          task_url = version_ingest_task(owner, repo, tag)
+          util.new_task(task_url)
           util.publish_analysis_request(owner, repo, tag)
       else:
         library.error = 'repo tags not found (%d)' % response.status_code
@@ -151,7 +153,8 @@ class IngestVersion(webapp2.RequestHandler):
     if versions[-1] == version:
       library = key.parent().get()
       if library.kind == "collection":
-        util.new_task('ingest/dependencies', owner, repo, detail=version)
+        task_url = ingest_dependencies_task(owner, repo, version)
+        util.new_task(task_url)
       bower = json.loads(response.content)
       metadata = json.loads(library.metadata)
       logging.info('adding search index for %s', version)
@@ -193,7 +196,9 @@ class IngestDependencies(webapp2.RequestHandler):
     for i, library in enumerate(libraries):
       dep = dep_list[i]
       library.collections.append(CollectionReference(version=key.parent(), semver=dep.version))
-      util.new_task('ingest/library', dep.owner.lower(), dep.repo.lower())
+      # FIXME: Can't assume this is an element.
+      task_url = ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
+      util.new_task(task_url)
     libraries.append(ver)
     ndb.put_multi(libraries)
 

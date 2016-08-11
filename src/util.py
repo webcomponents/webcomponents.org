@@ -55,17 +55,17 @@ def github_url(prefix, owner=None, repo=None, detail=None):
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
-# TODO: Make newTask take a task URL instead of components and start using
-# functions like this
-def library_ingestion_task(owner, repo, kind):
+def ingest_library_task(owner, repo, kind):
   return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)
 
-def new_task(url, owner, repo, **kw):
-  if kw.has_key('detail'):
-    detail = '/' + kw['detail']
-  else:
-    detail = ''
-  return taskqueue.add(method='GET', url='/task/' + url + '/' + owner + '/' + repo + detail)
+def ingest_version_task(owner, repo, version):
+  return '/task/ingest/version/%s/%s/%s' % (owner, repo, version)
+
+def ingest_dependencies_task(owner, repo, version):
+  return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
+
+def new_task(url):
+  return taskqueue.add(method='GET', url=url)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)

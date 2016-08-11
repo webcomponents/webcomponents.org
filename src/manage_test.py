@@ -106,13 +106,13 @@ class ManageAddTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.library_ingestion_task('org', 'repo', 'element'))
+    self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo', 'element'))
 
 
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "v1.0.0"}]')
-    response = self.app.get(util.library_ingestion_task('org', 'repo', 'element'))
+    response = self.app.get(util.ingest_library_task('org', 'repo', 'element'))
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
