@@ -2,7 +2,6 @@
   "suites": ["client/test/index.html"],
   "plugins": {
     "sauce": {
-      "disabled": true,
       "browsers": [
         {
           "browserName":  "microsoftedge",
