@@ -118,16 +118,18 @@ class IngestVersion(webapp2.RequestHandler):
     response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'))
     readme = response.content
 
+    def error(error_string):
+      ver = key.get()
+      ver.error = error_string
+      ver.put()
+      self.response.set_status(200)
+
     try:
       content = Content(parent=key, id='readme', content=readme)
       content.etag = response.headers.get('ETag', None)
       content.put()
     except db.BadValueError:
-      ver = key.get()
-      ver.error = "Could not store README.md as a utf-8 string"
-      ver.put()
-      self.response.set_status(200)
-      return
+      return error("Could not store README.md as a utf-8 string")
 
     response = github.markdown(readme)
     content = Content(parent=key, id='readme.html', content=response.content)
@@ -137,11 +139,7 @@ class IngestVersion(webapp2.RequestHandler):
     try:
       json.loads(response.content)
     except ValueError:
-      ver = key.get()
-      ver.error = "This version has a missing or broken bower.json"
-      ver.put()
-      self.response.set_status(200)
-      return
+      return error("This version has a missing or broken bower.json")
 
     content = Content(parent=key, id='bower', content=response.content)
     content.etag = response.headers.get('ETag', None)
