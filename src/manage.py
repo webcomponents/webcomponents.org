@@ -72,8 +72,6 @@ class IngestLibrary(webapp2.RequestHandler):
     response = github.github_resource('repos', owner, repo, 'git/refs/tags', etag=library.tags_etag)
     if response.status_code != 304:
       if response.status_code == 200:
-        library.tags = response.content
-        library.tags_etag = response.headers.get('ETag', None)
         library_dirty = True
 
         data = json.loads(response.content)
@@ -82,15 +80,31 @@ class IngestLibrary(webapp2.RequestHandler):
           github.release()
           library.put()
           return
+        data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
+        if len(data) is 0:
+          library.error = 'repo contains no valid version tags'
+          github.release()
+          library.put()
+          return
+        data.sort(lambda a,b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
+        dataRefs = [d['ref'] for d in data]
+        library.tags = json.dumps(dataRefs)
+        library.tags_etag = response.headers.get('ETag', None)
+        data.reverse()
+        is_newest = True
         for version in data:
           tag = version['ref'][10:]
           if not versiontag.is_valid(tag):
             continue
           sha = version['object']['sha']
+          params = {}
+          if (is_newest):
+            params["latestVersion"] = "True"
+            is_newest = False
           version_object = Version(parent=library.key, id=tag, sha=sha)
           version_object.put()
           task_url = util.ingest_version_task(owner, repo, tag)
-          util.new_task(task_url)
+          util.new_task(task_url, params)
           util.publish_analysis_request(owner, repo, tag)
       else:
         library.error = 'repo tags not found (%d)' % response.status_code
@@ -106,6 +120,7 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
+    generateSearch = self.request.get('latestVersion', False);
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
     github = quota.GitHub()
@@ -145,8 +160,7 @@ class IngestVersion(webapp2.RequestHandler):
     content.etag = response.headers.get('ETag', None)
     content.put()
 
-    versions = Library.versions_for_key(key.parent())
-    if versions[-1] == version:
+    if generateSearch:
       library = key.parent().get()
       if library.kind == "collection":
         task_url = util.ingest_dependencies_task(owner, repo, version)
