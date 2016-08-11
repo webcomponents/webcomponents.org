@@ -10,6 +10,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="catalog-element-readme.html">
+<link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
   <template>
@@ -194,6 +195,9 @@
       handle-as="json"
       last-response="{{docs}}"
       on-response="_handleResponse"></iron-ajax>
+
+    <lazy-block condition="[[!loading]]"></lazy-block>
+    <lazy-block condition="[[docs]]"></lazy-block>
 
     <app-drawer-layout>
       <app-drawer id="drawer" swipe-open>
