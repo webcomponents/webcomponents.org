@@ -78,7 +78,7 @@ class IngestLibrary(webapp2.RequestHandler):
 
         data = json.loads(response.content)
         if not isinstance(data, object):
-          library.error = 'repo contians no valid version tags'
+          library.error = 'repo contains no valid version tags'
           github.release()
           library.put()
           return
@@ -89,7 +89,7 @@ class IngestLibrary(webapp2.RequestHandler):
           sha = version['object']['sha']
           version_object = Version(parent=library.key, id=tag, sha=sha)
           version_object.put()
-          task_url = version_ingest_task(owner, repo, tag)
+          task_url = util.ingest_version_task(owner, repo, tag)
           util.new_task(task_url)
           util.publish_analysis_request(owner, repo, tag)
       else:
@@ -135,10 +135,8 @@ class IngestVersion(webapp2.RequestHandler):
 
     response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'))
     try:
-      json.loads(blob.content)
-    # TODO: Which exception is this for?
-    # pylint: disable=bare-except
-    except:
+      json.loads(response.content)
+    except ValueError:
       ver = key.get()
       ver.error = "This version has a missing or broken bower.json"
       ver.put()
