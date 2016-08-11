@@ -151,7 +151,7 @@ class IngestVersion(webapp2.RequestHandler):
     if versions[-1] == version:
       library = key.parent().get()
       if library.kind == "collection":
-        task_url = ingest_dependencies_task(owner, repo, version)
+        task_url = util.ingest_dependencies_task(owner, repo, version)
         util.new_task(task_url)
       bower = json.loads(response.content)
       metadata = json.loads(library.metadata)
@@ -195,7 +195,7 @@ class IngestDependencies(webapp2.RequestHandler):
       dep = dep_list[i]
       library.collections.append(CollectionReference(version=key.parent(), semver=dep.version))
       # FIXME: Can't assume this is an element.
-      task_url = ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
+      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
       util.new_task(task_url)
     libraries.append(ver)
     ndb.put_multi(libraries)
