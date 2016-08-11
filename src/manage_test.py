@@ -148,8 +148,8 @@ class ManageAddTest(ManageTestBase):
 
     readme = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme').get()
     self.assertEqual(readme.content, 'README')
-    readmeHtml = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme.html').get()
-    self.assertEqual(readmeHtml.content, '<html>README</html>')
+    readme_html = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme.html').get()
+    self.assertEqual(readme_html.content, '<html>README</html>')
     bower = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'bower').get()
     self.assertEqual(bower.content, '{}')
 
