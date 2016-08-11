@@ -87,7 +87,7 @@ class IngestLibrary(webapp2.RequestHandler):
           library.put()
           return
         data.sort(lambda a,b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
-        dataRefs = [d['ref'] for d in data]
+        dataRefs = [d['ref'][10:] for d in data]
         library.tags = json.dumps(dataRefs)
         library.tags_etag = response.headers.get('ETag', None)
         data.reverse()
@@ -134,9 +134,18 @@ class IngestVersion(webapp2.RequestHandler):
     readme = response.content
 
     def error(error_string):
+      logging.info('ingestion error "%s" for %s/%s/%s' % (error_string, owner, repo, version))
       ver = key.get()
       ver.error = error_string
       ver.put()
+      library = key.parent().get()
+      versions = json.loads(library.tags)
+      idx = versions.index(version)
+      if idx > 0:
+        logging.info('ingestion for %s/%s falling back to version %s' % (owner, repo, versions[idx - 1]))
+        task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
+        util.new_task(task_url, {'latestVersion':'True'})
+
       self.response.set_status(200)
 
     try:
