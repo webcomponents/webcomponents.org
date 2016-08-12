@@ -4,9 +4,9 @@ import re
 
 from manage import app
 from datamodel import Library, Version, Content
+import json
 import quota
 import util
-import json
 
 from google.appengine.api import urlfetch_stub
 from google.appengine.ext import ndb
@@ -168,7 +168,7 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'))
+    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'))
 
     version2 = version2.key.get()
     self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")
