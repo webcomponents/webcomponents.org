@@ -1,5 +1,7 @@
 'use strict';
 
+const Ana = require('./ana_log').Ana;
+
 /**
  * Encapsulates the processing of each task.
  */
@@ -25,14 +27,16 @@ class Analysis {
     return new Promise((resolve, reject) => {
       this.catalog.nextTask().then((message) => {
         var ackId = message.ackId;
+        var attributes = message.attributes;
+        var taskAsString = JSON.stringify(attributes);
+
         var errorHandler = (error) => {
+          Ana.fail("analysis/processNextTask", error, taskAsString);
           this.catalog.ackTask(ackId);
           reject(error);
         }
 
-        var attributes = message.attributes;
-
-        console.log("CATALOG: Task params " + JSON.stringify(attributes));
+        Ana.log("analysis/processNextTask", taskAsString);
         if (!attributes) {
           errorHandler("Task was missing attributes");
           return;
@@ -50,6 +54,7 @@ class Analysis {
           return this.catalog.postResponse(attributes.responseTopic, data, attributes);
         }).then(() => {
           this.catalog.ackTask(ackId);
+          Ana.success("analysis/processNextTask", taskAsString);
           resolve();
         }).catch(errorHandler);
       }, reject);

@@ -1,5 +1,7 @@
 'use strict';
 
+const Ana = require('./ana_log').Ana;
+
 function removeProperties(obj, properties) {
   if (!properties || !obj) return;
   if (typeof obj === 'object') {
@@ -25,7 +27,7 @@ class CattledogPubsub {
    * @param {string} topicAndSubscriptionName - The name to use for both the topic and subscription.
    */
   constructor(pubsub, topicAndSubscriptionName) {
-    console.log("CATALOG: Using topic and subscription [" + topicAndSubscriptionName + "]");
+    Ana.log("catalog/constructor", "Using topic and subscription [", topicAndSubscriptionName, "]");
     this.pubsub = pubsub;
     this.name = topicAndSubscriptionName;
     this.topic = pubsub.topic(topicAndSubscriptionName);
@@ -38,19 +40,20 @@ class CattledogPubsub {
     return new Promise((resolve, reject) => {
       this.topic.get({ autoCreate: true }, (err, topic) => {
         if (err) {
+          Ana.fail("catalog/init", "Couldn't get topic", topic);
           reject(err);
           return;
         }
         this.topic = topic;
-        console.log("CATALOG: Topic " + topic.name);
         this.subscription = this.topic.subscription(this.name);
         this.subscription.get({ autoCreate: true}, (err, subscription) => {
           if (err) {
+            Ana.fail("catalog/init", "Couldn't get subscription", subscription);
             reject(err);
             return;
           }
           this.subscription = subscription;
-          console.log("CATALOG: Subscription " + subscription.name);
+          Ana.success("catalog/init", subscription.name);
           resolve();
         });
       });
@@ -63,17 +66,19 @@ class CattledogPubsub {
    */
   nextTask() {
     return new Promise((resolve, reject) => {
-      console.log("CATALOG: Pulling next task");
       this.subscription.pull({
         returnImmediately: false,
         maxMessages: 1
       }, function(error, messages) {
         if (error) {
+          Ana.fail("catalog/nextTask");
           reject(Error(error));
         } else {
           if (!messages || messages.length == 0) {
+            Ana.success("catalog/nextTask", "No tasks pending");
             reject("No tasks pending");
           } else {
+            Ana.success("catalog/nextTask");
             resolve(messages[0]);
           }
         }
@@ -86,18 +91,18 @@ class CattledogPubsub {
    * @return {Promise} a promise for determining success.
    */
   ackTask(ackId) {
-    console.log("CATALOG: Acking message " + ackId);
     return new Promise((resolve, reject) => {
       this.subscription.ack(ackId, function(error, apiResponse) {
         if (error) {
+          Ana.fail("catalog/ackTask", ackId);
           reject(Error(error));
         } else {
+          Ana.success("catalog/ackTask", ackId);
           resolve();
         }
       });
     });
   }
-
 
   /**
    * Posts response data and attributes to the given topic.
@@ -105,8 +110,6 @@ class CattledogPubsub {
    */
   postResponse(topicName, data, attributes) {
     return new Promise((resolve, reject) => {
-      console.log("CATALOG: Posting response to " + topicName);
-
       // omit ridiculously huge (or circular) fields from JSON stringify
       removeProperties(data, ["scriptElement", "javascriptNode"]);
       this.pubsub.topic(topicName).publish({
@@ -114,8 +117,10 @@ class CattledogPubsub {
         attributes: attributes
       }, function(error) {
         if (error) {
+          Ana.fail("catalog/postResponse", topicName);
           reject(Error(error));
         } else {
+          Ana.success("catalog/postResponse", topicName);
           resolve();
         }
       });

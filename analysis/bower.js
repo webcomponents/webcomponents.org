@@ -3,6 +3,7 @@
 const bower = require('bower');
 const child_process = require('child_process');
 const url = require('url');
+const Ana = require('./ana_log').Ana;
 
 /**
  * Service for communicating with Bower on the local machine.
@@ -17,11 +18,12 @@ class Bower {
    */
   prune() {
     return new Promise((resolve, reject) => {
-      console.log("BOWER: Pruning");
       child_process.exec("rm -rf bower_components", function(err) {
         if (err) {
+          Ana.fail("bower/prune");
           reject(Error(err));
         } else {
+          Ana.success("bower/prune");
           resolve();
         }
       });
@@ -40,20 +42,20 @@ class Bower {
     var packageWithOwner = owner + "/" + repo;
     var packageToInstall = packageWithOwner + "#" + version;
     return new Promise((resolve, reject) => {
-      console.log("BOWER: Installing " + packageToInstall);
       bower.commands.install([packageToInstall]).on('end', function(installed) {
+        Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
           if (installed[bowerPackage].endpoint.source != packageWithOwner) {
             // Skip over dependencies (we're not interested in them)
             continue;
           }
-          console.log("BOWER: Examining " + bowerPackage);
 
           var canonicalDir = installed[bowerPackage].canonicalDir;
           var mainHtmls = installed[bowerPackage].pkgMeta.main;
           if (!mainHtmls) {
             // TODO: Look in the directory and see what .html files we might be able to consume.
-            reject(Error("Installed, but no main.html found"));
+            Ana.fail("bower/install", "Couldn't find main.html after installing", packageToInstall);
+            reject(Error("BOWER: No main.html"));
             return;
           }
 
@@ -66,8 +68,10 @@ class Bower {
           }));
           return;
         }
-        reject(Error("No matching packages were installed."));
+        Ana.fail("bower/install", "Couldn't find package after installing", packageToInstall);
+        reject(Error("BOWER: install: package installed not in list"));
       }).on('error', function(error) {
+        Ana.fail("bower/install", packageToInstall);
         reject(Error(error));
       });
     });
@@ -86,7 +90,7 @@ class Bower {
    */
   findDependencies(owner, repo, version) {
     var ownerPackageVersionString = owner + "/" + repo + "#" + version;
-    console.log("BOWER: Finding transitive dependencies for " + ownerPackageVersionString);
+    Ana.log("bower/findDependencies", ownerPackageVersionString);
 
     // The Bower API is pretty annoying. Unless the results are cached it will not reliably
     // report the github tag that it used to download the correct dependencies. In order
@@ -146,9 +150,11 @@ class Bower {
         }
       ).on('end', function(info) {
         info.metadata = metadata;
+        Ana.success("bower/findDependencies/info", ownerPackageVersionString);
         resolve(info);
       }).on('error', function(error) {
-        console.error(error);
+        Ana.fail("bower/findDependencies/info");
+        Ana.log("bower/findDependencies/info failure info %s", error);
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&

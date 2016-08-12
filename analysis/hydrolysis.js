@@ -1,5 +1,6 @@
 'use strict';
 
+const Ana = require('./ana_log').Ana;
 const hyd = require('hydrolysis');
 
 /**
@@ -16,7 +17,6 @@ class Hydrolysis {
   analyze(mainHtmlPaths) {
     /* run Hydrolysis on given paths and extract relevant data */
     return new Promise((resolve, reject) => {
-      console.log("HYDROLYZER: Analyzing " + mainHtmlPaths);
       var data = {
         elementsByTagName: {},
         behaviorsByName: {}
@@ -29,10 +29,11 @@ class Hydrolysis {
               data.elementsByTagName = Object.assign(result.elementsByTagName, data.elementsByTagName);
               data.behaviorsByName = Object.assign(result.behaviorsByName, data.behaviorsByName);
             }).catch(function() {
-              console.error("HYDROLYZER: Error hydrolyzing " + mainHtmlPath);
+              Ana.fail("hydrolysis/analyze", mainHtmlPath);
             });
         })
       ).then(function() {
+        Ana.success("hydrolysis/analyze", mainHtmlPath);
         resolve(data);
       });
     });

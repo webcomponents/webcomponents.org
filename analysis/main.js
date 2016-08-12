@@ -1,9 +1,10 @@
 'use strict';
 
-const Bower = require('./bower').Bower;
-const Hydrolysis = require('./hydrolysis').Hydrolysis;
-const Catalog = require('./catalog').Catalog;
+const Ana = require('./ana_log').Ana;
 const Analysis = require('./analysis').Analysis;
+const Bower = require('./bower').Bower;
+const Catalog = require('./catalog').Catalog;
+const Hydrolysis = require('./hydrolysis').Hydrolysis;
 
 const gcloud = require('gcloud');
 const repeat = require('repeat');
@@ -21,20 +22,23 @@ function processTasksForever() {
     project = process.argv[2];
     subscription = process.argv[3];
   }
+
   var catalog = new Catalog(
       gcloud.pubsub({ projectId: project }),
       subscription);
+
   catalog.init().then(() => {
-    console.log("Using project [" + project + "] and subscription [" + subscription + "]");
+    Ana.log("main/processTasksForever", "Using project [", project, "] and subscription [", subscription, "]");
     var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
       catalog);
       repeat(function(done) {
         analysis.processNextTask().then(function() {
+          Ana.success("main/processTasksForever");
           done();
         }, function(error) {
-          console.error("ERROR: " + error);
+          Ana.fail("main/processTasksForever");
           done();
         });
       })
@@ -45,7 +49,8 @@ function processTasksForever() {
 
 process.on('uncaughtException', function(err) {
   // At least log uncaught exceptions...
-  console.log(err);
+  Ana.fail("main/uncaughtException", err);
+  Ana.log("main/uncaughtException %s", err);
 });
 
 processTasksForever();
