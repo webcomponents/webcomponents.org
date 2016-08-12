@@ -10,6 +10,12 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
+cache:
+  pip: true
+  directories:
+    - node_modules
+    - client/bower_components
+
 before_script:
   - npm install -g bower grunt web-component-tester
   - npm install
