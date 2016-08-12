@@ -76,10 +76,7 @@ class IngestLibrary(webapp2.RequestHandler):
 
         data = json.loads(response.content)
         if not isinstance(data, object):
-          library.error = 'repo contains no valid version tags'
-          github.release()
-          library.put()
-          return
+          data = []
         data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
         if len(data) is 0:
           library.error = 'repo contains no valid version tags'
@@ -98,7 +95,7 @@ class IngestLibrary(webapp2.RequestHandler):
             continue
           sha = version['object']['sha']
           params = {}
-          if (is_newest):
+          if is_newest:
             params["latestVersion"] = "True"
             is_newest = False
           version_object = Version(parent=library.key, id=tag, sha=sha)
