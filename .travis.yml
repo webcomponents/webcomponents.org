@@ -10,8 +10,6 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
-install:
-  - pip install -r requirements.txt
 before_script:
   - npm install -g bower grunt web-component-tester
   - npm install
