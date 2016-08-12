@@ -5,3 +5,4 @@ secrets.yaml
 *.pyc
 *~
 client/build
+*.sublime-*

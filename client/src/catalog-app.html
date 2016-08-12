@@ -12,8 +12,7 @@
       }
     </style>
 
-    <!-- TODO(andymutton): Change key depending on environment - this is the staging key. -->
-    <catalog-analytics key="UA-82326223-1"></catalog-analytics>
+    <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
 
     <app-location route="{{route}}"></app-location>
     <app-route
@@ -68,6 +67,12 @@
           this.importHref(
             this.resolveUrl('catalog-' + page + '.html'), null, null, true);
         }
+      },
+
+      analyticsKey: function() {
+        var useStagingKey = window.location.hostname == 'localhost' ||
+            window.location.hostname.contains('custom-elements-staging');
+        return useStagingKey ? 'UA-82326223-1' : 'UA-82313441-1';
       },
 
       baseUrls: function(queryParams) {
