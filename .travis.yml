@@ -18,6 +18,8 @@ cache:
     - lib
 
 before_script:
+  - which bower
+  - which grunt
   - npm install -g bower grunt web-component-tester
   - npm install
   - (cd client; bower install)
@@ -27,6 +29,7 @@ before_script:
   - unzip -q google_appengine_$SDK_VERSION.zip
 script:
   - ls
+  - ls google_appengine/google/appengine
   - grunt lint
   - xvfb-run wct --skip-plugin sauce
   - python tests.py $PWD/google_appengine

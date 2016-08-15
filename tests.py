@@ -18,6 +18,7 @@ def main(sdk_path):
     sys.path.insert(0, os.path.join(sdk_path, 'platform/google_appengine'))
   else:
     sys.path.insert(0, sdk_path)
+    sys.path.append(sdk_path)
 
   # Ensure that the google.appengine.* packages are available
   # in tests as well as all bundled third-party packages.
