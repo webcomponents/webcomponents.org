@@ -83,9 +83,9 @@ class IngestLibrary(webapp2.RequestHandler):
           github.release()
           library.put()
           return
-        data.sort(lambda a,b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
-        dataRefs = [d['ref'][10:] for d in data]
-        library.tags = json.dumps(dataRefs)
+        data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
+        data_refs = [d['ref'][10:] for d in data]
+        library.tags = json.dumps(data_refs)
         library.tags_etag = response.headers.get('ETag', None)
         data.reverse()
         is_newest = True
@@ -117,7 +117,7 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
-    generateSearch = self.request.get('latestVersion', False);
+    generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
     github = quota.GitHub()
@@ -131,15 +131,15 @@ class IngestVersion(webapp2.RequestHandler):
     readme = response.content
 
     def error(error_string):
-      logging.info('ingestion error "%s" for %s/%s/%s' % (error_string, owner, repo, version))
+      logging.info('ingestion error "%s" for %s/%s/%s', error_string, owner, repo, version)
       ver = key.get()
       ver.error = error_string
       ver.put()
       library = key.parent().get()
       versions = json.loads(library.tags)
       idx = versions.index(version)
-      if idx > 0:
-        logging.info('ingestion for %s/%s falling back to version %s' % (owner, repo, versions[idx - 1]))
+      if idx > 0 and generate_search:
+        logging.info('ingestion for %s/%s falling back to version %s', owner, repo, versions[idx - 1])
         task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
         util.new_task(task_url, {'latestVersion':'True'})
 
@@ -166,7 +166,7 @@ class IngestVersion(webapp2.RequestHandler):
     content.etag = response.headers.get('ETag', None)
     content.put()
 
-    if generateSearch:
+    if generate_search:
       library = key.parent().get()
       if library.kind == "collection":
         task_url = util.ingest_dependencies_task(owner, repo, version)
