@@ -1,7 +1,7 @@
 # v2
 
-[![Travis](https://img.shields.io/travis/customelements/v2.svg?maxAge=2592000)]()
-[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000)]()
+[![Travis](https://img.shields.io/travis/customelements/v2.svg?maxAge=2592000&style=flat-square)](https://travis-ci.org/customelements/v2)
+[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000&style=flat-square)]()
 
 # Dependencies
 ```bash
