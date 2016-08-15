@@ -64,8 +64,10 @@ def ingest_version_task(owner, repo, version):
 def ingest_dependencies_task(owner, repo, version):
   return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
 
-def new_task(url):
-  return taskqueue.add(method='GET', url=url)
+def new_task(url, params=None):
+  if params is None:
+    params = {}
+  return taskqueue.add(method='GET', url=url, params=params)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)
