@@ -2,9 +2,9 @@ import unittest
 import webtest
 import re
 
-from manage import app
 from datamodel import Library, Version, Content
 import json
+from manage import app
 import quota
 import util
 
