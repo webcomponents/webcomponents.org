@@ -1,9 +1,9 @@
+import json
+import re
 import unittest
 import webtest
-import re
 
 from datamodel import Library, Version, Content
-import json
 from manage import app
 import quota
 import util
