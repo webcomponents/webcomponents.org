@@ -28,6 +28,8 @@ def main(sdk_path):
   # changes to configuration there are available to all tests (e.g.
   # sys.path modifications, namespaces, etc.)
   # try:
+  import google
+  print "test.py", google.__path__
   import appengine_config
   (appengine_config)
   # except ImportError:
