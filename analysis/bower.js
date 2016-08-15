@@ -18,6 +18,7 @@ class Bower {
    */
   prune() {
     return new Promise((resolve, reject) => {
+      Ana.log("bower/prune");
       child_process.exec("rm -rf bower_components", function(err) {
         if (err) {
           Ana.fail("bower/prune");
@@ -41,6 +42,7 @@ class Bower {
   install(owner, repo, version) {
     var packageWithOwner = owner + "/" + repo;
     var packageToInstall = packageWithOwner + "#" + version;
+    Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
       bower.commands.install([packageToInstall]).on('end', function(installed) {
         Ana.success("bower/install", packageToInstall);

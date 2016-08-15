@@ -17,6 +17,7 @@ class Hydrolysis {
   analyze(mainHtmlPaths) {
     /* run Hydrolysis on given paths and extract relevant data */
     return new Promise((resolve, reject) => {
+      Ana.log("hydrolysis/analyze", mainHtmlPaths);
       var data = {
         elementsByTagName: {},
         behaviorsByName: {}
@@ -33,7 +34,7 @@ class Hydrolysis {
             });
         })
       ).then(function() {
-        Ana.success("hydrolysis/analyze", mainHtmlPath);
+        Ana.success("hydrolysis/analyze", mainHtmlPaths);
         resolve(data);
       });
     });

@@ -37,6 +37,7 @@ class CattledogPubsub {
    * Connects to, or creates the topic and subscription previously specified in the constructor.
    */
   init() {
+    Ana.log("catalog/init");
     return new Promise((resolve, reject) => {
       this.topic.get({ autoCreate: true }, (err, topic) => {
         if (err) {
@@ -66,6 +67,7 @@ class CattledogPubsub {
    */
   nextTask() {
     return new Promise((resolve, reject) => {
+      Ana.log("catalog/nextTask");
       this.subscription.pull({
         returnImmediately: false,
         maxMessages: 1
@@ -92,6 +94,7 @@ class CattledogPubsub {
    */
   ackTask(ackId) {
     return new Promise((resolve, reject) => {
+      Ana.log("catalog/ackTask");
       this.subscription.ack(ackId, function(error, apiResponse) {
         if (error) {
           Ana.fail("catalog/ackTask", ackId);
@@ -110,6 +113,7 @@ class CattledogPubsub {
    */
   postResponse(topicName, data, attributes) {
     return new Promise((resolve, reject) => {
+      Ana.log("catalog/postResponse", topicName);
       // omit ridiculously huge (or circular) fields from JSON stringify
       removeProperties(data, ["scriptElement", "javascriptNode"]);
       this.pubsub.topic(topicName).publish({

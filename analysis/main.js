@@ -53,4 +53,10 @@ process.on('uncaughtException', function(err) {
   Ana.log("main/uncaughtException %s", err);
 });
 
+process.on('unhandledRejection', function(err) {
+  // At least log uncaught exceptions...
+  Ana.fail("main/unhandledRejection", err);
+  Ana.log("main/unhandledRejection %s", err);
+});
+
 processTasksForever();
