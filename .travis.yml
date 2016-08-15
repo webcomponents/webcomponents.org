@@ -20,12 +20,15 @@ before_script:
   - npm install -g bower grunt web-component-tester
   - npm install
   - (cd client; bower install)
+  - SDK_VERSION=$(curl -s https://appengine.google.com/api/updatecheck | awk -F '\"' '/release/ {print $2}')
+  - SDK_URL=https://storage.googleapis.com/appengine-sdks/featured/google_appengine_$SDK_VERSION.zip
+  - wget $SDK_URL -nv
+  - unzip -q google_appengine_$SDK_VERSION.zip
 script:
   - ls
   - grunt lint
   - xvfb-run wct --skip-plugin sauce
-  - ls lib
-  - python tests.py lib/gcloud
+  - python tests.py google_appengine
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
 env:
   global:
