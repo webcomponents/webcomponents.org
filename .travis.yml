@@ -18,10 +18,10 @@ cache:
     - lib
 
 before_script:
-  - which bower
-  - which grunt
-  - npm install -g bower grunt web-component-tester
+  - npm install -g bower
   - npm install
+  - alias grunt='~/node_modules/grunt/bin/grunt'
+  - alias wct='~/node_modules/web-component-tester/bin/wct'
   - (cd client; bower install)
   - SDK_VERSION=$(curl -s https://appengine.google.com/api/updatecheck | awk -F '\"' '/release/ {print $2}')
   - SDK_URL=https://storage.googleapis.com/appengine-sdks/featured/google_appengine_$SDK_VERSION.zip
