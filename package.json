@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "eslint-config-google": "^0.5.0",
+    "eslint-config-xo": "^0.15.3",
     "eslint-plugin-html": "^1.5.1",
     "grunt": "^1.0.1",
     "grunt-eslint": "^19.0.0",

@@ -30,6 +30,7 @@ before_install:
     --directory-prefix=$HOME/gcloud && cd $HOME/gcloud && tar xzf google-cloud-sdk.tar.gz
     && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
     fi
+  - gcloud -q components update
 
 install:
   - npm install -g bower
@@ -39,8 +40,6 @@ install:
   - (cd client; bower install)
 
 script:
-  - ls
-  - ls google_appengine/google/appengine
   - grunt lint
   - xvfb-run wct --skip-plugin sauce
   - python tests.py $HOME/gcloud/google-cloud-sdk

@@ -18,12 +18,11 @@ def main(sdk_path):
     sys.path.insert(0, os.path.join(sdk_path, 'platform/google_appengine'))
   else:
     sys.path.insert(0, sdk_path)
-    sys.path.append(sdk_path)
 
   # Ensure that the google.appengine.* packages are available
   # in tests as well as all bundled third-party packages.
   import dev_appserver
-  # dev_appserver.fix_sys_path()
+  dev_appserver.fix_sys_path()
 
   # Loading appengine_config from the current project ensures that any
   # changes to configuration there are available to all tests (e.g.
