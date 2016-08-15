@@ -10,31 +10,38 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
+
 cache:
   pip: true
   directories:
     - node_modules
     - client/bower_components
     - lib
+    - $HOME/gcloud
 
-before_script:
+env:
+  global:
+    - PATH=$PATH:$HOME/gcloud/google-cloud-sdk/bin
+    - secure: hwsxx5wg82V14R7A1qX6C/EOVZl/bC91sxtcj7pODHqw8WIG5ECzms4QLkpFS+e7pEZqQ5fiF9A9AWidtXaowu/wrGMGhRrB4ZsUvnmeoql9YcKpmm9HnUY7Ers8aC2g2wbNKg7zpOqytQHt8MDtXtCmLibapMU/CMKMhvoFWF/eNcVa6RwqGvtx1NAWyLZP2rnSVYyxxupUABssRqk8zMf/Fp+RGa2tuRQajyXhI6Zj2f3+FTpzzvHtEiFLHNhPq06/BaDPzkgDuXg1J+qIUfUA42FZWUFfDJ0MSDQBai/d9oyKZO8oqfydAU4WljfjP7c26b0/5kErEwoWASJWc6/O10G8LW+7k2FiAKkGvX7LcTylATBPWkaYyxynTef/m8L8PYwLk5ENXsb1nJGxcDLLW03eHfw3LyMl5rbD83HQH+WQAZAmuQpJvJqPo+GGU2EpXWOJFgI3AM4uD6zU7B69qdMwcUwUSGq0mIf2CPeHdgw00cMoVJIK+ziedVXiBADyBpAx106mhOUxH6wCMhEmrosnA8t/TNm4B4OI0NhD+TbFCYkOX04CtJJhBuZy9izF+rIWUeORO4l3+vqX+q6kt1se/Tcp3L6FoQoraG+pFzngU4e3birx/VRfdaaC6eLebyJNw+EErGutq7/40GnEC84l8xmlXZZ4UmPWddU=
+    - secure: MjIX930aIdFU4Hu25tsjzhH+n+7zpA3A03PGAtrSDKZJOkh8v4uHwxsI3iFoPTW9XGPmqqUZ8KS/0JVMr3Lu7bdaR9nRjjxQq6lwM1OBwRUazjD5YgAM8cvHIQdFrMkrTdfZrasR8dJnDp1bvMfwnmV6FZsnElbqt9JHoBS1qrggvCkfWToxw2ZgQ5EKwR7pxR4yYd+7DXmGGzrxUQhyk+jiGC+scG0yZnIM58TiN1UN9PmJlESkFfgLh/kgvKo2krmTf6aPWmjaO4lgfpirkhPEtmQoe6M4IgrTSW5Iv01nnfpTWAFzzXKNTkDwvmylW3quUR/a/zhVkeoQD+HyvnGzoH1OWugLGq/VCDFLRgnIbwKLD5abuAAz3cnuwRh8E3ZclVhT+RSU4wteznu46Ksd8jnXGPseIXoTXWHQWeQ/PbPgDYGi5PbZib4+KnNLHdCmF8lQg+nFMaz1mMnx2fPz/rM2fwi4wTyi/M4xtb6VpYtxV6ChdvH8Qa5VB05EwpI+FVLWTGntssf0HwoDdLzmiQnxvxQfCnjST/CFa0gKkp86r3UpIgteaekrb51X9gvz0jJbo1vVsixgEla+0K6xZwYwCLozFTx02s40E8bB2tt2qmaDfxO1ivYjhgKK4NIBDugrOIJ5dLJHq0i4hyKye0HMnA0EyLB0DV0YfVA=
+
+before_install:
+  - if [ ! -d $HOME/gcloud/google-cloud-sdk ]; then mkdir -p $HOME/gcloud && wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    --directory-prefix=$HOME/gcloud && cd $HOME/gcloud && tar xzf google-cloud-sdk.tar.gz
+    && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
+    fi
+
+install:
   - npm install -g bower
   - npm install
   - alias grunt='~/node_modules/grunt/bin/grunt'
   - alias wct='~/node_modules/web-component-tester/bin/wct'
   - (cd client; bower install)
-  - SDK_VERSION=$(curl -s https://appengine.google.com/api/updatecheck | awk -F '\"' '/release/ {print $2}')
-  - SDK_URL=https://storage.googleapis.com/appengine-sdks/featured/google_appengine_$SDK_VERSION.zip
-  - wget $SDK_URL -nv
-  - unzip -q google_appengine_$SDK_VERSION.zip
+
 script:
   - ls
   - ls google_appengine/google/appengine
   - grunt lint
   - xvfb-run wct --skip-plugin sauce
-  - python tests.py $PWD/google_appengine
+  - python tests.py $HOME/gcloud/google-cloud-sdk
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
-env:
-  global:
-  - secure: hwsxx5wg82V14R7A1qX6C/EOVZl/bC91sxtcj7pODHqw8WIG5ECzms4QLkpFS+e7pEZqQ5fiF9A9AWidtXaowu/wrGMGhRrB4ZsUvnmeoql9YcKpmm9HnUY7Ers8aC2g2wbNKg7zpOqytQHt8MDtXtCmLibapMU/CMKMhvoFWF/eNcVa6RwqGvtx1NAWyLZP2rnSVYyxxupUABssRqk8zMf/Fp+RGa2tuRQajyXhI6Zj2f3+FTpzzvHtEiFLHNhPq06/BaDPzkgDuXg1J+qIUfUA42FZWUFfDJ0MSDQBai/d9oyKZO8oqfydAU4WljfjP7c26b0/5kErEwoWASJWc6/O10G8LW+7k2FiAKkGvX7LcTylATBPWkaYyxynTef/m8L8PYwLk5ENXsb1nJGxcDLLW03eHfw3LyMl5rbD83HQH+WQAZAmuQpJvJqPo+GGU2EpXWOJFgI3AM4uD6zU7B69qdMwcUwUSGq0mIf2CPeHdgw00cMoVJIK+ziedVXiBADyBpAx106mhOUxH6wCMhEmrosnA8t/TNm4B4OI0NhD+TbFCYkOX04CtJJhBuZy9izF+rIWUeORO4l3+vqX+q6kt1se/Tcp3L6FoQoraG+pFzngU4e3birx/VRfdaaC6eLebyJNw+EErGutq7/40GnEC84l8xmlXZZ4UmPWddU=
-  - secure: MjIX930aIdFU4Hu25tsjzhH+n+7zpA3A03PGAtrSDKZJOkh8v4uHwxsI3iFoPTW9XGPmqqUZ8KS/0JVMr3Lu7bdaR9nRjjxQq6lwM1OBwRUazjD5YgAM8cvHIQdFrMkrTdfZrasR8dJnDp1bvMfwnmV6FZsnElbqt9JHoBS1qrggvCkfWToxw2ZgQ5EKwR7pxR4yYd+7DXmGGzrxUQhyk+jiGC+scG0yZnIM58TiN1UN9PmJlESkFfgLh/kgvKo2krmTf6aPWmjaO4lgfpirkhPEtmQoe6M4IgrTSW5Iv01nnfpTWAFzzXKNTkDwvmylW3quUR/a/zhVkeoQD+HyvnGzoH1OWugLGq/VCDFLRgnIbwKLD5abuAAz3cnuwRh8E3ZclVhT+RSU4wteznu46Ksd8jnXGPseIXoTXWHQWeQ/PbPgDYGi5PbZib4+KnNLHdCmF8lQg+nFMaz1mMnx2fPz/rM2fwi4wTyi/M4xtb6VpYtxV6ChdvH8Qa5VB05EwpI+FVLWTGntssf0HwoDdLzmiQnxvxQfCnjST/CFa0gKkp86r3UpIgteaekrb51X9gvz0jJbo1vVsixgEla+0K6xZwYwCLozFTx02s40E8bB2tt2qmaDfxO1ivYjhgKK4NIBDugrOIJ5dLJHq0i4hyKye0HMnA0EyLB0DV0YfVA=
