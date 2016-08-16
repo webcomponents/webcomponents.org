@@ -132,7 +132,7 @@
     <div id="container">
       <input type="search" id="search" placeholder="Search" on-keyup="_onSearchKeyUp" on-focus="_onSearchFocus">
 
-      <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold">
+      <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
         <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
           <template>
             <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]">
