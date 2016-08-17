@@ -31,7 +31,7 @@ install:
   --directory-prefix=$HOME/gcloud && cd $HOME/gcloud && tar xzf google-cloud-sdk.tar.gz
   && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
   fi
-- printf '\ny\n' | sudo $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
+- printf '\ny\n' | $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
 script:
 - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
