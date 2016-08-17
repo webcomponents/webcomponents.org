@@ -33,7 +33,7 @@ install:
 - which gcloud
 script:
 - grunt lint
-- python tests.py /usr/lib/google-cloud-sdk
+- xvfb-run python tests.py /usr/lib/google-cloud-sdk
 - xvfb-run wct --skip-plugin sauce
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
 before_deploy:
