@@ -171,7 +171,7 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'))
+    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), {'latestVersion': True})
 
     version2 = version2.key.get()
     self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")
