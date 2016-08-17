@@ -71,7 +71,7 @@
 
       analyticsKey: function() {
         var useStagingKey = window.location.hostname == 'localhost' ||
-            window.location.hostname.contains('custom-elements-staging');
+            window.location.hostname.indexOf('custom-elements-staging') != -1;
         return useStagingKey ? 'UA-82326223-1' : 'UA-82313441-1';
       },
 
