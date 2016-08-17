@@ -112,7 +112,6 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo', 'element'))
 
-
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
@@ -171,7 +170,7 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), {'latestVersion': True})
+    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'latestVersion': 'True'})
 
     version2 = version2.key.get()
     self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")

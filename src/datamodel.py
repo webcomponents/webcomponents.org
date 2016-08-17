@@ -20,6 +20,8 @@ class Library(ndb.Model):
   contributor_count = ndb.IntegerProperty()
   collections = ndb.StructuredProperty(CollectionReference, repeated=True)
 
+  ingest_versions = ndb.BooleanProperty(default=True)
+
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
 
@@ -34,8 +36,10 @@ class Library(ndb.Model):
   @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
     library = Library.get_or_insert('%s/%s' % (owner, repo))
-    library.kind = kind
-    library.put()
+    # FIXME: Probably don't want libraries to change kind.
+    if library.kind != kind:
+      library.kind = kind
+      library.put()
     return library
 
   @staticmethod

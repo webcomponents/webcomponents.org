@@ -31,17 +31,42 @@ class IngestLibrary(webapp2.RequestHandler):
     owner = owner.lower()
     repo = repo.lower()
     library = Library.maybe_create_with_kind(owner, repo, kind)
+
+    reingesting = library.metadata is not None and library.error is not None
+
     library_dirty = False
     if library.error is not None:
       library_dirty = True
       library.error = None
 
-    logging.info('created library')
+    sha = self.request.get('sha', None)
+    if sha is not None:
+      if library.ingest_versions and not reingesting:
+        library_dirty = True
+        library.ingest_versions = False
+      # FIXME: Ingest sha here.
+      # version_object = Version(parent=library.key, id=sha, sha=sha)
+      # version_object.put()
+      # task_url = util.ingest_version_task(owner, repo, tag)
+      # util.new_task(task_url)
+    elif not library.ingest_versions:
+      library_dirty = True
+      library.ingest_versions = True
+
+    def error(message):
+      self.response.set_status(200)
+      library.error = message
+      github.release()
+      library.put()
+
+    def abort():
+      self.response.set_status(500)
+      if library_dirty:
+        library.put()
 
     github = quota.GitHub()
     if not github.reserve(3):
-      self.response.set_status(500)
-      return
+      return abort()
 
     response = github.github_resource('repos', owner, repo, etag=library.metadata_etag)
     if response.status_code != 304:
@@ -50,10 +75,7 @@ class IngestLibrary(webapp2.RequestHandler):
         library.metadata_etag = response.headers.get('ETag', None)
         library_dirty = True
       else:
-        library.error = 'repo metadata not found (%d)' % response.status_code
-        github.release()
-        library.put()
-        return
+        return error('repo metadata not found (%d)' % response.status_code)
 
     response = github.github_resource('repos', owner, repo, 'contributors', etag=library.contributors_etag)
     if response.status_code != 304:
@@ -63,15 +85,16 @@ class IngestLibrary(webapp2.RequestHandler):
         library.contributor_count = len(json.loads(response.content))
         library_dirty = True
       else:
-        library.error = 'repo contributors not found (%d)' % response.status_code
-        github.release()
-        library.put()
-        return
+        return error('repo contributors not found (%d)' % response.status_code)
 
+    if library.ingest_versions:
+      response = github.github_resource('repos', owner, repo, 'git/refs/tags', etag=library.tags_etag)
+      if response.status_code != 304:
+        if response.status_code != 200:
+          return error('repo tags not found (%d)' % response.status_code)
 
-    response = github.github_resource('repos', owner, repo, 'git/refs/tags', etag=library.tags_etag)
-    if response.status_code != 304:
-      if response.status_code == 200:
+        library.tags = response.content
+        library.tags_etag = response.headers.get('ETag', None)
         library_dirty = True
 
         data = json.loads(response.content)
@@ -79,10 +102,7 @@ class IngestLibrary(webapp2.RequestHandler):
           data = []
         data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
         if len(data) is 0:
-          library.error = 'repo contains no valid version tags'
-          github.release()
-          library.put()
-          return
+          return error('repo contains no valid version tags')
         data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
         data_refs = [d['ref'][10:] for d in data]
         library.tags = json.dumps(data_refs)
@@ -103,11 +123,6 @@ class IngestLibrary(webapp2.RequestHandler):
           task_url = util.ingest_version_task(owner, repo, tag)
           util.new_task(task_url, params)
           util.publish_analysis_request(owner, repo, tag)
-      else:
-        library.error = 'repo tags not found (%d)' % response.status_code
-        github.release()
-        library.put()
-        return
 
     if library_dirty:
       library.put()
