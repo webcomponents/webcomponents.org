@@ -61,6 +61,7 @@ class Library(ndb.Model):
 
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)
+  url = ndb.StringProperty()
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
   dependencies = ndb.StringProperty(repeated=True)

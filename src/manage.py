@@ -39,16 +39,16 @@ class IngestLibrary(webapp2.RequestHandler):
       library_dirty = True
       library.error = None
 
-    sha = self.request.get('sha', None)
-    if sha is not None:
+    commit = self.request.get('commit', None)
+    url = self.request.get('url', None)
+    if commit is not None and url is not None:
       if library.ingest_versions and not reingesting:
         library_dirty = True
         library.ingest_versions = False
-      # FIXME: Ingest sha here.
-      # version_object = Version(parent=library.key, id=sha, sha=sha)
-      # version_object.put()
-      # task_url = util.ingest_version_task(owner, repo, tag)
-      # util.new_task(task_url)
+      version_object = Version(parent=library.key, id=commit, sha=commit, url=url)
+      version_object.put()
+      task_url = util.ingest_version_task(owner, repo, commit)
+      util.new_task(task_url)
     elif not library.ingest_versions:
       library_dirty = True
       library.ingest_versions = True
@@ -150,13 +150,14 @@ class IngestVersion(webapp2.RequestHandler):
       ver = key.get()
       ver.error = error_string
       ver.put()
-      library = key.parent().get()
-      versions = json.loads(library.tags)
-      idx = versions.index(version)
-      if idx > 0 and generate_search:
-        logging.info('ingestion for %s/%s falling back to version %s', owner, repo, versions[idx - 1])
-        task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
-        util.new_task(task_url, {'latestVersion':'True'})
+      if generate_search:
+        library = key.parent().get()
+        versions = json.loads(library.tags)
+        idx = versions.index(version)
+        if idx > 0:
+          logging.info('ingestion for %s/%s falling back to version %s', owner, repo, versions[idx - 1])
+          task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
+          util.new_task(task_url, {'latestVersion':'True'})
 
       self.response.set_status(200)
 
