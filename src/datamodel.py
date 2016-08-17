@@ -42,23 +42,6 @@ class Library(ndb.Model):
       library.put()
     return library
 
-  @staticmethod
-  def versions_for_key(key):
-    versions = Version.query(ancestor=key).map(lambda v: v.key.id())
-    versions.sort(versiontag.compare)
-    return versions
-
-  @staticmethod
-  @ndb.tasklet
-  def versions_for_key_async(key):
-    versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
-    versions = [key.id() for key in versions]
-    versions.sort(versiontag.compare)
-    raise ndb.Return(versions)
-
-  def versions(self):
-    return Library.versions_for_key(self.key)
-
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)
   url = ndb.StringProperty()
