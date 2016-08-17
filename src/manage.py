@@ -32,7 +32,7 @@ class IngestLibrary(webapp2.RequestHandler):
     repo = repo.lower()
     library = Library.maybe_create_with_kind(owner, repo, kind)
 
-    reingesting = library.metadata is not None and library.error is not None
+    reingesting = library.metadata is not None or library.error is not None
 
     library_dirty = False
     if library.error is not None:
