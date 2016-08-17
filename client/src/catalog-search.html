@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 
 <dom-module id="catalog-search">
   <template>
@@ -40,14 +41,14 @@
       border-color: #cfd8dc;
     }
 
-    iron-list, input[type=search], #emptyResults {
+    iron-list, input[type=search] {
       border: 1px solid #d0d0d0;
       border-radius: 3px;
     }
 
     /* Search results */
 
-    iron-list, #emptyResults {
+    iron-list {
       flex: 1 0 200px;
       background: #FAFAFA;
     }
@@ -109,19 +110,12 @@
       color: #757575;
     }
 
-    #emptyResults {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 18px;
-    }
     </style>
 
     <app-route
       route="{{route}}"
       pattern="/:query"
-      data="{{routeData}}"
-      query-params="{{queryParams}}"></app-route>
+      data="{{routeData}}"></app-route>
 
     <iron-ajax
       auto
@@ -129,33 +123,34 @@
       loading="{{loading}}"
       url="[[baseUrls.api]]/api/search/[[routeData.query]]"
       handle-as="json"
-      last-response="{{data}}"
-      on-request="handleRequest"
-      on-response="handleResponse"
-      debounce-duration="300"></iron-ajax>
+      last-response="{{_data}}"
+      on-request="_handleRequest"
+      on-response="_handleResponse"
+      debounce-duration="300"
+      params="[[_requestParams]]"></iron-ajax>
 
     <div id="container">
       <input type="search" id="search" placeholder="Search" on-keyup="_onSearchKeyUp" on-focus="_onSearchFocus">
 
-      <div id="emptyResults" hidden="[[data.length]]">[[emptyResultsMessage(routeData, loading)]]</div>
-
-      <iron-list id="results" items="[[data]]" as="item" hidden="[[!data.length]]">
-        <template>
-          <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]">
-            <div class="row">
-              <div class="row-health">
-                <div><svg aria-hidden="true" class="octicon octicon-star" height="16" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>[[item.stars]]</div>
-                <div><svg aria-hidden="true" class="octicon octicon-eye" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M8.06 2C3 2 0 8 0 8s3 6 8.06 6c4.94 0 7.94-6 7.94-6S13 2 8.06 2z m-0.06 10c-2.2 0-4-1.78-4-4 0-2.2 1.8-4 4-4 2.22 0 4 1.8 4 4 0 2.22-1.78 4-4 4z m2-4c0 1.11-0.89 2-2 2s-2-0.89-2-2 0.89-2 2-2 2 0.89 2 2z"></path></svg>[[item.subscribers]]</div>
-                <div><svg aria-hidden="true" class="octicon octicon-repo-forked" height="16" version="1.1" viewBox="0 0 10 16" width="10"><path d="M8 1c-1.11 0-2 0.89-2 2 0 0.73 0.41 1.38 1 1.72v1.28L5 8 3 6v-1.28c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2S0 1.89 0 3c0 0.73 0.41 1.38 1 1.72v1.78l3 3v1.78c-0.59 0.34-1 0.98-1 1.72 0 1.11 0.89 2 2 2s2-0.89 2-2c0-0.73-0.41-1.38-1-1.72V9.5l3-3V4.72c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2zM2 4.2c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3 10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3-10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z"></path></svg>[[item.forks]]</div>
+      <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
+        <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
+          <template>
+            <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]">
+              <div class="row">
+                <div class="row-health">
+                  <div><svg aria-hidden="true" class="octicon octicon-star" height="16" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>[[item.stars]]</div>
+                  <div><svg aria-hidden="true" class="octicon octicon-eye" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M8.06 2C3 2 0 8 0 8s3 6 8.06 6c4.94 0 7.94-6 7.94-6S13 2 8.06 2z m-0.06 10c-2.2 0-4-1.78-4-4 0-2.2 1.8-4 4-4 2.22 0 4 1.8 4 4 0 2.22-1.78 4-4 4z m2-4c0 1.11-0.89 2-2 2s-2-0.89-2-2 0.89-2 2-2 2 0.89 2 2z"></path></svg>[[item.subscribers]]</div>
+                  <div><svg aria-hidden="true" class="octicon octicon-repo-forked" height="16" version="1.1" viewBox="0 0 10 16" width="10"><path d="M8 1c-1.11 0-2 0.89-2 2 0 0.73 0.41 1.38 1 1.72v1.28L5 8 3 6v-1.28c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2S0 1.89 0 3c0 0.73 0.41 1.38 1 1.72v1.78l3 3v1.78c-0.59 0.34-1 0.98-1 1.72 0 1.11 0.89 2 2 2s2-0.89 2-2c0-0.73-0.41-1.38-1-1.72V9.5l3-3V4.72c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2zM2 4.2c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3 10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3-10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z"></path></svg>[[item.forks]]</div>
+                </div>
+                <div class="row-content">
+                  <div class="repo-title">[[item.owner]] / <span class="repo-name">[[item.repo]]</span></div>
+                  <div class="repo-description">[[item.description]]</div>
+                </div>
               </div>
-              <div class="row-content">
-                <div class="repo-title">[[item.owner]] / <span class="repo-name">[[item.repo]]</span></div>
-                <div class="repo-description">[[item.description]]</div>
-              </div>
-            </div>
-          </a>
-        </template>
-      </iron-list>
+            </a>
+          </template>
+        </iron-list>
+      </iron-scroll-threshold>
     </div>
   </template>
 
@@ -167,18 +162,26 @@
       properties: {
         visible: {
           type: Boolean,
-          observer: 'visiblityChanged'
+          observer: '_visiblityChanged'
         },
 
         route: {
           type: String,
           notifies: true
         },
+
         baseUrls: Object,
+
+        _results: Array,
+
+        _data: Array,
+
+        _requestParams: Object,
       },
 
       observers: [
-        'onNavigation(visible, route.prefix)'
+        '_onNavigation(visible, route.prefix)',
+        '_queryChanged(route.query)',
       ],
 
       ready: function() {
@@ -188,7 +191,7 @@
         this.$.activeRequests = null;
       },
 
-      onNavigation: function(visible, prefix) {
+      _onNavigation: function(visible, prefix) {
         if (!visible)
           return;
 
@@ -202,7 +205,7 @@
         }
       },
 
-      visiblityChanged: function(visible) {
+      _visiblityChanged: function(visible) {
         if (visible)
           this.$.ajax.setAttribute('auto', '');
         else
@@ -217,23 +220,35 @@
         this.$.search.select();
       },
 
-      handleRequest: function(event) {
+      _queryChanged: function(query) {
+        if (!this._latestQuery || this._latestQuery != query)
+          this._requestParams = {offset: 0};
+        this._latestQuery = query;
+        this._results = [];
+      },
+
+      _handleRequest: function(event) {
         if (!this.routeData.query)
           event.detail.request.abort();
       },
 
-      handleResponse: function() {
-        this.$.results.fire('iron-resize');
+      _handleResponse: function(event) {
+        var results = event.detail.response;
+        if (!results || !results.length)
+          return;
+
+        var scrollTop = this.$.threshold.scrollTop;
+        this._results = this._results.concat(results);
+        this.$.threshold.scroll(0, scrollTop);
+        this.$.threshold.clearTriggers();
+        this.$.resultsList.fire('iron-resize');
       },
 
-      emptyResultsMessage: function(routeData, loading) {
-        if (!routeData || !routeData.query)
-          return 'Use the search box above to find elements';
+      _loadMoreResults: function() {
+        if (!this._results)
+          return;
 
-        if (loading)
-          return 'Loading results';
-
-        return 'No results found';
+        this.set('_requestParams.offset', this._results.length);
       },
 
     });
