@@ -26,10 +26,10 @@ install:
 - npm install
 - "(cd client; bower install)"
 - pip install -r requirements.txt -t lib/
-- printf '\ny\n' | sudo gcloud components install app-engine-python
+- printf '\ny\n' | /home/travis/google-cloud-sdk/bin/gcloud components install app-engine-python
 script:
 - grunt lint
-- python tests.py /usr/lib/google-cloud-sdk
+- python tests.py /home/travis/google-cloud-sdk
 - xvfb-run wct --skip-plugin sauce
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
 before_deploy:
