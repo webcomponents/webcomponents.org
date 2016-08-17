@@ -37,7 +37,10 @@ def main(sdk_path):
 
   # Discover and run tests.
   suite = unittest.loader.TestLoader().discover(test_path, pattern='*_test.py')
-  unittest.TextTestRunner(verbosity=2).run(suite)
+  result = unittest.TextTestRunner(verbosity=2).run(suite)
+
+  if not result.wasSuccessful():
+    sys.exit(result)
 
 if __name__ == '__main__':
   parser = optparse.OptionParser(USAGE)
