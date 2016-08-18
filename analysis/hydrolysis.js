@@ -15,8 +15,10 @@ class Hydrolysis {
    * @return {Promise.<Array.<Object>>} a promise, returning the element and behavior data.
    */
   analyze(mainHtmlPaths) {
-    /* run Hydrolysis on given paths and extract relevant data */
-    return new Promise((resolve, reject) => {
+    /*
+     * Run Hydrolysis on given paths and extract relevant data. Failure is fine, we just ignore it.
+     */
+    return new Promise(resolve => {
       Ana.log("hydrolysis/analyze", mainHtmlPaths);
       var data = {
         elementsByTagName: {},
@@ -25,7 +27,7 @@ class Hydrolysis {
 
       Promise.all(
         mainHtmlPaths.map(function(mainHtmlPath) {
-          return hyd.Analyzer.analyze(mainHtmlPath, { clean:true })
+          return hyd.Analyzer.analyze(mainHtmlPath, {clean: true})
             .then(function(result) {
               data.elementsByTagName = Object.assign(result.elementsByTagName, data.elementsByTagName);
               data.behaviorsByName = Object.assign(result.behaviorsByName, data.behaviorsByName);

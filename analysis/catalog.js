@@ -2,6 +2,10 @@
 
 const Ana = require('./ana_log').Ana;
 
+/**
+ * @param {Object} obj - The object to strip properties from.
+ * @param {Array.<string>} properties - An array of property names to remove.
+ */
 function removeProperties(obj, properties) {
   if (!properties || !obj) return;
   if (typeof obj === 'object') {
@@ -13,7 +17,6 @@ function removeProperties(obj, properties) {
     obj.forEach(val => removeProperties(val, properties));
   }
 }
-
 
 /**
  * Service for communicating with the catalog servers.
@@ -35,11 +38,12 @@ class CattledogPubsub {
 
   /**
    * Connects to, or creates the topic and subscription previously specified in the constructor.
+   * @return {Promise} a promise that we will initialise!
    */
   init() {
     Ana.log("catalog/init");
     return new Promise((resolve, reject) => {
-      this.topic.get({ autoCreate: true }, (err, topic) => {
+      this.topic.get({autoCreate: true}, (err, topic) => {
         if (err) {
           Ana.fail("catalog/init", "Couldn't get topic", topic);
           reject(err);
@@ -47,7 +51,7 @@ class CattledogPubsub {
         }
         this.topic = topic;
         this.subscription = this.topic.subscription(this.name);
-        this.subscription.get({ autoCreate: true}, (err, subscription) => {
+        this.subscription.get({autoCreate: true}, (err, subscription) => {
           if (err) {
             Ana.fail("catalog/init", "Couldn't get subscription", subscription);
             reject(err);
@@ -75,14 +79,12 @@ class CattledogPubsub {
         if (error) {
           Ana.fail("catalog/nextTask");
           reject(Error(error));
+        } else if (!messages || messages.length == 0) {
+          Ana.success("catalog/nextTask", "No tasks pending");
+          reject("No tasks pending");
         } else {
-          if (!messages || messages.length == 0) {
-            Ana.success("catalog/nextTask", "No tasks pending");
-            reject("No tasks pending");
-          } else {
-            Ana.success("catalog/nextTask");
-            resolve(messages[0]);
-          }
+          Ana.success("catalog/nextTask");
+          resolve(messages[0]);
         }
       });
     });
@@ -90,12 +92,13 @@ class CattledogPubsub {
 
   /**
    * Acknowledge a completed task, to prevent it from coming back.
+   * @param {string} ackId the ack id for the message to acknowledge.
    * @return {Promise} a promise for determining success.
    */
   ackTask(ackId) {
     return new Promise((resolve, reject) => {
       Ana.log("catalog/ackTask");
-      this.subscription.ack(ackId, function(error, apiResponse) {
+      this.subscription.ack(ackId, function(error) {
         if (error) {
           Ana.fail("catalog/ackTask", ackId);
           reject(Error(error));
@@ -109,6 +112,9 @@ class CattledogPubsub {
 
   /**
    * Posts response data and attributes to the given topic.
+   * @param {string} topicName the name of the topic to post back to.
+   * @param {Object} data the response data to send back.
+   * @param {Object} attributes original request attributes to send with response.
    * @return {Promise} a promise for determining success.
    */
   postResponse(topicName, data, attributes) {

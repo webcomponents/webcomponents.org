@@ -24,26 +24,23 @@ function processTasksForever() {
   }
 
   var catalog = new Catalog(
-      gcloud.pubsub({ projectId: project }),
+      gcloud.pubsub({projectId: project}),
       subscription);
 
   catalog.init().then(() => {
     Ana.log("main/processTasksForever", "Using project [", project, "] and subscription [", subscription, "]");
-    var analysis = new Analysis(
-      new Bower(),
-      new Hydrolysis(),
-      catalog);
-      repeat(function(done) {
-        analysis.processNextTask().then(function() {
-          Ana.success("main/processTasksForever");
-          done();
-        }, function(error) {
-          Ana.fail("main/processTasksForever");
-          done();
-        });
-      })
-      .every(1000, 'ms')
-      .start();
+    var analysis = new Analysis(new Bower(), new Hydrolysis(), catalog);
+    repeat(function(done) {
+      analysis.processNextTask().then(function() {
+        Ana.success("main/processTasksForever");
+        done();
+      }, function(/* error */) {
+        Ana.fail("main/processTasksForever");
+        done();
+      });
+    })
+    .every(1000, 'ms')
+    .start();
   });
 }
 

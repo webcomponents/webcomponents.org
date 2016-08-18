@@ -14,7 +14,8 @@ module.exports = function (grunt) {
     },
 
     eslint: {
-      target: ['client/src/**/*.html']
+      target: ['client/src/**/*.html'],
+      target: ['analysis/*.js']
     },
   });
   grunt.loadNpmTasks('grunt-pylint');

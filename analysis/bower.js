@@ -1,7 +1,7 @@
 'use strict';
 
 const bower = require('bower');
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const url = require('url');
 const Ana = require('./ana_log').Ana;
 
@@ -15,11 +15,12 @@ class Bower {
   /**
    * Clean up (rm -rf) the local Bower working area.
    * This deletes the installs for this directory, not the Bower cache (usually stored in ~/.cache/bower).
+   * @return {Promise} A promise handling the prune operation.
    */
   prune() {
     return new Promise((resolve, reject) => {
       Ana.log("bower/prune");
-      child_process.exec("rm -rf bower_components", function(err) {
+      childProcess.exec("rm -rf bower_components", function(err) {
         if (err) {
           Ana.fail("bower/prune");
           reject(Error(err));
@@ -65,8 +66,8 @@ class Bower {
             mainHtmls = [mainHtmls];
           }
 
-          resolve(mainHtmls.map(function(mainHtml) {
-            return canonicalDir + "/" + mainHtml;
+          resolve(mainHtmls.map(mainHtml => { // eslint-disable-line no-loop-func
+            return [canonicalDir, mainHtml].join("/");
           }));
           return;
         }
@@ -104,14 +105,14 @@ class Bower {
   }
 
   static dependencies(ownerPackageVersionString, processed, offline) {
-    return Bower.infoPromise(ownerPackageVersionString, offline).then((info) => {
+    return Bower.infoPromise(ownerPackageVersionString, offline).then(info => {
       // Gather all of the dependencies we want to look at.
       var depsToProcess =
           Object.assign(info.dependencies ? info.dependencies : {},
           Object.keys(processed).length == 0 && info.devDependencies ? info.devDependencies : {});
 
       // Filter out what we've already processed.
-      Object.keys(depsToProcess).forEach((key) => {
+      Object.keys(depsToProcess).forEach(key => {
         if (processed[key]) {
           delete depsToProcess[key];
         }
@@ -125,7 +126,7 @@ class Bower {
       }
 
       // Analyse all of the dependencies we have left.
-      var promises = keys.map((key) => {
+      var promises = keys.map(key => {
         processed[key] = key;
 
         // Sanitize packages in ludicrous formats.
@@ -137,12 +138,12 @@ class Bower {
         return Bower.dependencies(packageToProcess, processed, offline);
       });
 
-      return Promise.all(promises).then((dependencyList) => [].concat.apply(result, dependencyList));
+      return Promise.all(promises).then(dependencyList => [].concat.apply(result, dependencyList));
     });
   }
 
   static infoPromise(ownerPackageVersionString, offline) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
         ownerPackageVersionString,
@@ -161,7 +162,8 @@ class Bower {
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
           logEntry.data.pkgMeta._resolution) {
-          var owner, repo = "";
+          var owner = "";
+          var repo = "";
           // Our package strings look like "Owner/Repo#1.2.3"
           if (ownerPackageVersionString.includes("/")) {
             owner = ownerPackageVersionString;
@@ -178,7 +180,7 @@ class Bower {
             version: logEntry.data.pkgMeta._resolution.tag,
             owner: owner,
             repo: repo
-          }
+          };
         }
       });
     });
