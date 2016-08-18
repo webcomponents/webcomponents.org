@@ -3,7 +3,7 @@
 const bower = require('bower');
 const childProcess = require('child_process');
 const url = require('url');
-const Ana = require('./ana_log').Ana;
+const Ana = require('./ana_log');
 
 /**
  * Service for communicating with Bower on the local machine.
@@ -187,6 +187,4 @@ class Bower {
   }
 }
 
-module.exports = {
-  Bower: Bower
-};
+module.exports = Bower;

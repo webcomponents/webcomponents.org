@@ -1,10 +1,10 @@
 'use strict';
 
-const Ana = require('./ana_log').Ana;
-const Analysis = require('./analysis').Analysis;
-const Bower = require('./bower').Bower;
-const Catalog = require('./catalog').Catalog;
-const Hydrolysis = require('./hydrolysis').Hydrolysis;
+const Ana = require('./ana_log');
+const Analysis = require('./analysis');
+const Bower = require('./bower');
+const Catalog = require('./catalog');
+const Hydrolysis = require('./hydrolysis');
 
 const gcloud = require('gcloud');
 const repeat = require('repeat');

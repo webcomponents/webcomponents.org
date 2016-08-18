@@ -1,6 +1,6 @@
 'use strict';
 
-const Ana = require('./ana_log').Ana;
+const Ana = require('./ana_log');
 
 /**
  * @param {Object} obj - The object to strip properties from.
@@ -22,7 +22,7 @@ function removeProperties(obj, properties) {
  * Service for communicating with the catalog servers.
  * Handles polling for requests, sending responses etc...
  */
-class CattledogPubsub {
+class Catalog {
   /**
    * Creates a catalog service using the given pubsub client. It will connect to
    * (or create) the specified topic and subscription.
@@ -138,6 +138,4 @@ class CattledogPubsub {
   }
 }
 
-module.exports = {
-  Catalog: CattledogPubsub
-};
+module.exports = Catalog;

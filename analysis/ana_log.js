@@ -24,6 +24,4 @@ class Ana {
   }
 }
 
-module.exports = {
-  Ana: Ana
-};
+module.exports = Ana;

@@ -1,6 +1,6 @@
 'use strict';
 
-const Ana = require('./ana_log').Ana;
+const Ana = require('./ana_log');
 const hyd = require('hydrolysis');
 
 /**
@@ -43,6 +43,4 @@ class Hydrolysis {
   }
 }
 
-module.exports = {
-  Hydrolysis: Hydrolysis
-};
+module.exports = Hydrolysis;

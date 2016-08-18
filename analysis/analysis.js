@@ -1,6 +1,6 @@
 'use strict';
 
-const Ana = require('./ana_log').Ana;
+const Ana = require('./ana_log');
 
 /**
  * Encapsulates the processing of each task.
@@ -63,6 +63,4 @@ class Analysis {
   }
 }
 
-module.exports = {
-  Analysis: Analysis
-};
+module.exports = Analysis;
