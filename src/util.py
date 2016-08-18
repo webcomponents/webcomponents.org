@@ -58,6 +58,9 @@ def content_url(owner, repo, version, path):
 def ingest_library_task(owner, repo, kind):
   return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)
 
+def ingest_commit_task(owner, repo, kind):
+  return '/task/ingest/commit/%s/%s/%s' % (owner, repo, kind)
+
 def ingest_version_task(owner, repo, version):
   return '/task/ingest/version/%s/%s/%s' % (owner, repo, version)
 

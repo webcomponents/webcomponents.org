@@ -23,116 +23,134 @@ class AddLibrary(webapp2.RequestHandler):
     util.new_task(task_url)
     self.response.write('OK')
 
-class IngestLibrary(webapp2.RequestHandler):
-  def get(self, owner, repo, kind):
-    if not (kind == 'element' or kind == 'collection'):
-      self.response.set_status(400)
+class LibraryTask(webapp2.RequestHandler):
+  def __init__(self, request, response):
+    super(LibraryTask, self).__init__(request, response)
+    self.owner = None
+    self.repo = None
+    self.library = None
+    self.library_dirty = False
+    self.github = None
+
+  def init_library(self, owner, repo, kind=None, create=True):
+    self.owner = owner.lower()
+    self.repo = repo.lower()
+    if create:
+      assert kind is not None
+      self.library = Library.maybe_create_with_kind(self.owner, self.repo, kind)
+    else:
+      self.library = Library.get_by_id('%s/%s' % (owner, repo))
+
+  def error(self, message):
+    self.response.set_status(200)
+    self.library.error = message
+    self.library.put()
+    if self.github is not None:
+      self.github.release()
+
+  def abort(self):
+    self.response.set_status(500)
+    if library_dirty:
+      self.library.put()
+
+  def commit(self):
+    if self.library_dirty:
+      self.library.put()
+    if self.github is not None:
+      self.github.release()
+
+  def update_metadata(self):
+    self.github = quota.GitHub()
+    if not self.github.reserve(3):
+      return self.abort()
+
+    response = self.github.github_resource('repos', self.owner, self.repo, etag=self.library.metadata_etag)
+    if response.status_code != 304:
+      if response.status_code == 200:
+        self.library.metadata = response.content
+        self.library.metadata_etag = response.headers.get('ETag', None)
+        library_dirty = True
+      else:
+        return self.error('repo metadata not found (%d)' % response.status_code)
+
+    response = self.github.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
+    if response.status_code != 304:
+      if response.status_code == 200:
+        self.library.contributors = response.content
+        self.library.contributors_etag = response.headers.get('ETag', None)
+        self.library.contributor_count = len(json.loads(response.content))
+        self.library_dirty = True
+      else:
+        return self.error('repo contributors not found (%d)' % response.status_code)
+
+  def ingest_versions(self):
+    if not self.library.ingest_versions:
       return
-    owner = owner.lower()
-    repo = repo.lower()
-    library = Library.maybe_create_with_kind(owner, repo, kind)
 
-    reingesting = library.metadata is not None or library.error is not None
+    response = self.github.github_resource('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+    if response.status_code != 304:
+      if response.status_code != 200:
+        return self.error('repo tags not found (%d)' % response.status_code)
 
-    library_dirty = False
-    if library.error is not None:
-      library_dirty = True
-      library.error = None
+      self.library.tags = response.content
+      self.library.tags_etag = response.headers.get('ETag', None)
+      self.library_dirty = True
 
+      data = json.loads(response.content)
+      if not isinstance(data, object):
+        data = []
+      data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
+      if len(data) is 0:
+        return self.error('repo contains no valid version tags')
+      data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
+      data_refs = [d['ref'][10:] for d in data]
+      self.library.tags = json.dumps(data_refs)
+      self.library.tags_etag = response.headers.get('ETag', None)
+      data.reverse()
+      is_newest = True
+      for version in data:
+        tag = version['ref'][10:]
+        if not versiontag.is_valid(tag):
+          continue
+        sha = version['object']['sha']
+        params = {}
+        if is_newest:
+          params["latestVersion"] = "True"
+          is_newest = False
+        version_object = Version(parent=self.library.key, id=tag, sha=sha)
+        version_object.put()
+        task_url = util.ingest_version_task(self.owner, self.repo, tag)
+        util.new_task(task_url, params)
+        util.publish_analysis_request(self.owner, self.repo, tag)
+
+class IngestLibrary(LibraryTask):
+  def get(self, owner, repo, kind):
+    assert kind == 'element' or kind == 'collection'
+    self.init_library(owner, repo, kind)
+    if not self.library.ingest_versions:
+      self.library.ingest_versions = True
+      self.library_dirty = True
+    self.update_metadata()
+    self.ingest_versions()
+    self.commit()
+
+class IngestLibraryCommit(LibraryTask):
+  def get(self, owner, repo, kind):
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
-    ingest_specific_commit = commit is not None and url is not None
+    assert commit is not None and url is not None
+    self.init_library(owner, repo, kind)
+    is_new = self.library.metadata is None and self.library.error is None
+    if is_new:
+      self.library.ingest_versions = False
+      self.library_dirty = True
+      self.update_metadata()
 
-    if ingest_specific_commit and library.ingest_versions and not reingesting:
-      # Allow ingest_versions to flip from True -> False, but only if this
-      # is the very first ingestion.
-      library_dirty = True
-      library.ingest_versions = False
-
-    if not ingest_specific_commit and not library.ingest_versions:
-      library_dirty = True
-      library.ingest_versions = True
-
-    if ingest_specific_commit:
-      version_object = Version(parent=library.key, id=commit, sha=commit, url=url)
-      version_object.put()
-      task_url = util.ingest_version_task(owner, repo, commit)
-      util.new_task(task_url)
-
-    def error(message):
-      self.response.set_status(200)
-      library.error = message
-      github.release()
-      library.put()
-
-    def abort():
-      self.response.set_status(500)
-      if library_dirty:
-        library.put()
-
-    github = quota.GitHub()
-    if not github.reserve(3):
-      return abort()
-
-    response = github.github_resource('repos', owner, repo, etag=library.metadata_etag)
-    if response.status_code != 304:
-      if response.status_code == 200:
-        library.metadata = response.content
-        library.metadata_etag = response.headers.get('ETag', None)
-        library_dirty = True
-      else:
-        return error('repo metadata not found (%d)' % response.status_code)
-
-    response = github.github_resource('repos', owner, repo, 'contributors', etag=library.contributors_etag)
-    if response.status_code != 304:
-      if response.status_code == 200:
-        library.contributors = response.content
-        library.contributors_etag = response.headers.get('ETag', None)
-        library.contributor_count = len(json.loads(response.content))
-        library_dirty = True
-      else:
-        return error('repo contributors not found (%d)' % response.status_code)
-
-    if library.ingest_versions:
-      response = github.github_resource('repos', owner, repo, 'git/refs/tags', etag=library.tags_etag)
-      if response.status_code != 304:
-        if response.status_code != 200:
-          return error('repo tags not found (%d)' % response.status_code)
-
-        library.tags = response.content
-        library.tags_etag = response.headers.get('ETag', None)
-        library_dirty = True
-
-        data = json.loads(response.content)
-        if not isinstance(data, object):
-          data = []
-        data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
-        if len(data) is 0:
-          return error('repo contains no valid version tags')
-        data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
-        data_refs = [d['ref'][10:] for d in data]
-        library.tags = json.dumps(data_refs)
-        library.tags_etag = response.headers.get('ETag', None)
-        data.reverse()
-        is_newest = True
-        for version in data:
-          tag = version['ref'][10:]
-          if not versiontag.is_valid(tag):
-            continue
-          sha = version['object']['sha']
-          params = {}
-          if is_newest:
-            params["latestVersion"] = "True"
-            is_newest = False
-          version_object = Version(parent=library.key, id=tag, sha=sha)
-          version_object.put()
-          task_url = util.ingest_version_task(owner, repo, tag)
-          util.new_task(task_url, params)
-          util.publish_analysis_request(owner, repo, tag)
-
-    if library_dirty:
-      library.put()
-    github.release()
+    version = Version(parent=self.library.key, id=commit, sha=commit, url=url)
+    version.put()
+    task_url = util.ingest_version_task(owner, repo, commit)
+    util.new_task(task_url)
+    self.commit()
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -316,11 +334,12 @@ class DeleteEverything(webapp2.RequestHandler):
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/github', handler=GithubStatus),
-    webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary, name='add'),
+    webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
-    webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary, name='nom'),
-    webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies, name='nomdep'),
-    webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion, name='nomver'),
-    webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis, name='nomalyze'),
+    webapp2.Route(r'/task/ingest/commit/<owner>/<repo>/<kind>', handler=IngestLibraryCommit),
+    webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
+    webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies),
+    webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion),
+    webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis),
 ], debug=True)
