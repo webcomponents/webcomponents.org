@@ -97,7 +97,7 @@ class GithubRateLimitTest(ManageTestBase):
 
   def test_limit_reset(self):
     self.assertTrue(quota.GitHub().reserve(1))
-    quota.used(used_count=1, new_remaining=0)
+    quota.used(new_remaining=0)
     self.respond_to_rate_limit('0')
     self.assertFalse(quota.GitHub().reserve(1))
     self.respond_to_rate_limit('1')
