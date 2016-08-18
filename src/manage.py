@@ -69,7 +69,7 @@ class LibraryTask(webapp2.RequestHandler):
       if response.status_code == 200:
         self.library.metadata = response.content
         self.library.metadata_etag = response.headers.get('ETag', None)
-        library_dirty = True
+        self.library_dirty = True
       else:
         return self.error('repo metadata not found (%d)' % response.status_code)
 
