@@ -1,8 +1,9 @@
 'use strict';
 
 const bower = require('bower');
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const url = require('url');
+const Ana = require('./ana_log').Ana;
 
 /**
  * Service for communicating with Bower on the local machine.
@@ -14,14 +15,17 @@ class Bower {
   /**
    * Clean up (rm -rf) the local Bower working area.
    * This deletes the installs for this directory, not the Bower cache (usually stored in ~/.cache/bower).
+   * @return {Promise} A promise handling the prune operation.
    */
   prune() {
     return new Promise((resolve, reject) => {
-      console.log("BOWER: Pruning");
-      child_process.exec("rm -rf bower_components", function(err) {
+      Ana.log("bower/prune");
+      childProcess.exec("rm -rf bower_components", function(err) {
         if (err) {
+          Ana.fail("bower/prune");
           reject(Error(err));
         } else {
+          Ana.success("bower/prune");
           resolve();
         }
       });
@@ -39,21 +43,22 @@ class Bower {
   install(owner, repo, version) {
     var packageWithOwner = owner + "/" + repo;
     var packageToInstall = packageWithOwner + "#" + version;
+    Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
-      console.log("BOWER: Installing " + packageToInstall);
       bower.commands.install([packageToInstall]).on('end', function(installed) {
+        Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
           if (installed[bowerPackage].endpoint.source != packageWithOwner) {
             // Skip over dependencies (we're not interested in them)
             continue;
           }
-          console.log("BOWER: Examining " + bowerPackage);
 
           var canonicalDir = installed[bowerPackage].canonicalDir;
           var mainHtmls = installed[bowerPackage].pkgMeta.main;
           if (!mainHtmls) {
             // TODO: Look in the directory and see what .html files we might be able to consume.
-            reject(Error("Installed, but no main.html found"));
+            Ana.fail("bower/install", "Couldn't find main.html after installing", packageToInstall);
+            reject(Error("BOWER: No main.html"));
             return;
           }
 
@@ -61,13 +66,15 @@ class Bower {
             mainHtmls = [mainHtmls];
           }
 
-          resolve(mainHtmls.map(function(mainHtml) {
-            return canonicalDir + "/" + mainHtml;
+          resolve(mainHtmls.map(mainHtml => { // eslint-disable-line no-loop-func
+            return [canonicalDir, mainHtml].join("/");
           }));
           return;
         }
-        reject(Error("No matching packages were installed."));
+        Ana.fail("bower/install", "Couldn't find package after installing", packageToInstall);
+        reject(Error("BOWER: install: package installed not in list"));
       }).on('error', function(error) {
+        Ana.fail("bower/install", packageToInstall);
         reject(Error(error));
       });
     });
@@ -86,7 +93,7 @@ class Bower {
    */
   findDependencies(owner, repo, version) {
     var ownerPackageVersionString = owner + "/" + repo + "#" + version;
-    console.log("BOWER: Finding transitive dependencies for " + ownerPackageVersionString);
+    Ana.log("bower/findDependencies", ownerPackageVersionString);
 
     // The Bower API is pretty annoying. Unless the results are cached it will not reliably
     // report the github tag that it used to download the correct dependencies. In order
@@ -98,14 +105,14 @@ class Bower {
   }
 
   static dependencies(ownerPackageVersionString, processed, offline) {
-    return Bower.infoPromise(ownerPackageVersionString, offline).then((info) => {
+    return Bower.infoPromise(ownerPackageVersionString, offline).then(info => {
       // Gather all of the dependencies we want to look at.
       var depsToProcess =
           Object.assign(info.dependencies ? info.dependencies : {},
           Object.keys(processed).length == 0 && info.devDependencies ? info.devDependencies : {});
 
       // Filter out what we've already processed.
-      Object.keys(depsToProcess).forEach((key) => {
+      Object.keys(depsToProcess).forEach(key => {
         if (processed[key]) {
           delete depsToProcess[key];
         }
@@ -119,7 +126,7 @@ class Bower {
       }
 
       // Analyse all of the dependencies we have left.
-      var promises = keys.map((key) => {
+      var promises = keys.map(key => {
         processed[key] = key;
 
         // Sanitize packages in ludicrous formats.
@@ -131,12 +138,12 @@ class Bower {
         return Bower.dependencies(packageToProcess, processed, offline);
       });
 
-      return Promise.all(promises).then((dependencyList) => [].concat.apply(result, dependencyList));
+      return Promise.all(promises).then(dependencyList => [].concat.apply(result, dependencyList));
     });
   }
 
   static infoPromise(ownerPackageVersionString, offline) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
         ownerPackageVersionString,
@@ -146,14 +153,17 @@ class Bower {
         }
       ).on('end', function(info) {
         info.metadata = metadata;
+        Ana.success("bower/findDependencies/info", ownerPackageVersionString);
         resolve(info);
       }).on('error', function(error) {
-        console.error(error);
+        Ana.fail("bower/findDependencies/info");
+        Ana.log("bower/findDependencies/info failure info %s", error);
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
           logEntry.data.pkgMeta._resolution) {
-          var owner, repo = "";
+          var owner = "";
+          var repo = "";
           // Our package strings look like "Owner/Repo#1.2.3"
           if (ownerPackageVersionString.includes("/")) {
             owner = ownerPackageVersionString;
@@ -170,7 +180,7 @@ class Bower {
             version: logEntry.data.pkgMeta._resolution.tag,
             owner: owner,
             repo: repo
-          }
+          };
         }
       });
     });
