@@ -1,7 +1,5 @@
 from google.appengine.ext import ndb
 
-import versiontag
-
 class CollectionReference(ndb.Model):
   version = ndb.KeyProperty(kind="Version", required=True)
   semver = ndb.StringProperty()
@@ -20,6 +18,8 @@ class Library(ndb.Model):
   contributor_count = ndb.IntegerProperty()
   collections = ndb.StructuredProperty(CollectionReference, repeated=True)
 
+  ingest_versions = ndb.BooleanProperty(default=True)
+
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
 
@@ -34,29 +34,15 @@ class Library(ndb.Model):
   @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
     library = Library.get_or_insert('%s/%s' % (owner, repo))
-    library.kind = kind
-    library.put()
+    # FIXME: Probably don't want libraries to change kind.
+    if library.kind != kind:
+      library.kind = kind
+      library.put()
     return library
-
-  @staticmethod
-  def versions_for_key(key):
-    versions = Version.query(ancestor=key).map(lambda v: v.key.id())
-    versions.sort(versiontag.compare)
-    return versions
-
-  @staticmethod
-  @ndb.tasklet
-  def versions_for_key_async(key):
-    versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
-    versions = [key.id() for key in versions]
-    versions.sort(versiontag.compare)
-    raise ndb.Return(versions)
-
-  def versions(self):
-    return Library.versions_for_key(self.key)
 
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)
+  url = ndb.StringProperty()
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
   dependencies = ndb.StringProperty(repeated=True)
