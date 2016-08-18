@@ -41,17 +41,23 @@ class IngestLibrary(webapp2.RequestHandler):
 
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
-    if commit is not None and url is not None:
-      if library.ingest_versions and not reingesting:
-        library_dirty = True
-        library.ingest_versions = False
+    ingest_specific_commit = commit is not None and url is not None
+
+    if ingest_specific_commit and library.ingest_versions and not reingesting:
+      # Allow ingest_versions to flip from True -> False, but only if this
+      # is the very first ingestion.
+      library_dirty = True
+      library.ingest_versions = False
+
+    if not ingest_specific_commit and not library.ingest_versions:
+      library_dirty = True
+      library.ingest_versions = True
+
+    if ingest_specific_commit:
       version_object = Version(parent=library.key, id=commit, sha=commit, url=url)
       version_object.put()
       task_url = util.ingest_version_task(owner, repo, commit)
       util.new_task(task_url)
-    elif not library.ingest_versions:
-      library_dirty = True
-      library.ingest_versions = True
 
     def error(message):
       self.response.set_status(200)
