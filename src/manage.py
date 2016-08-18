@@ -50,7 +50,7 @@ class LibraryTask(webapp2.RequestHandler):
 
   def abort(self):
     self.response.set_status(500)
-    if library_dirty:
+    if self.library_dirty:
       self.library.put()
 
   def commit(self):
