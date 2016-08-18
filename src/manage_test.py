@@ -36,6 +36,7 @@ class ManageTestBase(unittest.TestCase):
   def tearDown(self):
     self.testbed.deactivate()
     ndb.get_context().clear_cache()
+    self.assertEqual(self._expected_fetches, [])
 
   def _fetch(self, url, payload, method, headers, request, response, **params):
     for idx, (match, handler) in enumerate(self._expected_fetches):
@@ -95,12 +96,12 @@ class GithubRateLimitTest(ManageTestBase):
       github.github_resource('repos', 'org', 'repo')
 
   def test_limit_reset(self):
-    github = quota.GitHub()
-    github.reserve(1)
-    quota.used(used_count=0, new_remaining=0)
+    self.assertTrue(quota.GitHub().reserve(1))
+    quota.used(used_count=1, new_remaining=0)
+    self.respond_to_rate_limit('0')
+    self.assertFalse(quota.GitHub().reserve(1))
     self.respond_to_rate_limit('1')
-    self.respond_to_github('https://api.github.com/repos/org/repo', '')
-    github.github_resource('repos', 'org', 'repo')
+    self.assertTrue(quota.GitHub().reserve(1))
 
 class ManageAddTest(ManageTestBase):
   def test_add_element(self):
@@ -179,10 +180,10 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
 
-  def test_ingest_sha(self):
+  def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.app.get(util.ingest_library_task('org', 'repo', 'element'), params={'commit': 'commit-sha', 'url': 'url'})
+    self.app.get(util.ingest_commit_task('org', 'repo', 'element'), params={'commit': 'commit-sha', 'url': 'url'})
 
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
