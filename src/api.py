@@ -184,27 +184,6 @@ class GetHydroData(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(analysis.content)
 
-class GetDependencies(webapp2.RequestHandler):
-  def get(self, owner, repo, ver=None):
-    self.response.headers['Access-Control-Allow-Origin'] = '*'
-
-    owner = owner.lower()
-    repo = repo.lower()
-    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, ver)
-
-    analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if analysis is None:
-      self.response.set_status(404)
-      return
-
-    dependencies = json.loads(analysis.content).get('bowerDependencies', None)
-    if dependencies is None:
-      self.response.set_status(404)
-      return
-
-    self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(json.dumps(dependencies))
-
 class GetAccessToken(webapp2.RequestHandler):
   def post(self):
     code = self.request.get('code')
@@ -231,6 +210,5 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetDataMeta),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),
     webapp2.Route(r'/api/docs/<owner>/<repo>/<ver>', handler=GetHydroData),
-    webapp2.Route(r'/api/deps/<owner>/<repo>/<ver>', handler=GetDependencies),
     webapp2.Route(r'/api/search/<terms>', handler=SearchContents, name='search'),
 ], debug=True)

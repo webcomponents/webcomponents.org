@@ -1,5 +1,7 @@
 from google.appengine.ext import ndb
 
+import versiontag
+
 class CollectionReference(ndb.Model):
   version = ndb.KeyProperty(kind="Version", required=True)
   semver = ndb.StringProperty()
