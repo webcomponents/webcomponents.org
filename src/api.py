@@ -176,13 +176,13 @@ class GetHydroData(webapp2.RequestHandler):
         return
       ver = versions[-1]
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, ver)
-    hydro = Content.get_by_id('hydrolyzer', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if hydro is None:
+    analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+    if analysis is None:
       self.response.set_status(404)
       return
 
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(hydro.content)
+    self.response.write(analysis.content)
 
 class GetDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
@@ -192,12 +192,12 @@ class GetDependencies(webapp2.RequestHandler):
     repo = repo.lower()
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, ver)
 
-    hydrolyzer = Content.get_by_id('hydrolyzer', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if hydrolyzer is None:
+    analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+    if analysis is None:
       self.response.set_status(404)
       return
 
-    dependencies = json.loads(hydrolyzer.content).get('bowerDependencies', None)
+    dependencies = json.loads(analysis.content).get('bowerDependencies', None)
     if dependencies is None:
       self.response.set_status(404)
       return
