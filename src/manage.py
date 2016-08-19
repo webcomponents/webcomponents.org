@@ -1,6 +1,7 @@
 from google.appengine.ext import db
 from google.appengine.ext import ndb
 from google.appengine.api import search
+from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 
 import base64
@@ -130,6 +131,15 @@ class IngestLibrary(LibraryTask):
     if not self.library.ingest_versions:
       self.library.ingest_versions = True
       self.library_dirty = True
+    self.update_metadata()
+    self.ingest_versions()
+    self.commit()
+
+class UpdateLibrary(LibraryTask):
+  def get(self, owner, repo):
+    self.init_library(owner, repo, create=False)
+    if self.library is None:
+      return
     self.update_metadata()
     self.ingest_versions()
     self.commit()
@@ -283,6 +293,24 @@ class IngestAnalysis(webapp2.RequestHandler):
 
     self.response.set_status(200)
 
+class UpdateAll(webapp2.RequestHandler):
+  def get(self):
+    queue = taskqueue.Queue('update')
+    if queue.fetch_statistics().tasks > 0:
+      self.response.write('update already in progress')
+      return
+
+    query = Library.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
+    self.response.write('triggered %d update tasks' % task_count)
+
 def delete_library(response, library_key):
   keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
   ndb.delete_multi(keys)
@@ -334,9 +362,11 @@ class DeleteEverything(webapp2.RequestHandler):
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/github', handler=GithubStatus),
+    webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
+    webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>/<kind>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
     webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies),
