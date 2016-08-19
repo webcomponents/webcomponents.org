@@ -8,6 +8,7 @@ import util
 class QuotaRecord(ndb.Model):
   # our best estimate of how many requests we have left
   remaining = ndb.IntegerProperty(required=True)
+  # FIXME: Remove this, or fix it.
   # the number of remaining requests which have already been reserved
   reserved = ndb.IntegerProperty(required=True)
 
@@ -19,10 +20,10 @@ KEY = ndb.Key('QuotaRecord', 'Quota')
 @ndb.transactional
 def reserve(count):
   instance = QuotaRecord.get_or_insert(KEY.id(), remaining=10000, reserved=0)
-  if instance.remaining - instance.reserved < count:
+  if instance.remaining < count:
     response = urlfetch.fetch(util.github_url('rate_limit'))
     instance.remaining = int(response.headers['X-RateLimit-Remaining'])
-    if instance.remaining - instance.reserved < count:
+    if instance.remaining < count:
       return False
   instance.reserved += count
   instance.put()
