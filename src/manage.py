@@ -303,13 +303,13 @@ class UpdateAll(webapp2.RequestHandler):
     query = Library.query()
     cursor = None
     more = True
-    n = 0
+    task_count = 0
     while more:
       keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
       for key in keys:
-        n = n + 1
+        task_count = task_count + 1
         taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
-    self.response.write('triggered %d update tasks' % n)
+    self.response.write('triggered %d update tasks' % task_count)
 
 def delete_library(response, library_key):
   keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
