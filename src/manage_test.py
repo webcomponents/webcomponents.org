@@ -5,7 +5,6 @@ import webtest
 
 from datamodel import Library, Version, Content
 from manage import app
-import quota
 import util
 
 from google.appengine.api import urlfetch_stub

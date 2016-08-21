@@ -81,14 +81,14 @@ class QuotaExceededError(Exception):
   pass
 
 def rate_limit():
-  response = urlfetch.fetch(util.github_url('rate_limit'))
+  response = urlfetch.fetch(github_url('rate_limit'))
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
       'x-ratelimit-remaining': response.headers.get('x-ratelimit-remaining', 'unknown'),
   }
 
-def markdown(content):
+def github_markdown(content):
   response = urlfetch.fetch(github_url('markdown'), method='POST',
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:

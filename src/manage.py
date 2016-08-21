@@ -187,7 +187,7 @@ class IngestVersion(webapp2.RequestHandler):
     except db.BadValueError:
       return error("Could not store README.md as a utf-8 string")
 
-    response = util.markdown(readme)
+    response = util.github_markdown(readme)
     content = Content(parent=key, id='readme.html', content=response.content)
     content.put()
 
