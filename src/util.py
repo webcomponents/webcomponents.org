@@ -1,6 +1,8 @@
 from gcloud import pubsub
 from google.appengine.api import taskqueue
+from google.appengine.api import urlfetch
 
+import json
 import logging
 import os
 import re
@@ -74,3 +76,30 @@ def new_task(url, params=None):
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)
+
+class QuotaExceededError(Exception):
+  pass
+
+def rate_limit():
+  response = urlfetch.fetch(util.github_url('rate_limit'))
+  return {
+      'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
+      'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
+      'x-ratelimit-remaining': response.headers.get('x-ratelimit-remaining', 'unknown'),
+  }
+
+def markdown(content):
+  response = urlfetch.fetch(github_url('markdown'), method='POST',
+                            payload=json.dumps({'text': inline_demo_transform(content)}))
+  if response.status_code == 403:
+    raise QuotaExceededError('reservation exceeded')
+  return response
+
+def github_resource(name, owner, repo, context=None, etag=None):
+  headers = {}
+  if etag is not None:
+    headers['If-None-Match'] = etag
+  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers)
+  if response.status_code == 403:
+    raise QuotaExceededError('reservation exceeded')
+  return response

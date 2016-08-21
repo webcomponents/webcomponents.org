@@ -74,35 +74,6 @@ class ManageTestBase(unittest.TestCase):
         header.set_value(value)
     self._expected_fetches.append((match, handle))
 
-class GithubRateLimitTest(ManageTestBase):
-  def respond_to_rate_limit(self, limit):
-    self.respond_to('https://api.github.com/rate_limit', {
-        'headers': {'X-RateLimit-Remaining': limit},
-    })
-
-  def test_request_without_reserve(self):
-    github = quota.GitHub()
-    with self.assertRaises(quota.QuotaExceededError):
-      github.github_resource('repos', 'org', 'repo')
-
-  def test_limit_exceeded(self):
-    quota.used(used_count=0, new_remaining=1)
-    github = quota.GitHub()
-    github.reserve(1)
-    self.respond_to_github('https://api.github.com/repos/org/repo', {
-        'status': 403,
-    }, remaining='0')
-    with self.assertRaises(quota.QuotaExceededError):
-      github.github_resource('repos', 'org', 'repo')
-
-  def test_limit_reset(self):
-    self.assertTrue(quota.GitHub().reserve(1))
-    quota.used(new_remaining=0)
-    self.respond_to_rate_limit('0')
-    self.assertFalse(quota.GitHub().reserve(1))
-    self.respond_to_rate_limit('1')
-    self.assertTrue(quota.GitHub().reserve(1))
-
 class ManageAddTest(ManageTestBase):
   def test_add_element(self):
     response = self.app.get('/manage/add/element/org/repo')
