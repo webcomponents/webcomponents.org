@@ -1,5 +1,4 @@
 import json
-import re
 import unittest
 import webtest
 
