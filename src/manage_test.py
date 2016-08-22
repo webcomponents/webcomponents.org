@@ -86,7 +86,7 @@ class ManageUpdateTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-  def test_update_deletes_library_if_not_found(self):
+  def test_update_deletes(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
     library.put()
     version = Version(parent=library.key, id='v1.0.0', sha='lol')
