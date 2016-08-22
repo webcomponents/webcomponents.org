@@ -13,7 +13,6 @@ import webapp2
 import sys
 
 from datamodel import Library, Version, Content, CollectionReference, Dependency
-import quota
 import versiontag
 import util
 
@@ -31,7 +30,6 @@ class LibraryTask(webapp2.RequestHandler):
     self.repo = None
     self.library = None
     self.library_dirty = False
-    self.github = None
 
   def init_library(self, owner, repo, kind=None, create=True):
     self.owner = owner.lower()
@@ -46,8 +44,6 @@ class LibraryTask(webapp2.RequestHandler):
     self.response.set_status(200)
     self.library.error = message
     self.library.put()
-    if self.github is not None:
-      self.github.release()
 
   def abort(self):
     self.response.set_status(500)
@@ -57,15 +53,9 @@ class LibraryTask(webapp2.RequestHandler):
   def commit(self):
     if self.library_dirty:
       self.library.put()
-    if self.github is not None:
-      self.github.release()
 
   def update_metadata(self):
-    self.github = quota.GitHub()
-    if not self.github.reserve(3):
-      return self.abort()
-
-    response = self.github.github_resource('repos', self.owner, self.repo, etag=self.library.metadata_etag)
+    response = util.github_resource('repos', self.owner, self.repo, etag=self.library.metadata_etag)
     if response.status_code != 304:
       if response.status_code == 200:
         self.library.metadata = response.content
@@ -74,7 +64,7 @@ class LibraryTask(webapp2.RequestHandler):
       else:
         return self.error('repo metadata not found (%d)' % response.status_code)
 
-    response = self.github.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
+    response = util.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code != 304:
       if response.status_code == 200:
         self.library.contributors = response.content
@@ -88,7 +78,7 @@ class LibraryTask(webapp2.RequestHandler):
     if not self.library.ingest_versions:
       return
 
-    response = self.github.github_resource('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+    response = util.github_resource('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
     if response.status_code != 304:
       if response.status_code != 200:
         return self.error('repo tags not found (%d)' % response.status_code)
@@ -169,11 +159,6 @@ class IngestVersion(webapp2.RequestHandler):
     generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
-    github = quota.GitHub()
-    if not github.reserve(1):
-      self.response.set_status(500)
-      return
-
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
 
     response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'))
@@ -202,7 +187,7 @@ class IngestVersion(webapp2.RequestHandler):
     except db.BadValueError:
       return error("Could not store README.md as a utf-8 string")
 
-    response = github.markdown(readme)
+    response = util.github_markdown(readme)
     content = Content(parent=key, id='readme.html', content=response.content)
     content.put()
 
@@ -324,7 +309,7 @@ def delete_library(response, library_key):
 
 class GithubStatus(webapp2.RequestHandler):
   def get(self):
-    for key, value in quota.rate_limit().items():
+    for key, value in util.rate_limit().items():
       self.response.write('%s: %s<br>' % (key, value))
 
 class DeleteLibrary(webapp2.RequestHandler):
