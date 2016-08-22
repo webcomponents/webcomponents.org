@@ -1,0 +1,84 @@
+<!doctype html>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
+
+<!-- Import the element to test -->
+<link rel="import" href="../src/catalog-element.html">
+
+<test-fixture id="element-page">
+  <template>
+     <catalog-element></catalog-element>
+  </template>
+</test-fixture>
+
+<script>
+  suite('Smoke test', function() {
+    var elementPage;
+    var responseHeaders = {
+      json: {'Content-Type': 'application/json'}
+    };
+    var metaResponse = {
+      "contributors": 20,
+      "avatar_url": "https://avatars.githubusercontent.com/u/787668?v=3",
+      "updated_at": "2016-07-14T05:53:05Z",
+      "repo": "repoName",
+      "readme": "readme",
+      "bower": {
+        "keywords": [
+          "web-components",
+          "polymer",
+          "card"
+        ],
+        "dependencies": {
+          "polymer": "Polymer/polymer#^1.1.0"
+        },
+        "description": "description",
+        "license": "license"
+      },
+      "subscribers": 1,
+      "owner": "ownerName",
+      "versions": [
+        "v1.0.0"
+      ],
+      "version": "v1.0.0",
+      "collections": [],
+      "stars": 0,
+      "open_issues": 0,
+      "forks": 0
+    };
+
+    setup(function() {
+      server = sinon.fakeServer.create();
+      server.respondWith(
+        'GET',
+        /\/api\/meta\/.*/, [
+          200,
+          responseHeaders.json,
+          JSON.stringify(metaResponse)
+        ]
+      );
+    });
+
+    teardown(function() {
+      server.restore();
+    });
+
+    test('api/meta readme displayed on page', function(done) {
+      elementPage = fixture('element-page');
+      elementPage.baseUrls = {api: '', userContent: ''};
+      elementPage.route = {path: '/owner/repo', prefix: '/element'};
+      elementPage.setAttribute('visible', '');
+      server.respond();
+      elementPage.$.metaAjax.addEventListener('response', function() {
+        flush(function() {
+          var readmeElement = Polymer.dom(elementPage.root).querySelector('catalog-element-readme');
+          var readmeContents = Polymer.dom(readmeElement.root).querySelector('#contents');
+          assert.notEqual(readmeContents.textContent.indexOf('readme'), -1);
+          done();
+        });
+      });
+    });
+
+  });
+</script>
