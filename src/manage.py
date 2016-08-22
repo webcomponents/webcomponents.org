@@ -314,8 +314,8 @@ def delete_library(library_key, response_for_logging=None):
 
   if response_for_logging is not None:
     for key in keys:
-      response.write(repr(key.flat()) + '\n')
-    response.write('\n')
+      response_for_logging.write(repr(key.flat()) + '\n')
+    response_for_logging.write('\n')
 
   index = search.Index('repo')
   index.delete([library_key.id()])
