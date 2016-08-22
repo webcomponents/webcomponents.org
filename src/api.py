@@ -11,6 +11,8 @@ import yaml
 from datamodel import Library, Version, Content, Dependency
 import versiontag
 
+import util
+
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 def brief_metadata_from_searchdoc(document):
@@ -203,6 +205,39 @@ class GetAccessToken(webapp2.RequestHandler):
 
     self.response.write(response.content)
 
+class OnDemand(webapp2.RequestHandler):
+  def post(self):
+    url = self.request.get('url')
+    match = re.match(r'https://github.com/(.*?)/([^/]*)(.*)', url)
+    owner = match.group(1)
+    repo = match.group(2)
+    tail = match.group(3)
+
+    # SHA already defined
+    match = re.match(r'.*commits?/(.*)', tail)
+    if match:
+      self.response.write(match.group(1))
+      # TODO: trigger on demand task
+      return
+
+    # Resolve SHA using these patterns and Github API
+    tail = re.sub(r'/pull/(.*)', r'pull/\1/head', tail)
+    tail = re.sub(r'/tree/(.*)', r'heads/\1', tail)
+    tail = re.sub(r'^$', r'heads/master', tail)
+
+    if not tail:
+      self.response.set_status(400)
+      self.response.write('Unable to understand url (%s)', url)
+
+    response = util.github_resource('repos', owner, repo, 'git/refs/' + tail)
+
+    if response.status_code == 404:
+      self.response.set_status(400)
+      self.response.write('Error resolving url (%s)', url)
+
+    # TODO: trigger on demand task
+    self.response.write(json.loads(response.content)['object']['sha'])
+
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/add', handler=GetAccessToken),
@@ -211,4 +246,5 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),
     webapp2.Route(r'/api/docs/<owner>/<repo>/<ver>', handler=GetHydroData),
     webapp2.Route(r'/api/search/<terms>', handler=SearchContents, name='search'),
+    webapp2.Route(r'/api/ondemand', handler=OnDemand),
 ], debug=True)
