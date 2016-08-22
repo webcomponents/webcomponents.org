@@ -82,7 +82,7 @@ class ManageUpdateTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', {'status': 304})
 
-    response = self.app.get('/task/update/org/repo')
+    self.app.get('/task/update/org/repo')
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
@@ -93,7 +93,7 @@ class ManageUpdateTest(ManageTestBase):
     version.put()
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 404})
-    response = self.app.get('/task/update/org/repo')
+    self.app.get('/task/update/org/repo')
 
     version = Version.get_by_id('v1.0.0', parent=library.key)
     library = Library.get_by_id('org/repo')
