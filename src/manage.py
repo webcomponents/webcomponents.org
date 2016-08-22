@@ -49,12 +49,6 @@ class LibraryTask(webapp2.RequestHandler):
     self.library.put()
     raise RequestAborted()
 
-  def abort(self):
-    self.response.set_status(500)
-    if self.library_dirty:
-      self.library.put()
-    raise RequestAborted()
-
   def commit(self):
     if self.library_dirty:
       self.library.put()
