@@ -55,63 +55,67 @@ class LibraryTask(webapp2.RequestHandler):
 
   def update_metadata(self):
     response = util.github_resource('repos', self.owner, self.repo, etag=self.library.metadata_etag)
-    if response.status_code != 304:
-      if response.status_code == 200:
-        self.library.metadata = response.content
-        self.library.metadata_etag = response.headers.get('ETag', None)
-        self.library_dirty = True
-      else:
-        return self.error('repo metadata not found (%d)' % response.status_code)
+    if response.status_code == 200:
+      self.library.metadata = response.content
+      self.library.metadata_etag = response.headers.get('ETag', None)
+      self.library_dirty = True
+    elif response.status_code == 404:
+      logging.info('deleting non-existing repo %s/%s', self.owner, self.repo)
+      delete_library(self.library.key)
+      raise RequestAborted('repo no longer exists')
+    elif response.status_code != 304:
+      return self.error('repo metadata not found (%d)' % response.status_code)
 
     response = util.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
-    if response.status_code != 304:
-      if response.status_code == 200:
-        self.library.contributors = response.content
-        self.library.contributors_etag = response.headers.get('ETag', None)
-        self.library.contributor_count = len(json.loads(response.content))
-        self.library_dirty = True
-      else:
-        return self.error('repo contributors not found (%d)' % response.status_code)
+    if response.status_code == 200:
+      self.library.contributors = response.content
+      self.library.contributors_etag = response.headers.get('ETag', None)
+      self.library.contributor_count = len(json.loads(response.content))
+      self.library_dirty = True
+    elif response.status_code != 304:
+      return self.error('repo contributors not found (%d)' % response.status_code)
 
   def ingest_versions(self):
     if not self.library.ingest_versions:
       return
 
     response = util.github_resource('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
-    if response.status_code != 304:
-      if response.status_code != 200:
-        return self.error('repo tags not found (%d)' % response.status_code)
+    if response.status_code == 304:
+      return
 
-      self.library.tags = response.content
-      self.library.tags_etag = response.headers.get('ETag', None)
-      self.library_dirty = True
+    if response.status_code != 200:
+      return self.error('repo tags not found (%d)' % response.status_code)
 
-      data = json.loads(response.content)
-      if not isinstance(data, object):
-        data = []
-      data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
-      if len(data) is 0:
-        return self.error('repo contains no valid version tags')
-      data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
-      data_refs = [d['ref'][10:] for d in data]
-      self.library.tags = json.dumps(data_refs)
-      self.library.tags_etag = response.headers.get('ETag', None)
-      data.reverse()
-      is_newest = True
-      for version in data:
-        tag = version['ref'][10:]
-        if not versiontag.is_valid(tag):
-          continue
-        sha = version['object']['sha']
-        params = {}
-        if is_newest:
-          params["latestVersion"] = "True"
-          is_newest = False
-        version_object = Version(parent=self.library.key, id=tag, sha=sha)
-        version_object.put()
-        task_url = util.ingest_version_task(self.owner, self.repo, tag)
-        util.new_task(task_url, params)
-        util.publish_analysis_request(self.owner, self.repo, tag)
+    self.library.tags = response.content
+    self.library.tags_etag = response.headers.get('ETag', None)
+    self.library_dirty = True
+
+    data = json.loads(response.content)
+    if not isinstance(data, object):
+      data = []
+    data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
+    if len(data) is 0:
+      return self.error('repo contains no valid version tags')
+    data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
+    data_refs = [d['ref'][10:] for d in data]
+    self.library.tags = json.dumps(data_refs)
+    self.library.tags_etag = response.headers.get('ETag', None)
+    data.reverse()
+    is_newest = True
+    for version in data:
+      tag = version['ref'][10:]
+      if not versiontag.is_valid(tag):
+        continue
+      sha = version['object']['sha']
+      params = {}
+      if is_newest:
+        params["latestVersion"] = "True"
+        is_newest = False
+      version_object = Version(parent=self.library.key, id=tag, sha=sha)
+      version_object.put()
+      task_url = util.ingest_version_task(self.owner, self.repo, tag)
+      util.new_task(task_url, params)
+      util.publish_analysis_request(self.owner, self.repo, tag)
 
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
@@ -304,26 +308,30 @@ class UpdateAll(webapp2.RequestHandler):
         taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
     self.response.write('triggered %d update tasks' % task_count)
 
-def delete_library(response, library_key):
-  keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
+def delete_library(library_key, response_for_logging=None, delete_library_entity=True):
+  keys = ndb.Query(ancestor=library_key).fetch(keys_only=True)
+  if delete_library_entity:
+    keys = [library_key] + keys
+
   ndb.delete_multi(keys)
 
-  for key in keys:
-    response.write(repr(key.flat()) + '\n')
-  response.write('\n')
+  if response_for_logging is not None:
+    for key in keys:
+      response.write(repr(key.flat()) + '\n')
+    response.write('\n')
 
   index = search.Index('repo')
   index.delete([library_key.id()])
 
 class GithubStatus(webapp2.RequestHandler):
   def get(self):
-    for key, value in util.rate_limit().items():
+    for key, value in util.github_rate_limit().items():
       self.response.write('%s: %s<br>' % (key, value))
 
 class DeleteLibrary(webapp2.RequestHandler):
   def get(self, owner, repo):
     self.response.headers['Content-Type'] = 'text/plain'
-    delete_library(self.response, ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()))
+    delete_library(ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()), response_for_logging=self.response)
 
 class DeleteEverything(webapp2.RequestHandler):
   def get(self):

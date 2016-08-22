@@ -77,10 +77,13 @@ def new_task(url, params=None):
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)
 
-class QuotaExceededError(Exception):
+class GithubQuotaExceededError(Exception):
   pass
 
-def rate_limit():
+class GithubServerError(Exception):
+  pass
+
+def github_rate_limit():
   response = urlfetch.fetch(github_url('rate_limit'))
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
@@ -93,6 +96,8 @@ def github_markdown(content):
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:
     raise QuotaExceededError('reservation exceeded')
+  elif response.status_code >= 500:
+    raise GithubServerError(response.status_code)
   return response
 
 def github_resource(name, owner, repo, context=None, etag=None):
@@ -102,4 +107,6 @@ def github_resource(name, owner, repo, context=None, etag=None):
   response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers)
   if response.status_code == 403:
     raise QuotaExceededError('reservation exceeded')
+  elif response.status_code >= 500:
+    raise GithubServerError(response.status_code)
   return response
