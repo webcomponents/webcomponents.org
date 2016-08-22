@@ -297,7 +297,8 @@
       ready: function() {
         this._loaded = true;
         this._routeChanged(this.route, this.visible);
-        this.async(this._updateActiveLinks);
+        if (this.route)
+          this.async(this._updateActiveLinks);
       },
 
       _showMainView: function(subElement, demo) {
