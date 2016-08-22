@@ -206,7 +206,7 @@ class GetAccessToken(webapp2.RequestHandler):
     self.response.write(response.content)
 
 class OnDemand(webapp2.RequestHandler):
-  def get(self):
+  def post(self):
     url = self.request.get('url')
     match = re.match(r'https://github.com/(.*?)/([^/]*)(.*)', url)
     owner = match.group(1)
