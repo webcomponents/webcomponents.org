@@ -308,11 +308,8 @@ class UpdateAll(webapp2.RequestHandler):
         taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
     self.response.write('triggered %d update tasks' % task_count)
 
-def delete_library(library_key, response_for_logging=None, delete_library_entity=True):
-  keys = ndb.Query(ancestor=library_key).fetch(keys_only=True)
-  if delete_library_entity:
-    keys = [library_key] + keys
-
+def delete_library(library_key, response_for_logging=None):
+  keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
   ndb.delete_multi(keys)
 
   if response_for_logging is not None:
