@@ -23,6 +23,9 @@ class AddLibrary(webapp2.RequestHandler):
     util.new_task(task_url)
     self.response.write('OK')
 
+class RequestAborted(Exception):
+  pass
+
 class LibraryTask(webapp2.RequestHandler):
   def __init__(self, request, response):
     super(LibraryTask, self).__init__(request, response)
@@ -44,11 +47,7 @@ class LibraryTask(webapp2.RequestHandler):
     self.response.set_status(200)
     self.library.error = message
     self.library.put()
-
-  def abort(self):
-    self.response.set_status(500)
-    if self.library_dirty:
-      self.library.put()
+    raise RequestAborted()
 
   def commit(self):
     if self.library_dirty:
@@ -117,40 +116,49 @@ class LibraryTask(webapp2.RequestHandler):
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
     assert kind == 'element' or kind == 'collection'
-    self.init_library(owner, repo, kind)
-    if not self.library.ingest_versions:
-      self.library.ingest_versions = True
-      self.library_dirty = True
-    self.update_metadata()
-    self.ingest_versions()
-    self.commit()
+    try:
+      self.init_library(owner, repo, kind)
+      if not self.library.ingest_versions:
+        self.library.ingest_versions = True
+        self.library_dirty = True
+      self.update_metadata()
+      self.ingest_versions()
+      self.commit()
+    except RequestAborted:
+      pass
 
 class UpdateLibrary(LibraryTask):
   def get(self, owner, repo):
-    self.init_library(owner, repo, create=False)
-    if self.library is None:
-      return
-    self.update_metadata()
-    self.ingest_versions()
-    self.commit()
+    try:
+      self.init_library(owner, repo, create=False)
+      if self.library is None:
+        return
+      self.update_metadata()
+      self.ingest_versions()
+      self.commit()
+    except RequestAborted:
+      pass
 
 class IngestLibraryCommit(LibraryTask):
   def get(self, owner, repo, kind):
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
     assert commit is not None and url is not None
-    self.init_library(owner, repo, kind)
-    is_new = self.library.metadata is None and self.library.error is None
-    if is_new:
-      self.library.ingest_versions = False
-      self.library_dirty = True
-      self.update_metadata()
+    try:
+      self.init_library(owner, repo, kind)
+      is_new = self.library.metadata is None and self.library.error is None
+      if is_new:
+        self.library.ingest_versions = False
+        self.library_dirty = True
+        self.update_metadata()
 
-    version = Version(parent=self.library.key, id=commit, sha=commit, url=url)
-    version.put()
-    task_url = util.ingest_version_task(owner, repo, commit)
-    util.new_task(task_url)
-    self.commit()
+      version = Version(parent=self.library.key, id=commit, sha=commit, url=url)
+      version.put()
+      task_url = util.ingest_version_task(owner, repo, commit)
+      util.new_task(task_url)
+      self.commit()
+    except RequestAborted:
+      pass
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
