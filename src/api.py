@@ -226,13 +226,13 @@ class OnDemand(webapp2.RequestHandler):
     tail = re.sub(r'^$', r'heads/master', tail)
 
     if not tail:
-      self.response.set_status(404)
+      self.response.set_status(400)
       self.response.write('Unable to understand url (%s)', url)
 
     response = util.github_resource('repos', owner, repo, 'git/refs/' + tail)
 
     if response.status_code == 404:
-      self.response.set_status(404)
+      self.response.set_status(400)
       self.response.write('Error resolving url (%s)', url)
 
     # TODO: trigger on demand task
