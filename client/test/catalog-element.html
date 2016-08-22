@@ -58,22 +58,23 @@
           JSON.stringify(metaResponse)
         ]
       );
-
-      elementPage = fixture('element-page');
-      elementPage.baseUrls = {api: '', userContent: ''};
-      elementPage.route = {path: '/owner/repo', prefix: '/element'};
-      elementPage.setAttribute('visible', '');
     });
 
     teardown(function() {
       server.restore();
     });
 
-    test('api/meta displayed on page', function(done) {
+    test('api/meta readme displayed on page', function(done) {
+      elementPage = fixture('element-page');
+      elementPage.baseUrls = {api: '', userContent: ''};
+      elementPage.route = {path: '/owner/repo', prefix: '/element'};
+      elementPage.setAttribute('visible', '');
       server.respond();
       elementPage.$.metaAjax.addEventListener('response', function() {
         flush(function() {
-          assert.notEqual(elementPage.textContent.indexOf('description'), -1);
+          var readmeElement = Polymer.dom(elementPage.root).querySelector('catalog-element-readme');
+          var readmeContents = Polymer.dom(readmeElement.root).querySelector('#contents');
+          assert.notEqual(readmeContents.textContent.indexOf('readme'), -1);
           done();
         });
       });
