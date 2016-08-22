@@ -95,7 +95,7 @@ def github_markdown(content):
   response = urlfetch.fetch(github_url('markdown'), method='POST',
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:
-    raise QuotaExceededError('reservation exceeded')
+    raise GithubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:
     raise GithubServerError(response.status_code)
   return response
@@ -106,7 +106,7 @@ def github_resource(name, owner, repo, context=None, etag=None):
     headers['If-None-Match'] = etag
   response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers)
   if response.status_code == 403:
-    raise QuotaExceededError('reservation exceeded')
+    raise GithubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:
     raise GithubServerError(response.status_code)
   return response
