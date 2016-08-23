@@ -217,7 +217,7 @@ class OnDemand(webapp2.RequestHandler):
     match = re.match(r'.*commits?/(.*)', tail)
     if match:
       self.response.write(match.group(1))
-      # TODO: trigger on demand task
+      util.new_task(util.ingest_commit_task(owner, repo), params={'commit': match.group(1), 'url': url})
       return
 
     # Resolve SHA using these patterns and Github API
@@ -235,8 +235,10 @@ class OnDemand(webapp2.RequestHandler):
       self.response.set_status(400)
       self.response.write('Error resolving url (%s)', url)
 
-    # TODO: trigger on demand task
-    self.response.write(json.loads(response.content)['object']['sha'])
+    sha = json.loads(response.content)['object']['sha']
+    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': url})
+    self.response.write(sha)
+
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([

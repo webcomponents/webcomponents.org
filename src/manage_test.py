@@ -122,7 +122,7 @@ class ManageAddTest(ManageTestBase):
   def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.app.get(util.ingest_commit_task('org', 'repo', 'element'), params={'commit': 'commit-sha', 'url': 'url'})
+    self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'})
 
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
