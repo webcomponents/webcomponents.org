@@ -32,15 +32,18 @@ def validate_xsrf_token(handler):
   if data != 'valid':
     new_token = mint_xsrf_token()
     handler.response.write('invalid token: use %s instead' % new_token)
-    handler.response.set_status(400)
+    handler.response.set_status(403)
     return False
 
   result = memcache.delete('xsrf-token: %s' % token)
   assert result == memcache.DELETE_SUCCESSFUL
   return True
 
-def assert_task(handler):
-  assert handler.request.headers.get('X-AppEngine-QueueName', None) is not None
+def validate_task(handler):
+  if handler.request.headers.get('X-AppEngine-QueueName', None) is None:
+    handler.response.set_status(403)
+    return False
+  return True
 
 class GetXsrfToken(webapp2.RequestHandler):
   def get(self):
@@ -150,7 +153,8 @@ class LibraryTask(webapp2.RequestHandler):
 
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
-    assert_task(self)
+    if not validate_task(self):
+      return
     assert kind == 'element' or kind == 'collection'
     try:
       self.init_library(owner, repo, kind)
@@ -165,7 +169,8 @@ class IngestLibrary(LibraryTask):
 
 class UpdateLibrary(LibraryTask):
   def get(self, owner, repo):
-    assert_task(self)
+    if not validate_task(self):
+      return
     try:
       self.init_library(owner, repo, create=False)
       if self.library is None:
@@ -178,6 +183,8 @@ class UpdateLibrary(LibraryTask):
 
 class IngestLibraryCommit(LibraryTask):
   def get(self, owner, repo):
+    if not validate_task(self):
+      return
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
     assert commit is not None and url is not None
@@ -201,7 +208,8 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
-    assert_task(self)
+    if not validate_task(self):
+      return
     generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
@@ -276,7 +284,8 @@ class IngestVersion(webapp2.RequestHandler):
 
 class IngestDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, version):
-    assert_task(self)
+    if not validate_task(self):
+      return
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
     bower = json.loads(key.get().content)

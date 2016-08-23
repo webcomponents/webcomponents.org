@@ -15,6 +15,26 @@ class ManageTestBase(TestBase):
     TestBase.setUp(self)
     self.app = webtest.TestApp(app)
 
+class XsrfTest(ManageTestBase):
+  def test_xsrf_protected(self):
+    self.app.get('/manage/token', status=200)
+    self.respond_to('https://api.github.com/rate_limit', '')
+    self.app.get('/manage/github', status=200)
+    self.app.get('/manage/update-all', status=403)
+    self.app.get('/manage/add/element/org/repo', status=403)
+    self.app.get('/manage/delete/element/org', status=403)
+    self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
+    self.app.get('/task/update/owner/repo', status=403)
+    self.app.get('/task/ingest/commit/owner/repo/kind', status=403)
+    self.app.get('/task/ingest/library/owner/repo/kind', status=403)
+    self.app.get('/task/ingest/dependencies/owner/repo/version', status=403)
+    self.app.get('/task/ingest/version/owner/repo/version', status=403)
+
+  def test_token_only_valid_once(self):
+    token = self.app.get('/manage/token').normal_body
+    self.app.get('/manage/update-all', status=200, params={'token': token})
+    self.app.get('/manage/update-all', status=403, params={'token': token})
+
 class ManageUpdateTest(ManageTestBase):
   def test_update_respects_304(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
