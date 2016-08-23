@@ -9,14 +9,14 @@ import re
 import sys
 import yaml
 
-SECRETS = None
+SECRETS = {}
 GITHUB_TOKEN = None
 try:
   with open('secrets.yaml', 'r') as f:
     SECRETS = yaml.load(f)
     GITHUB_TOKEN = yaml.load(f).get('github_token', None)
 except (OSError, IOError):
-  logging.error("No more secrets.")
+  logging.error('No more secrets.')
 
 def add_secret(url):
   access = ''

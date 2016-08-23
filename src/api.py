@@ -207,12 +207,12 @@ class GetAccessToken(webapp2.RequestHandler):
 
 def validate_captcha(handler):
   captcha_response = handler.request.get('captcha_response')
-  response = urlfetch.fetch('https://www.google.com/recaptcha/api/siteverify', params={
+  response = urlfetch.fetch('https://www.google.com/recaptcha/api/siteverify', payload={
       'secret': util.SECRETS['recaptcha'],
       'response': captcha_response,
       'remoteip': handler.request.remote_addr,
   }, method='POST')
-  if not json.dumps(response.content).get('success', False):
+  if not json.loads(response.content).get('success', False):
     handler.response.set_status(403)
     return False
   return True
