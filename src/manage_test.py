@@ -23,7 +23,8 @@ class ManageUpdateTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', {'status': 304})
 
-    self.app.get('/task/update/org/repo')
+    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
@@ -34,7 +35,8 @@ class ManageUpdateTest(ManageTestBase):
     version.put()
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 404})
-    self.app.get('/task/update/org/repo')
+    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
 
     version = Version.get_by_id('v1.0.0', parent=library.key)
     library = Library.get_by_id('org/repo')
@@ -44,7 +46,8 @@ class ManageUpdateTest(ManageTestBase):
 
 class ManageAddTest(ManageTestBase):
   def test_add_element(self):
-    response = self.app.get('/manage/add/element/org/repo')
+    token = self.app.get('/manage/token').normal_body
+    response = self.app.get('/manage/add/element/org/repo', params={'token': token})
     self.assertEqual(response.status_int, 200)
     self.assertEqual(response.normal_body, 'OK')
 
@@ -55,7 +58,7 @@ class ManageAddTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
-    response = self.app.get(util.ingest_library_task('org', 'repo', 'element'))
+    response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
@@ -83,7 +86,7 @@ class ManageAddTest(ManageTestBase):
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'))
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     version = version.key.get()
@@ -110,7 +113,8 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'latestVersion': 'True'})
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'latestVersion': 'True'}, headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
 
     version2 = version2.key.get()
     self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")
@@ -122,7 +126,8 @@ class ManageAddTest(ManageTestBase):
   def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'})
+    response = self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
 
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
