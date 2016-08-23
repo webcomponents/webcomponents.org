@@ -25,7 +25,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/delete/element/org', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner/repo', status=403)
-    self.app.get('/task/ingest/commit/owner/repo/kind', status=403)
+    self.app.get('/task/ingest/commit/owner/repo', status=403)
     self.app.get('/task/ingest/library/owner/repo/kind', status=403)
     self.app.get('/task/ingest/dependencies/owner/repo/version', status=403)
     self.app.get('/task/ingest/version/owner/repo/version', status=403)
