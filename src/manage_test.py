@@ -35,6 +35,9 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/update-all', status=200, params={'token': token})
     self.app.get('/manage/update-all', status=403, params={'token': token})
 
+  def test_invalid_token(self):
+    self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
+
 class ManageUpdateTest(ManageTestBase):
   def test_update_respects_304(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
