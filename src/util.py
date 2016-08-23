@@ -86,7 +86,7 @@ class GithubServerError(Exception):
   pass
 
 def github_rate_limit():
-  response = urlfetch.fetch(github_url('rate_limit'))
+  response = urlfetch.fetch(github_url('rate_limit'), validate_certificate=True)
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
@@ -94,7 +94,7 @@ def github_rate_limit():
   }
 
 def github_markdown(content):
-  response = urlfetch.fetch(github_url('markdown'), method='POST',
+  response = urlfetch.fetch(github_url('markdown'), method='POST', validate_certificate=True,
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
@@ -106,7 +106,7 @@ def github_resource(name, owner, repo, context=None, etag=None):
   headers = {}
   if etag is not None:
     headers['If-None-Match'] = etag
-  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers)
+  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers, validate_certificate=True)
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:

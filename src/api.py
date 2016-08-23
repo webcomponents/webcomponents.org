@@ -201,7 +201,7 @@ class GetAccessToken(webapp2.RequestHandler):
       logging.error('No Github client id/secret configured in secrets.yaml')
 
     response = urlfetch.fetch('https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' %
-                              (client_id, client_secret, code), method='POST')
+                              (client_id, client_secret, code), method='POST', validate_certificate=True)
 
     self.response.write(response.content)
 
@@ -211,7 +211,7 @@ def validate_captcha(handler):
       'secret': util.SECRETS['recaptcha'],
       'response': captcha_response,
       'remoteip': handler.request.remote_addr,
-  }, method='POST')
+  }, method='POST', validate_certificate=True)
   if not json.loads(response.content).get('success', False):
     handler.response.set_status(403)
     return False
