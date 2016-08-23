@@ -1,13 +1,16 @@
 from google.appengine.ext import db
+from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.api import search
 from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 
 import base64
+import binascii
 import datetime
 import json
 import logging
+import os
 import urllib
 import webapp2
 import sys
@@ -16,9 +19,40 @@ from datamodel import Library, Version, Content, CollectionReference, Dependency
 import versiontag
 import util
 
+def mint_xsrf_token():
+  token = binascii.hexlify(os.urandom(20))
+  result = memcache.add('xsrf-token: %s' % token, 'valid', 300)
+  assert result
+  return token
+
+def validate_xsrf_token(handler):
+  token = handler.request.get('token')
+  data = memcache.get('xsrf-token: %s' % token)
+
+  if data != 'valid':
+    new_token = mint_xsrf_token()
+    handler.response.write('invalid token: use %s instead' % new_token)
+    handler.response.set_status(403)
+    return False
+
+  result = memcache.delete('xsrf-token: %s' % token)
+  assert result == memcache.DELETE_SUCCESSFUL
+  return True
+
+def validate_task(handler):
+  if handler.request.headers.get('X-AppEngine-QueueName', None) is None:
+    handler.response.set_status(403)
+    return False
+  return True
+
+class GetXsrfToken(webapp2.RequestHandler):
+  def get(self):
+    self.response.write(mint_xsrf_token())
 
 class AddLibrary(webapp2.RequestHandler):
   def get(self, owner, repo, kind):
+    if not validate_xsrf_token(self):
+      return
     task_url = util.ingest_library_task(owner, repo, kind)
     util.new_task(task_url)
     self.response.write('OK')
@@ -119,6 +153,8 @@ class LibraryTask(webapp2.RequestHandler):
 
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
+    if not validate_task(self):
+      return
     assert kind == 'element' or kind == 'collection'
     try:
       self.init_library(owner, repo, kind)
@@ -133,6 +169,8 @@ class IngestLibrary(LibraryTask):
 
 class UpdateLibrary(LibraryTask):
   def get(self, owner, repo):
+    if not validate_task(self):
+      return
     try:
       self.init_library(owner, repo, create=False)
       if self.library is None:
@@ -145,6 +183,8 @@ class UpdateLibrary(LibraryTask):
 
 class IngestLibraryCommit(LibraryTask):
   def get(self, owner, repo):
+    if not validate_task(self):
+      return
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
     assert commit is not None and url is not None
@@ -168,6 +208,8 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
+    if not validate_task(self):
+      return
     generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
@@ -242,6 +284,8 @@ class IngestVersion(webapp2.RequestHandler):
 
 class IngestDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, version):
+    if not validate_task(self):
+      return
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
     bower = json.loads(key.get().content)
@@ -267,6 +311,7 @@ class IngestDependencies(webapp2.RequestHandler):
 
 class IngestAnalysis(webapp2.RequestHandler):
   def post(self):
+    # FIXME: Protect via XSRF token.
     message_json = json.loads(urllib.unquote(self.request.body).rstrip('='))
     message = message_json['message']
     data = base64.b64decode(str(message['data']))
@@ -292,6 +337,8 @@ class IngestAnalysis(webapp2.RequestHandler):
 
 class UpdateAll(webapp2.RequestHandler):
   def get(self):
+    if not validate_xsrf_token(self):
+      return
     queue = taskqueue.Queue('update')
     if queue.fetch_statistics().tasks > 0:
       self.response.write('update already in progress')
@@ -327,11 +374,15 @@ class GithubStatus(webapp2.RequestHandler):
 
 class DeleteLibrary(webapp2.RequestHandler):
   def get(self, owner, repo):
+    if not validate_xsrf_token(self):
+      return
     self.response.headers['Content-Type'] = 'text/plain'
     delete_library(ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()), response_for_logging=self.response)
 
 class DeleteEverything(webapp2.RequestHandler):
   def get(self):
+    if not validate_xsrf_token(self):
+      return
     while True:
       deleted_something = False
       for library_key in Library.query().fetch(keys_only=True, limit=10):
@@ -359,6 +410,7 @@ class DeleteEverything(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
+    webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary),
