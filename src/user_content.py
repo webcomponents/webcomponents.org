@@ -52,7 +52,7 @@ class GetResource(webapp2.RequestHandler):
     # We need to serve html files from the same origin, so that relative urls load correctly.
     if path.endswith('.html'):
       # TODO: Decide whether this should be memcached. Appengine's urlfetch already does caching.
-      response = urlfetch.fetch(resolved)
+      response = urlfetch.fetch(resolved, validate_certificate=True)
       if response.status_code == 200:
         self.response.write(response.content)
         self.response.headers['cache-control'] = response.headers.get('cache-control', 'max-age=315569000')
