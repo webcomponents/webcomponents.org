@@ -21,7 +21,12 @@ To increase Github API quota, acqure a Github token and store it:
 ```bash
 cat > secrets.yaml
 github_token: 'your-github-token'
-^D
+```
+
+If you would like to use reCAPTCHA, obtain a token and store it:
+```bash
+cat > secrets.yaml
+recaptcha: 'your-token'
 ```
 
 Deploy to staging.

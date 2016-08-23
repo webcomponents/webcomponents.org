@@ -31,7 +31,8 @@
     "globals": {
       "CustomElements": true,
       "HTMLImports": true,
-      "Polymer": true
+      "Polymer": true,
+      "grecaptcha": true
     },
     "rules": {
       "new-cap": 0,
