@@ -9,6 +9,8 @@ class CollectionReference(ndb.Model):
 class Library(ndb.Model):
   kind = ndb.StringProperty()
 
+  access_token = ndb.StringProperty()
+
   metadata = ndb.TextProperty()
   contributors = ndb.TextProperty()
   tags = ndb.TextProperty()

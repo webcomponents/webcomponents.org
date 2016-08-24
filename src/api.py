@@ -6,6 +6,7 @@ import logging
 import json
 import re
 import urllib
+from urlparse import urlparse
 import webapp2
 import yaml
 
@@ -187,10 +188,15 @@ class GetHydroData(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(analysis.content)
 
-class GetAccessToken(webapp2.RequestHandler):
+class RegisterPreview(webapp2.RequestHandler):
   def post(self):
     code = self.request.get('code')
+    full_name = self.request.get('repo').lower()
+    split = full_name.split('/')
+    owner = split[0]
+    repo = split[1]
 
+    # Extract Github app details
     client_id = None
     client_secret = None
     try:
@@ -200,11 +206,117 @@ class GetAccessToken(webapp2.RequestHandler):
         client_secret = config['github_client_secret']
     except (OSError, IOError):
       logging.error('No Github client id/secret configured in secrets.yaml')
+      self.response.write('Server not configured correctly - missing keys')
+      self.response.set_status(500)
 
-    response = urlfetch.fetch('https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' %
-                              (client_id, client_secret, code), method='POST', validate_certificate=True)
+    # Exchange code for an access token from Github
+    headers = {'Accept': 'application/json'}
+    access_token_url = 'https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' % (client_id, client_secret, code)
+    access_response = urlfetch.fetch(access_token_url, headers=headers, method='POST', validate_certificate=True)
+    access_token_response = json.loads(access_response.content)
 
-    self.response.write(response.content)
+    if not access_token_response or not access_token_response['access_token']:
+      self.response.set_status(401)
+      self.response.write('Authorization failed')
+      return
+    access_token = access_token_response['access_token']
+
+    # Validate access token against repo
+    repos_response = util.github_resource('user/repos', access_token=access_token)
+    if repos_response.status_code != 200:
+      self.response.set_status(401)
+      self.response.write('Cannot access users repos')
+      return
+
+    repos = json.loads(repos_response.content)
+    has_access = False
+    for entry in repos:
+      if entry['full_name'] == full_name:
+        has_access = True
+        break
+
+    if not has_access:
+      self.response.set_status(401)
+      self.response.write('Do not have access to the repo')
+      return
+
+    parsed_url = urlparse(self.request.url)
+    params = {'name': 'web', 'events': ['pull_request']}
+    params['config'] = {
+        'url': '%s://%s/api/preview/event' % (parsed_url.scheme, parsed_url.netloc),
+        'content_type': 'json',
+    }
+
+    # Check if the webhook exists
+    list_webhooks_response = util.github_post('repos', owner, repo, 'hooks', access_token=access_token)
+    if list_webhooks_response.status_code != 200:
+      logging.error('Unable to query existing webhooks, continuing anyway. Github %s: %s',
+                    list_webhooks_response.status_code, list_webhooks_response.content)
+    else:
+      webhooks = json.loads(list_webhooks_response.content)
+      for webhook in webhooks:
+        if webhook['active'] and webhook['config'] == params['config']:
+          self.response.set_status(202)
+          self.response.write('Webhook is already configured')
+          return
+
+    # Create the webhook
+    create_webhook_response = util.github_post('repos', owner, repo, 'hooks', params, access_token)
+    if create_webhook_response.status_code != 201:
+      self.response.set_status(500)
+      self.response.write('Failed to create webhook.')
+      logging.error('Failed to create webhook. Github %s: %s',
+                    create_webhook_response.status_code, create_webhook_response.content)
+      return
+
+    # Trigger shallow ingestion of the library so we can store the access token.
+    util.new_task(util.ingest_webhook_task(owner, repo), params={'access_token': access_token}, target='manage')
+    self.response.write('Created webhook')
+
+class PreviewEventHandler(webapp2.RequestHandler):
+  def post(self):
+    if self.request.headers.get('X-Github-Event') != 'pull_request':
+      self.response.set_status(202) # Accepted
+      self.response.write('Payload was not for a pull_request, aborting.')
+      return
+
+    payload = json.loads(self.request.body)
+    if payload['action'] != 'opened' and payload['action'] != 'synchronize':
+      self.response.set_status(202) # Accepted
+      self.response.write('Payload was not opened or synchronize, aborting.')
+      return
+
+    owner = payload['repository']['owner']['login']
+    repo = payload['repository']['name']
+    full_name = payload['repository']['full_name']
+
+    key = ndb.Key(Library, full_name)
+    library = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
+
+    if library is None:
+      logging.error('No library object found for %s', full_name)
+      self.response.set_status(400) # Bad request
+      self.response.write('It does not seem like this repository was registered')
+      return
+
+    sha = payload['pull_request']['head']['sha']
+    parsed_url = urlparse(self.request.url)
+    params = {
+        'state': 'success',
+        'target_url': '%s://%s/element/%s/%s/%s' % (parsed_url.scheme, parsed_url.netloc, owner, repo, sha),
+        'description': 'Preview is ready!', # TODO: Don't lie
+        'context': 'custom-elements/preview'
+    }
+
+    response = util.github_post('repos', owner, repo, 'statuses/%s' % sha, params, library.access_token)
+    if response.status_code != 201:
+      logging.error('Failed to set status on Github PR. Github returned %s:%s', response.status_code, response.content)
+      self.response.set_status(500)
+      self.response.write('Failed to set status on PR.')
+      return
+
+    pull_request_url = payload['pull_request']['url']
+    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
 
 def validate_captcha(handler):
   recaptcha = handler.request.get('recaptcha')
@@ -263,7 +375,8 @@ class OnDemand(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
-    webapp2.Route(r'/api/add', handler=GetAccessToken),
+    webapp2.Route(r'/api/preview', handler=RegisterPreview),
+    webapp2.Route(r'/api/preview/event', handler=PreviewEventHandler),
     webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetDataMeta),
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetDataMeta),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),

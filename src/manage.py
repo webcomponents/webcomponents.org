@@ -205,6 +205,25 @@ class IngestLibraryCommit(LibraryTask):
     except RequestAborted:
       pass
 
+class IngestWebhookLibrary(LibraryTask):
+  def get(self, owner, repo):
+    if not validate_task(self):
+      return
+    access_token = self.request.get('access_token', None)
+    assert access_token is not None
+    try:
+      self.init_library(owner, repo, 'element')
+      is_new = self.library.metadata is None and self.library.error is None
+      if is_new:
+        self.library.ingest_versions = False
+        self.library_dirty = True
+        self.update_metadata()
+      self.library.access_token = access_token
+      self.library_dirty = True
+      self.commit()
+    except RequestAborted:
+      pass
+
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
@@ -419,6 +438,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
+    webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
     webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion),
