@@ -204,7 +204,7 @@
         <div class="scroller">
           <iron-icon icon="search"></iron-icon>
           <input type="search" placeholder="Search" on-tap="_navigateToSearch">
-          <a href="/element/[[routeMatch.owner]]/[[repo]]" id="elementTitle">
+          <a href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]" id="elementTitle">
             <div class="menu-item" selected>
               <h2 title>[[routeMatch.owner]] /</h2>
               <h2 title class="repo-title">[[repo]]</h2>
@@ -219,7 +219,7 @@
             <div class="menu-item section-title">Demos</div>
 
             <template is="dom-repeat" items=[[bundledDemos]] as="demo">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/demo/[[demo.path]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]">
                 <div>[[demo.desc]]</div>
               </a>
             </template>
@@ -227,12 +227,12 @@
             <div class="menu-item section-title">Docs</div>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[element.is]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[element.is]]">
                 <div>[[element.is]]</div>
               </a>
             </template>
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[behavior.is]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[behavior.is]]">
                 <div>[[behavior.is]]</div>
               </a>
             </template>
@@ -265,7 +265,7 @@
       <!-- TODO(samli): Lacking drawer button -->
       <template is="dom-if" if="[[demo]]">
         <iframe id="demo-frame"
-                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
+                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[repo]]/[[demo]]">
         </iframe>
       </template>
 
@@ -348,26 +348,35 @@
         this.bundledBehaviors = [];
       },
 
+      _splitRoute: function() {
+        this.versionRoute = '';
+        this.subElement = null;
+        this.demo = null;
+
+        var split = this.routeTail.path.split('/');
+        split.shift(); // Skip first /
+        this.repo = split.shift();
+
+        if (split.length && split[0].indexOf('.') != -1)
+          this.versionRoute = '/' + split.shift();
+        else if (split.length && split[0].match(/[0-9a-f]{20,}/))
+          this.versionRoute = '/' + split.shift();
+
+        if (split.length && split[0].indexOf('demo') != -1) {
+          split.shift();
+          this.demo = split.join('/');
+          split = [];
+        }
+
+        if (split.length)
+          this.subElement = split.shift();
+      },
+
       _routeChanged: function(route, visible) {
         if (!visible || !this._loaded || route.prefix !== '/element')
           return;
 
-        // Split the URL - /:repo/?version/?[subElement|demo/path]
-        var match = this.routeTail.path.match(
-            // repo $1
-            '^/([^/]+)' +
-            // optional version $2
-            '(?:/(v?\\d+\\.\\d+\\.\\d+))?' +
-            // optional
-            '(?:/' +
-              // 'demo' $3, demo name or sub-element $4
-              '(demo/)?(.*)' +
-            ')?');
-        this.repo = match[1];
-        this.versionRoute = match[2] ? '/' + match[2] : '';
-        this.subElement = (match[3] || !match[4]) ? null : match[4];
-        this.demo = (match[3] && match[4]) ? match[4] : null;
-
+        this._splitRoute();
         document.title = this.routeMatch.owner + '/' + this.repo;
 
         // Generate requests

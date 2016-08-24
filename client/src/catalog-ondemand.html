@@ -1,0 +1,55 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<script src='https://www.google.com/recaptcha/api.js'></script>
+
+<dom-module id="catalog-ondemand">
+  <template>
+    Enter the github URL you want to preview: <input type="text" name="url" value="{{url::input}}">
+    <input type="submit" value="Preview" on-tap="onSubmit">
+
+    <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+
+    <iron-ajax
+      id="ajax"
+      method="POST"
+      url="[[baseUrls.api]]/api/ondemand"
+      handle-as="text"
+      on-response="_taskTriggered"
+      on-error="_error"></iron-ajax>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-ondemand',
+
+      properties: {
+        baseUrls: Object,
+
+        _sha: String,
+      },
+
+      onSubmit: function() {
+        if (!grecaptcha || !grecaptcha.getResponse())
+          return;
+
+        this.$.ajax.params = {
+          url: this.url,
+          recaptcha: grecaptcha.getResponse()
+        };
+        this.$.ajax.generateRequest();
+      },
+
+      _taskTriggered: function(event) {
+        window.location = 'element/' + event.detail.response;
+      },
+
+      _error: function() {
+        console.log('An error occured. Please try again.');
+      },
+
+    });
+  </script>
+</dom-module>

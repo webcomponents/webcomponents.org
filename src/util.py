@@ -14,7 +14,7 @@ GITHUB_TOKEN = None
 try:
   with open('secrets.yaml', 'r') as f:
     SECRETS = yaml.load(f)
-    GITHUB_TOKEN = yaml.load(f).get('github_token', None)
+    GITHUB_TOKEN = SECRETS.get('github_token', None)
 except (OSError, IOError):
   logging.error('No more secrets.')
 
@@ -71,10 +71,10 @@ def ingest_version_task(owner, repo, version):
 def ingest_dependencies_task(owner, repo, version):
   return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
 
-def new_task(url, params=None):
+def new_task(url, params=None, target=None):
   if params is None:
     params = {}
-  return taskqueue.add(method='GET', url=url, params=params)
+  return taskqueue.add(method='GET', url=url, params=params, target=target)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)

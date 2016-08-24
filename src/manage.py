@@ -200,6 +200,7 @@ class IngestLibraryCommit(LibraryTask):
       version.put()
       task_url = util.ingest_version_task(owner, repo, commit)
       util.new_task(task_url)
+      util.publish_analysis_request(self.owner, self.repo, commit)
       self.commit()
     except RequestAborted:
       pass

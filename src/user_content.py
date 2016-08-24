@@ -27,6 +27,8 @@ class GetResource(webapp2.RequestHandler):
 
     config_map = {}
     for dependency in dependencies:
+      if dependency['owner'] == owner and dependency['repo'] == repo:
+        continue
       config_map[dependency['name']] = '%s/%s/%s' % (dependency['owner'], dependency['repo'], dependency['version'])
 
     # Ensure the repo serves its own version.
