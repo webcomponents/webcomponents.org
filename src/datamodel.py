@@ -6,6 +6,11 @@ class CollectionReference(ndb.Model):
   version = ndb.KeyProperty(kind="Version", required=True)
   semver = ndb.StringProperty()
 
+class Status(object):
+  error = 'error'
+  pending = 'pending'
+  ready = 'ready'
+
 class Library(ndb.Model):
   kind = ndb.StringProperty()
 
@@ -22,6 +27,7 @@ class Library(ndb.Model):
 
   ingest_versions = ndb.BooleanProperty(default=True)
 
+  status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
 
@@ -62,9 +68,13 @@ class Library(ndb.Model):
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)
   url = ndb.StringProperty()
+
+  dependencies = ndb.StringProperty(repeated=True)
+
+  status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now_add=True)
-  dependencies = ndb.StringProperty(repeated=True)
+
 
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)

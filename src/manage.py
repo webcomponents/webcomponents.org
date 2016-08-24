@@ -15,7 +15,7 @@ import urllib
 import webapp2
 import sys
 
-from datamodel import Library, Version, Content, CollectionReference, Dependency
+from datamodel import Status, Library, Version, Content, CollectionReference, Dependency
 import versiontag
 import util
 
@@ -79,11 +79,21 @@ class LibraryTask(webapp2.RequestHandler):
 
   def error(self, message):
     self.response.set_status(200)
+    self.library.status = Status.error
     self.library.error = message
     self.library.put()
     raise RequestAborted()
 
-  def commit(self):
+  def abort(self, abort_string):
+    logging.error(abort_string)
+    self.response.set_status(500)
+    self.commit()
+    raise RequestAborted()
+
+  def commit(self, ready=False):
+    if ready and self.library.status != Status.ready:
+      self.library.status = Status.ready
+      self.library_dirty = True
     if self.library_dirty:
       self.library.put()
 
@@ -98,7 +108,7 @@ class LibraryTask(webapp2.RequestHandler):
       delete_library(self.library.key)
       raise RequestAborted('repo no longer exists')
     elif response.status_code != 304:
-      return self.error('repo metadata not found (%d)' % response.status_code)
+      return self.abort('could not update metadata (%d)' % response.status_code)
 
     response = util.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
@@ -107,7 +117,20 @@ class LibraryTask(webapp2.RequestHandler):
       self.library.contributor_count = len(json.loads(response.content))
       self.library_dirty = True
     elif response.status_code != 304:
-      return self.error('repo contributors not found (%d)' % response.status_code)
+      return self.abort('cout not update contributors (%d)' % response.status_code)
+
+  def trigger_version_ingestion(self, tag, sha, latest=False, url=None):
+    params = {}
+    if latest:
+      params["latestVersion"] = "True"
+    version_object = Version.get_or_insert(tag, parent=self.library.key, sha=sha)
+    if url is not None:
+      version_object.url = url
+    version_object.status = Status.pending
+    version_object.put()
+    task_url = util.ingest_version_task(self.owner, self.repo, tag)
+    util.new_task(task_url, params)
+    util.publish_analysis_request(self.owner, self.repo, tag)
 
   def ingest_versions(self):
     if not self.library.ingest_versions:
@@ -118,7 +141,7 @@ class LibraryTask(webapp2.RequestHandler):
       return
 
     if response.status_code != 200:
-      return self.error('repo tags not found (%d)' % response.status_code)
+      return self.abort('could not upate repo tags (%d)' % response.status_code)
 
     self.library.tags = response.content
     self.library.tags_etag = response.headers.get('ETag', None)
@@ -129,9 +152,12 @@ class LibraryTask(webapp2.RequestHandler):
       data = []
     data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
     if len(data) is 0:
-      return self.error('repo contains no valid version tags')
+      return self.error('no valid versions')
     data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
     data_refs = [d['ref'][10:] for d in data]
+    # TODO: Do a diff on self.library.tags:
+    # * ingest new shas
+    # * delete missing
     self.library.tags = json.dumps(data_refs)
     self.library.tags_etag = response.headers.get('ETag', None)
     data.reverse()
@@ -141,15 +167,8 @@ class LibraryTask(webapp2.RequestHandler):
       if not versiontag.is_valid(tag):
         continue
       sha = version['object']['sha']
-      params = {}
-      if is_newest:
-        params["latestVersion"] = "True"
-        is_newest = False
-      version_object = Version(parent=self.library.key, id=tag, sha=sha)
-      version_object.put()
-      task_url = util.ingest_version_task(self.owner, self.repo, tag)
-      util.new_task(task_url, params)
-      util.publish_analysis_request(self.owner, self.repo, tag)
+      self.trigger_version_ingestion(tag, sha, latest=is_newest)
+      is_newest = False
 
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
@@ -163,7 +182,7 @@ class IngestLibrary(LibraryTask):
         self.library_dirty = True
       self.update_metadata()
       self.ingest_versions()
-      self.commit()
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
@@ -177,7 +196,7 @@ class UpdateLibrary(LibraryTask):
         return
       self.update_metadata()
       self.ingest_versions()
-      self.commit()
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
@@ -196,12 +215,8 @@ class IngestLibraryCommit(LibraryTask):
         self.library_dirty = True
         self.update_metadata()
 
-      version = Version(parent=self.library.key, id=commit, sha=commit, url=url)
-      version.put()
-      task_url = util.ingest_version_task(owner, repo, commit)
-      util.new_task(task_url)
-      util.publish_analysis_request(self.owner, self.repo, commit)
-      self.commit()
+      self.trigger_version_ingestion(commit, commit, url=url)
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
@@ -216,12 +231,10 @@ class IngestVersion(webapp2.RequestHandler):
 
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
 
-    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'), validate_certificate=True)
-    readme = response.content
-
     def error(error_string):
       logging.info('ingestion error "%s" for %s/%s/%s', error_string, owner, repo, version)
       ver = key.get()
+      ver.status = Status.error
       ver.error = error_string
       ver.put()
       if generate_search:
@@ -233,28 +246,49 @@ class IngestVersion(webapp2.RequestHandler):
           task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
           util.new_task(task_url, {'latestVersion':'True'})
 
-      self.response.set_status(200)
+    def abort(abort_string):
+      logging.error(abort_string)
+      self.response.set_status(500)
 
-    try:
-      content = Content(parent=key, id='readme', content=readme)
-      content.etag = response.headers.get('ETag', None)
-      content.put()
-    except db.BadValueError:
-      return error("Could not store README.md as a utf-8 string")
+    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'), validate_certificate=True)
+    if response.status_code == 200:
+      readme = response.content
+      try:
+        content = Content(parent=key, id='readme', content=readme)
+        content.etag = response.headers.get('ETag', None)
+        content.put()
+      except db.BadValueError:
+        return error("Could not store README.md as a utf-8 string")
+    elif response.status_code == 404:
+      readme = None
+    else:
+      return abort('error fetching readme (%d)' % response.status_code)
 
-    response = util.github_markdown(readme)
-    content = Content(parent=key, id='readme.html', content=response.content)
-    content.put()
+    if readme is not None:
+      response = util.github_markdown(readme)
+      if response.status_code == 200:
+        content = Content(parent=key, id='readme.html', content=response.content)
+        content.put()
+      else:
+        return abort('error converting readme to markdown (%d)' % response.status_code)
 
     response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'), validate_certificate=True)
-    try:
-      json.loads(response.content)
-    except ValueError:
-      return error("This version has a missing or broken bower.json")
+    if response.status_code == 200:
+      try:
+        json.loads(response.content)
+      except ValueError:
+        return error("could not parse bower.json")
+      content = Content(parent=key, id='bower', content=response.content)
+      content.etag = response.headers.get('ETag', None)
+      content.put()
+    elif response.status_code == 404:
+      return error("missing bower.json")
+    else:
+      return abort('could not access bower.json (%d)' % response.status_code)
 
-    content = Content(parent=key, id='bower', content=response.content)
-    content.etag = response.headers.get('ETag', None)
-    content.put()
+    ver = key.get()
+    ver.status = Status.ready
+    ver.put()
 
     if generate_search:
       library = key.parent().get()
@@ -281,7 +315,6 @@ class IngestVersion(webapp2.RequestHandler):
       ])
       index = search.Index('repo')
       index.put(document)
-    self.response.set_status(200)
 
 class IngestDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, version):
