@@ -9,7 +9,7 @@ import urllib
 import webapp2
 import yaml
 
-from datamodel import Library, Version, Content, Dependency
+from datamodel import Library, Version, Content, Dependency, Status
 import versiontag
 
 import util
@@ -80,62 +80,77 @@ class GetDataMeta(webapp2.RequestHandler):
     owner = owner.lower()
     repo = repo.lower()
     library = Library.get_by_id('%s/%s' % (owner, repo), read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if library is None or library.error is not None:
-      self.response.write(str(library))
+
+    if library is None:
       self.response.set_status(404)
       return
+
+    result = {}
+    result['status'] = library.status
+    if library.status == Status.error:
+      result['error'] = library.error
+
+    version = None
     versions = library.versions()
-    if ver is None:
+    result['versions'] = versions
+    if ver is None and len(versions) > 0:
       ver = versions[-1]
-    version = Version.get_by_id(ver, parent=library.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if version is None or version.error is not None:
-      self.response.write(str(version))
-      self.response.set_status(404)
-      return
-    metadata = json.loads(library.metadata)
-    dependencies = []
-    bower = Content.get_by_id('bower', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if bower is not None:
-      try:
-        bower_json = json.loads(bower.content)
-      # TODO: Which exception is this for?
-      # pylint: disable=bare-except
-      except:
-        bower_json = {}
-    readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    result = {
-        'version': ver,
-        'versions': versions,
-        'readme': None if readme is None else readme.content,
-        'subscribers': metadata['subscribers_count'],
-        'stars': metadata['stargazers_count'],
-        'forks': metadata['forks'],
-        'contributors': library.contributor_count,
-        'open_issues': metadata['open_issues'],
-        'updated_at': metadata['updated_at'],
-        'owner': metadata['owner']['login'],
-        'avatar_url': metadata['owner']['avatar_url'],
-        'repo': metadata['name'],
-        'bower': None if bower is None else {
-            'description': bower_json.get('description', ''),
-            'license': bower_json.get('license', ''),
-            'dependencies': bower_json.get('dependencies', []),
-            'keywords': bower_json.get('keywords', []),
-        },
-        'collections': []
-    }
-    for collection in library.collections:
-      if not versiontag.match(ver, collection.semver):
-        continue
-      collection_version = collection.version.id()
-      collection_library = collection.version.parent().get()
-      collection_metadata = json.loads(collection_library.metadata)
-      collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
-      result['collections'].append({
-          'owner': collection_name_match.groups()[0],
-          'repo': collection_name_match.groups()[1],
-          'version': collection_version
-      })
+    if ver is not None:
+      version = Version.get_by_id(ver, parent=library.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+
+    if version is not None:
+      result['version'] = ver
+      result['version_status'] = version.status
+      if version.status == Status.error:
+        result['version_error'] = version.error
+
+    if library.metadata is not None:
+      metadata = json.loads(library.metadata)
+      result['subscribers'] = metadata['subscribers_count']
+      result['stars'] = metadata['stargazers_count']
+      result['forks'] = metadata['forks']
+      result['contributors'] = library.contributor_count
+      result['open_issues'] = metadata['open_issues']
+      result['updated_at'] = metadata['updated_at']
+      result['owner'] = metadata['owner']['login']
+      result['avatar_url'] = metadata['owner']['avatar_url']
+      result['repo'] = metadata['name']
+
+    if version is not None:
+      readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+      result['readme'] = None if readme is None else readme.content
+
+    if version is not None:
+      bower = Content.get_by_id('bower', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+      if bower is not None:
+        try:
+          bower_json = json.loads(bower.content)
+        except ValueError:
+          bower_json = None
+
+        if bower_json is not None:
+          result['bower'] = {
+              'description': bower_json.get('description', ''),
+              'license': bower_json.get('license', ''),
+              'dependencies': bower_json.get('dependencies', []),
+              'keywords': bower_json.get('keywords', []),
+          }
+
+    result['collections'] = []
+    if ver is not None:
+      for collection in library.collections:
+        if not versiontag.match(ver, collection.semver):
+          continue
+        collection_version = collection.version.id()
+        collection_library = collection.version.parent().get()
+        collection_metadata = json.loads(collection_library.metadata)
+        collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
+        result['collections'].append({
+            'owner': collection_name_match.groups()[0],
+            'repo': collection_name_match.groups()[1],
+            'version': collection_version
+        })
+
     if library.kind == 'collection':
       dependencies = []
       version_futures = []
@@ -159,6 +174,7 @@ class GetDataMeta(webapp2.RequestHandler):
         else:
           dependencies.append(brief_metadata_from_datastore(parsed_dep.owner, parsed_dep.repo, versions[0]))
       result['dependencies'] = dependencies
+
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(result))

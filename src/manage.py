@@ -54,7 +54,7 @@ class AddLibrary(webapp2.RequestHandler):
     if not validate_xsrf_token(self):
       return
     task_url = util.ingest_library_task(owner, repo, kind)
-    util.new_task(task_url)
+    util.new_task(task_url, target='manage')
     self.response.write('OK')
 
 class RequestAborted(Exception):
@@ -129,7 +129,7 @@ class LibraryTask(webapp2.RequestHandler):
     version_object.status = Status.pending
     version_object.put()
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, params)
+    util.new_task(task_url, params=params, target='manage')
     util.publish_analysis_request(self.owner, self.repo, tag)
 
   def ingest_versions(self):
@@ -244,7 +244,7 @@ class IngestVersion(webapp2.RequestHandler):
         if idx > 0:
           logging.info('ingestion for %s/%s falling back to version %s', owner, repo, versions[idx - 1])
           task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
-          util.new_task(task_url, {'latestVersion':'True'})
+          util.new_task(task_url, params={'latestVersion':'True'}, target='manage')
 
     def abort(abort_string):
       logging.error(abort_string)
@@ -294,7 +294,7 @@ class IngestVersion(webapp2.RequestHandler):
       library = key.parent().get()
       if library.kind == "collection":
         task_url = util.ingest_dependencies_task(owner, repo, version)
-        util.new_task(task_url)
+        util.new_task(task_url, target='manage')
       bower = json.loads(response.content)
       metadata = json.loads(library.metadata)
       logging.info('adding search index for %s', version)
@@ -339,7 +339,7 @@ class IngestDependencies(webapp2.RequestHandler):
       library.collections.append(CollectionReference(version=key.parent(), semver=dep.version))
       # FIXME: Can't assume this is an element.
       task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
-      util.new_task(task_url)
+      util.new_task(task_url, target='manage')
     libraries.append(ver)
     ndb.put_multi(libraries)
 
