@@ -215,7 +215,7 @@ class RegisterPreview(webapp2.RequestHandler):
     access_response = urlfetch.fetch(access_token_url, headers=headers, method='POST', validate_certificate=True)
     access_token_response = json.loads(access_response.content)
 
-    if not access_token_response or not access_token_response['access_token']:
+    if not access_token_response or access_token_response.get('error'):
       self.response.set_status(401)
       self.response.write('Authorization failed')
       return
