@@ -84,10 +84,10 @@ class LibraryTask(webapp2.RequestHandler):
     self.library.put()
     raise RequestAborted()
 
-  def abort(abort_string):
+  def abort(self, abort_string):
     logging.error(abort_string)
     self.response.set_status(500)
-    commit()
+    self.commit()
     raise RequestAborted()
 
   def commit(self, ready=False):
