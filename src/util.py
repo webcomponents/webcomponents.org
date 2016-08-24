@@ -9,12 +9,14 @@ import re
 import sys
 import yaml
 
+SECRETS = {}
 GITHUB_TOKEN = None
 try:
   with open('secrets.yaml', 'r') as f:
-    GITHUB_TOKEN = yaml.load(f)['github_token']
+    SECRETS = yaml.load(f)
+    GITHUB_TOKEN = SECRETS.get('github_token', None)
 except (OSError, IOError):
-  logging.error("No Secret Token")
+  logging.error('No more secrets.')
 
 def add_secret(url):
   access = ''
@@ -69,10 +71,10 @@ def ingest_version_task(owner, repo, version):
 def ingest_dependencies_task(owner, repo, version):
   return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
 
-def new_task(url, params=None):
+def new_task(url, params=None, target=None):
   if params is None:
     params = {}
-  return taskqueue.add(method='GET', url=url, params=params)
+  return taskqueue.add(method='GET', url=url, params=params, target=target)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)
@@ -84,7 +86,7 @@ class GithubServerError(Exception):
   pass
 
 def github_rate_limit():
-  response = urlfetch.fetch(github_url('rate_limit'))
+  response = urlfetch.fetch(github_url('rate_limit'), validate_certificate=True)
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
@@ -92,7 +94,7 @@ def github_rate_limit():
   }
 
 def github_markdown(content):
-  response = urlfetch.fetch(github_url('markdown'), method='POST',
+  response = urlfetch.fetch(github_url('markdown'), method='POST', validate_certificate=True,
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
@@ -104,7 +106,7 @@ def github_resource(name, owner, repo, context=None, etag=None):
   headers = {}
   if etag is not None:
     headers['If-None-Match'] = etag
-  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers)
+  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers, validate_certificate=True)
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:

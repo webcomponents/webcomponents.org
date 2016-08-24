@@ -200,6 +200,7 @@ class IngestLibraryCommit(LibraryTask):
       version.put()
       task_url = util.ingest_version_task(owner, repo, commit)
       util.new_task(task_url)
+      util.publish_analysis_request(self.owner, self.repo, commit)
       self.commit()
     except RequestAborted:
       pass
@@ -215,7 +216,7 @@ class IngestVersion(webapp2.RequestHandler):
 
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
 
-    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'))
+    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'), validate_certificate=True)
     readme = response.content
 
     def error(error_string):
@@ -245,7 +246,7 @@ class IngestVersion(webapp2.RequestHandler):
     content = Content(parent=key, id='readme.html', content=response.content)
     content.put()
 
-    response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'))
+    response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'), validate_certificate=True)
     try:
       json.loads(response.content)
     except ValueError:

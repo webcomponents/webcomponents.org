@@ -6,7 +6,7 @@
     </style>
 
     <template is="dom-if" if="[[queryParams.code]]">
-      <form action="/api/add" method="post">
+      <form action="[[baseUrls.api]]/api/add" method="post">
         <input type="hidden" name="code" value="[[queryParams.code]]">
         <input type="submit" value="test">
       </form>

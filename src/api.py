@@ -5,6 +5,7 @@ from google.appengine.api import urlfetch
 import logging
 import json
 import re
+import urllib
 import webapp2
 import yaml
 
@@ -201,12 +202,28 @@ class GetAccessToken(webapp2.RequestHandler):
       logging.error('No Github client id/secret configured in secrets.yaml')
 
     response = urlfetch.fetch('https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' %
-                              (client_id, client_secret, code), method='POST')
+                              (client_id, client_secret, code), method='POST', validate_certificate=True)
 
     self.response.write(response.content)
 
+def validate_captcha(handler):
+  recaptcha = handler.request.get('recaptcha')
+  params = {
+      'secret': util.SECRETS['recaptcha'],
+      'response': recaptcha,
+      'remoteip': handler.request.remote_addr,
+  }
+  response = urlfetch.fetch('https://www.google.com/recaptcha/api/siteverify', payload=urllib.urlencode(params), method='POST', validate_certificate=True)
+  if not json.loads(response.content).get('success', False):
+    handler.response.set_status(403)
+    return False
+  return True
+
 class OnDemand(webapp2.RequestHandler):
   def post(self):
+    if not validate_captcha(self):
+      return
+
     url = self.request.get('url')
     match = re.match(r'https://github.com/(.*?)/([^/]*)(.*)', url)
     owner = match.group(1)
@@ -216,8 +233,10 @@ class OnDemand(webapp2.RequestHandler):
     # SHA already defined
     match = re.match(r'.*commits?/(.*)', tail)
     if match:
-      self.response.write(match.group(1))
-      util.new_task(util.ingest_commit_task(owner, repo), params={'commit': match.group(1), 'url': url})
+      self.response.headers['Access-Control-Allow-Origin'] = '*'
+      self.response.headers['Content-Type'] = 'application/json'
+      self.response.write('%s/%s/%s' % (owner, repo, match.group(1)))
+      util.new_task(util.ingest_commit_task(owner, repo), params={'commit': match.group(1), 'url': url}, target='manage')
       return
 
     # Resolve SHA using these patterns and Github API
@@ -236,8 +255,10 @@ class OnDemand(webapp2.RequestHandler):
       self.response.write('Error resolving url (%s)', url)
 
     sha = json.loads(response.content)['object']['sha']
-    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': url})
-    self.response.write(sha)
+    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': url}, target='manage')
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.write('%s/%s/%s' % (owner, repo, sha))
 
 
 # pylint: disable=invalid-name

@@ -44,7 +44,7 @@ class Library(ndb.Model):
 
   @staticmethod
   def versions_for_key(key):
-    versions = Version.query(ancestor=key).map(lambda v: v.key.id())
+    versions = [v.key.id() for v in Version.query(ancestor=key) if versiontag.is_valid(v.key.id())]
     versions.sort(versiontag.compare)
     return versions
 
