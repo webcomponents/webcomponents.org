@@ -79,6 +79,7 @@ class LibraryTask(webapp2.RequestHandler):
 
   def error(self, message):
     self.response.set_status(200)
+    self.library.status = Status.error
     self.library.error = message
     self.library.put()
     raise RequestAborted()
@@ -89,7 +90,10 @@ class LibraryTask(webapp2.RequestHandler):
     commit()
     raise RequestAborted()
 
-  def commit(self):
+  def commit(self, ready=False):
+    if ready and self.library.status != Status.ready:
+      self.library.status = Status.ready
+      self.library_dirty = True
     if self.library_dirty:
       self.library.put()
 
@@ -178,7 +182,7 @@ class IngestLibrary(LibraryTask):
         self.library_dirty = True
       self.update_metadata()
       self.ingest_versions()
-      self.commit()
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
@@ -192,7 +196,7 @@ class UpdateLibrary(LibraryTask):
         return
       self.update_metadata()
       self.ingest_versions()
-      self.commit()
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
@@ -212,7 +216,7 @@ class IngestLibraryCommit(LibraryTask):
         self.update_metadata()
 
       self.trigger_version_ingestion(commit, commit, url=url)
-      self.commit()
+      self.commit(ready=True)
     except RequestAborted:
       pass
 
