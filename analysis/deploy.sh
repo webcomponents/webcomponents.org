@@ -33,7 +33,7 @@ n=1
 until [ $n -ge 11 ]
 do
   echo "Attempt $n of 10"
-  gcloud compute copy-files install-and-run.sh src $INSTANCE:/usr/local/lib/analysis --zone $ZONE && break
+  gcloud compute copy-files install-and-run.sh package.json src $INSTANCE:/usr/local/lib/analysis --zone $ZONE && break
   echo "Attempt $n failed"
   n=$[$n+1]
   sleep 5
