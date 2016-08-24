@@ -18,7 +18,7 @@ then
   echo "Running on $PUBSUB_EMULATOR_HOST"
 fi
 
-node main.js $1 $2
+node src/main.js $1 $2
 
 if [ "$3" == "pubsub" ]
 then
