@@ -218,7 +218,7 @@ class IngestWebhookLibrary(LibraryTask):
         self.library.ingest_versions = False
         self.library_dirty = True
         self.update_metadata()
-      self.library.access_token = access_token
+      self.library.github_access_token = access_token
       self.library_dirty = True
       self.commit()
     except RequestAborted:

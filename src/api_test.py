@@ -82,7 +82,7 @@ class PreviewTest(ApiTestBase):
     self.respond_to('https://api.github.com/user/repos', '[{"full_name": "owner/repo"}]')
     hooks = [{'active': True, 'config': {'url': 'http://localhost/api/preview/event', 'content_type': 'json'}}]
     self.respond_to('https://api.github.com/repos/owner/repo/hooks', json.dumps(hooks))
-    self.app.post('/api/preview', params={'code': 'code', 'repo': 'owner/repo'}, status=202)
+    self.app.post('/api/preview', params={'code': 'code', 'repo': 'owner/repo'}, status=200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 

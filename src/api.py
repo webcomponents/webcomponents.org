@@ -195,17 +195,18 @@ class RegisterPreview(webapp2.RequestHandler):
     owner = split[0]
     repo = split[1]
 
-    # Extract Github app details
-    client_id = util.SECRETS['github_client_id']
-    client_secret = util.SECRETS['github_client_secret']
-
     # Exchange code for an access token from Github
     headers = {'Accept': 'application/json'}
-    access_token_url = 'https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' % (client_id, client_secret, code)
-    access_response = urlfetch.fetch(access_token_url, headers=headers, method='POST', validate_certificate=True)
+    access_token_url = 'https://github.com/login/oauth/access_token'
+    params = {
+        'client_id': util.SECRETS['github_client_id'],
+        'client_secret': util.SECRETS['github_client_secret'],
+        'code': code
+    }
+    access_response = urlfetch.fetch(access_token_url, payload=urllib.urlencode(params), headers=headers, method='POST', validate_certificate=True)
     access_token_response = json.loads(access_response.content)
 
-    if not access_token_response or access_token_response.get('error'):
+    if access_response.status_code != 200 or not access_token_response or access_token_response.get('error'):
       self.response.set_status(401)
       self.response.write('Authorization failed')
       return
@@ -215,7 +216,7 @@ class RegisterPreview(webapp2.RequestHandler):
     repos_response = util.github_resource('user/repos', access_token=access_token)
     if repos_response.status_code != 200:
       self.response.set_status(401)
-      self.response.write('Cannot access users repos')
+      self.response.write('Cannot access user\'s repos')
       return
 
     repos = json.loads(repos_response.content)
@@ -246,7 +247,6 @@ class RegisterPreview(webapp2.RequestHandler):
       webhooks = json.loads(list_webhooks_response.content)
       for webhook in webhooks:
         if webhook['active'] and webhook['config'] == params['config']:
-          self.response.set_status(202)
           self.response.write('Webhook is already configured')
           return
 
@@ -298,7 +298,7 @@ class PreviewEventHandler(webapp2.RequestHandler):
         'context': 'custom-elements/preview'
     }
 
-    response = util.github_post('repos', owner, repo, 'statuses/%s' % sha, params, library.access_token)
+    response = util.github_post('repos', owner, repo, 'statuses/%s' % sha, params, library.github_access_token)
     if response.status_code != 201:
       logging.error('Failed to set status on Github PR. Github returned %s:%s', response.status_code, response.content)
       self.response.set_status(500)
