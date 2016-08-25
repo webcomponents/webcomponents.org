@@ -89,24 +89,27 @@ class PreviewTest(ApiTestBase):
 class PreviewEventHandler(ApiTestBase):
   def setUp(self):
     ApiTestBase.setUp(self)
+    util.SECRETS['github_client_id'] = 'github_client_id'
+    util.SECRETS['github_client_secret'] = 'github_client_secret'
 
   def test_normal(self):
     headers = {'X-Github-Event': 'pull_request'}
-    payload = {'action': 'opened',
-      'repository': {
-        'owner': {'login': 'owner'},
-        'name': 'repo',
-        'full_name': 'owner/repo'
-      },
-      'pull_request': {
-        'head': {'sha': 'sha'},
-        'url': 'github_pr_url'
-      }
+    payload = {
+        'action': 'opened',
+        'repository': {
+            'owner': {'login': 'owner'},
+            'name': 'repo',
+            'full_name': 'owner/repo'
+        },
+        'pull_request': {
+            'head': {'sha': 'sha'},
+            'url': 'github_pr_url'
+        }
     }
     library = Library(id='owner/repo')
     library.put()
 
-    self.respond_to('https://api.github.com/repos/owner/repo/statuses',{'status': 201})
+    self.respond_to('https://api.github.com/repos/owner/repo/statuses', {'status': 201})
     self.app.post('/api/preview/event', params=json.dumps(payload), headers=headers, status=200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)

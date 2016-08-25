@@ -8,7 +8,6 @@ import re
 import urllib
 from urlparse import urlparse
 import webapp2
-import yaml
 
 from datamodel import Library, Version, Content, Dependency
 import versiontag
@@ -197,17 +196,8 @@ class RegisterPreview(webapp2.RequestHandler):
     repo = split[1]
 
     # Extract Github app details
-    client_id = None
-    client_secret = None
-    try:
-      with open('secrets.yaml', 'r') as secrets:
-        config = yaml.load(secrets)
-        client_id = config['github_client_id']
-        client_secret = config['github_client_secret']
-    except (OSError, IOError):
-      logging.error('No Github client id/secret configured in secrets.yaml')
-      self.response.write('Server not configured correctly - missing keys')
-      self.response.set_status(500)
+    client_id = util.SECRETS['github_client_id']
+    client_secret = util.SECRETS['github_client_secret']
 
     # Exchange code for an access token from Github
     headers = {'Accept': 'application/json'}
