@@ -14,6 +14,8 @@ class Status(object):
 class Library(ndb.Model):
   kind = ndb.StringProperty()
 
+  github_access_token = ndb.StringProperty()
+
   metadata = ndb.TextProperty()
   contributors = ndb.TextProperty()
   tags = ndb.TextProperty()
