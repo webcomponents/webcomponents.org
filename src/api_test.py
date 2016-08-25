@@ -2,6 +2,7 @@ import json
 import unittest
 import webtest
 
+from datamodel import Library
 from api import app
 import util
 
@@ -82,6 +83,36 @@ class PreviewTest(ApiTestBase):
     hooks = [{'active': True, 'config': {'url': 'http://localhost/api/preview/event', 'content_type': 'json'}}]
     self.respond_to('https://api.github.com/repos/owner/repo/hooks', json.dumps(hooks))
     self.app.post('/api/preview', params={'code': 'code', 'repo': 'owner/repo'}, status=202)
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
+
+class PreviewEventHandler(ApiTestBase):
+  def setUp(self):
+    ApiTestBase.setUp(self)
+
+  def test_normal(self):
+    headers = {'X-Github-Event': 'pull_request'}
+    payload = {'action': 'opened',
+      'repository': {
+        'owner': {'login': 'owner'},
+        'name': 'repo',
+        'full_name': 'owner/repo'
+      },
+      'pull_request': {
+        'head': {'sha': 'sha'},
+        'url': 'github_pr_url'
+      }
+    }
+    library = Library(id='owner/repo')
+    library.put()
+
+    self.respond_to('https://api.github.com/repos/owner/repo/statuses',{'status': 201})
+    self.app.post('/api/preview/event', params=json.dumps(payload), headers=headers, status=200)
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+
+  def test_no_header(self):
+    self.app.post('/api/preview/event', status=202)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
