@@ -13,6 +13,6 @@
   	"node": "4.4.5"
   },
   "scripts": {
-  	"start": "node main.js"
+  	"start": "node src/main.js"
   }
 }
