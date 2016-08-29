@@ -68,12 +68,15 @@ class SearchContents(webapp2.RequestHandler):
     offset = int(self.request.get('offset', 0))
     search_results = index.search(
         search.Query(query_string=terms,
-                     options=search.QueryOptions(limit=limit, offset=offset)))
+                     options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
     results = []
     for result in search_results.results:
       results.append(brief_metadata_from_searchdoc(result))
     self.response.headers['Access-Control-Allow-Origin'] = '*'
-    self.response.write(json.dumps(results))
+    self.response.write(json.dumps({
+        'results': results,
+        'count': search_results.number_found,
+    }))
 
 class GetDataMeta(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
