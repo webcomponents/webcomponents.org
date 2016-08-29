@@ -33,7 +33,7 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-disable=missing-docstring,line-too-long,import-error,no-name-in-module,fixme,too-few-public-methods,relative-import,no-init,no-self-use,too-many-locals,too-many-arguments,too-many-branches,too-many-statements
+disable=missing-docstring,line-too-long,import-error,no-name-in-module,fixme,too-few-public-methods,relative-import,no-init,no-self-use,too-many-locals,too-many-arguments,too-many-branches,too-many-statements,too-many-return-statements
 
 
 [REPORTS]

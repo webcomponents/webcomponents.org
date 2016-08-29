@@ -18,11 +18,12 @@ try:
 except (OSError, IOError):
   logging.error('No more secrets.')
 
-def add_secret(url):
-  access = ''
-  if GITHUB_TOKEN is not None:
-    access = '?access_token=' + GITHUB_TOKEN
-  return url + access
+def add_authorization_header(headers, access_token=None):
+  if access_token is None:
+    access_token = GITHUB_TOKEN
+
+  if access_token is not None:
+    headers['Authorization'] = 'token %s' % access_token
 
 ANALYSIS = {}
 def get_topic():
@@ -54,7 +55,7 @@ def github_url(prefix, owner=None, repo=None, detail=None):
     result = 'https://api.github.com/%s/%s/%s' % (prefix, owner, repo)
   if detail is not None:
     result = result + '/' + detail
-  return add_secret(result)
+  return result
 
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
@@ -64,6 +65,9 @@ def ingest_library_task(owner, repo, kind):
 
 def ingest_commit_task(owner, repo):
   return '/task/ingest/commit/%s/%s' % (owner, repo)
+
+def ingest_webhook_task(owner, repo):
+  return '/task/ingest/webhook/%s/%s' % (owner, repo)
 
 def ingest_version_task(owner, repo, version):
   return '/task/ingest/version/%s/%s/%s' % (owner, repo, version)
@@ -86,7 +90,9 @@ class GithubServerError(Exception):
   pass
 
 def github_rate_limit():
-  response = urlfetch.fetch(github_url('rate_limit'), validate_certificate=True)
+  headers = {}
+  add_authorization_header(headers)
+  response = urlfetch.fetch(github_url('rate_limit'), headers=headers, validate_certificate=True)
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
@@ -94,7 +100,9 @@ def github_rate_limit():
   }
 
 def github_markdown(content):
-  response = urlfetch.fetch(github_url('markdown'), method='POST', validate_certificate=True,
+  headers = {}
+  add_authorization_header(headers)
+  response = urlfetch.fetch(github_url('markdown'), method='POST', validate_certificate=True, headers=headers,
                             payload=json.dumps({'text': inline_demo_transform(content)}))
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
@@ -102,11 +110,23 @@ def github_markdown(content):
     raise GithubServerError(response.status_code)
   return response
 
-def github_resource(name, owner, repo, context=None, etag=None):
+def github_resource(name, owner=None, repo=None, context=None, etag=None, access_token=None):
   headers = {}
+  add_authorization_header(headers, access_token)
   if etag is not None:
     headers['If-None-Match'] = etag
   response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers, validate_certificate=True)
+  if response.status_code == 403:
+    raise GithubQuotaExceededError('reservation exceeded')
+  elif response.status_code >= 500:
+    raise GithubServerError(response.status_code)
+  return response
+
+def github_post(name, owner, repo, context=None, payload=None, access_token=None):
+  headers = {}
+  add_authorization_header(headers, access_token)
+  url = github_url(name, owner, repo, context)
+  response = urlfetch.fetch(url, payload=json.dumps(payload), headers=headers, validate_certificate=True, method='POST')
   if response.status_code == 403:
     raise GithubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:

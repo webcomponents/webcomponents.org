@@ -6,10 +6,10 @@ import logging
 import json
 import re
 import urllib
+from urlparse import urlparse
 import webapp2
-import yaml
 
-from datamodel import Library, Version, Content, Dependency
+from datamodel import Library, Version, Content, Dependency, Status
 import versiontag
 
 import util
@@ -80,62 +80,77 @@ class GetDataMeta(webapp2.RequestHandler):
     owner = owner.lower()
     repo = repo.lower()
     library = Library.get_by_id('%s/%s' % (owner, repo), read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if library is None or library.error is not None:
-      self.response.write(str(library))
+
+    if library is None:
       self.response.set_status(404)
       return
+
+    result = {}
+    result['status'] = library.status
+    if library.status == Status.error:
+      result['error'] = library.error
+
+    version = None
     versions = library.versions()
-    if ver is None:
+    result['versions'] = versions
+    if ver is None and len(versions) > 0:
       ver = versions[-1]
-    version = Version.get_by_id(ver, parent=library.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if version is None or version.error is not None:
-      self.response.write(str(version))
-      self.response.set_status(404)
-      return
-    metadata = json.loads(library.metadata)
-    dependencies = []
-    bower = Content.get_by_id('bower', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    if bower is not None:
-      try:
-        bower_json = json.loads(bower.content)
-      # TODO: Which exception is this for?
-      # pylint: disable=bare-except
-      except:
-        bower_json = {}
-    readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-    result = {
-        'version': ver,
-        'versions': versions,
-        'readme': None if readme is None else readme.content,
-        'subscribers': metadata['subscribers_count'],
-        'stars': metadata['stargazers_count'],
-        'forks': metadata['forks'],
-        'contributors': library.contributor_count,
-        'open_issues': metadata['open_issues'],
-        'updated_at': metadata['updated_at'],
-        'owner': metadata['owner']['login'],
-        'avatar_url': metadata['owner']['avatar_url'],
-        'repo': metadata['name'],
-        'bower': None if bower is None else {
-            'description': bower_json.get('description', ''),
-            'license': bower_json.get('license', ''),
-            'dependencies': bower_json.get('dependencies', []),
-            'keywords': bower_json.get('keywords', []),
-        },
-        'collections': []
-    }
-    for collection in library.collections:
-      if not versiontag.match(ver, collection.semver):
-        continue
-      collection_version = collection.version.id()
-      collection_library = collection.version.parent().get()
-      collection_metadata = json.loads(collection_library.metadata)
-      collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
-      result['collections'].append({
-          'owner': collection_name_match.groups()[0],
-          'repo': collection_name_match.groups()[1],
-          'version': collection_version
-      })
+    if ver is not None:
+      version = Version.get_by_id(ver, parent=library.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+
+    if version is not None:
+      result['version'] = ver
+      result['version_status'] = version.status
+      if version.status == Status.error:
+        result['version_error'] = version.error
+
+    if library.metadata is not None:
+      metadata = json.loads(library.metadata)
+      result['subscribers'] = metadata['subscribers_count']
+      result['stars'] = metadata['stargazers_count']
+      result['forks'] = metadata['forks']
+      result['contributors'] = library.contributor_count
+      result['open_issues'] = metadata['open_issues']
+      result['updated_at'] = metadata['updated_at']
+      result['owner'] = metadata['owner']['login']
+      result['avatar_url'] = metadata['owner']['avatar_url']
+      result['repo'] = metadata['name']
+
+    if version is not None:
+      readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+      result['readme'] = None if readme is None else readme.content
+
+    if version is not None:
+      bower = Content.get_by_id('bower', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+      if bower is not None:
+        try:
+          bower_json = json.loads(bower.content)
+        except ValueError:
+          bower_json = None
+
+        if bower_json is not None:
+          result['bower'] = {
+              'description': bower_json.get('description', ''),
+              'license': bower_json.get('license', ''),
+              'dependencies': bower_json.get('dependencies', []),
+              'keywords': bower_json.get('keywords', []),
+          }
+
+    result['collections'] = []
+    if ver is not None:
+      for collection in library.collections:
+        if not versiontag.match(ver, collection.semver):
+          continue
+        collection_version = collection.version.id()
+        collection_library = collection.version.parent().get()
+        collection_metadata = json.loads(collection_library.metadata)
+        collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
+        result['collections'].append({
+            'owner': collection_name_match.groups()[0],
+            'repo': collection_name_match.groups()[1],
+            'version': collection_version
+        })
+
     if library.kind == 'collection':
       dependencies = []
       version_futures = []
@@ -159,6 +174,7 @@ class GetDataMeta(webapp2.RequestHandler):
         else:
           dependencies.append(brief_metadata_from_datastore(parsed_dep.owner, parsed_dep.repo, versions[0]))
       result['dependencies'] = dependencies
+
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(result))
@@ -187,24 +203,126 @@ class GetHydroData(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(analysis.content)
 
-class GetAccessToken(webapp2.RequestHandler):
+class RegisterPreview(webapp2.RequestHandler):
   def post(self):
     code = self.request.get('code')
+    full_name = self.request.get('repo').lower()
+    split = full_name.split('/')
+    owner = split[0]
+    repo = split[1]
 
-    client_id = None
-    client_secret = None
-    try:
-      with open('secrets.yaml', 'r') as secrets:
-        config = yaml.load(secrets)
-        client_id = config['github_client_id']
-        client_secret = config['github_client_secret']
-    except (OSError, IOError):
-      logging.error('No Github client id/secret configured in secrets.yaml')
+    # Exchange code for an access token from Github
+    headers = {'Accept': 'application/json'}
+    access_token_url = 'https://github.com/login/oauth/access_token'
+    params = {
+        'client_id': util.SECRETS['github_client_id'],
+        'client_secret': util.SECRETS['github_client_secret'],
+        'code': code
+    }
+    access_response = urlfetch.fetch(access_token_url, payload=urllib.urlencode(params), headers=headers, method='POST', validate_certificate=True)
+    access_token_response = json.loads(access_response.content)
 
-    response = urlfetch.fetch('https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s' %
-                              (client_id, client_secret, code), method='POST', validate_certificate=True)
+    if access_response.status_code != 200 or not access_token_response or access_token_response.get('error'):
+      self.response.set_status(401)
+      self.response.write('Authorization failed')
+      return
+    access_token = access_token_response['access_token']
 
-    self.response.write(response.content)
+    # Validate access token against repo
+    repos_response = util.github_resource('user/repos', access_token=access_token)
+    if repos_response.status_code != 200:
+      self.response.set_status(401)
+      self.response.write('Cannot access user\'s repos')
+      return
+
+    repos = json.loads(repos_response.content)
+    has_access = False
+    for entry in repos:
+      if entry['full_name'] == full_name:
+        has_access = True
+        break
+
+    if not has_access:
+      self.response.set_status(401)
+      self.response.write('Do not have access to the repo')
+      return
+
+    parsed_url = urlparse(self.request.url)
+    params = {'name': 'web', 'events': ['pull_request']}
+    params['config'] = {
+        'url': '%s://%s/api/preview/event' % (parsed_url.scheme, parsed_url.netloc),
+        'content_type': 'json',
+    }
+
+    # Check if the webhook exists
+    list_webhooks_response = util.github_post('repos', owner, repo, 'hooks', access_token=access_token)
+    if list_webhooks_response.status_code != 200:
+      logging.error('Unable to query existing webhooks, continuing anyway. Github %s: %s',
+                    list_webhooks_response.status_code, list_webhooks_response.content)
+    else:
+      webhooks = json.loads(list_webhooks_response.content)
+      for webhook in webhooks:
+        if webhook['active'] and webhook['config'] == params['config']:
+          self.response.write('Webhook is already configured')
+          return
+
+    # Create the webhook
+    create_webhook_response = util.github_post('repos', owner, repo, 'hooks', params, access_token)
+    if create_webhook_response.status_code != 201:
+      self.response.set_status(500)
+      self.response.write('Failed to create webhook.')
+      logging.error('Failed to create webhook. Github %s: %s',
+                    create_webhook_response.status_code, create_webhook_response.content)
+      return
+
+    # Trigger shallow ingestion of the library so we can store the access token.
+    util.new_task(util.ingest_webhook_task(owner, repo), params={'access_token': access_token}, target='manage')
+    self.response.write('Created webhook')
+
+class PreviewEventHandler(webapp2.RequestHandler):
+  def post(self):
+    if self.request.headers.get('X-Github-Event') != 'pull_request':
+      self.response.set_status(202) # Accepted
+      self.response.write('Payload was not for a pull_request, aborting.')
+      return
+
+    payload = json.loads(self.request.body)
+    if payload['action'] != 'opened' and payload['action'] != 'synchronize':
+      self.response.set_status(202) # Accepted
+      self.response.write('Payload was not opened or synchronize, aborting.')
+      return
+
+    owner = payload['repository']['owner']['login']
+    repo = payload['repository']['name']
+    full_name = payload['repository']['full_name']
+
+    key = ndb.Key(Library, full_name)
+    library = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
+
+    if library is None:
+      logging.error('No library object found for %s', full_name)
+      self.response.set_status(400) # Bad request
+      self.response.write('It does not seem like this repository was registered')
+      return
+
+    sha = payload['pull_request']['head']['sha']
+    parsed_url = urlparse(self.request.url)
+    params = {
+        'state': 'success',
+        'target_url': '%s://%s/element/%s/%s/%s' % (parsed_url.scheme, parsed_url.netloc, owner, repo, sha),
+        'description': 'Preview is ready!', # TODO: Don't lie
+        'context': 'custom-elements/preview'
+    }
+
+    response = util.github_post('repos', owner, repo, 'statuses/%s' % sha, params, library.github_access_token)
+    if response.status_code != 201:
+      logging.error('Failed to set status on Github PR. Github returned %s:%s', response.status_code, response.content)
+      self.response.set_status(500)
+      self.response.write('Failed to set status on PR.')
+      return
+
+    pull_request_url = payload['pull_request']['url']
+    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
 
 def validate_captcha(handler):
   recaptcha = handler.request.get('recaptcha')
@@ -263,7 +381,8 @@ class OnDemand(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
-    webapp2.Route(r'/api/add', handler=GetAccessToken),
+    webapp2.Route(r'/api/preview', handler=RegisterPreview),
+    webapp2.Route(r'/api/preview/event', handler=PreviewEventHandler),
     webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetDataMeta),
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetDataMeta),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),
