@@ -233,12 +233,12 @@
       },
 
       _handleResponse: function(event) {
-        var results = event.detail.response;
-        if (!results || !results.length)
+        var response = event.detail.response;
+        if (!response || !response.results || !response.results.length)
           return;
 
         var scrollTop = this.$.threshold.scrollTop;
-        this._results = this._results.concat(results);
+        this._results = this._results.concat(response.results);
         this.$.threshold.scroll(0, scrollTop);
         this.$.threshold.clearTriggers();
         this.$.resultsList.fire('iron-resize');
