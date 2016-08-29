@@ -8,29 +8,8 @@ const Ana = require('./ana_log');
 /**
  * Service for communicating with Bower on the local machine.
  * Provides support for installing packages, enumerating their dependencies etc...
- * Accurate information will only be obtained by using Bower for one main package at a time.
- * Sadly, this means a flow of "install, dependencies, prune".
  */
 class Bower {
-  /**
-   * Clean up (rm -rf) the local Bower working area.
-   * This deletes the installs for this directory, not the Bower cache (usually stored in ~/.cache/bower).
-   * @return {Promise} A promise handling the prune operation.
-   */
-  prune() {
-    return new Promise((resolve, reject) => {
-      Ana.log("bower/prune");
-      childProcess.exec("rm -rf bower_components", function(err) {
-        if (err) {
-          Ana.fail("bower/prune");
-          reject(Error(err));
-        } else {
-          Ana.success("bower/prune");
-          resolve();
-        }
-      });
-    });
-  }
 
   /**
    * Installs the specified Bower package and analyses it for main html files in the bower.json,

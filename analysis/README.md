@@ -12,8 +12,7 @@ gcloud config set project custom-elements-staging
 
 Make sure the subscriptions and topics are setup
 ```bash
-gcloud alpha pubsub topics create analysis-responses
-gcloud alpha pubsub subscriptions create analysis-responses --topic analysis-responses --push-endpoint https://manage-dot-custom-elements.appspot.com/_ah/push-handlers/analysis
+rebuild-pubsub.sh [custom-elements, custom-elements-staging]
 ```
 
 ## Running it locally
@@ -24,19 +23,10 @@ Install all of the dependencies (node, npm packages)
 ```
 
 ```bash
-node main.js GOOGLE-CLOUD-PROJECT SUBSCRIPTION
-```
-or, if you want local pubsub emulation...
-```bash
-main.sh GOOGLE-CLOUD-PROJECT SUBSCRIPTION pubsub
+node main.js GOOGLE-CLOUD-PROJECT
 ```
 
 ## Deploying
 ```bash
-deploy.sh <instance-num>
-```
-
-## Destroy and recreate all of the pubsubs
-```bash
-rebuild-pubsub.sh
+gcloud app deploy analysis.yaml
 ```
