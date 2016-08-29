@@ -16,9 +16,8 @@ function rebuild_pubsub {
   gcloud alpha pubsub topics create analysis-requests
   gcloud alpha pubsub topics create analysis-responses
   gcloud alpha pubsub subscriptions create analysis-responses --topic analysis-responses --ack-deadline 60 --push-endpoint https://manage-dot-custom-elements.appspot.com/_ah/push-handlers/analysis
+  gcloud alpha pubsub subscriptions create analysis-requests --topic analysis-requests --ack-deadline 60 --push-endpoint https://analysis-dot-custom-elements.appspot.com/process/next
 
-  echo "Restarting analysis instances..."
-  gcloud compute instances list | grep instance | cut -d " " -f 1 | xargs gcloud compute instances reset --zone us-central1-f
 }
 
 rebuild_pubsub

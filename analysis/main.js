@@ -7,40 +7,47 @@ const Catalog = require('./catalog');
 const Hydrolysis = require('./hydrolysis');
 
 const gcloud = require('gcloud');
-const repeat = require('repeat');
+
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+const jsonBodyParser = bodyParser.json();
+
 
 /**
  * Main entry point. Constructs all of the pieces, wires them up and executes
  * forever!! 'forever'...
  */
-function processTasksForever() {
-  var project = process.env.PROJECT;
-  var subscription = process.env.SUBSCRIPTION;
+function processTasks() {
 
   // Override the subscription for command line execution.
-  if (process.argv.length == 4) {
+  var project = process.env.GCLOUD_PROJECT;
+
+  if (process.argv.length == 3) {
     project = process.argv[2];
-    subscription = process.argv[3];
   }
 
-  var catalog = new Catalog(
-      gcloud.pubsub({projectId: project}),
-      subscription);
+  Ana.log("main/processTasks", "Using project [", project, "]");
+  var analysis = new Analysis(
+      new Bower(),
+      new Hydrolysis(),
+      new Catalog(gcloud.pubsub({projectId: project})));
 
-  catalog.init().then(() => {
-    Ana.log("main/processTasksForever", "Using project [", project, "] and subscription [", subscription, "]");
-    var analysis = new Analysis(new Bower(), new Hydrolysis(), catalog);
-    repeat(function(done) {
-      analysis.processNextTask().then(function() {
-        Ana.success("main/processTasksForever");
-        done();
-      }, function(/* error */) {
-        Ana.fail("main/processTasksForever");
-        done();
-      });
-    })
-    .every(1000, 'ms')
-    .start();
+  app.post('/process/next', jsonBodyParser, (req, res) => {
+    var message = req.body.message;
+    analysis.processNextTask(message).then(function() {
+      Ana.success("main/processTasks");
+      res.status(200).send();
+    }, function(/* error */) {
+      // We have no way of retrying failed tasks yet. Just ack the message.
+      Ana.fail("main/processTasks");
+      res.status(200).send();
+    });
+  });
+
+  app.listen(process.env.PORT || '8080', function() {
+    Ana.success("main/processTasks/listen");
   });
 }
 
@@ -56,4 +63,4 @@ process.on('unhandledRejection', function(err) {
   Ana.log("main/unhandledRejection %s", err);
 });
 
-processTasksForever();
+processTasks();

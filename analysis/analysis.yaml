@@ -1,0 +1,3 @@
+service: analysis
+runtime: nodejs
+vm: true

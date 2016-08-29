@@ -6,6 +6,13 @@
     "bower": "1.7.9",
     "hydrolysis": "1.24.1",
     "gcloud": "0.37.0",
-    "repeat": "0.0.6"
+    "body-parser": "1.14.2",
+    "express": "4.13.4"
+  },
+  "engines": {
+  	"node": "4.4.5"
+  },
+  "scripts": {
+  	"start": "node main.js"
   }
 }
