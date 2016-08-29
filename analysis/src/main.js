@@ -14,17 +14,17 @@ const bodyParser = require('body-parser');
 const app = express();
 const jsonBodyParser = bodyParser.json();
 
-
 /**
  * Main entry point. Constructs all of the pieces, wires them up and executes
  * forever!! 'forever'...
  */
 function processTasks() {
 
-  // Override the subscription for command line execution.
-  var project = process.env.GCLOUD_PROJECT;
+  var project = process.env.GAE_LONG_APP_ID;
 
-  if (process.argv.length == 3) {
+  // If NODE_ENV isn't set, we're probably not running in GAE,
+  // so override the project with whatever the command line says.
+  if (!process.env.NODE_ENV && process.argv.length == 3) {
     project = process.argv[2];
   }
 
