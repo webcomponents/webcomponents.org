@@ -16,14 +16,18 @@ rebuild-pubsub.sh [custom-elements, custom-elements-staging]
 ```
 
 ## Running it locally
-Install all of the dependencies (node, npm packages)
+Make sure you have node and npm installed and then run the following. It will
+use the custom-elements-staging pubsub (but won't receive push requests for
+analysis).
 
 ```bash
-./install-and-run.sh
+npm start
 ```
 
+To send an analysis request, you can use the handy test message we have lying around...
+
 ```bash
-node main.js GOOGLE-CLOUD-PROJECT
+curl -H "Content-Type: application/json" -i --data @message.json "localhost:8080/process/next"
 ```
 
 ## Deploying
