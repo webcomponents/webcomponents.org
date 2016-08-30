@@ -61,8 +61,8 @@ def brief_library_metadata_async(owner, repo, tag=None):
 
 @ndb.tasklet
 def library_metadata_async(owner, repo, tag=None, brief=False):
-  owner = owner.lower()
-  repo = repo.lower()
+  assert owner == owner.lower()
+  assert repo == repo.lower()
 
   library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
   library_future = library_key.get_async()
@@ -174,13 +174,15 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
         # TODO: Parallel fetch these.
         metadata = yield brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0])
         dependencies.append(metadata)
-      result['dependencies'] = dependencies
+    result['dependencies'] = dependencies
 
   raise ndb.Return(result)
 
 
 class GetDataMeta(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
+    owner == owner.lower()
+    repo == repo.lower()
     result = library_metadata_async(owner, repo, ver).get_result()
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
