@@ -29,12 +29,9 @@ def validate_xsrf_token(handler):
   token = handler.request.get('token', None)
   if token is None:
     return False
-  data = memcache.get('xsrf-token: %s' % token)
 
+  data = memcache.get('xsrf-token: %s' % token)
   if data != 'valid':
-    new_token = mint_xsrf_token()
-    handler.response.write('invalid token: use %s instead' % new_token)
-    handler.response.set_status(403)
     return False
 
   result = memcache.delete('xsrf-token: %s' % token)
@@ -42,13 +39,16 @@ def validate_xsrf_token(handler):
   return True
 
 def validate_task(handler):
-  if handler.request.headers.get('X-AppEngine-QueueName', None) is None:
-    handler.response.set_status(403)
-    return False
-  return True
+  return handler.request.headers.get('X-AppEngine-QueueName', None) is not None
 
 def validate_mutation_request(handler):
-  return validate_xsrf_token(handler) or validate_task(handler)
+  if validate_task(handler) or validate_xsrf_token(handler):
+    return True
+
+  new_token = mint_xsrf_token()
+  handler.response.write('invalid token: use %s instead' % new_token)
+  handler.response.set_status(403)
+  return False
 
 class GetXsrfToken(webapp2.RequestHandler):
   def get(self):
