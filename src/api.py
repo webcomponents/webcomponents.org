@@ -191,7 +191,7 @@ class GetHydroData(webapp2.RequestHandler):
     library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
     # TODO: version shouldn't be optional here
     if ver is None:
-      versions = Version.query(ancestor=library_key).map(lambda v: v.key.id())
+      versions = [v.key.id() for v in Version.query(ancestor=library_key) if versiontag.is_valid(v.key.id())]
       versions.sort(versiontag.compare)
       if versions == []:
         self.response.set_status(404)
