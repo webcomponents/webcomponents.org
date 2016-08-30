@@ -79,9 +79,11 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
     readme_future = Content.get_by_id_async('readme.html', parent=version_key)
     bower_future = Content.get_by_id_async('bower', parent=version_key)
   else:
-    version_future = ndb.Future(None)
-    readme_future = ndb.Future(None)
-    bower_future = ndb.Future(None)
+    none_future = ndb.Future()
+    none_future.set_result(None)
+    version_future = none_future
+    readme_future = none_future
+    bower_future = none_future
 
   library = yield library_future
   if library is None:
@@ -151,12 +153,12 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
         })
 
   if not brief and library.kind == 'collection':
-    dependencies = []
     version_futures = []
     for dep in version.dependencies:
       parsed_dep = Dependency.fromString(dep)
       dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
       version_futures.append(Library.versions_for_key_async(dep_key))
+    dependency_futures = []
     for i, dep in enumerate(version.dependencies):
       parsed_dep = Dependency.fromString(dep)
       versions = version_futures[i].get_result()
@@ -164,17 +166,17 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
       while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
         versions.pop()
       if len(versions) == 0:
-        dependencies.append({
+        error_future = ndb.Future()
+        error_future.set_result({
             'error': 'unsatisfyable dependency',
             'owner': parsed_dep.owner,
             'repo': parsed_dep.repo,
             'versionSpec': parsed_dep.version
         })
+        dependency_futures.append(error_future)
       else:
-        # TODO: Parallel fetch these.
-        metadata = yield brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0])
-        dependencies.append(metadata)
-    result['dependencies'] = dependencies
+        dependency_futures.append(brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0]))
+    result['dependencies'] = [future.get_result() for future in dependency_futures]
 
   raise ndb.Return(result)
 
