@@ -16,51 +16,6 @@ import util
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-def brief_metadata_from_searchdoc(document):
-  result = {}
-  for field in document.fields:
-    if field.name == 'full_name':
-      match = re.match(r'(.*)/(.*)', field.value)
-      result['owner'] = match.group(1)
-      result['repo'] = match.group(2)
-    if field.name in ['owner', 'repo', 'repoparts']:
-      continue
-    if field.name == 'updated_at':
-      result[field.name] = field.value.strftime(TIME_FORMAT)
-    else:
-      result[field.name] = field.value
-  return result
-
-# TODO(shans): This is expensive. We can
-# a) eliminate it in the common case where the requested version is the most recent, as we can
-#    directly extract the metadata from the index using briefMetaDataFromSearchDocument.
-# b) amortize the rare case where the requested version is not the most recent, by indexing that
-#    version once into a secondary index (which we don't search over), *then* using
-#    briefMetaDataFromSearchDocument.
-def brief_metadata_from_datastore(owner, repo, version):
-  key = ndb.Key(Library, "%s/%s" % (owner.lower(), repo.lower()))
-  library = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
-  metadata = json.loads(library.metadata)
-  bower_key = ndb.Key(Library, "%s/%s" % (owner.lower(), repo.lower()), Version, version, Content, "bower.json")
-  bower = bower_key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
-  if not bower is None:
-    bower = json.loads(bower.content)
-  else:
-    bower = {}
-  description = bower.get('description', metadata.get('description', ''))
-  return {
-      'owner': owner,
-      'repo': repo,
-      'version': version,
-      'description': description,
-      'keywords': ' '.join(bower.get('keywords', [])),
-      'stars': metadata.get('stargazers_count'),
-      'subscribers': metadata.get('subscribers_count'),
-      'forks': metadata.get('forks'),
-      'contributors': library.contributor_count,
-      'updated_at': metadata.get('updated_at')
-  }
-
 class SearchContents(webapp2.RequestHandler):
   def get(self, terms):
     index = search.Index('repo')
@@ -71,80 +26,120 @@ class SearchContents(webapp2.RequestHandler):
                      options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
     results = []
     for result in search_results.results:
-      results.append(brief_metadata_from_searchdoc(result))
+      (owner, repo) = result.doc_id.split('/')
+      version = None
+      for field in result.fields:
+        if field.name == 'version':
+          version = field.value
+          break
+      # TODO: Parallel get.
+      results.append(brief_library_metadata_async(owner, repo, version).get_result())
+
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.write(json.dumps({
         'results': results,
         'count': search_results.number_found,
     }))
 
-class GetDataMeta(webapp2.RequestHandler):
-  def get(self, owner, repo, ver=None):
-    owner = owner.lower()
-    repo = repo.lower()
-    library = Library.get_by_id('%s/%s' % (owner, repo), read_policy=ndb.EVENTUAL_CONSISTENCY)
+@ndb.tasklet
+def brief_library_metadata_async(owner, repo, tag=None):
+  metadata = yield library_metadata_async(owner, repo, tag=tag, brief=True)
+  result = {
+      'owner': metadata['owner'],
+      'repo': metadata['repo'],
+      'version': metadata['version'],
+      'description': metadata['bower']['description'],
+      'keywords': metadata['bower']['keywords'],
+      'stars': metadata['stars'],
+      'subscribers': metadata['subscribers'],
+      'forks': metadata['forks'],
+      'contributors': metadata['contributors'],
+      'updated_at': metadata['updated_at'],
+  }
+  raise ndb.Return(result)
 
-    if library is None:
-      self.response.set_status(404)
-      return
+@ndb.tasklet
+def library_metadata_async(owner, repo, tag=None, brief=False):
+  owner = owner.lower()
+  repo = repo.lower()
 
-    result = {}
-    result['status'] = library.status
-    if library.status == Status.error:
-      result['error'] = library.error
+  library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+  library_future = library_key.get_async()
 
-    version = None
-    versions = library.versions()
+  versions_future = Library.versions_for_key_async(library_key)
+  if tag is None:
+    versions = yield versions_future
+    version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, versions[0])
+  else:
+    version_key = ndb.Key(Library, library_key.id(), Version, tag)
+
+  if version_key is not None:
+    version_future = version_key.get_async()
+    readme_future = Content.get_by_id_async('readme.html', parent=version_key)
+    bower_future = Content.get_by_id_async('bower', parent=version_key)
+  else:
+    version_future = ndb.Future(None)
+    readme_future = ndb.Future(None)
+    bower_future = ndb.Future(None)
+
+  library = yield library_future
+  if library is None:
+    raise ndb.Return(None)
+
+  result = {}
+  result['status'] = library.status
+  if library.status == Status.error:
+    result['error'] = library.error
+
+  if not brief:
+    versions = yield versions_future
     result['versions'] = versions
-    if ver is None and len(versions) > 0:
-      ver = versions[-1]
-    if ver is not None:
-      version = Version.get_by_id(ver, parent=library.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
 
-    if version is not None:
-      result['version'] = ver
-      result['version_status'] = version.status
-      if version.status == Status.error:
-        result['version_error'] = version.error
+  version = yield version_future
+  if version is not None:
+    result['version'] = version.key.id()
+    result['version_status'] = version.status
+    if version.status == Status.error:
+      result['version_error'] = version.error
 
-    if library.metadata is not None:
-      metadata = json.loads(library.metadata)
-      result['subscribers'] = metadata['subscribers_count']
-      result['stars'] = metadata['stargazers_count']
-      result['forks'] = metadata['forks']
-      result['contributors'] = library.contributor_count
-      result['open_issues'] = metadata['open_issues']
-      result['updated_at'] = metadata['updated_at']
-      result['owner'] = metadata['owner']['login']
-      result['avatar_url'] = metadata['owner']['avatar_url']
-      result['repo'] = metadata['name']
+  if library.metadata is not None:
+    metadata = json.loads(library.metadata)
+    result['subscribers'] = metadata['subscribers_count']
+    result['stars'] = metadata['stargazers_count']
+    result['forks'] = metadata['forks']
+    result['contributors'] = library.contributor_count
+    result['open_issues'] = metadata['open_issues']
+    result['updated_at'] = metadata['updated_at']
+    result['owner'] = metadata['owner']['login']
+    result['avatar_url'] = metadata['owner']['avatar_url']
+    result['repo'] = metadata['name']
 
-    if version is not None:
-      readme = Content.get_by_id('readme.html', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-      result['readme'] = None if readme is None else readme.content
+  readme = yield readme_future
+  result['readme'] = None if readme is None else readme.content
 
-    if version is not None:
-      bower = Content.get_by_id('bower', parent=version.key, read_policy=ndb.EVENTUAL_CONSISTENCY)
-      if bower is not None:
-        try:
-          bower_json = json.loads(bower.content)
-        except ValueError:
-          bower_json = None
+  bower = yield bower_future
+  if bower is not None:
+    try:
+      bower_json = json.loads(bower.content)
+    except ValueError:
+      bower_json = None
 
-        if bower_json is not None:
-          result['bower'] = {
-              'description': bower_json.get('description', ''),
-              'license': bower_json.get('license', ''),
-              'dependencies': bower_json.get('dependencies', []),
-              'keywords': bower_json.get('keywords', []),
-          }
+    if bower_json is not None:
+      result['bower'] = {
+          'description': bower_json.get('description', ''),
+          'license': bower_json.get('license', ''),
+          'dependencies': bower_json.get('dependencies', []),
+          'keywords': bower_json.get('keywords', []),
+      }
 
+  if not brief:
     result['collections'] = []
-    if ver is not None:
+    if version is not None:
       for collection in library.collections:
-        if not versiontag.match(ver, collection.semver):
+        if not versiontag.match(version.id, collection.semver):
           continue
         collection_version = collection.version.id()
+        # TODO: Parallel fetch these with restricted fields.
         collection_library = collection.version.parent().get()
         collection_metadata = json.loads(collection_library.metadata)
         collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
@@ -154,29 +149,38 @@ class GetDataMeta(webapp2.RequestHandler):
             'version': collection_version
         })
 
-    if library.kind == 'collection':
-      dependencies = []
-      version_futures = []
-      for dep in version.dependencies:
-        parsed_dep = Dependency.fromString(dep)
-        dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
-        version_futures.append(Library.versions_for_key_async(dep_key))
-      for i, dep in enumerate(version.dependencies):
-        parsed_dep = Dependency.fromString(dep)
-        versions = version_futures[i].get_result()
-        versions.reverse()
-        while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
-          versions.pop()
-        if len(versions) == 0:
-          dependencies.append({
-              'error': 'unsatisfyable dependency',
-              'owner': parsed_dep.owner,
-              'repo': parsed_dep.repo,
-              'versionSpec': parsed_dep.version
-          })
-        else:
-          dependencies.append(brief_metadata_from_datastore(parsed_dep.owner, parsed_dep.repo, versions[0]))
+  if not brief and library.kind == 'collection':
+    dependencies = []
+    version_futures = []
+    for dep in version.dependencies:
+      parsed_dep = Dependency.fromString(dep)
+      dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
+      version_futures.append(Library.versions_for_key_async(dep_key))
+    for i, dep in enumerate(version.dependencies):
+      parsed_dep = Dependency.fromString(dep)
+      versions = version_futures[i].get_result()
+      versions.reverse()
+      while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
+        versions.pop()
+      if len(versions) == 0:
+        dependencies.append({
+            'error': 'unsatisfyable dependency',
+            'owner': parsed_dep.owner,
+            'repo': parsed_dep.repo,
+            'versionSpec': parsed_dep.version
+        })
+      else:
+        # TODO: Parallel fetch these.
+        metadata = yield brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0])
+        dependencies.append(metadata)
       result['dependencies'] = dependencies
+
+  raise ndb.Return(result)
+
+
+class GetDataMeta(webapp2.RequestHandler):
+  def get(self, owner, repo, ver=None):
+    result = library_metadata_async(owner, repo, ver).get_result()
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
@@ -184,7 +188,7 @@ class GetDataMeta(webapp2.RequestHandler):
 
 class GetHydroData(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
-    # TODO: Share all of this boilerplate between GetDataMeta and GetHydroData
+
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
