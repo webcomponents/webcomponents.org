@@ -24,7 +24,7 @@ class SearchContents(webapp2.RequestHandler):
     search_results = index.search(
         search.Query(query_string=terms,
                      options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
-    results = []
+    result_futures = []
     for result in search_results.results:
       (owner, repo) = result.doc_id.split('/')
       version = None
@@ -32,8 +32,8 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
-      # TODO: Parallel get.
-      results.append(brief_library_metadata_async(owner, repo, version).get_result())
+      result_futures.append(brief_library_metadata_async(owner, repo, version))
+    results = [result_future.get_result() for result_future in result_futures]
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.write(json.dumps({
@@ -48,6 +48,7 @@ def brief_library_metadata_async(owner, repo, tag=None):
       'owner': metadata['owner'],
       'repo': metadata['repo'],
       'version': metadata['version'],
+      # TODO: Resolve this difference.
       'description': metadata['bower']['description'],
       'keywords': metadata['bower']['keywords'],
       'stars': metadata['stars'],
