@@ -26,7 +26,9 @@ def mint_xsrf_token():
   return token
 
 def validate_xsrf_token(handler):
-  token = handler.request.get('token')
+  token = handler.request.get('token', None)
+  if token is None:
+    return False
   data = memcache.get('xsrf-token: %s' % token)
 
   if data != 'valid':
@@ -45,13 +47,16 @@ def validate_task(handler):
     return False
   return True
 
+def validate_mutation_request(handler):
+  return validate_xsrf_token(handler) or validate_task(handler)
+
 class GetXsrfToken(webapp2.RequestHandler):
   def get(self):
     self.response.write(mint_xsrf_token())
 
 class AddLibrary(webapp2.RequestHandler):
   def get(self, owner, repo, kind):
-    if not validate_xsrf_token(self):
+    if not validate_mutation_request(self):
       return
     task_url = util.ingest_library_task(owner, repo, kind)
     util.new_task(task_url, target='manage')
@@ -172,7 +177,7 @@ class LibraryTask(webapp2.RequestHandler):
 
 class IngestLibrary(LibraryTask):
   def get(self, owner, repo, kind):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     assert kind == 'element' or kind == 'collection'
     try:
@@ -188,7 +193,7 @@ class IngestLibrary(LibraryTask):
 
 class UpdateLibrary(LibraryTask):
   def get(self, owner, repo):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     try:
       self.init_library(owner, repo, create=False)
@@ -202,7 +207,7 @@ class UpdateLibrary(LibraryTask):
 
 class IngestLibraryCommit(LibraryTask):
   def get(self, owner, repo):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
@@ -222,7 +227,7 @@ class IngestLibraryCommit(LibraryTask):
 
 class IngestWebhookLibrary(LibraryTask):
   def get(self, owner, repo):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     access_token = self.request.get('access_token', None)
     assert access_token is not None
@@ -243,7 +248,7 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
@@ -337,7 +342,7 @@ class IngestVersion(webapp2.RequestHandler):
 
 class IngestDependencies(webapp2.RequestHandler):
   def get(self, owner, repo, version):
-    if not validate_task(self):
+    if not validate_mutation_request(self):
       return
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
@@ -390,7 +395,7 @@ class IngestAnalysis(webapp2.RequestHandler):
 
 class UpdateAll(webapp2.RequestHandler):
   def get(self):
-    if not validate_xsrf_token(self):
+    if not validate_mutation_request(self):
       return
     queue = taskqueue.Queue('update')
     if queue.fetch_statistics().tasks > 0:
@@ -427,14 +432,14 @@ class GithubStatus(webapp2.RequestHandler):
 
 class DeleteLibrary(webapp2.RequestHandler):
   def get(self, owner, repo):
-    if not validate_xsrf_token(self):
+    if not validate_mutation_request(self):
       return
     self.response.headers['Content-Type'] = 'text/plain'
     delete_library(ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()), response_for_logging=self.response)
 
 class DeleteEverything(webapp2.RequestHandler):
   def get(self):
-    if not validate_xsrf_token(self):
+    if not validate_mutation_request(self):
       return
     while True:
       deleted_something = False
