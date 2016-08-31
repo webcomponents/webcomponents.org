@@ -6,7 +6,7 @@ const Bower = require('./bower');
 const Catalog = require('./catalog');
 const Hydrolysis = require('./hydrolysis');
 
-const gcloud = require('gcloud');
+const pubsub = require('@google-cloud/pubsub');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -32,7 +32,7 @@ function processTasks() {
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(gcloud.pubsub({projectId: project})));
+      new Catalog(pubsub({projectId: project})));
 
   app.post('/process/next', jsonBodyParser, (req, res) => {
     var message = req.body.message;

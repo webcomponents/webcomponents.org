@@ -1,13 +1,13 @@
 {
   "name": "custom-elements-analysis",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "dependencies": {
-    "bower": "1.7.9",
-    "hydrolysis": "1.24.1",
-    "gcloud": "0.37.0",
     "body-parser": "1.14.2",
-    "express": "4.13.4"
+    "bower": "1.7.9",
+    "express": "4.13.4",
+    "@google-cloud/pubsub": "0.1.1",
+    "hydrolysis": "1.24.1"
   },
   "engines": {
     "node": "4.4.5"
