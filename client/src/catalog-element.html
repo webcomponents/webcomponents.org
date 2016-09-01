@@ -219,7 +219,7 @@
             <div class="menu-item section-title">Demos</div>
 
             <template is="dom-repeat" items=[[bundledDemos]] as="demo">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]">
                 <div>[[demo.desc]]</div>
               </a>
             </template>
@@ -227,12 +227,12 @@
             <div class="menu-item section-title">Docs</div>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[element.is]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">
                 <div>[[element.is]]</div>
               </a>
             </template>
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[behavior.is]]">
+              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">
                 <div>[[behavior.is]]</div>
               </a>
             </template>
@@ -265,7 +265,7 @@
       <!-- TODO(samli): Lacking drawer button -->
       <template is="dom-if" if="[[demo]]">
         <iframe id="demo-frame"
-                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]][[versionRoute]]/[[repo]]/[[demo]]">
+                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
         </iframe>
       </template>
 
