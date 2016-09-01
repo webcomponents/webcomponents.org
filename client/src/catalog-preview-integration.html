@@ -1,0 +1,31 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="catalog-preview-integration">
+  <template>
+    Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your Github repository to publish status updates.
+    <template is="dom-if" if="[[!queryParams.code]]">
+      <a href="https://github.com/login/oauth/authorize?client_id=28539cb28f7d3e40fe1c&scope=write:repo_hook%20repo:status">Sign in with Github</a>
+    </template>
+    <template is="dom-if" if="[[queryParams.code]]">
+      <form action="[[baseUrls.api]]/api/preview" method="post">
+        <input type="hidden" name="code" value="[[queryParams.code]]">
+        Enter the repo you want to use preview with: <input type="text" name="repo">
+        <input type="submit" value="test">
+      </form>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-preview-integration',
+
+      properties: {
+        queryParams: Object,
+
+        baseUrls: Object
+      },
+
+    });
+  </script>
+</dom-module>
