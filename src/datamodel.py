@@ -53,7 +53,6 @@ class Library(ndb.Model):
   @staticmethod
   @ndb.tasklet
   def versions_for_key_async(key):
-    # TODO: restrict result based on status=ready
     versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
     versions = [key.id() for key in versions]
     versions.sort(versiontag.compare)

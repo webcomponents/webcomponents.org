@@ -73,6 +73,7 @@ class LibraryMetadata(object):
     library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
     library_future = library_key.get_async()
 
+    # TODO: Restrict based on version status == ready when tag != None.
     versions_future = Library.versions_for_key_async(library_key)
     if tag is None:
       versions = yield versions_future
