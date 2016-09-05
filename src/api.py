@@ -32,7 +32,7 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
-      # TODO: Don't add the entry if the status is not ready.
+      # TODO: Don't add the entry if the result is None.
       result_futures.append(LibraryMetadata.brief_async(owner, repo, version))
     results = [result_future.get_result() for result_future in result_futures]
 
@@ -47,11 +47,14 @@ class LibraryMetadata(object):
   @ndb.tasklet
   def brief_async(owner, repo, tag=None):
     metadata = yield LibraryMetadata.full_async(owner, repo, tag=tag, brief=True)
+    if metadata is None:
+      raise ndb.Return(None)
+    # TODO: Return None if the status/version status is not 'ready'
     result = {
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
-        # TODO: Resolve this difference (descripton toplevel, vs in 'bower').
+        # TODO: Resolve this difference (description toplevel, vs in 'bower').
         'description': metadata.get('bower', {}).get('description', None),
         'stars': metadata['stars'],
         'subscribers': metadata['subscribers'],
@@ -81,12 +84,6 @@ class LibraryMetadata(object):
       version_future = version_key.get_async()
       readme_future = Content.get_by_id_async('readme.html', parent=version_key)
       bower_future = Content.get_by_id_async('bower', parent=version_key)
-    else:
-      none_future = ndb.Future()
-      none_future.set_result(None)
-      version_future = none_future
-      readme_future = none_future
-      bower_future = none_future
 
     library = yield library_future
     if library is None:
@@ -97,20 +94,11 @@ class LibraryMetadata(object):
     if library.status == Status.error:
       result['error'] = library.error
 
-    if not brief:
+    if not brief and version_key is not None:
       collections_future = LibraryMetadata.collections_async(library_future, version_key)
       dependencies_future = LibraryMetadata.dependencies_async(library_future, version_future)
-
-    if not brief:
       versions = yield versions_future
       result['versions'] = versions
-
-    version = yield version_future
-    if version is not None:
-      result['version'] = version.key.id()
-      result['version_status'] = version.status
-      if version.status == Status.error:
-        result['version_error'] = version.error
 
     if library.metadata is not None:
       metadata = json.loads(library.metadata)
@@ -123,6 +111,19 @@ class LibraryMetadata(object):
       result['owner'] = metadata['owner']['login']
       result['avatar_url'] = metadata['owner']['avatar_url']
       result['repo'] = metadata['name']
+
+    version = None
+    if version_key is not None:
+      version = yield version_future
+
+    if version is None:
+      raise ndb.Return(None)
+
+    result['version'] = version.key.id()
+    result['version_status'] = version.status
+    if version.status == Status.error:
+      result['version_error'] = version.error
+
 
     readme = yield readme_future
     result['readme'] = None if readme is None else readme.content
@@ -169,11 +170,10 @@ class LibraryMetadata(object):
   def collections_async(library_future, version_key):
     library = yield library_future
     collection_futures = []
-    if version_key is not None:
-      for collection in library.collections:
-        if not versiontag.match(version_key.id(), collection.semver):
-          continue
-        collection_futures.append(LibraryMetadata.collection_entry_async(collection))
+    for collection in library.collections:
+      if not versiontag.match(version_key.id(), collection.semver):
+        continue
+      collection_futures.append(LibraryMetadata.collection_entry_async(collection))
     collections = []
     for future in collection_futures:
       collection_result = yield future
