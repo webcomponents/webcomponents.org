@@ -38,7 +38,7 @@ class SearchContents(webapp2.RequestHandler):
     for future in result_futures:
       result = yield future
       if result is not None:
-        results.add(result)
+        results.append(result)
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.write(json.dumps({
