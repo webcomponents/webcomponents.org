@@ -176,7 +176,10 @@ class LibraryMetadata(object):
         if not versiontag.match(version.id, collection.semver):
           continue
         collection_futures.append(LibraryMetadata.collection_entry_async(collection))
-    collections = [yield future for future in collection_futures]
+    collections = []
+    for future in collection_futures:
+      collection_result = yield future
+      collections.append(collection_result)
     raise ndb.Return(collections)
 
   @staticmethod
@@ -209,7 +212,10 @@ class LibraryMetadata(object):
         dependency_futures.append(error_future)
       else:
         dependency_futures.append(LibraryMetadata.brief_async(parsed_dep.owner, parsed_dep.repo, versions[0]))
-    dependencies = [yield future for future in dependency_futures]
+    dependencies = []
+    for future in dependency_futures:
+      dependency_result = yield future
+      dependencies.append(dependency_result)
     raise ndb.Return(dependencies)
 
 
