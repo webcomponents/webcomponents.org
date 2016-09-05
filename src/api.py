@@ -99,7 +99,7 @@ class LibraryMetadata(object):
 
 
     if not brief:
-      collections_future = LibraryMetadata.collections_async(library_future, version_future)
+      collections_future = LibraryMetadata.collections_async(library_future, version_key)
       dependencies_future = LibraryMetadata.dependencies_async(library_future, version_future)
 
     if not brief:
@@ -167,13 +167,12 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def collections_async(library_future, version_future):
-    version = yield version_future
+  def collections_async(library_future, version_key):
     library = yield library_future
     collection_futures = []
-    if version is not None:
+    if version_key is not None:
       for collection in library.collections:
-        if not versiontag.match(version.id, collection.semver):
+        if not versiontag.match(version_key.id(), collection.semver):
           continue
         collection_futures.append(LibraryMetadata.collection_entry_async(collection))
     collections = []
@@ -184,7 +183,7 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def dependencies_async(version_future, library_future):
+  def dependencies_async(library_future, version_future):
     version = yield version_future
     library = yield library_future
     if library.kind != 'collection':
