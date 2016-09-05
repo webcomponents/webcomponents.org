@@ -17,6 +17,7 @@ import util
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class SearchContents(webapp2.RequestHandler):
+  @ndb.toplevel
   def get(self, terms):
     index = search.Index('repo')
     limit = int(self.request.get('limit', 20))
@@ -35,7 +36,7 @@ class SearchContents(webapp2.RequestHandler):
       result_futures.append(LibraryMetadata.brief_async(owner, repo, version))
     results = []
     for future in result_futures:
-      result = future.get_result()
+      result = yield future
       if result is not None:
         results.add(result)
 
@@ -198,7 +199,7 @@ class LibraryMetadata(object):
     dependency_futures = []
     for i, dep in enumerate(version.dependencies):
       parsed_dep = Dependency.from_string(dep)
-      versions = version_futures[i].get_result()
+      versions = yield version_futures[i]
       versions.reverse()
       while len(versions) > 0 and not versiontag.match(versions[-1], parsed_dep.version):
         versions.pop()
@@ -222,11 +223,12 @@ class LibraryMetadata(object):
 
 
 class GetDataMeta(webapp2.RequestHandler):
+  @ndb.toplevel
   def get(self, owner, repo, ver=None):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
 
-    result = LibraryMetadata.full_async(owner, repo, ver).get_result()
+    result = yield LibraryMetadata.full_async(owner, repo, ver)
     if result is None:
       self.response.set_status(404)
     else:
