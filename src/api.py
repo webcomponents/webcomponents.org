@@ -221,8 +221,8 @@ class LibraryMetadata(object):
 
 class GetDataMeta(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
-    owner == owner.lower()
-    repo == repo.lower()
+    owner = owner.lower()
+    repo = repo.lower()
     result = LibraryMetadata.full_async(owner, repo, ver).get_result()
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
