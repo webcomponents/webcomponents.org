@@ -64,8 +64,8 @@ class LibraryMetadata(object):
   @staticmethod
   @ndb.tasklet
   def full_async(owner, repo, tag=None, brief=False):
-    assert owner == owner.lower()
-    assert repo == repo.lower()
+    owner = owner.lower()
+    repo = repo.lower()
 
     library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
     library_future = library_key.get_async()
@@ -189,12 +189,12 @@ class LibraryMetadata(object):
       raise ndb.Return([])
     version_futures = []
     for dep in version.dependencies:
-      parsed_dep = Dependency.fromString(dep)
+      parsed_dep = Dependency.from_string(dep)
       dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
       version_futures.append(Library.versions_for_key_async(dep_key))
     dependency_futures = []
     for i, dep in enumerate(version.dependencies):
-      parsed_dep = Dependency.fromString(dep)
+      parsed_dep = Dependency.from_string(dep)
       versions = version_futures[i].get_result()
       versions.reverse()
       while len(versions) > 0 and not versiontag.match(versions[-1], parsed_dep.version):
@@ -219,8 +219,6 @@ class LibraryMetadata(object):
 
 class GetDataMeta(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
-    owner = owner.lower()
-    repo = repo.lower()
     result = LibraryMetadata.full_async(owner, repo, ver).get_result()
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
