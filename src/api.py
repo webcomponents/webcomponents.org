@@ -73,7 +73,7 @@ class LibraryMetadata(object):
     versions_future = Library.versions_for_key_async(library_key)
     if tag is None:
       versions = yield versions_future
-      version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, versions[0])
+      version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, versions[-1])
     else:
       version_key = ndb.Key(Library, library_key.id(), Version, tag)
 
@@ -96,7 +96,6 @@ class LibraryMetadata(object):
     result['status'] = library.status
     if library.status == Status.error:
       result['error'] = library.error
-
 
     if not brief:
       collections_future = LibraryMetadata.collections_async(library_future, version_key)
@@ -198,7 +197,7 @@ class LibraryMetadata(object):
       parsed_dep = Dependency.fromString(dep)
       versions = version_futures[i].get_result()
       versions.reverse()
-      while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
+      while len(versions) > 0 and not versiontag.match(versions[-1], parsed_dep.version):
         versions.pop()
       if len(versions) == 0:
         error_future = ndb.Future()
@@ -210,7 +209,7 @@ class LibraryMetadata(object):
         })
         dependency_futures.append(error_future)
       else:
-        dependency_futures.append(LibraryMetadata.brief_async(parsed_dep.owner, parsed_dep.repo, versions[0]))
+        dependency_futures.append(LibraryMetadata.brief_async(parsed_dep.owner, parsed_dep.repo, versions[-1]))
     dependencies = []
     for future in dependency_futures:
       dependency_result = yield future
