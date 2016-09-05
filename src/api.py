@@ -94,6 +94,63 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
   if library.status == Status.error:
     result['error'] = library.error
 
+  @ndb.tasklet
+  def collections_async():
+    version = yield version_future
+    library = yield library_future
+    collections = []
+    if version is not None:
+      for collection in library.collections:
+        if not versiontag.match(version.id, collection.semver):
+          continue
+        collection_version = collection.version.id()
+        # TODO: Parallel fetch these.
+        collection_library = yield collection.version.parent().get_async()
+        collection_metadata = json.loads(collection_library.metadata)
+        collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
+        result['collections'].append({
+            'owner': collection_name_match.groups()[0],
+            'repo': collection_name_match.groups()[1],
+            'version': collection_version
+        })
+    raise ndb.Return(collections)
+
+  @ndb.tasklet
+  def dependencies_async():
+    version = yield version_future
+    library = yield library_future
+    if library.kind != 'collection':
+      raise ndb.Return([])
+    version_futures = []
+    for dep in version.dependencies:
+      parsed_dep = Dependency.fromString(dep)
+      dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
+      version_futures.append(Library.versions_for_key_async(dep_key))
+    dependency_futures = []
+    for i, dep in enumerate(version.dependencies):
+      parsed_dep = Dependency.fromString(dep)
+      versions = version_futures[i].get_result()
+      versions.reverse()
+      while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
+        versions.pop()
+      if len(versions) == 0:
+        error_future = ndb.Future()
+        error_future.set_result({
+            'error': 'unsatisfyable dependency',
+            'owner': parsed_dep.owner,
+            'repo': parsed_dep.repo,
+            'versionSpec': parsed_dep.version
+        })
+        dependency_futures.append(error_future)
+      else:
+        dependency_futures.append(brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0]))
+    dependencies = [yield future for future in dependency_futures]
+    raise ndb.Return(dependencies)
+
+  if not brief:
+    collections_future = collections_async()
+    dependencies_future = dependencies_async()
+
   if not brief:
     versions = yield versions_future
     result['versions'] = versions
@@ -135,50 +192,11 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
           'keywords': bower_json.get('keywords', []),
       }
 
-  # TODO: Reimplement collections and dependencies as tasklets so that they can
-  # be triggered in parallel with the other requests above.
   if not brief:
-    result['collections'] = []
-    if version is not None:
-      for collection in library.collections:
-        if not versiontag.match(version.id, collection.semver):
-          continue
-        collection_version = collection.version.id()
-        # TODO: Parallel fetch these.
-        collection_library = collection.version.parent().get()
-        collection_metadata = json.loads(collection_library.metadata)
-        collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
-        result['collections'].append({
-            'owner': collection_name_match.groups()[0],
-            'repo': collection_name_match.groups()[1],
-            'version': collection_version
-        })
+    result['collections'] = yield collections_future
 
   if not brief and library.kind == 'collection':
-    version_futures = []
-    for dep in version.dependencies:
-      parsed_dep = Dependency.fromString(dep)
-      dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
-      version_futures.append(Library.versions_for_key_async(dep_key))
-    dependency_futures = []
-    for i, dep in enumerate(version.dependencies):
-      parsed_dep = Dependency.fromString(dep)
-      versions = version_futures[i].get_result()
-      versions.reverse()
-      while len(versions) > 0 and not versiontag.match(versions[0], parsed_dep.version):
-        versions.pop()
-      if len(versions) == 0:
-        error_future = ndb.Future()
-        error_future.set_result({
-            'error': 'unsatisfyable dependency',
-            'owner': parsed_dep.owner,
-            'repo': parsed_dep.repo,
-            'versionSpec': parsed_dep.version
-        })
-        dependency_futures.append(error_future)
-      else:
-        dependency_futures.append(brief_library_metadata_async(parsed_dep.owner, parsed_dep.repo, versions[0]))
-    result['dependencies'] = [future.get_result() for future in dependency_futures]
+    result['dependencies'] = yield dependencies_future
 
   raise ndb.Return(result)
 
