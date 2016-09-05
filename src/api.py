@@ -223,11 +223,14 @@ class LibraryMetadata(object):
 
 class GetDataMeta(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
-    result = LibraryMetadata.full_async(owner, repo, ver).get_result()
-
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(json.dumps(result))
+
+    result = LibraryMetadata.full_async(owner, repo, ver).get_result()
+    if result is None:
+      self.response.set_status(404)
+    else:
+      self.response.write(json.dumps(result))
 
 class GetHydroData(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
