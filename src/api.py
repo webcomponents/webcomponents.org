@@ -135,6 +135,8 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
           'keywords': bower_json.get('keywords', []),
       }
 
+  # TODO: Reimplement collections and dependencies as tasklets so that they can
+  # be triggered in parallel with the other requests above.
   if not brief:
     result['collections'] = []
     if version is not None:
@@ -142,7 +144,7 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
         if not versiontag.match(version.id, collection.semver):
           continue
         collection_version = collection.version.id()
-        # TODO: Parallel fetch these with restricted fields.
+        # TODO: Parallel fetch these.
         collection_library = collection.version.parent().get()
         collection_metadata = json.loads(collection_library.metadata)
         collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
