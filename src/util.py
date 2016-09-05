@@ -60,6 +60,9 @@ def github_url(prefix, owner=None, repo=None, detail=None):
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
+def ingest_author_task(name):
+  return '/task/ingest/author/%s' % author
+
 def ingest_library_task(owner, repo, kind):
   return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)
 

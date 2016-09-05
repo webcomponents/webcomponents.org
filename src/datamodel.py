@@ -11,6 +11,14 @@ class Status(object):
   pending = 'pending'
   ready = 'ready'
 
+class Author(ndb.Model):
+  metadata = ndb.TextProperty()
+
+  metadata_etag = ndb.StringProperty()
+
+  status = ndb.StringProperty(default=Status.pending)
+  error = ndb.StringProperty()
+
 class Library(ndb.Model):
   kind = ndb.StringProperty()
 
