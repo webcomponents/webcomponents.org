@@ -32,6 +32,7 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
+      # TODO: Don't add the entry if the status is not ready.
       result_futures.append(LibraryMetadata.brief_async(owner, repo, version))
     results = [result_future.get_result() for result_future in result_futures]
 
@@ -50,9 +51,8 @@ class LibraryMetadata(object):
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
-        # TODO: Resolve this difference.
-        'description': metadata['bower']['description'],
-        'keywords': metadata['bower']['keywords'],
+        # TODO: Resolve this difference (descripton toplevel, vs in 'bower').
+        'description': metadata.get('bower', {}).get('description', None),
         'stars': metadata['stars'],
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
