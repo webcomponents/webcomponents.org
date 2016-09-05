@@ -32,9 +32,12 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
-      # TODO: Don't add the entry if the result is None.
       result_futures.append(LibraryMetadata.brief_async(owner, repo, version))
-    results = [result_future.get_result() for result_future in result_futures]
+    results = []
+    for future in result_futures:
+      result = future.get_result()
+      if result is not None:
+        results.add(result)
 
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.write(json.dumps({
@@ -47,15 +50,14 @@ class LibraryMetadata(object):
   @ndb.tasklet
   def brief_async(owner, repo, tag=None):
     metadata = yield LibraryMetadata.full_async(owner, repo, tag=tag, brief=True)
-    if metadata is None:
+    if metadata is None or metadata['status'] != Status.ready or metadata['version_status'] != Status.ready:
       raise ndb.Return(None)
-    # TODO: Return None if the status/version status is not 'ready'
     result = {
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
         # TODO: Resolve this difference (description toplevel, vs in 'bower').
-        'description': metadata.get('bower', {}).get('description', None),
+        'description': metadata['bower']['description'],
         'stars': metadata['stars'],
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
@@ -214,7 +216,8 @@ class LibraryMetadata(object):
     dependencies = []
     for future in dependency_futures:
       dependency_result = yield future
-      dependencies.append(dependency_result)
+      if dependency_result is not None:
+        dependencies.append(dependency_result)
     raise ndb.Return(dependencies)
 
 
