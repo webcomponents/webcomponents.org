@@ -95,24 +95,29 @@ def library_metadata_async(owner, repo, tag=None, brief=False):
     result['error'] = library.error
 
   @ndb.tasklet
+  def collection_entry_async(collection):
+    collection_version = collection.version.id()
+    collection_library = yield collection.version.parent().get_async()
+    collection_metadata = json.loads(collection_library.metadata)
+    collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
+    result = {
+        'owner': collection_name_match.groups()[0],
+        'repo': collection_name_match.groups()[1],
+        'version': collection_version
+    }
+    raise ndb.Return(result)
+
+  @ndb.tasklet
   def collections_async():
     version = yield version_future
     library = yield library_future
-    collections = []
+    collection_futures = []
     if version is not None:
       for collection in library.collections:
         if not versiontag.match(version.id, collection.semver):
           continue
-        collection_version = collection.version.id()
-        # TODO: Parallel fetch these.
-        collection_library = yield collection.version.parent().get_async()
-        collection_metadata = json.loads(collection_library.metadata)
-        collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
-        result['collections'].append({
-            'owner': collection_name_match.groups()[0],
-            'repo': collection_name_match.groups()[1],
-            'version': collection_version
-        })
+        collection_futures.append(collection_entry_async(collection))
+    collections = [yield future for future in collection_futures]
     raise ndb.Return(collections)
 
   @ndb.tasklet
