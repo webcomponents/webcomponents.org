@@ -51,12 +51,6 @@ class Library(ndb.Model):
     return library
 
   @staticmethod
-  def versions_for_key(key):
-    versions = [v.key.id() for v in Version.query(ancestor=key) if versiontag.is_valid(v.key.id())]
-    versions.sort(versiontag.compare)
-    return versions
-
-  @staticmethod
   @ndb.tasklet
   def versions_for_key_async(key):
     versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
