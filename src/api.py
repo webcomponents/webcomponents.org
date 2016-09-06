@@ -14,8 +14,6 @@ import versiontag
 
 import util
 
-TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
-
 class SearchContents(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, terms):

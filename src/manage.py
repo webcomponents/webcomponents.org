@@ -7,7 +7,6 @@ from google.appengine.api import urlfetch
 
 import base64
 import binascii
-import datetime
 import json
 import logging
 import os
@@ -320,8 +319,6 @@ class UpdateAuthor(AuthorTask):
     except RequestAborted:
       pass
 
-
-TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 class IngestVersion(webapp2.RequestHandler):
   def get(self, owner, repo, version):
