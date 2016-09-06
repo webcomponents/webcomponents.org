@@ -17,9 +17,13 @@ import util
 class SearchContents(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, terms):
+    try:
+      limit = int(self.request.get('limit', 20))
+      offset = int(self.request.get('offset', 0))
+    except ValueError:
+      self.response.set_status(400)
+      return
     index = search.Index('repo')
-    limit = int(self.request.get('limit', 20))
-    offset = int(self.request.get('offset', 0))
     search_results = index.search(
         search.Query(query_string=terms,
                      options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
