@@ -49,22 +49,64 @@ def validate_mutation_request(handler):
   handler.response.set_status(403)
   return False
 
-class GetXsrfToken(webapp2.RequestHandler):
-  def get(self):
+class RequestAborted(Exception):
+  pass
+
+class RequestHandler(webapp2.RequestHandler):
+  def commit(self):
+    pass
+
+  def is_mutation(self):
+    return True
+
+  def get(self, **kwargs):
+    if self.is_mutation() and not validate_mutation_request(self):
+      return
+    try:
+      self.handle_get(**kwargs)
+      self.commit()
+    except util.GitHubError:
+      self.set_status(502)
+    except RequestAborted:
+      pass
+
+  def post(self, **kwargs):
+    if self.is_mutation() and not validate_mutation_request(self):
+      return
+    try:
+      self.handle_post(**kwargs)
+      self.commit()
+    except util.GitHubError:
+      self.set_status(502)
+    except RequestAborted:
+      pass
+
+  def error(self, message):
+    logging.warning(message)
+    self.commit()
+    self.response.set_status(200)
+    raise RequestAborted()
+
+  def abort(self, message):
+    logging.error(message)
+    self.response.set_status(500)
+    self.commit()
+    raise RequestAborted()
+
+class GetXsrfToken(RequestHandler):
+  def is_mutation(self):
+    return False
+
+  def handle_get(self):
     self.response.write(mint_xsrf_token())
 
-class AddLibrary(webapp2.RequestHandler):
-  def get(self, owner, repo, kind):
-    if not validate_mutation_request(self):
-      return
+class AddLibrary(RequestHandler):
+  def handle_get(self, owner, repo, kind):
     task_url = util.ingest_library_task(owner, repo, kind)
     util.new_task(task_url, target='manage')
     self.response.write('OK')
 
-class RequestAborted(Exception):
-  pass
-
-class LibraryTask(webapp2.RequestHandler):
+class LibraryTask(RequestHandler):
   def __init__(self, request, response):
     super(LibraryTask, self).__init__(request, response)
     self.owner = None
@@ -81,23 +123,18 @@ class LibraryTask(webapp2.RequestHandler):
     else:
       self.library = Library.get_by_id('%s/%s' % (owner, repo))
 
-  def error(self, message):
-    self.response.set_status(200)
-    self.library.status = Status.error
-    self.library.error = message
-    self.library.put()
-    raise RequestAborted()
-
-  def abort(self, abort_string):
-    logging.error(abort_string)
-    self.response.set_status(500)
-    self.commit()
-    raise RequestAborted()
-
-  def commit(self, ready=False):
-    if ready and self.library.status != Status.ready:
+  def set_ready(self):
+    if self.library.status != Status.ready:
       self.library.status = Status.ready
       self.library_dirty = True
+
+  def error(self, message):
+    self.library.status = Status.error
+    self.library.error = message
+    self.library_dirty = True
+    super(LibraryTask, self).error(message)
+
+  def commit(self):
     if self.library_dirty:
       self.library.put()
 
@@ -194,78 +231,60 @@ class LibraryTask(webapp2.RequestHandler):
 
 class IngestLibrary(LibraryTask):
   @ndb.toplevel
-  def get(self, owner, repo, kind):
-    if not validate_mutation_request(self):
-      return
+  def handle_get(self, owner, repo, kind):
     assert kind == 'element' or kind == 'collection'
-    try:
-      self.init_library(owner, repo, kind)
-      if not self.library.ingest_versions:
-        self.library.ingest_versions = True
-        self.library_dirty = True
-      self.update_metadata()
-      self.ingest_versions()
-      self.ingest_author()
-      self.commit(ready=True)
-    except RequestAborted:
-      pass
+    self.init_library(owner, repo, kind)
+    if not self.library.ingest_versions:
+      self.library.ingest_versions = True
+      self.library_dirty = True
+    self.update_metadata()
+    self.ingest_versions()
+    self.ingest_author()
+    self.set_ready()
 
 class UpdateLibrary(LibraryTask):
   @ndb.toplevel
-  def get(self, owner, repo):
-    if not validate_mutation_request(self):
+  def handle_get(self, owner, repo):
+    self.init_library(owner, repo, create=False)
+    if self.library is None:
       return
-    try:
-      self.init_library(owner, repo, create=False)
-      if self.library is None:
-        return
-      self.update_metadata()
-      self.ingest_versions()
-      self.commit(ready=True)
-    except RequestAborted:
-      pass
+    self.update_metadata()
+    self.ingest_versions()
+    self.set_ready()
 
 class IngestLibraryCommit(LibraryTask):
   @ndb.toplevel
-  def get(self, owner, repo):
-    if not validate_mutation_request(self):
-      return
+  def handle_get(self, owner, repo):
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
     assert commit is not None and url is not None
-    try:
-      self.init_library(owner, repo, 'element')
-      is_new = self.library.metadata is None and self.library.error is None
-      if is_new:
-        self.library.ingest_versions = False
-        self.library_dirty = True
-        self.update_metadata()
 
-      self.trigger_version_ingestion(commit, commit, url=url)
-      self.commit(ready=True)
-    except RequestAborted:
-      pass
+    self.init_library(owner, repo, 'element')
+    is_new = self.library.metadata is None and self.library.error is None
+    if is_new:
+      self.library.ingest_versions = False
+      self.library_dirty = True
+      self.update_metadata()
+
+    self.trigger_version_ingestion(commit, commit, url=url)
+    self.set_ready()
 
 class IngestWebhookLibrary(LibraryTask):
-  def get(self, owner, repo):
-    if not validate_mutation_request(self):
-      return
+  def handle_get(self, owner, repo):
     access_token = self.request.get('access_token', None)
     assert access_token is not None
-    try:
-      self.init_library(owner, repo, 'element')
-      is_new = self.library.metadata is None and self.library.error is None
-      if is_new:
-        self.library.ingest_versions = False
-        self.library_dirty = True
-        self.update_metadata()
-      self.library.github_access_token = access_token
-      self.library_dirty = True
-      self.commit()
-    except RequestAborted:
-      pass
 
-class AuthorTask(webapp2.RequestHandler):
+    self.init_library(owner, repo, 'element')
+    is_new = self.library.metadata is None and self.library.error is None
+    if is_new:
+      self.library.ingest_versions = False
+      self.library_dirty = True
+      self.update_metadata()
+    self.library.github_access_token = access_token
+    self.library_dirty = True
+    self.commit()
+
+class AuthorTask(RequestHandler):
   def __init__(self, request, response):
     super(AuthorTask, self).__init__(request, response)
     self.author = None
@@ -283,12 +302,6 @@ class AuthorTask(webapp2.RequestHandler):
     if self.author_dirty:
       self.author.put()
 
-  def abort(self, abort_string):
-    logging.error(abort_string)
-    self.response.set_status(500)
-    self.commit()
-    raise RequestAborted()
-
   def update_metadata(self):
     response = util.github_resource('users', self.author.key.id(), etag=self.author.metadata_etag)
     if response.status_code == 200:
@@ -304,38 +317,25 @@ class AuthorTask(webapp2.RequestHandler):
 
 class IngestAuthor(AuthorTask):
   @ndb.toplevel
-  def get(self, name):
-    if not validate_mutation_request(self):
-      return
-    try:
-      self.init_author(name, insert=True)
-      if self.author.metadata is not None:
-        raise RequestAborted('author has already been ingested')
-      self.update_metadata()
-      self.author.status = Status.ready
-      self.commit()
-    except RequestAborted:
-      pass
+  def handle_get(self, name):
+    self.init_author(name, insert=True)
+    if self.author.metadata is not None:
+      return error('author has already been ingested')
+    self.update_metadata()
+    self.author_dirty = True
+    self.author.status = Status.ready
 
 class UpdateAuthor(AuthorTask):
   @ndb.toplevel
-  def get(self, name):
-    if not validate_mutation_request(self):
-      return
-    try:
-      self.init_author(name, insert=False)
-      if self.author is None:
-        raise RequestAborted('author does not exist')
-      self.update_metadata()
-      self.commit()
-    except RequestAborted:
-      pass
+  def handle_get(self, name):
+    self.init_author(name, insert=False)
+    if self.author is None:
+      return error('author does not exist')
+    self.update_metadata()
 
-
-class IngestVersion(webapp2.RequestHandler):
-  def get(self, owner, repo, version):
-    if not validate_mutation_request(self):
-      return
+# TODO: Rewrite to make use of RequestHandler's error/abort functions.
+class IngestVersion(RequestHandler):
+  def handle_get(self, owner, repo, version):
     generate_search = self.request.get('latestVersion', False)
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
 
@@ -421,10 +421,8 @@ class IngestVersion(webapp2.RequestHandler):
       index = search.Index('repo')
       index.put(document)
 
-class IngestDependencies(webapp2.RequestHandler):
-  def get(self, owner, repo, version):
-    if not validate_mutation_request(self):
-      return
+class IngestDependencies(RequestHandler):
+  def handle_get(self, owner, repo, version):
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
     key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
     bower = json.loads(key.get().content)
@@ -448,9 +446,12 @@ class IngestDependencies(webapp2.RequestHandler):
     libraries.append(ver)
     ndb.put_multi(libraries)
 
-class IngestAnalysis(webapp2.RequestHandler):
-  def post(self):
-    # FIXME: Protect via XSRF token.
+class IngestAnalysis(RequestHandler):
+  def is_mutation(self):
+    # FIXME: This is really a mutation.
+    return False
+    
+  def handle_post(self):
     message_json = json.loads(urllib.unquote(self.request.body).rstrip('='))
     message = message_json['message']
     data = base64.b64decode(str(message['data']))
@@ -472,12 +473,8 @@ class IngestAnalysis(webapp2.RequestHandler):
       except:
         logging.error(sys.exc_info()[0])
 
-    self.response.set_status(200)
-
-class UpdateAll(webapp2.RequestHandler):
-  def get(self):
-    if not validate_mutation_request(self):
-      return
+class UpdateAll(RequestHandler):
+  def handle_get(self):
     queue = taskqueue.Queue('update')
     if queue.fetch_statistics().tasks > 0:
       self.response.write('update already in progress')
@@ -516,22 +513,21 @@ def delete_library(library_key, response_for_logging=None):
   index = search.Index('repo')
   index.delete([library_key.id()])
 
-class GithubStatus(webapp2.RequestHandler):
-  def get(self):
+class GithubStatus(RequestHandler):
+  def is_mutation(self):
+    return False
+
+  def handle_get(self):
     for key, value in util.github_rate_limit().items():
       self.response.write('%s: %s<br>' % (key, value))
 
-class DeleteLibrary(webapp2.RequestHandler):
-  def get(self, owner, repo):
-    if not validate_mutation_request(self):
-      return
+class DeleteLibrary(RequestHandler):
+  def handle_get(self, owner, repo):
     self.response.headers['Content-Type'] = 'text/plain'
     delete_library(ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()), response_for_logging=self.response)
 
-class DeleteEverything(webapp2.RequestHandler):
-  def get(self):
-    if not validate_mutation_request(self):
-      return
+class DeleteEverything(RequestHandler):
+  def handle_get(self):
     while True:
       deleted_something = False
       for library_key in Library.query().fetch(keys_only=True, limit=10):
