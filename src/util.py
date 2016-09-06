@@ -55,6 +55,9 @@ def github_url(prefix, owner=None, repo=None, detail=None):
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
+def update_author_task(name):
+  return '/task/update/%s' % name
+
 def ingest_author_task(name):
   return '/task/ingest/author/%s' % name
 

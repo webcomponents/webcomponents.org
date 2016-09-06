@@ -255,12 +255,17 @@ class IngestWebhookLibrary(LibraryTask):
       pass
 
 class AuthorTask(webapp2.RequestHandler):
+  def __init__(self, request, response):
+    super(AuthorTask, self).__init__(request, response)
+    self.author = None
+    self.author_dirty = False
+
   def init_author(self, name, insert):
     name = name.lower()
     if insert:
       self.author = Author.get_or_insert(name)
     else:
-      self.author = Author.get(name)
+      self.author = Author.get_by_id(name)
     self.author_dirty = False
 
   def commit(self):
@@ -485,6 +490,16 @@ class UpdateAll(webapp2.RequestHandler):
         taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
     self.response.write('triggered %d update tasks' % task_count)
 
+
+def delete_author(author_key, response_for_logging=None):
+  keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
+  ndb.delete_multi(keys)
+
+  if response_for_logging is not None:
+    for key in keys:
+      response_for_logging.write(repr(key.flat()) + '\n')
+    response_for_logging.write('\n')
+
 def delete_library(library_key, response_for_logging=None):
   keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
   ndb.delete_multi(keys)
@@ -516,7 +531,10 @@ class DeleteEverything(webapp2.RequestHandler):
     while True:
       deleted_something = False
       for library_key in Library.query().fetch(keys_only=True, limit=10):
-        delete_library(self.response, library_key)
+        delete_library(library_key, response_for_logging=self.response)
+        deleted_something = True
+      for author_key in Author.query().fetch(keys_only=True, limit=10):
+        delete_author(author_key, response_for_logging=self.response)
         deleted_something = True
       if not deleted_something:
         break

@@ -70,6 +70,28 @@ class ManageUpdateTest(ManageTestBase):
     self.assertIsNone(library)
     self.assertIsNone(version)
 
+class ManageAuthorTest(ManageTestBase):
+  def test_ingest_author(self):
+    metadata = '{HI}'
+    self.respond_to_github('https://api.github.com/users/name', metadata)
+    response = self.app.get(util.ingest_author_task('NAME'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    author = Author.get_by_id('name')
+    self.assertIsNone(author.error)
+    self.assertEqual(author.status, 'ready')
+    self.assertEqual(author.metadata, metadata)
+
+  def test_delete_missing_author(self):
+    author = Author(id='test')
+    author.put()
+    self.respond_to_github('https://api.github.com/users/test', {'status': 404})
+    response = self.app.get(util.update_author_task('TEST'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    author = Author.get_by_id('test')
+    self.assertIsNone(author)
+
 class ManageAddTest(ManageTestBase):
   def test_add_element(self):
     token = self.app.get('/manage/token').normal_body
@@ -102,17 +124,6 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 3)
     self.assertEqual(tasks[1].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
     self.assertEqual(tasks[2].url, util.ingest_author_task('org'))
-
-  def test_ingest_author(self):
-    metadata = '{HI}'
-    self.respond_to_github('https://api.github.com/users/name', metadata)
-    response = self.app.get(util.ingest_author_task('NAME'), headers={'X-AppEngine-QueueName': 'default'})
-    self.assertEqual(response.status_int, 200)
-
-    author = Author.get_by_id('name')
-    self.assertIsNone(author.error)
-    self.assertEqual(author.status, 'ready')
-    self.assertEqual(author.metadata, metadata)
 
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
