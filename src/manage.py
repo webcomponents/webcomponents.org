@@ -320,7 +320,7 @@ class IngestAuthor(AuthorTask):
   def handle_get(self, name):
     self.init_author(name, insert=True)
     if self.author.metadata is not None:
-      return error('author has already been ingested')
+      return self.error('author has already been ingested')
     self.update_metadata()
     self.author_dirty = True
     self.author.status = Status.ready
@@ -330,7 +330,7 @@ class UpdateAuthor(AuthorTask):
   def handle_get(self, name):
     self.init_author(name, insert=False)
     if self.author is None:
-      return error('author does not exist')
+      return self.error('author does not exist')
     self.update_metadata()
 
 # TODO: Rewrite to make use of RequestHandler's error/abort functions.
@@ -450,7 +450,7 @@ class IngestAnalysis(RequestHandler):
   def is_mutation(self):
     # FIXME: This is really a mutation.
     return False
-    
+
   def handle_post(self):
     message_json = json.loads(urllib.unquote(self.request.body).rstrip('='))
     message = message_json['message']

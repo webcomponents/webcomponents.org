@@ -110,7 +110,7 @@ def github_get(name, owner=None, repo=None, context=None, etag=None, access_toke
   return github_request(name, owner=owner, repo=repo, context=context, etag=etag, access_token=access_token)
 
 def github_post(name, owner=None, repo=None, context=None, payload=None, access_token=None):
-  return github_request(name, owner=owner, repo=repo, context=context, access_token=access_token, method='POST')
+  return github_request(name, owner=owner, repo=repo, context=context, access_token=access_token, method='POST', payload=payload)
 
 def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None):
   headers = {}
@@ -118,10 +118,10 @@ def github_request(name, owner=None, repo=None, context=None, etag=None, access_
   if etag is not None:
     headers['If-None-Match'] = etag
   url = github_url(name, owner, repo, context)
-  response = urlfetch.fetch(url, headers=headers, validate_certificate=True, payload=payload, method=method)
+  response = urlfetch.fetch(url, headers=headers, validate_certificate=True, payload=json.dumps(payload), method=method)
   ratelimit_remaining = response.headers.get('x-ratelimit-remaining', None)
   if ratelimit_remaining is not None:
-    logging.info('GitHub ratelimit remaining %s' % ratelimit_remaining)
+    logging.info('GitHub ratelimit remaining %s', ratelimit_remaining)
   if response.status_code == 403:
     logging.warning('GitHub quota exceeded for %s %s', method, url)
     raise GitHubQuotaExceededError('reservation exceeded')
