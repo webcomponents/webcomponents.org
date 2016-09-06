@@ -96,7 +96,7 @@ class GitHubServerError(GitHubError):
 def github_rate_limit():
   headers = {}
   add_authorization_header(headers)
-  response = github_resource('rate_limit')
+  response = github_get('rate_limit')
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
@@ -106,8 +106,7 @@ def github_rate_limit():
 def github_markdown(content):
   return github_post('markdown', payload={'text': inline_demo_transform(content)})
 
-# TODO: Rename to github_get
-def github_resource(name, owner=None, repo=None, context=None, etag=None, access_token=None):
+def github_get(name, owner=None, repo=None, context=None, etag=None, access_token=None):
   return github_request(name, owner=owner, repo=repo, context=context, etag=etag, access_token=access_token)
 
 def github_post(name, owner=None, repo=None, context=None, payload=None, access_token=None):

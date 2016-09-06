@@ -139,7 +139,7 @@ class LibraryTask(RequestHandler):
       self.library.put()
 
   def update_metadata(self):
-    response = util.github_resource('repos', self.owner, self.repo, etag=self.library.metadata_etag)
+    response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag)
     if response.status_code == 200:
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
@@ -151,7 +151,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.abort('could not update repo metadata (%d)' % response.status_code)
 
-    response = util.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
+    response = util.github_get('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
       self.library.contributors = response.content
       self.library.contributors_etag = response.headers.get('ETag', None)
@@ -160,7 +160,7 @@ class LibraryTask(RequestHandler):
       return self.abort('could not update contributors (%d)' % response.status_code)
 
     if self.library.ingest_versions:
-      response = util.github_resource('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
+      response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
       if response.status_code == 200:
         self.library.participation = response.content
         self.library.participation_etag = response.headers.get('ETag', None)
@@ -195,7 +195,7 @@ class LibraryTask(RequestHandler):
     if not self.library.ingest_versions:
       return
 
-    response = util.github_resource('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+    response = util.github_get('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
     if response.status_code == 304:
       return
 
@@ -303,7 +303,7 @@ class AuthorTask(RequestHandler):
       self.author.put()
 
   def update_metadata(self):
-    response = util.github_resource('users', self.author.key.id(), etag=self.author.metadata_etag)
+    response = util.github_get('users', self.author.key.id(), etag=self.author.metadata_etag)
     if response.status_code == 200:
       self.author.metadata = response.content
       self.author.metadata_etag = response.headers.get('ETag', None)
