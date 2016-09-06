@@ -110,9 +110,9 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     author = Author.get_by_id('name')
-    #self.assertIsNone(author.error)
-    #self.assertEqual(author.status, 'ready')
-    #self.assertEqual(author.metadata, metadata)
+    self.assertIsNone(author.error)
+    self.assertEqual(author.status, 'ready')
+    self.assertEqual(author.metadata, metadata)
 
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
