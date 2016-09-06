@@ -182,6 +182,7 @@ class LibraryTask(webapp2.RequestHandler):
       is_newest = False
 
 class IngestLibrary(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo, kind):
     if not validate_mutation_request(self):
       return
@@ -199,6 +200,7 @@ class IngestLibrary(LibraryTask):
       pass
 
 class UpdateLibrary(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo):
     if not validate_mutation_request(self):
       return
@@ -213,6 +215,7 @@ class UpdateLibrary(LibraryTask):
       pass
 
 class IngestLibraryCommit(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo):
     if not validate_mutation_request(self):
       return
@@ -253,7 +256,7 @@ class IngestWebhookLibrary(LibraryTask):
 
 class AuthorTask(webapp2.RequestHandler):
   def init_author(self, name, insert):
-    assert name == name.lower()
+    name = name.lower()
     if insert:
       self.author = Author.get_or_insert(name)
     else:
@@ -271,7 +274,7 @@ class AuthorTask(webapp2.RequestHandler):
     raise RequestAborted()
 
   def update_metadata(self):
-    response = util.github_resource('repos', self.author.key.id(), etag=self.author.metadata_etag)
+    response = util.github_resource('users', self.author.key.id(), etag=self.author.metadata_etag)
     if response.status_code == 200:
       self.author.metadata = response.content
       self.author.metadata_etag = response.headers.get('ETag', None)
@@ -284,6 +287,7 @@ class AuthorTask(webapp2.RequestHandler):
       return self.abort('could not update author metadata (%d)' % response.status_code)
 
 class IngestAuthor(AuthorTask):
+  @ndb.toplevel
   def get(self, name):
     if not validate_mutation_request(self):
       return
@@ -298,6 +302,7 @@ class IngestAuthor(AuthorTask):
       pass
 
 class UpdateAuthor(AuthorTask):
+  @ndb.toplevel
   def get(self, name):
     if not validate_mutation_request(self):
       return

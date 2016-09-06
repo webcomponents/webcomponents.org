@@ -2,7 +2,7 @@ import json
 import unittest
 import webtest
 
-from datamodel import Library, Version, Content
+from datamodel import Author, Library, Version, Content
 from manage import app
 import util
 
@@ -24,7 +24,9 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/add/element/org/repo', status=403)
     self.app.get('/manage/delete/element/org', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
+    self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
+    self.app.get('/task/ingest/author/owner', status=403)
     self.app.get('/task/ingest/commit/owner/repo', status=403)
     self.app.get('/task/ingest/webhook/owner/repo', status=403)
     self.app.get('/task/ingest/library/owner/repo/kind', status=403)
@@ -97,8 +99,20 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(version.sha, 'lol')
 
     tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 2)
+    self.assertEqual(len(tasks), 3)
     self.assertEqual(tasks[1].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
+    self.assertEqual(tasks[2].url, util.ingest_author_task('org'))
+
+  def test_ingest_author(self):
+    metadata = '{HI}'
+    self.respond_to_github('https://api.github.com/users/name', metadata)
+    response = self.app.get(util.ingest_author_task('NAME'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    author = Author.get_by_id('name')
+    #self.assertIsNone(author.error)
+    #self.assertEqual(author.status, 'ready')
+    #self.assertEqual(author.metadata, metadata)
 
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
