@@ -408,11 +408,6 @@ class IngestVersion(webapp2.RequestHandler):
           search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
           search.TextField(name='description', value=description),
           search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
-          search.NumberField(name='stars', value=metadata.get('stargazers_count')),
-          search.NumberField(name='subscribers', value=metadata.get('subscribers_count')),
-          search.NumberField(name='forks', value=metadata.get('forks')),
-          search.NumberField(name='contributors', value=library.contributor_count),
-          search.DateField(name='updated_at', value=datetime.datetime.strptime(metadata.get('updated_at'), TIME_FORMAT))
       ])
       index = search.Index('repo')
       index.put(document)
