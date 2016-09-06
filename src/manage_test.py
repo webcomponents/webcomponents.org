@@ -126,6 +126,11 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(tasks[1].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
     self.assertEqual(tasks[2].url, util.ingest_author_task('org'))
 
+  def github_error_fails_gracefully(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': '500'})
+    response = self.app.get(util.ingest_library_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'}, status=502)
+    self.assertEqual(response.status_int, 502)
+
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
     version = Version(parent=library.key, id='v1.0.0', sha='lol')
