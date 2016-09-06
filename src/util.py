@@ -49,16 +49,17 @@ def publish_analysis_request(owner, repo, version):
     logging.error('Failed to publish %s', logging.error(sys.exc_info()[0]))
 
 def github_url(prefix, owner=None, repo=None, detail=None):
-  if owner is None:
-    result = 'https://api.github.com/%s' % (prefix,)
-  else:
-    result = 'https://api.github.com/%s/%s/%s' % (prefix, owner, repo)
-  if detail is not None:
-    result = result + '/' + detail
-  return result
+  parts = [part for part in [prefix, owner, repo, detail] if part is not None]
+  return 'https://api.github.com/' + '/'.join(parts)
 
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
+
+def update_author_task(name):
+  return '/task/update/%s' % name
+
+def ingest_author_task(name):
+  return '/task/ingest/author/%s' % name
 
 def ingest_library_task(owner, repo, kind):
   return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)

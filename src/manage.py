@@ -15,7 +15,7 @@ import urllib
 import webapp2
 import sys
 
-from datamodel import Status, Library, Version, Content, CollectionReference, Dependency
+from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency
 import versiontag
 import util
 
@@ -113,7 +113,7 @@ class LibraryTask(webapp2.RequestHandler):
       delete_library(self.library.key)
       raise RequestAborted('repo no longer exists')
     elif response.status_code != 304:
-      return self.abort('could not update metadata (%d)' % response.status_code)
+      return self.abort('could not update repo metadata (%d)' % response.status_code)
 
     response = util.github_resource('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
@@ -136,6 +136,12 @@ class LibraryTask(webapp2.RequestHandler):
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, params=params, target='manage')
     util.publish_analysis_request(self.owner, self.repo, tag)
+
+  def ingest_author(self):
+    if not self.library.ingest_versions:
+      return
+    task_url = util.ingest_author_task(self.owner)
+    util.new_task(task_url, target='manage')
 
   def ingest_versions(self):
     if not self.library.ingest_versions:
@@ -176,6 +182,7 @@ class LibraryTask(webapp2.RequestHandler):
       is_newest = False
 
 class IngestLibrary(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo, kind):
     if not validate_mutation_request(self):
       return
@@ -187,11 +194,13 @@ class IngestLibrary(LibraryTask):
         self.library_dirty = True
       self.update_metadata()
       self.ingest_versions()
+      self.ingest_author()
       self.commit(ready=True)
     except RequestAborted:
       pass
 
 class UpdateLibrary(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo):
     if not validate_mutation_request(self):
       return
@@ -206,6 +215,7 @@ class UpdateLibrary(LibraryTask):
       pass
 
 class IngestLibraryCommit(LibraryTask):
+  @ndb.toplevel
   def get(self, owner, repo):
     if not validate_mutation_request(self):
       return
@@ -243,6 +253,73 @@ class IngestWebhookLibrary(LibraryTask):
       self.commit()
     except RequestAborted:
       pass
+
+class AuthorTask(webapp2.RequestHandler):
+  def __init__(self, request, response):
+    super(AuthorTask, self).__init__(request, response)
+    self.author = None
+    self.author_dirty = False
+
+  def init_author(self, name, insert):
+    name = name.lower()
+    if insert:
+      self.author = Author.get_or_insert(name)
+    else:
+      self.author = Author.get_by_id(name)
+    self.author_dirty = False
+
+  def commit(self):
+    if self.author_dirty:
+      self.author.put()
+
+  def abort(self, abort_string):
+    logging.error(abort_string)
+    self.response.set_status(500)
+    self.commit()
+    raise RequestAborted()
+
+  def update_metadata(self):
+    response = util.github_resource('users', self.author.key.id(), etag=self.author.metadata_etag)
+    if response.status_code == 200:
+      self.author.metadata = response.content
+      self.author.metadata_etag = response.headers.get('ETag', None)
+      self.author_dirty = True
+    elif response.status_code == 404:
+      logging.info('deleting non-existing author %s', self.author.key.id())
+      delete_author(self.author.key)
+      raise RequestAborted('author no longer exists')
+    elif response.status_code != 304:
+      return self.abort('could not update author metadata (%d)' % response.status_code)
+
+class IngestAuthor(AuthorTask):
+  @ndb.toplevel
+  def get(self, name):
+    if not validate_mutation_request(self):
+      return
+    try:
+      self.init_author(name, insert=True)
+      if self.author.metadata is not None:
+        raise RequestAborted('author has already been ingested')
+      self.update_metadata()
+      self.author.status = Status.ready
+      self.commit()
+    except RequestAborted:
+      pass
+
+class UpdateAuthor(AuthorTask):
+  @ndb.toplevel
+  def get(self, name):
+    if not validate_mutation_request(self):
+      return
+    try:
+      self.init_author(name, insert=False)
+      if self.author is None:
+        raise RequestAborted('author does not exist')
+      self.update_metadata()
+      self.commit()
+    except RequestAborted:
+      pass
+
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -413,6 +490,16 @@ class UpdateAll(webapp2.RequestHandler):
         taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
     self.response.write('triggered %d update tasks' % task_count)
 
+
+def delete_author(author_key, response_for_logging=None):
+  keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
+  ndb.delete_multi(keys)
+
+  if response_for_logging is not None:
+    for key in keys:
+      response_for_logging.write(repr(key.flat()) + '\n')
+    response_for_logging.write('\n')
+
 def delete_library(library_key, response_for_logging=None):
   keys = [library_key] + ndb.Query(ancestor=library_key).fetch(keys_only=True)
   ndb.delete_multi(keys)
@@ -444,7 +531,10 @@ class DeleteEverything(webapp2.RequestHandler):
     while True:
       deleted_something = False
       for library_key in Library.query().fetch(keys_only=True, limit=10):
-        delete_library(self.response, library_key)
+        delete_library(library_key, response_for_logging=self.response)
+        deleted_something = True
+      for author_key in Author.query().fetch(keys_only=True, limit=10):
+        delete_author(author_key, response_for_logging=self.response)
         deleted_something = True
       if not deleted_something:
         break
@@ -475,6 +565,8 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
+    webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
+    webapp2.Route(r'/task/ingest/author/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),

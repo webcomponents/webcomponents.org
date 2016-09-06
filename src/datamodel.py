@@ -11,6 +11,15 @@ class Status(object):
   pending = 'pending'
   ready = 'ready'
 
+class Author(ndb.Model):
+  metadata = ndb.TextProperty()
+
+  metadata_etag = ndb.StringProperty()
+
+  status = ndb.StringProperty(default=Status.pending)
+  error = ndb.StringProperty()
+  updated = ndb.DateTimeProperty(auto_now=True)
+
 class Library(ndb.Model):
   kind = ndb.StringProperty()
 
@@ -31,7 +40,7 @@ class Library(ndb.Model):
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
-  updated = ndb.DateTimeProperty(auto_now_add=True)
+  updated = ndb.DateTimeProperty(auto_now=True)
 
   @staticmethod
   def get_or_create_list(keys):
@@ -69,13 +78,13 @@ class Version(ndb.Model):
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
-  updated = ndb.DateTimeProperty(auto_now_add=True)
+  updated = ndb.DateTimeProperty(auto_now=True)
 
 
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)
   etag = ndb.StringProperty()
-  updated = ndb.DateTimeProperty(auto_now_add=True)
+  updated = ndb.DateTimeProperty(auto_now=True)
 
 class Dependency(object):
   def __init__(self, owner, repo, version):
