@@ -70,17 +70,24 @@
         }
       },
 
+      isStaging: function() {
+        return window.location.hostname.indexOf('custom-elements-staging') != -1 ||
+            window.location.hostname.indexOf('australischertreibhund.com') != -1
+      },
+
       analyticsKey: function() {
-        var useStagingKey = window.location.hostname == 'localhost' ||
-            window.location.hostname.indexOf('custom-elements-staging') != -1;
+        var useStagingKey = window.location.hostname == 'localhost' || this.isStaging();
         return useStagingKey ? 'UA-82326223-1' : 'UA-82313441-1';
       },
 
       baseUrls: function(queryParams) {
         var isLocalhost = window.location.hostname == 'localhost';
+
         var result = {api: '', userContent: 'https://user-content-dot-' + window.location.hostname};
         if (isLocalhost) {
           result.api = 'https://custom-elements-staging.appspot.com';
+          result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
+        } else if (this.isStaging()) {
           result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
         }
         if (queryParams.instance) {
