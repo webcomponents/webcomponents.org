@@ -28,10 +28,12 @@ class Library(ndb.Model):
   metadata = ndb.TextProperty()
   contributors = ndb.TextProperty()
   tags = ndb.TextProperty()
+  participation = ndb.TextProperty()
 
   metadata_etag = ndb.StringProperty()
   contributors_etag = ndb.StringProperty()
   tags_etag = ndb.StringProperty()
+  participation_etag = ndb.StringProperty()
 
   contributor_count = ndb.IntegerProperty()
   collections = ndb.StructuredProperty(CollectionReference, repeated=True)

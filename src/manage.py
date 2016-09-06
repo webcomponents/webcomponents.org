@@ -124,16 +124,18 @@ class LibraryTask(webapp2.RequestHandler):
     elif response.status_code != 304:
       return self.abort('could not update contributors (%d)' % response.status_code)
 
-    response = util.github_resource('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
-    if response.status_code == 200:
-      self.library.participation = response.content
-      self.library.participation_etag = response.headers.get('ETag', None)
-      self.library_dirty = True
-    elif response.status_code == 202:
-      # GitHub is "computing" the data. We'll try again next update cycle.
-      # TODO: Alternatively we could abort this task and try again.
-    elif response.status_code != 304:
-      return self.abort('could not update stats/participation (%d)' % response.status_code)
+    if self.library.ingest_versions:
+      response = util.github_resource('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
+      if response.status_code == 200:
+        self.library.participation = response.content
+        self.library.participation_etag = response.headers.get('ETag', None)
+        self.library_dirty = True
+      elif response.status_code == 202:
+        # GitHub is "computing" the data. We'll try again next update cycle.
+        # TODO: Alternatively we could abort this task and try again.
+        pass
+      elif response.status_code != 304:
+        return self.abort('could not update stats/participation (%d)' % response.status_code)
 
   def trigger_version_ingestion(self, tag, sha, latest=False, url=None):
     params = {}

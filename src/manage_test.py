@@ -48,6 +48,7 @@ class ManageUpdateTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', 'STAT')
 
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
@@ -106,6 +107,7 @@ class ManageAddTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', 'STAT')
     response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
