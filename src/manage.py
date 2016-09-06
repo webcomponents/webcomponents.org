@@ -282,7 +282,6 @@ class IngestWebhookLibrary(LibraryTask):
       self.update_metadata()
     self.library.github_access_token = access_token
     self.library_dirty = True
-    self.commit()
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
