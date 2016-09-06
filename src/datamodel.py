@@ -3,8 +3,18 @@ from google.appengine.ext import ndb
 import versiontag
 
 class CollectionReference(ndb.Model):
-  version = ndb.KeyProperty(kind="Version", required=True)
   semver = ndb.StringProperty()
+
+  def collection_version_key(self):
+    (owner, repo, version) = self.key.id().split('/')
+    return ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+
+  @staticmethod
+  def ensure(library_key, collection_version_key, semver):
+    collection_library_key = collection_version_key.parent()
+    name = '%s/%s' % (collection_library_key.id(), collection_version_key.id())
+    collection_reference = CollectionReference(id=name, parent=library_key, semver=semver)
+    collection_reference.put()
 
 class Status(object):
   error = 'error'
@@ -36,21 +46,12 @@ class Library(ndb.Model):
   participation_etag = ndb.StringProperty()
 
   contributor_count = ndb.IntegerProperty()
-  collections = ndb.StructuredProperty(CollectionReference, repeated=True)
 
   ingest_versions = ndb.BooleanProperty(default=True)
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now=True)
-
-  @staticmethod
-  def get_or_create_list(keys):
-    libraries = ndb.get_multi(keys)
-    for i, key in enumerate(keys):
-      if libraries[i] is None:
-        libraries[i] = Library(id=key.id())
-    return libraries
 
   @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
@@ -99,12 +100,24 @@ class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)
   url = ndb.StringProperty()
 
-  dependencies = ndb.StringProperty(repeated=True)
-
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now=True)
 
+  @staticmethod
+  @ndb.tasklet
+  def collections_for_key_async(version_key):
+    library_key = version_key.parent()
+    collection_references = yield CollectionReference.query(ancestor=library_key).fetch_async()
+    collection_version_futures = [ref.collection_version_key().get_async() for ref in collection_references]
+    result = []
+    for i, version_future in enumerate(collection_version_futures):
+      version = yield version_future
+      if version is None:
+        collection_references[i].delete_async()
+      elif versiontag.match(version_key.id(), collection_references[i].semver):
+        result.append(version)
+    raise ndb.Return(result)
 
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)

@@ -101,8 +101,8 @@ class LibraryMetadata(object):
       result['error'] = library.error
 
     if not brief and version_key is not None:
-      collections_future = LibraryMetadata.collections_async(library_future, version_key)
-      dependencies_future = LibraryMetadata.dependencies_async(library_future, version_future)
+      collections_future = LibraryMetadata.collections_async(version_key)
+      dependencies_future = LibraryMetadata.dependencies_async(library_future, bower_future)
       versions = yield versions_future
       result['versions'] = versions
 
@@ -148,6 +148,7 @@ class LibraryMetadata(object):
     bower = yield bower_future
     if bower is not None:
       try:
+        # TODO: We shouldn't store it if it's not valid
         bower_json = json.loads(bower.content)
       except ValueError:
         bower_json = None
@@ -170,9 +171,9 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def collection_entry_async(collection):
-    collection_version = collection.version.id()
-    collection_library = yield collection.version.parent().get_async()
+  def collection_entry_async(collection_version_key):
+    collection_version = collection_version_key.id()
+    collection_library = yield collection_version_key.parent().get_async()
     collection_metadata = json.loads(collection_library.metadata)
     collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
     result = {
@@ -184,13 +185,11 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def collections_async(library_future, version_key):
-    library = yield library_future
+  def collections_async(version_key):
+    collection_versions = yield Version.collections_for_key_async(version_key)
     collection_futures = []
-    for collection in library.collections:
-      if not versiontag.match(version_key.id(), collection.semver):
-        continue
-      collection_futures.append(LibraryMetadata.collection_entry_async(collection))
+    for collection_version in collection_versions:
+      collection_futures.append(LibraryMetadata.collection_entry_async(collection_version.key))
     collections = []
     for future in collection_futures:
       collection_result = yield future
@@ -199,40 +198,46 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def dependencies_async(library_future, version_future):
-    version = yield version_future
+  def dependencies_async(library_future, bower_future):
     library = yield library_future
     if library.kind != 'collection':
       raise ndb.Return([])
+
+    bower = yield bower_future
+    bower_json = json.loads(bower.content)
+    bower_dependencies = bower_json.get('dependencies', {})
+
+    dependencies = []
     version_futures = []
-    for dep in version.dependencies:
-      parsed_dep = Dependency.from_string(dep)
-      dep_key = ndb.Key(Library, "%s/%s" % (parsed_dep.owner.lower(), parsed_dep.repo.lower()))
-      version_futures.append(Library.versions_for_key_async(dep_key))
+    for name in bower_dependencies.keys():
+      dependency = Dependency.from_string(bower_dependencies[name])
+      dependencies.append(dependency)
+      library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
+      version_futures.append(Library.versions_for_key_async(library_key))
+
     dependency_futures = []
-    for i, dep in enumerate(version.dependencies):
-      parsed_dep = Dependency.from_string(dep)
+    for i, dependency in enumerate(dependencies):
       versions = yield version_futures[i]
-      versions.reverse()
-      while len(versions) > 0 and not versiontag.match(versions[-1], parsed_dep.version):
+      while len(versions) > 0 and not versiontag.match(versions[-1], dependency.version):
         versions.pop()
       if len(versions) == 0:
         error_future = ndb.Future()
         error_future.set_result({
             'error': 'unsatisfyable dependency',
-            'owner': parsed_dep.owner,
-            'repo': parsed_dep.repo,
-            'versionSpec': parsed_dep.version
+            'owner': dependency.owner,
+            'repo': dependency.repo,
+            'versionSpec': dependency.version
         })
         dependency_futures.append(error_future)
       else:
-        dependency_futures.append(LibraryMetadata.brief_async(parsed_dep.owner, parsed_dep.repo, versions[-1]))
-    dependencies = []
+        dependency_futures.append(LibraryMetadata.brief_async(dependency.owner, dependency.repo, versions[-1]))
+
+    results = []
     for future in dependency_futures:
       dependency_result = yield future
       if dependency_result is not None:
-        dependencies.append(dependency_result)
-    raise ndb.Return(dependencies)
+        results.append(dependency_result)
+    raise ndb.Return(results)
 
 
 class GetDataMeta(webapp2.RequestHandler):
