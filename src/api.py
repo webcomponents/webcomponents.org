@@ -104,12 +104,22 @@ class LibraryMetadata(object):
       versions = yield versions_future
       result['versions'] = versions
 
+    if library.contributors is not None:
+      contributors = []
+      raw = json.loads(library.contributors)
+      for contributor in raw:
+        contributors.append({
+            'login': contributor['login'],
+            'avatar_url': contributor['avatar_url'],
+            'contributions': contributor['contributions'],
+        })
+      result['contributors'] = contributors
+
     if library.metadata is not None:
       metadata = json.loads(library.metadata)
       result['subscribers'] = metadata['subscribers_count']
       result['stars'] = metadata['stargazers_count']
       result['forks'] = metadata['forks']
-      result['contributors'] = library.contributor_count
       result['open_issues'] = metadata['open_issues']
       result['updated_at'] = metadata['updated_at']
       result['owner'] = metadata['owner']['login']

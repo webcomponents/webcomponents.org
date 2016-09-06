@@ -114,7 +114,6 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(library.kind, 'element')
     self.assertEqual(library.metadata, 'metadata bits')
     self.assertEqual(library.contributors, '["a"]')
-    self.assertEqual(library.contributor_count, 1)
 
     version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
     self.assertIsNone(version.error)

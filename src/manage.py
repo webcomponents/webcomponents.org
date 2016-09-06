@@ -119,7 +119,6 @@ class LibraryTask(webapp2.RequestHandler):
     if response.status_code == 200:
       self.library.contributors = response.content
       self.library.contributors_etag = response.headers.get('ETag', None)
-      self.library.contributor_count = len(json.loads(response.content))
       self.library_dirty = True
     elif response.status_code != 304:
       return self.abort('cout not update contributors (%d)' % response.status_code)
