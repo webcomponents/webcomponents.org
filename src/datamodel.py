@@ -65,7 +65,7 @@ class Library(ndb.Model):
   @ndb.tasklet
   def versions_for_key_async(key):
     versions = yield Version.query(ancestor=key).fetch_async(keys_only=True)
-    versions = [key.id() for key in versions]
+    versions = [key.id() for key in versions if versiontag.is_valid(key.id())]
     versions.sort(versiontag.compare)
     raise ndb.Return(versions)
 
