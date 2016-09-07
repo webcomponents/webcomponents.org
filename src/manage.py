@@ -91,7 +91,7 @@ class RequestHandler(webapp2.RequestHandler):
       self.handle_get(**kwargs)
       self.commit()
     except util.GitHubError:
-      self.set_status(502)
+      self.response.set_status(502)
     except RequestAborted:
       pass
 
@@ -102,7 +102,7 @@ class RequestHandler(webapp2.RequestHandler):
       self.handle_post(**kwargs)
       self.commit()
     except util.GitHubError:
-      self.set_status(502)
+      self.response.set_status(502)
     except RequestAborted:
       pass
 
