@@ -53,6 +53,31 @@ class RequestAborted(Exception):
   pass
 
 class RequestHandler(webapp2.RequestHandler):
+  """A specialized Request Handler that deals with erroring/aborting and committing.
+
+  Subclasses should define one of ``handle_get`` or ``handle_post`` and add logic
+  to commit any permanent changes in ``commit``.
+
+  ``commit`` will be called at the end of any request unless an exception is
+  raised.
+
+  The following exceptions are treated specially:
+  * ``util.GitHubError`` which signals that the request should be retried.
+  * ``RequestAborted`` which completes the request immediately.
+
+  Subclasses can use the ``error`` and ``abort`` functions to short-circuit a request:
+  * The ``error`` function is used to denote a permanent error.
+  * The ``abort`` function is used to denote a temporary error, indicating that the
+  request should be retried.
+
+  These functions raise the ``RequestAborted`` exception and should be typically
+  called in a ``return self.error()`` style.
+
+  Subclasses should override and re-delegate the ``error`` and ``abort``
+  functions when they need to store additional information about the state. eg.
+  Stashing a permanent error in a datastore entity.
+  """
+
   def commit(self):
     pass
 
