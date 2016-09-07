@@ -84,16 +84,19 @@ def new_task(url, params=None, target=None):
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)
 
-class GithubQuotaExceededError(Exception):
+class GitHubError(Exception):
   pass
 
-class GithubServerError(Exception):
+class GitHubQuotaExceededError(GitHubError):
+  pass
+
+class GitHubServerError(GitHubError):
   pass
 
 def github_rate_limit():
   headers = {}
   add_authorization_header(headers)
-  response = urlfetch.fetch(github_url('rate_limit'), headers=headers, validate_certificate=True)
+  response = github_get('rate_limit')
   return {
       'x-ratelimit-reset': response.headers.get('x-ratelimit-reset', 'unknown'),
       'x-ratelimit-limit': response.headers.get('x-ratelimit-limit', 'unknown'),
@@ -101,35 +104,29 @@ def github_rate_limit():
   }
 
 def github_markdown(content):
-  headers = {}
-  add_authorization_header(headers)
-  response = urlfetch.fetch(github_url('markdown'), method='POST', validate_certificate=True, headers=headers,
-                            payload=json.dumps({'text': inline_demo_transform(content)}))
-  if response.status_code == 403:
-    raise GithubQuotaExceededError('reservation exceeded')
-  elif response.status_code >= 500:
-    raise GithubServerError(response.status_code)
-  return response
+  return github_post('markdown', payload={'text': inline_demo_transform(content)})
 
-def github_resource(name, owner=None, repo=None, context=None, etag=None, access_token=None):
+def github_get(name, owner=None, repo=None, context=None, etag=None, access_token=None):
+  return github_request(name, owner=owner, repo=repo, context=context, etag=etag, access_token=access_token)
+
+def github_post(name, owner=None, repo=None, context=None, payload=None, access_token=None):
+  return github_request(name, owner=owner, repo=repo, context=context, access_token=access_token, method='POST', payload=payload)
+
+def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None):
   headers = {}
   add_authorization_header(headers, access_token)
   if etag is not None:
     headers['If-None-Match'] = etag
-  response = urlfetch.fetch(github_url(name, owner, repo, context), headers=headers, validate_certificate=True)
-  if response.status_code == 403:
-    raise GithubQuotaExceededError('reservation exceeded')
-  elif response.status_code >= 500:
-    raise GithubServerError(response.status_code)
-  return response
-
-def github_post(name, owner, repo, context=None, payload=None, access_token=None):
-  headers = {}
-  add_authorization_header(headers, access_token)
   url = github_url(name, owner, repo, context)
-  response = urlfetch.fetch(url, payload=json.dumps(payload), headers=headers, validate_certificate=True, method='POST')
+  response = urlfetch.fetch(url, headers=headers, validate_certificate=True, payload=json.dumps(payload), method=method)
+  ratelimit_remaining = response.headers.get('x-ratelimit-remaining', None)
+  if ratelimit_remaining is not None:
+    logging.info('GitHub ratelimit remaining %s', ratelimit_remaining)
   if response.status_code == 403:
-    raise GithubQuotaExceededError('reservation exceeded')
+    logging.warning('GitHub quota exceeded for %s %s', method, url)
+    raise GitHubQuotaExceededError('reservation exceeded')
   elif response.status_code >= 500:
-    raise GithubServerError(response.status_code)
+    logging.error('GitHub returned unexpected response for %s %s', method, url)
+    raise GitHubServerError(response.status_code)
+  logging.info('GitHub %s %s %d', method, url, response.status_code)
   return response

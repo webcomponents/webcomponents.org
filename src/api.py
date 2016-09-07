@@ -296,7 +296,7 @@ class RegisterPreview(webapp2.RequestHandler):
     access_token = access_token_response['access_token']
 
     # Validate access token against repo
-    repos_response = util.github_resource('user/repos', access_token=access_token)
+    repos_response = util.github_get('user/repos', access_token=access_token)
     if repos_response.status_code != 200:
       self.response.set_status(401)
       self.response.write('Cannot access user\'s repos')
@@ -433,7 +433,7 @@ class OnDemand(webapp2.RequestHandler):
       self.response.set_status(400)
       self.response.write('Unable to understand url (%s)', url)
 
-    response = util.github_resource('repos', owner, repo, 'git/refs/' + tail)
+    response = util.github_get('repos', owner, repo, 'git/refs/' + tail)
 
     if response.status_code == 404:
       self.response.set_status(400)
