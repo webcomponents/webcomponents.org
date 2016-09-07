@@ -357,93 +357,117 @@ class UpdateAuthor(AuthorTask):
       return self.error('author does not exist')
     self.update_metadata()
 
-# TODO: Rewrite to make use of RequestHandler's error/abort functions.
 class IngestVersion(RequestHandler):
+  def __init__(self, request, response):
+    super(IngestVersion, self).__init__(request, response)
+    self.version_key = None
+    self.version_object = None
+    self.owner = None
+    self.repo = None
+    self.version = None
+    self.generate_search = False
+
   def handle_get(self, owner, repo, version):
-    generate_search = self.request.get('latestVersion', False)
+    self.owner = owner
+    self.repo = repo
+    self.version = version
+    self.version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    self.version_object = self.version_key.get()
+
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
+    self.generate_search = self.request.get('latestVersion', False)
 
-    key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    if self.version_object is None:
+      return self.error('version object is missing')
 
-    def error(error_string):
-      logging.info('ingestion error "%s" for %s/%s/%s', error_string, owner, repo, version)
-      ver = key.get()
-      ver.status = Status.error
-      ver.error = error_string
-      ver.put()
-      if generate_search:
-        library = key.parent().get()
-        versions = json.loads(library.tags)
-        idx = versions.index(version)
-        if idx > 0:
-          logging.info('ingestion for %s/%s falling back to version %s', owner, repo, versions[idx - 1])
-          task_url = util.ingest_version_task(owner, repo, versions[idx - 1])
-          util.new_task(task_url, params={'latestVersion':'True'}, target='manage')
+    self.update_readme()
+    bower = self.update_bower()
 
-    def abort(abort_string):
-      logging.error(abort_string)
-      self.response.set_status(500)
+    if self.generate_search:
+      self.index_for_search(bower)
 
-    response = urlfetch.fetch(util.content_url(owner, repo, version, 'README.md'), validate_certificate=True)
+    self.set_ready()
+    # FIXME: build version map
+
+  def commit(self):
+    if self.version_object is not None:
+      self.version_object.put()
+
+  def error(self, error_string):
+    self.version_object.status = Status.error
+    self.version_object.error = error_string
+    if self.generate_search:
+      library = self.version_key.parent().get()
+      versions = json.loads(library.tags)
+      idx = versions.index(self.version)
+      if idx > 0:
+        logging.info('ingestion for %s/%s falling back to version %s', self.owner, self.repo, versions[idx - 1])
+        task_url = util.ingest_version_task(self.owner, self.repo, versions[idx - 1])
+        util.new_task(task_url, params={'latestVersion':'True'}, target='manage')
+    super(IngestVersion, self).error(error_string)
+
+  def update_readme(self):
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'README.md'), validate_certificate=True)
     if response.status_code == 200:
       readme = response.content
       try:
-        content = Content(parent=key, id='readme', content=readme)
+        content = Content(parent=self.version_key, id='readme', content=readme)
         content.etag = response.headers.get('ETag', None)
         content.put()
       except db.BadValueError:
-        return error("Could not store README.md as a utf-8 string")
+        return self.error("Could not store README.md as a utf-8 string")
     elif response.status_code == 404:
       readme = None
     else:
-      return abort('error fetching readme (%d)' % response.status_code)
+      return self.abort('error fetching readme (%d)' % response.status_code)
 
     if readme is not None:
       response = util.github_markdown(readme)
       if response.status_code == 200:
-        content = Content(parent=key, id='readme.html', content=response.content)
+        content = Content(parent=self.version_key, id='readme.html', content=response.content)
         content.put()
       else:
-        return abort('error converting readme to markdown (%d)' % response.status_code)
+        return self.abort('error converting readme to markdown (%d)' % response.status_code)
 
-    response = urlfetch.fetch(util.content_url(owner, repo, version, 'bower.json'), validate_certificate=True)
+  def update_bower(self):
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'bower.json'), validate_certificate=True)
     if response.status_code == 200:
       try:
-        json.loads(response.content)
+        bower_json = json.loads(response.content)
       except ValueError:
-        return error("could not parse bower.json")
-      content = Content(parent=key, id='bower', content=response.content)
+        return self.error("could not parse bower.json")
+      content = Content(parent=self.version_key, id='bower', content=response.content)
       content.etag = response.headers.get('ETag', None)
       content.put()
+      return bower_json
     elif response.status_code == 404:
-      return error("missing bower.json")
+      return self.error("missing bower.json")
     else:
-      return abort('could not access bower.json (%d)' % response.status_code)
+      return self.abort('could not access bower.json (%d)' % response.status_code)
 
-    ver = key.get()
-    ver.status = Status.ready
-    ver.put()
+  def set_ready(self):
+    self.version_object.status = Status.ready
 
-    if generate_search:
-      library = key.parent().get()
-      if library.kind == "collection":
-        task_url = util.ingest_dependencies_task(owner, repo, version)
-        util.new_task(task_url, target='manage')
-      bower = json.loads(response.content)
-      metadata = json.loads(library.metadata)
-      logging.info('adding search index for %s', version)
-      description = bower.get("description", metadata.get("description", ""))
-      document = search.Document(doc_id='%s/%s' % (owner, repo), fields=[
-          search.AtomField(name='full_name', value=metadata['full_name']),
-          search.TextField(name='owner', value=owner),
-          search.TextField(name='repo', value=repo),
-          search.TextField(name='version', value=version),
-          search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
-          search.TextField(name='description', value=description),
-          search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
-      ])
-      index = search.Index('repo')
-      index.put(document)
+  def index_for_search(self, bower):
+    assert self.generate_search
+    library = self.version_key.parent().get()
+    if library.kind == "collection":
+      task_url = util.ingest_dependencies_task(self.owner, self.repo, self.version)
+      util.new_task(task_url, target='manage')
+    metadata = json.loads(library.metadata)
+    logging.info('adding search index for %s', self.version)
+    description = bower.get("description", metadata.get("description", ""))
+    document = search.Document(doc_id='%s/%s' % (self.owner, self.repo), fields=[
+        search.AtomField(name='full_name', value=metadata['full_name']),
+        search.TextField(name='owner', value=self.owner),
+        search.TextField(name='repo', value=self.repo),
+        search.TextField(name='version', value=self.version),
+        search.TextField(name='repoparts', value=' '.join(self.repo.split('-'))),
+        search.TextField(name='description', value=description),
+        search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
+    ])
+    index = search.Index('repo')
+    index.put(document)
 
 class IngestDependencies(RequestHandler):
   def handle_get(self, owner, repo, version):
