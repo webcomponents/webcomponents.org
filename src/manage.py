@@ -198,7 +198,8 @@ class LibraryTask(RequestHandler):
         return self.abort('could not update stats/participation (%d)' % response.status_code)
 
   def trigger_version_deletion(self, tag):
-    pass
+    task_url = util.delete_task(self.owner, self.repo, tag)
+    util.new_task(task_url, target='manage')
 
   def trigger_version_ingestion(self, tag, sha, latest=False, url=None):
     version_object = Version.get_or_insert(tag, parent=self.library.key, sha=sha)
@@ -236,14 +237,14 @@ class LibraryTask(RequestHandler):
     if response.status_code != 200:
       return self.abort('could not upate repo tags (%d)' % response.status_code)
 
-    old_tags = self.library.tags 
+    old_tags = self.library.tags
 
     data = json.loads(response.content)
     if not isinstance(data, object):
       data = {}
 
     new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
-                        if versiontag.is_valid(d['ref'][10:]))
+                       if versiontag.is_valid(d['ref'][10:]))
     new_tags = new_tag_map.keys()
     new_tags.sort()
 
@@ -366,6 +367,13 @@ class UpdateAuthor(AuthorTask):
     if self.author is None:
       return self.error('author does not exist')
     self.update_metadata()
+
+class DeleteVersion(RequestHandler):
+  @ndb.toplevel
+  def handle_get(self, owner, repo, version):
+    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))
+    VersionCache.update_async(version_key.parent()).get_result()
 
 class IngestVersion(RequestHandler):
   def __init__(self, request, response):
@@ -631,6 +639,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
+    webapp2.Route(r'/task/delete/<owner>/<repo>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/author/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),

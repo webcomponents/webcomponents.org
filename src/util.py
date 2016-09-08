@@ -76,6 +76,9 @@ def ingest_version_task(owner, repo, version):
 def ingest_dependencies_task(owner, repo, version):
   return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
 
+def delete_task(owner, repo, version):
+  return '/task/delete/%s/%s/%s' % (owner, repo, version)
+
 def new_task(url, params=None, target=None):
   if params is None:
     params = {}

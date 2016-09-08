@@ -1,4 +1,3 @@
-import json
 import unittest
 import webtest
 
@@ -26,6 +25,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
+    self.app.get('/task/delete/owner/repo/version', status=403)
     self.app.get('/task/ingest/author/owner', status=403)
     self.app.get('/task/ingest/commit/owner/repo', status=403)
     self.app.get('/task/ingest/webhook/owner/repo', status=403)
@@ -72,10 +72,10 @@ class ManageUpdateTest(ManageTestBase):
     self.assertIsNone(version)
 
   def test_update_triggers_version_ingestion(self):
-    library_key = Library(id='org/repo', tags=[]).put()
+    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0']).put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
-    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -91,7 +91,7 @@ class ManageUpdateTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        # FIXME: Deleted
+        util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0') + '?latestVersion=True',
         util.ingest_version_task('org', 'repo', 'v1.0.0'),
     ], [task.url for task in tasks])
