@@ -65,14 +65,12 @@ class Library(ndb.Model):
   @ndb.tasklet
   def versions_for_key_async(key):
     version_cache = yield VersionCache.get_by_id_async('versions', parent=key)
-    if version_cache is not None:
-      raise ndb.Return(version_cache.versions)
-    versions = yield Library.versions_for_key_async_uncached(key)
+    versions = [] if version_cache is None else version_cache.versions
     raise ndb.Return(versions)
 
   @staticmethod
   @ndb.tasklet
-  def versions_for_key_async_uncached(key):
+  def uncached_versions_for_key_async(key):
     versions = yield Version.query(Version.status == Status.ready, ancestor=key).fetch_async(keys_only=True)
     versions = [key.id() for key in versions if versiontag.is_valid(key.id())]
     versions.sort(versiontag.compare)
@@ -84,10 +82,13 @@ class VersionCache(ndb.Model):
   @staticmethod
   @ndb.tasklet
   @ndb.transactional
-  def update(library_key):
-    versions = yield Library.versions_for_key_async_uncached(library_key)
-    version_cache = yield VersionCache.get_or_insert_async('versions', parent=library_key, versions=versions)
-    if version_cache.versions != versions:
+  def update(library_key, create=False):
+    versions = yield Library.uncached_versions_for_key_async(library_key)
+    if create:
+      version_cache = yield VersionCache.get_or_insert_async('versions', parent=library_key, versions=versions)
+    else:
+      version_cache = yield VersionCache.get_by_id_async('versions', parent=library_key)
+    if version_cache is not None and version_cache.versions != versions:
       version_cache.versions = versions
       version_cache.put()
 
