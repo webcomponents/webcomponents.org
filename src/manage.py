@@ -365,7 +365,7 @@ class IngestVersion(RequestHandler):
     self.owner = None
     self.repo = None
     self.version = None
-    self.generate_search = False
+    self.latest_version = False
 
   @ndb.toplevel
   def handle_get(self, owner, repo, version):
