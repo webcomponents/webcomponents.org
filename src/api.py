@@ -64,7 +64,6 @@ class LibraryMetadata(object):
         'stars': metadata['stars'],
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
-        'contributors': metadata['contributors'],
         'updated_at': metadata['updated_at'],
     }
     raise ndb.Return(result)
@@ -88,8 +87,9 @@ class LibraryMetadata(object):
 
     if version_key is not None:
       version_future = version_key.get_async()
-      readme_future = Content.get_by_id_async('readme.html', parent=version_key)
       bower_future = Content.get_by_id_async('bower', parent=version_key)
+      if not brief:
+        readme_future = Content.get_by_id_async('readme.html', parent=version_key)
 
     library = yield library_future
     if library is None:
@@ -106,7 +106,7 @@ class LibraryMetadata(object):
       versions = yield versions_future
       result['versions'] = versions
 
-    if library.contributors is not None:
+    if not brief and library.contributors is not None:
       contributors = []
       raw = json.loads(library.contributors)
       for contributor in raw:
@@ -141,8 +141,9 @@ class LibraryMetadata(object):
       result['version_error'] = version.error
 
 
-    readme = yield readme_future
-    result['readme'] = None if readme is None else readme.content
+    if not brief:
+      readme = yield readme_future
+      result['readme'] = None if readme is None else readme.content
 
     bower = yield bower_future
     if bower is not None:
