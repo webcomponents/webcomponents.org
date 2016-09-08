@@ -82,7 +82,7 @@ class VersionCache(ndb.Model):
   @staticmethod
   @ndb.tasklet
   @ndb.transactional
-  def update(library_key, create=False):
+  def update_async(library_key, create=False):
     versions = yield Library.uncached_versions_for_key_async(library_key)
     if create:
       version_cache = yield VersionCache.get_or_insert_async('versions', parent=library_key, versions=versions)
@@ -91,6 +91,7 @@ class VersionCache(ndb.Model):
     if version_cache is not None and version_cache.versions != versions:
       version_cache.versions = versions
       version_cache.put()
+    raise ndb.Return(None)
 
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)

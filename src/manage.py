@@ -395,7 +395,7 @@ class IngestVersion(RequestHandler):
 
       # Update the version cache if it exists.
       # Create it if we're ingesting the latest version.
-      VersionCache.update(self.version_key.parent(), create=self.latest_version)
+      VersionCache.update_async(self.version_key.parent(), create=self.latest_version).get_result()
 
   def error(self, error_string):
     self.version_object.status = Status.error
