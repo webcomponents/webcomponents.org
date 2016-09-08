@@ -55,7 +55,7 @@ class ManageUpdateTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-  def test_update_deletes(self):
+  def test_update_deletes_missing_repo(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
     library.put()
     version = Version(parent=library.key, id='v1.0.0', sha='lol')
@@ -70,6 +70,31 @@ class ManageUpdateTest(ManageTestBase):
 
     self.assertIsNone(library)
     self.assertIsNone(version)
+
+  def test_update_triggers_version_ingestion(self):
+    library_key = Library(id='org/repo', tags=[]).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', """[
+        {"ref": "refs/tags/v1.0.0", "object": {"sha": "new"}},
+        {"ref": "refs/tags/v2.0.0", "object": {"sha": "old"}},
+        {"ref": "refs/tags/v3.0.0", "object": {"sha": "new"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        # FIXME: Deleted
+        util.ingest_version_task('org', 'repo', 'v3.0.0') + '?latestVersion=True',
+        util.ingest_version_task('org', 'repo', 'v1.0.0'),
+    ], [task.url for task in tasks])
 
 class ManageAuthorTest(ManageTestBase):
   def test_ingest_author(self):
@@ -116,6 +141,7 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(library.kind, 'element')
     self.assertEqual(library.metadata, 'metadata bits')
     self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['v1.0.0'])
 
     version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
     self.assertIsNone(version.error)
@@ -162,7 +188,7 @@ class ManageAddTest(ManageTestBase):
   @ndb.toplevel
   def test_ingest_version_falls_back(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
-    library.tags = json.dumps(["v1.0.0", "v1.0.1"])
+    library.tags = ["v1.0.0", "v1.0.1"]
     library.put()
     version1 = Version(parent=library.key, id='v1.0.0', sha='lol')
     version1.put()

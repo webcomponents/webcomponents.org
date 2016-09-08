@@ -197,20 +197,29 @@ class LibraryTask(RequestHandler):
       elif response.status_code != 304:
         return self.abort('could not update stats/participation (%d)' % response.status_code)
 
+  def trigger_version_deletion(self, tag):
+    pass
+
   def trigger_version_ingestion(self, tag, sha, latest=False, url=None):
+    version_object = Version.get_or_insert(tag, parent=self.library.key, sha=sha)
+    if version_object.sha == sha and version_object.status == Status.ready:
+      # Version object is already up to date
+      return
+
+    version_object.url = url
+    version_object.sha = sha
+    version_object.status = Status.pending
+    version_object.put()
+
     params = {}
     if latest:
       params["latestVersion"] = "True"
-    version_object = Version.get_or_insert(tag, parent=self.library.key, sha=sha)
-    if url is not None:
-      version_object.url = url
-    version_object.status = Status.pending
-    version_object.put()
+
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, params=params, target='manage')
     util.publish_analysis_request(self.owner, self.repo, tag)
 
-  def ingest_author(self):
+  def trigger_author_ingestion(self):
     if not self.library.ingest_versions:
       return
     task_url = util.ingest_author_task(self.owner)
@@ -227,32 +236,33 @@ class LibraryTask(RequestHandler):
     if response.status_code != 200:
       return self.abort('could not upate repo tags (%d)' % response.status_code)
 
-    self.library.tags = response.content
-    self.library.tags_etag = response.headers.get('ETag', None)
-    self.library_dirty = True
+    old_tags = self.library.tags 
 
     data = json.loads(response.content)
     if not isinstance(data, object):
-      data = []
-    data = [d for d in data if versiontag.is_valid(d['ref'][10:])]
-    if len(data) is 0:
-      return self.error('no valid versions')
-    data.sort(lambda a, b: versiontag.compare(a['ref'][10:], b['ref'][10:]))
-    data_refs = [d['ref'][10:] for d in data]
-    # TODO: Do a diff on self.library.tags:
-    # * ingest new shas
-    # * delete missing
-    self.library.tags = json.dumps(data_refs)
+      data = {}
+
+    new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
+                        if versiontag.is_valid(d['ref'][10:]))
+    new_tags = new_tag_map.keys()
+    new_tags.sort()
+
+    self.library.tags = new_tags
     self.library.tags_etag = response.headers.get('ETag', None)
-    data.reverse()
-    is_newest = True
-    for version in data:
-      tag = version['ref'][10:]
-      if not versiontag.is_valid(tag):
-        continue
-      sha = version['object']['sha']
-      self.trigger_version_ingestion(tag, sha, latest=is_newest)
-      is_newest = False
+    self.library_dirty = True
+
+    removed_tags = list(set(old_tags) - set(new_tags))
+
+    for tag in removed_tags:
+      self.trigger_version_deletion(tag)
+
+    if len(data) is 0:
+      return self.error("couldn't find any tagged versions")
+
+    new_tags.reverse()
+    for tag in new_tags:
+      is_latest = tag == new_tags[0]
+      self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
 
 class IngestLibrary(LibraryTask):
   @ndb.toplevel
@@ -264,7 +274,7 @@ class IngestLibrary(LibraryTask):
       self.library_dirty = True
     self.update_metadata()
     self.ingest_versions()
-    self.ingest_author()
+    self.trigger_author_ingestion()
     self.set_ready()
 
 class UpdateLibrary(LibraryTask):
@@ -404,11 +414,12 @@ class IngestVersion(RequestHandler):
       # No longer the latest valid version. Prevent creation of the version cache.
       self.latest_version = False
       library = self.version_key.parent().get()
-      versions = json.loads(library.tags)
-      idx = versions.index(self.version)
+      tags = library.tags
+      idx = tags.index(self.version)
       if idx > 0:
-        logging.info('ingestion for %s/%s falling back to version %s', self.owner, self.repo, versions[idx - 1])
-        task_url = util.ingest_version_task(self.owner, self.repo, versions[idx - 1])
+        next_tag = tags[idx - 1]
+        logging.info('ingestion for %s/%s falling back to version %s', self.owner, self.repo, next_tag)
+        task_url = util.ingest_version_task(self.owner, self.repo, next_tag)
         util.new_task(task_url, params={'latestVersion':'True'}, target='manage')
     super(IngestVersion, self).error(error_string)
 
