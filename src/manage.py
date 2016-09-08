@@ -14,7 +14,7 @@ import urllib
 import webapp2
 import sys
 
-from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency
+from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
 import versiontag
 import util
 
@@ -365,8 +365,9 @@ class IngestVersion(RequestHandler):
     self.owner = None
     self.repo = None
     self.version = None
-    self.generate_search = False
+    self.latest_version = False
 
+  @ndb.toplevel
   def handle_get(self, owner, repo, version):
     self.owner = owner
     self.repo = repo
@@ -375,7 +376,7 @@ class IngestVersion(RequestHandler):
     self.version_object = self.version_key.get()
 
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
-    self.generate_search = self.request.get('latestVersion', False)
+    self.latest_version = self.request.get('latestVersion', False)
 
     if self.version_object is None:
       return self.error('version object is missing')
@@ -383,20 +384,25 @@ class IngestVersion(RequestHandler):
     self.update_readme()
     bower = self.update_bower()
 
-    if self.generate_search:
-      self.index_for_search(bower)
+    if self.latest_version:
+      self.update_indexes(bower)
 
     self.set_ready()
-    # FIXME: build version map
 
   def commit(self):
     if self.version_object is not None:
       self.version_object.put()
 
+      # Update the version cache if it exists.
+      # Create it if we're ingesting the latest version.
+      VersionCache.update_async(self.version_key.parent(), create=self.latest_version).get_result()
+
   def error(self, error_string):
     self.version_object.status = Status.error
     self.version_object.error = error_string
-    if self.generate_search:
+    if self.latest_version:
+      # No longer the latest valid version. Prevent creation of the version cache.
+      self.latest_version = False
       library = self.version_key.parent().get()
       versions = json.loads(library.tags)
       idx = versions.index(self.version)
@@ -448,8 +454,8 @@ class IngestVersion(RequestHandler):
   def set_ready(self):
     self.version_object.status = Status.ready
 
-  def index_for_search(self, bower):
-    assert self.generate_search
+  def update_indexes(self, bower):
+    assert self.latest_version
     library = self.version_key.parent().get()
     if library.kind == "collection":
       task_url = util.ingest_dependencies_task(self.owner, self.repo, self.version)
