@@ -65,7 +65,9 @@ class Library(ndb.Model):
   @ndb.tasklet
   def versions_for_key_async(key):
     version_cache = yield VersionCache.get_by_id_async('versions', parent=key)
-    versions = [] if version_cache is None else version_cache.versions
+    versions = []
+    if version_cache is not None:
+      versions = version_cache.versions
     raise ndb.Return(versions)
 
   @staticmethod
