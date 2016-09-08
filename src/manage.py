@@ -14,7 +14,7 @@ import urllib
 import webapp2
 import sys
 
-from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency
+from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
 import versiontag
 import util
 
@@ -367,6 +367,7 @@ class IngestVersion(RequestHandler):
     self.version = None
     self.generate_search = False
 
+  @ndb.toplevel
   def handle_get(self, owner, repo, version):
     self.owner = owner
     self.repo = repo
@@ -387,6 +388,7 @@ class IngestVersion(RequestHandler):
       self.index_for_search(bower)
 
     self.set_ready()
+    VersionCache.update(self.version_key.parent())
     # FIXME: build version map
 
   def commit(self):
