@@ -1,18 +1,23 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<script src='https://www.google.com/recaptcha/api.js'></script>
 
 <dom-module id="catalog-preview">
   <template>
-    Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your Github repository to publish status updates.
-    <template is="dom-if" if="[[!queryParams.code]]">
-      <a href="https://github.com/login/oauth/authorize?client_id=28539cb28f7d3e40fe1c&scope=write:repo_hook%20repo:status">Sign in with Github</a>
-    </template>
-    <template is="dom-if" if="[[queryParams.code]]">
-      <form action="[[baseUrls.api]]/api/preview" method="post">
-        <input type="hidden" name="code" value="[[queryParams.code]]">
-        Enter the repo you want to use preview with: <input type="text" name="repo">
-        <input type="submit" value="test">
-      </form>
-    </template>
+    Enter the github URL you want to preview: <input type="text" name="url" value="{{url::input}}">
+    <input type="submit" value="Preview" on-tap="onSubmit">
+
+    <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+
+    <iron-ajax
+      id="ajax"
+      method="POST"
+      url="[[baseUrls.api]]/api/ondemand"
+      handle-as="text"
+      on-response="_taskTriggered"
+      on-error="_error"></iron-ajax>
+
   </template>
 
   <script>
@@ -21,9 +26,28 @@
       is: 'catalog-preview',
 
       properties: {
-        queryParams: Object,
+        baseUrls: Object,
 
-        baseUrls: Object
+        _sha: String,
+      },
+
+      onSubmit: function() {
+        if (!grecaptcha || !grecaptcha.getResponse())
+          return;
+
+        this.$.ajax.params = {
+          url: this.url,
+          recaptcha: grecaptcha.getResponse()
+        };
+        this.$.ajax.generateRequest();
+      },
+
+      _taskTriggered: function(event) {
+        window.location = 'element/' + event.detail.response;
+      },
+
+      _error: function() {
+        console.log('An error occured. Please try again.');
       },
 
     });
