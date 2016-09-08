@@ -369,7 +369,6 @@ class UpdateAuthor(AuthorTask):
     self.update_metadata()
 
 class DeleteVersion(RequestHandler):
-  @ndb.toplevel
   def handle_get(self, owner, repo, version):
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
     ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))

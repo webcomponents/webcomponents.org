@@ -1,7 +1,7 @@
 import unittest
 import webtest
 
-from datamodel import Author, Library, Version, Content, Status
+from datamodel import Author, Library, Version, Content, Status, VersionCache
 from manage import app
 import util
 
@@ -40,6 +40,17 @@ class XsrfTest(ManageTestBase):
 
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
+
+class DeleteTest(ManageTestBase):
+  def test_delete_version(self):
+    library_key = ndb.Key(Library, 'owner/repo')
+    version_key = Version(id='v1.0.0', parent=library_key, sha='1', status=Status.ready).put()
+    VersionCache.update_async(library_key, create=True).get_result()
+
+    response = self.app.get('/task/delete/owner/repo/v1.0.0', headers={'X-AppEngine-QueueName': 'default'})
+    version = version_key.get()
+    self.assertIsNone(version)
+    self.assertEqual(Library.versions_for_key_async(library_key).get_result(), [])
 
 class ManageUpdateTest(ManageTestBase):
   def test_update_respects_304(self):
