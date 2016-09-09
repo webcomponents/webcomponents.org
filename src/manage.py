@@ -258,7 +258,7 @@ class LibraryTask(RequestHandler):
     for tag in removed_tags:
       self.trigger_version_deletion(tag)
 
-    if len(data) is 0:
+    if len(new_tags) is 0:
       return self.error("couldn't find any tagged versions")
 
     new_tags.reverse()
