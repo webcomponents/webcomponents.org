@@ -27,7 +27,7 @@ class Library(ndb.Model):
 
   metadata = ndb.TextProperty()
   contributors = ndb.TextProperty()
-  tags = ndb.TextProperty()
+  tags = ndb.StringProperty(repeated=True)
   participation = ndb.TextProperty()
 
   metadata_etag = ndb.StringProperty()
