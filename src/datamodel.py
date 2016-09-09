@@ -11,10 +11,12 @@ class CollectionReference(ndb.Model):
 
   @staticmethod
   def ensure(library_key, collection_version_key, semver):
+    assert library_key.kind() == 'Library'
+    assert collection_version_key.kind() == 'Version'
     collection_library_key = collection_version_key.parent()
     name = '%s/%s' % (collection_library_key.id(), collection_version_key.id())
     collection_reference = CollectionReference(id=name, parent=library_key, semver=semver)
-    collection_reference.put()
+    return collection_reference.put()
 
 class Status(object):
   error = 'error'
@@ -116,12 +118,14 @@ class Version(ndb.Model):
       collection_version = yield version_future
       if collection_version is None:
         # Remove the stale reference.
-        collection_references[i].delete_async()
+        yield collection_references[i].key.delete_async()
       elif versiontag.match(version_key.id(), collection_references[i].semver):
         collection_id = collection_version.key.parent().id()
         existing_version = result_map.get(collection_id, None)
         if existing_version is None or versiontag.compare(collection_version.key.id(), existing_version.key.id()) > 0:
           result_map[collection_id] = collection_version
+      else:
+        raise Exception([version_key.id(), collection_references[i].semver])
     raise ndb.Return(result_map.values())
 
 class Content(ndb.Model):
