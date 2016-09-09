@@ -259,8 +259,8 @@ class IngestDependenciesTest(ManageTestBase):
     # Triggers ingestions
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-      util.ingest_library_task('org', 'element-1', 'element'),
-      util.ingest_library_task('org', 'element-2', 'element'),
+        util.ingest_library_task('org', 'element-1', 'element'),
+        util.ingest_library_task('org', 'element-2', 'element'),
     ], [task.url for task in tasks])
 
     # Ensures collection references

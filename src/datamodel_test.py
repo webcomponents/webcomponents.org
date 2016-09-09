@@ -46,7 +46,6 @@ class VersionCacheTests(TestBase):
 class CollectionReferenceTests(TestBase):
   @ndb.toplevel
   def test_stale_ref_is_removed(self):
-    collection_key = ndb.Key(Library, 'collection/1')
     # Stale since the collection version doesn't actually exist.
     collection_v0 = ndb.Key(Library, 'collection/1', Version, 'v0.5.0')
 
