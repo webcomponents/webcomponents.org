@@ -48,6 +48,7 @@ class DeleteTest(ManageTestBase):
     VersionCache.update_async(library_key, create=True).get_result()
 
     response = self.app.get('/task/delete/owner/repo/v1.0.0', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
     version = version_key.get()
     self.assertIsNone(version)
     self.assertEqual(Library.versions_for_key_async(library_key).get_result(), [])
