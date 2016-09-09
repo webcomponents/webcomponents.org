@@ -110,14 +110,19 @@ class Version(ndb.Model):
     library_key = version_key.parent()
     collection_references = yield CollectionReference.query(ancestor=library_key).fetch_async()
     collection_version_futures = [ref.collection_version_key().get_async() for ref in collection_references]
-    result = []
+    # If there are multiple versions of a collection we want to find the most recent one that applies.
+    result_map = {}
     for i, version_future in enumerate(collection_version_futures):
-      version = yield version_future
-      if version is None:
+      collection_version = yield version_future
+      if collection_version is None:
+        # Remove the stale reference.
         collection_references[i].delete_async()
       elif versiontag.match(version_key.id(), collection_references[i].semver):
-        result.append(version)
-    raise ndb.Return(result)
+        collection_id = collection_version.key.parent().id()
+        existing_version = result_map.get(collection_id, None)
+        if existing_version is None or versiontag.compare(collection_version.key.id(), existing_version.key.id()) > 0:
+          result_map[collection_id] = collection_version
+    raise ndb.Return(result_map.values())
 
 class Content(ndb.Model):
   content = ndb.TextProperty(required=True)
