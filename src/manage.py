@@ -243,6 +243,7 @@ class LibraryTask(RequestHandler):
     if not isinstance(data, object):
       data = {}
 
+    # normalize the tag from 'refs/tags/v0.8.0' to 'v0.8.0'
     new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
                        if versiontag.is_valid(d['ref'][10:]))
     new_tags = new_tag_map.keys()
