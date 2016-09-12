@@ -184,7 +184,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.abort('could not update contributors (%d)' % response.status_code)
 
-    if self.library.ingest_versions:
+    if not self.library.shallow_ingestion:
       response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
       if response.status_code == 200:
         self.library.participation = response.content
@@ -221,13 +221,13 @@ class LibraryTask(RequestHandler):
     util.publish_analysis_request(self.owner, self.repo, tag)
 
   def trigger_author_ingestion(self):
-    if not self.library.ingest_versions:
+    if self.library.shallow_ingestion:
       return
     task_url = util.ingest_author_task(self.owner)
     util.new_task(task_url, target='manage')
 
   def ingest_versions(self):
-    if not self.library.ingest_versions:
+    if self.library.shallow_ingestion:
       return
 
     response = util.github_get('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
@@ -271,8 +271,8 @@ class IngestLibrary(LibraryTask):
   def handle_get(self, owner, repo, kind):
     assert kind == 'element' or kind == 'collection'
     self.init_library(owner, repo, kind)
-    if not self.library.ingest_versions:
-      self.library.ingest_versions = True
+    if self.library.shallow_ingestion:
+      self.library.shallow_ingestion = False
       self.library_dirty = True
     self.update_metadata()
     self.ingest_versions()
@@ -299,7 +299,7 @@ class IngestLibraryCommit(LibraryTask):
     self.init_library(owner, repo, 'element')
     is_new = self.library.metadata is None and self.library.error is None
     if is_new:
-      self.library.ingest_versions = False
+      self.library.shallow_ingestion = True
       self.library_dirty = True
       self.update_metadata()
 
@@ -314,7 +314,7 @@ class IngestWebhookLibrary(LibraryTask):
     self.init_library(owner, repo, 'element')
     is_new = self.library.metadata is None and self.library.error is None
     if is_new:
-      self.library.ingest_versions = False
+      self.library.shallow_ingestion = True
       self.library_dirty = True
       self.update_metadata()
     self.library.github_access_token = access_token

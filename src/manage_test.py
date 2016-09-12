@@ -235,7 +235,7 @@ class ManageAddTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertFalse(library.ingest_versions)
+    self.assertTrue(library.shallow_ingestion)
 
     version = Version.get_by_id(parent=library.key, id='commit-sha')
     self.assertEqual(version.sha, 'commit-sha')

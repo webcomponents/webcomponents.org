@@ -49,7 +49,7 @@ class Library(ndb.Model):
 
   contributor_count = ndb.IntegerProperty()
 
-  ingest_versions = ndb.BooleanProperty(default=True)
+  shallow_ingestion = ndb.BooleanProperty(default=False)
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
