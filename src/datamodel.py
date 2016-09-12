@@ -124,8 +124,6 @@ class Version(ndb.Model):
         existing_version = result_map.get(collection_id, None)
         if existing_version is None or versiontag.compare(collection_version.key.id(), existing_version.key.id()) > 0:
           result_map[collection_id] = collection_version
-      else:
-        raise Exception([version_key.id(), collection_references[i].semver])
     raise ndb.Return(result_map.values())
 
 class Content(ndb.Model):

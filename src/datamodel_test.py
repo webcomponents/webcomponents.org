@@ -64,12 +64,14 @@ class CollectionReferenceTests(TestBase):
     collection_key = ndb.Key(Library, 'collection/1')
     collection_v1 = Version(id='v1.0.0', sha='x', status=Status.ready, parent=collection_key).put()
     collection_v2 = Version(id='v2.0.0', sha='x', status=Status.ready, parent=collection_key).put()
+    collection_v3 = Version(id='v3.0.0', sha='x', status=Status.ready, parent=collection_key).put()
 
     element_key = ndb.Key(Library, 'ele/ment')
     element_v1 = Version(id='v1.0.0', sha='x', status=Status.ready, parent=element_key).put()
 
     CollectionReference.ensure(element_key, collection_v1, '^1.0.0')
     CollectionReference.ensure(element_key, collection_v2, '^1.0.0')
+    CollectionReference.ensure(element_key, collection_v3, '^2.0.0')
 
     collections = yield Version.collections_for_key_async(element_v1)
     collection_keys = [collection.key for collection in collections]
