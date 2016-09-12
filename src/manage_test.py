@@ -1,7 +1,7 @@
 import unittest
 import webtest
 
-from datamodel import Author, Library, Version, Content, Status, VersionCache
+from datamodel import Author, Library, Version, Content, Status, VersionCache, CollectionReference
 from manage import app
 import util
 
@@ -244,6 +244,31 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha'))
+
+class IngestDependenciesTest(ManageTestBase):
+  def test_ingest_dependencies(self):
+    collection_version_key = ndb.Key(Library, 'my/collection', Version, 'v1.0.0')
+    Content(id='bower', parent=collection_version_key, content="""{"dependencies": {
+      "a": "org/element-1#1.0.0",
+      "b": "org/element-2#1.0.0"
+    }}""").put()
+
+    response = self.app.get(util.ingest_dependencies_task('my', 'collection', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    # Triggers ingestions
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_library_task('org', 'element-1', 'element'),
+        util.ingest_library_task('org', 'element-2', 'element'),
+    ], [task.url for task in tasks])
+
+    # Ensures collection references
+    ref1 = CollectionReference.get_by_id(id="my/collection/v1.0.0", parent=ndb.Key(Library, "org/element-1"))
+    self.assertIsNotNone(ref1)
+
+    ref2 = CollectionReference.get_by_id(id="my/collection/v1.0.0", parent=ndb.Key(Library, "org/element-2"))
+    self.assertIsNotNone(ref2)
 
 if __name__ == '__main__':
   unittest.main()

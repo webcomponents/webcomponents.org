@@ -497,27 +497,19 @@ class IngestVersion(RequestHandler):
 class IngestDependencies(RequestHandler):
   def handle_get(self, owner, repo, version):
     logging.info('ingesting version %s/%s/%s', owner, repo, version)
-    key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
-    bower = json.loads(key.get().content)
-    ver = key.parent().get()
+    bower_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
+    collection_version_key = bower_key.parent()
+    bower = json.loads(bower_key.get().content)
     dependencies = bower.get('dependencies', {})
-    library_keys = []
-    dep_list = []
-    for name in dependencies.keys():
-      ver.dependencies.append(dependencies[name])
-      dep = Dependency.from_string(dependencies[name])
-      dep_list.append(dep)
-      library_keys.append(ndb.Key(Library, '%s/%s' % (dep.owner.lower(), dep.repo.lower())))
 
-    libraries = Library.get_or_create_list(library_keys)
-    for i, library in enumerate(libraries):
-      dep = dep_list[i]
-      library.collections.append(CollectionReference(version=key.parent(), semver=dep.version))
+    for name in dependencies.keys():
+      dep = Dependency.from_string(dependencies[name])
+      library_key = ndb.Key(Library, '%s/%s' % (dep.owner.lower(), dep.repo.lower()))
+      CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
+
       # FIXME: Can't assume this is an element.
       task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
       util.new_task(task_url, target='manage')
-    libraries.append(ver)
-    ndb.put_multi(libraries)
 
 class IngestAnalysis(RequestHandler):
   def is_mutation(self):
