@@ -7,6 +7,7 @@ from google.appengine.api import urlfetch
 
 import base64
 import binascii
+import datetime
 import json
 import logging
 import os
@@ -168,6 +169,7 @@ class LibraryTask(RequestHandler):
     if response.status_code == 200:
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
+      self.library.metadata_updated = datetime.datetime.now()
       self.library_dirty = True
     elif response.status_code == 404:
       logging.info('deleting non-existing repo %s/%s', self.owner, self.repo)
@@ -180,6 +182,7 @@ class LibraryTask(RequestHandler):
     if response.status_code == 200:
       self.library.contributors = response.content
       self.library.contributors_etag = response.headers.get('ETag', None)
+      self.library.contributors_updated = datetime.datetime.now()
       self.library_dirty = True
     elif response.status_code != 304:
       return self.abort('could not update contributors (%d)' % response.status_code)
@@ -189,6 +192,7 @@ class LibraryTask(RequestHandler):
       if response.status_code == 200:
         self.library.participation = response.content
         self.library.participation_etag = response.headers.get('ETag', None)
+        self.library.participation_updated = datetime.datetime.now()
         self.library_dirty = True
       elif response.status_code == 202:
         # GitHub is "computing" the data. We'll try again next update cycle.
@@ -251,6 +255,7 @@ class LibraryTask(RequestHandler):
 
     self.library.tags = new_tags
     self.library.tags_etag = response.headers.get('ETag', None)
+    self.library.tags_updated = datetime.datetime.now()
     self.library_dirty = True
 
     removed_tags = list(set(old_tags) - set(new_tags))

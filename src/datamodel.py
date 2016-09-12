@@ -27,6 +27,7 @@ class Author(ndb.Model):
   metadata = ndb.TextProperty()
 
   metadata_etag = ndb.StringProperty()
+  metadata_updated = ndb.DateTimeProperty()
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
@@ -38,16 +39,20 @@ class Library(ndb.Model):
   github_access_token = ndb.StringProperty()
 
   metadata = ndb.TextProperty()
-  contributors = ndb.TextProperty()
-  tags = ndb.StringProperty(repeated=True)
-  participation = ndb.TextProperty()
-
   metadata_etag = ndb.StringProperty()
-  contributors_etag = ndb.StringProperty()
-  tags_etag = ndb.StringProperty()
-  participation_etag = ndb.StringProperty()
+  metadata_updated = ndb.DateTimeProperty()
 
-  contributor_count = ndb.IntegerProperty()
+  contributors = ndb.TextProperty()
+  contributors_etag = ndb.StringProperty()
+  contributors_updated = ndb.DateTimeProperty()
+
+  tags = ndb.StringProperty(repeated=True)
+  tags_etag = ndb.StringProperty()
+  tags_updated = ndb.DateTimeProperty()
+
+  participation = ndb.TextProperty()
+  participation_etag = ndb.StringProperty()
+  participation_updated = ndb.DateTimeProperty()
 
   ingest_versions = ndb.BooleanProperty(default=True)
 
