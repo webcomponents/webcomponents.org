@@ -45,7 +45,7 @@ class DeleteTest(ManageTestBase):
   def test_delete_version(self):
     library_key = ndb.Key(Library, 'owner/repo')
     version_key = Version(id='v1.0.0', parent=library_key, sha='1', status=Status.ready).put()
-    VersionCache.update_async(library_key, create=True).get_result()
+    VersionCache.update(library_key)
 
     response = self.app.get('/task/delete/owner/repo/v1.0.0', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
@@ -77,8 +77,8 @@ class ManageUpdateTest(ManageTestBase):
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
-    version = Version.get_by_id('v1.0.0', parent=library.key)
-    library = Library.get_by_id('org/repo')
+    version = version.key.get()
+    library = library.key.get()
 
     self.assertIsNone(library)
     self.assertIsNone(version)
@@ -104,7 +104,7 @@ class ManageUpdateTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.1.0'),
-        util.ingest_version_task('org', 'repo', 'v3.0.0') + '?latestVersion=True',
+        util.ingest_version_task('org', 'repo', 'v3.0.0') + '?sha=new',
         # We intentionally don't update tags that have changed to point to different commits.
     ], [task.url for task in tasks])
 
@@ -141,11 +141,13 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo', 'element'))
 
+  def test_ingest_library(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'})
+
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
@@ -155,39 +157,33 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v1.0.0'])
 
-    version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
-    self.assertIsNone(version.error)
-    self.assertEqual(version.sha, 'lol')
-
     tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 3)
-    self.assertEqual(tasks[1].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
-    self.assertEqual(tasks[2].url, util.ingest_author_task('org'))
+    self.assertEqual([
+        util.ingest_version_task('org', 'repo', 'v1.0.0') + '?sha=lol',
+        util.ingest_author_task('org'),
+    ], [task.url for task in tasks])
 
   def test_github_error_fails_gracefully(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': '500'})
     response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'}, status=502)
     self.assertEqual(response.status_int, 502)
 
-  @ndb.toplevel
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
-    version = Version(parent=library.key, id='v1.0.0', sha='lol')
     library.put()
-    version.put()
 
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/README.md', 'README')
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), params={'latestVersion': 'True'}, headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), params={'latestVersion': 'True', 'sha': 'lol'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
-    version = version.key.get()
+    version = Version.get_by_id('v1.0.0', parent=library.key)
     self.assertIsNone(version.error)
     self.assertEqual(version.status, Status.ready)
 
-    versions = yield Library.versions_for_key_async(library.key)
+    versions = Library.versions_for_key_async(library.key).get_result()
     self.assertEqual(['v1.0.0'], versions)
 
     readme = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme').get()
@@ -197,8 +193,7 @@ class ManageAddTest(ManageTestBase):
     bower = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'bower').get()
     self.assertEqual(bower.content, '{}')
 
-  @ndb.toplevel
-  def test_ingest_version_falls_back(self):
+  def fix_test_ingest_version_falls_back(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
     library.tags = ["v1.0.0", "v1.0.1"]
     library.put()
@@ -212,19 +207,19 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'latestVersion': 'True'}, headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'sha': 'sha'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     version2 = version2.key.get()
     self.assertEqual(version2.status, Status.error)
     self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")
 
-    versions = yield Library.versions_for_key_async(library.key)
+    versions = Library.versions_for_key_async(library.key).get_result()
     self.assertEqual([], versions)
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
+    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'v1.0.0'))
 
   def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
@@ -238,13 +233,9 @@ class ManageAddTest(ManageTestBase):
     self.assertIsNone(library.error)
     self.assertTrue(library.shallow_ingestion)
 
-    version = Version.get_by_id(parent=library.key, id='commit-sha')
-    self.assertEqual(version.sha, 'commit-sha')
-    self.assertEqual(version.url, 'url')
-
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha'))
+    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha') + '?url=url&sha=commit-sha')
 
 class IngestDependenciesTest(ManageTestBase):
   def test_ingest_dependencies(self):

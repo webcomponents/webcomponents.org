@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 import optparse
 import os
 import sys
@@ -34,6 +35,8 @@ def main(sdk_path):
     print "Note: unable to import appengine_config."
 
   test_path = os.path.dirname(sys.modules[__name__].__file__)
+
+  logging.disable(logging.CRITICAL)
 
   # Discover and run tests.
   suite = unittest.loader.TestLoader().discover(test_path, pattern='*_test.py')
