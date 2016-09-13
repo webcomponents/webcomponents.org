@@ -284,7 +284,9 @@ class LibraryTask(RequestHandler):
     new_tags.reverse()
     for tag in new_tags:
       is_latest = tag == new_tags[0]
-      self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
+      # Only ingest the latest version if we're doing ingestion for the first time.
+      if old_tags != [] or is_latest:
+        self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
 
 class IngestLibrary(LibraryTask):
   @ndb.toplevel
