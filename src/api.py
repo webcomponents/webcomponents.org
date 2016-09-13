@@ -234,16 +234,15 @@ class GetMetadata(webapp2.RequestHandler):
       self.response.write(json.dumps(result))
 
 class GetDocs(webapp2.RequestHandler):
+  @ndb.toplevel
   def get(self, owner, repo, ver=None):
     # TODO: Share all of this boilerplate between API handlers
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
     library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
-    # TODO: version shouldn't be optional here
     if ver is None:
-      versions = [v.key.id() for v in Version.query(ancestor=library_key) if versiontag.is_valid(v.key.id())]
-      versions.sort(versiontag.compare)
+      versions = yield Library.versions_for_key_async(library_key)
       if versions == []:
         self.response.set_status(404)
         return
