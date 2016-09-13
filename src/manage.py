@@ -424,7 +424,8 @@ class DeleteVersion(RequestHandler):
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
     ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))
     if VersionCache.update(version_key.parent()):
-      pass # FIXME: Trigger index update.
+      task_url = util.update_indexes_task(owner, repo)
+      util.new_task(task_url, target='manage')
 
 class IngestVersion(RequestHandler):
   def __init__(self, request, response):
@@ -463,11 +464,13 @@ class IngestVersion(RequestHandler):
   def commit(self):
     if self.version_object is not None:
       self.version_object.put()
-      @ndb.transactional
-      def update_versions_and_index():
-        if VersionCache.update(self.version_key.parent()):
-          pass # FIXME: Trigger index update.
-      update_versions_and_index()
+      self.update_versions_and_index()
+
+  @ndb.transactional
+  def update_versions_and_index(self):
+    if VersionCache.update(self.version_key.parent()):
+      task_url = util.update_indexes_task(self.owner, self.repo)
+      util.new_task(task_url, target='manage', transactional=True)
 
   def error(self, error_string):
     self.version_object.status = Status.error
@@ -516,35 +519,30 @@ class IngestVersion(RequestHandler):
   def set_ready(self):
     self.version_object.status = Status.ready
 
-  def update_indexes(self, bower):
-    # FIXME: Make this a separate task.
-    library = self.version_key.parent().get()
-    if library.kind == "collection":
-      task_url = util.ingest_dependencies_task(self.owner, self.repo, self.version)
-      util.new_task(task_url, target='manage')
-    metadata = json.loads(library.metadata)
-    logging.info('adding search index for %s', self.version)
-    description = bower.get("description", metadata.get("description", ""))
-    document = search.Document(doc_id='%s/%s' % (self.owner, self.repo), fields=[
-        search.AtomField(name='full_name', value=metadata['full_name']),
-        search.TextField(name='owner', value=self.owner),
-        search.TextField(name='repo', value=self.repo),
-        search.TextField(name='version', value=self.version),
-        search.TextField(name='repoparts', value=' '.join(self.repo.split('-'))),
-        search.TextField(name='description', value=description),
-        search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
-    ])
-    index = search.Index('repo')
-    index.put(document)
+class UpdateIndexes(RequestHandler):
+  def handle_get(self, owner, repo):
+    library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+    versions = Library.versions_for_key_async(library_key).get_result()
+    if versions == []:
+      return self.error('no versions for %s/%s' % (owner, repo))
+    version = versions[-1]
 
-class IngestDependencies(RequestHandler):
-  def handle_get(self, owner, repo, version):
-    logging.info('ingesting version %s/%s/%s', owner, repo, version)
     bower_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
-    collection_version_key = bower_key.parent()
     bower = json.loads(bower_key.get().content)
-    dependencies = bower.get('dependencies', {})
+    version_key = bower_key.parent()
+    library = version_key.parent().get()
 
+    self.update_search_index(owner, repo, version_key, library, bower)
+
+    if library.kind == 'collection':
+      self.trigger_dependency_ingestion(version_key, bower)
+
+    post_update_versions = Library.versions_for_key_async(library_key).get_result()
+    if len(post_update_versions) > 0 and post_update_versions[-1] != versions[-1]:
+      return abort('latest version changed while updating indexes')
+
+  def trigger_dependency_ingestion(self, collection_version_key, bower):
+    dependencies = bower.get('dependencies', {})
     for name in dependencies.keys():
       dep = Dependency.from_string(dependencies[name])
       library_key = ndb.Key(Library, '%s/%s' % (dep.owner.lower(), dep.repo.lower()))
@@ -553,6 +551,22 @@ class IngestDependencies(RequestHandler):
       # FIXME: Can't assume this is an element.
       task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
       util.new_task(task_url, target='manage')
+
+  def update_search_index(self, owner, repo, version_key, library, bower):
+    metadata = json.loads(library.metadata)
+    description = bower.get("description", metadata.get("description", ""))
+    document = search.Document(doc_id='%s/%s' % (owner, repo), fields=[
+        search.AtomField(name='full_name', value=metadata['full_name']),
+        search.TextField(name='owner', value=owner),
+        search.TextField(name='repo', value=repo),
+        search.TextField(name='version', value=version_key.id()),
+        search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
+        search.TextField(name='description', value=description),
+        search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
+    ])
+    index = search.Index('repo')
+    index.put(document)
+
 
 class IngestAnalysis(RequestHandler):
   def is_mutation(self):
@@ -674,12 +688,12 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
+    webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
     webapp2.Route(r'/task/delete/<owner>/<repo>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/author/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
-    webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion),
     webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis),
 ], debug=True)

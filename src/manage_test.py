@@ -30,7 +30,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/ingest/commit/owner/repo', status=403)
     self.app.get('/task/ingest/webhook/owner/repo', status=403)
     self.app.get('/task/ingest/library/owner/repo/kind', status=403)
-    self.app.get('/task/ingest/dependencies/owner/repo/version', status=403)
+    self.app.get('/task/update-indexes/owner/repo', status=403)
     self.app.get('/task/ingest/version/owner/repo/version', status=403)
 
   def test_token_only_valid_once(self):
@@ -237,15 +237,20 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha') + '?url=url&sha=commit-sha')
 
-class IngestDependenciesTest(ManageTestBase):
-  def test_ingest_dependencies(self):
-    collection_version_key = ndb.Key(Library, 'my/collection', Version, 'v1.0.0')
+class UpdateIndexesTest(ManageTestBase):
+  def test_update_indexes(self):
+    metadata = """{
+      "full_name": "full-name"
+    }"""
+    collection_library_key = Library(id='my/collection', status=Status.ready, kind='collection', metadata=metadata).put()
+    collection_version_key = Version(id='v1.0.0', parent=collection_library_key, sha='sha', status=Status.ready).put()
     Content(id='bower', parent=collection_version_key, content="""{"dependencies": {
       "a": "org/element-1#1.0.0",
       "b": "org/element-2#1.0.0"
     }}""").put()
+    VersionCache.update(collection_library_key)
 
-    response = self.app.get(util.ingest_dependencies_task('my', 'collection', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.update_indexes_task('my', 'collection'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     # Triggers ingestions
@@ -261,6 +266,8 @@ class IngestDependenciesTest(ManageTestBase):
 
     ref2 = CollectionReference.get_by_id(id="my/collection/v1.0.0", parent=ndb.Key(Library, "org/element-2"))
     self.assertIsNotNone(ref2)
+
+    # TODO: Validate search index is updated correctly.
 
 if __name__ == '__main__':
   unittest.main()

@@ -58,6 +58,9 @@ def content_url(owner, repo, version, path):
 def update_author_task(name):
   return '/task/update/%s' % name
 
+def update_indexes_task(owner, repo):
+  return '/task/update-indexes/%s/%s' % (owner, repo)
+
 def ingest_author_task(name):
   return '/task/ingest/author/%s' % name
 
@@ -72,9 +75,6 @@ def ingest_webhook_task(owner, repo):
 
 def ingest_version_task(owner, repo, version):
   return '/task/ingest/version/%s/%s/%s' % (owner, repo, version)
-
-def ingest_dependencies_task(owner, repo, version):
-  return '/task/ingest/dependencies/%s/%s/%s' % (owner, repo, version)
 
 def delete_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)
