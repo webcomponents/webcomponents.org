@@ -79,10 +79,10 @@ def ingest_dependencies_task(owner, repo, version):
 def delete_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)
 
-def new_task(url, params=None, target=None):
+def new_task(url, params=None, target=None, transactional=False):
   if params is None:
     params = {}
-  return taskqueue.add(method='GET', url=url, params=params, target=target)
+  return taskqueue.add(method='GET', url=url, params=params, target=target, transactional=transactional)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)

@@ -235,7 +235,7 @@ class LibraryTask(RequestHandler):
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
-    util.new_task(task_url, target='manage')
+    util.new_task(task_url, target='manage', transactional=True)
 
   def trigger_version_ingestion(self, tag, sha, url=None):
     version_object = Version.get_by_id(tag, parent=self.library.key)
@@ -251,14 +251,14 @@ class LibraryTask(RequestHandler):
       params['url'] = url
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, params=params, target='manage')
+    util.new_task(task_url, params=params, target='manage', transactional=True)
     util.publish_analysis_request(self.owner, self.repo, tag)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
       return
     task_url = util.ingest_author_task(self.owner)
-    util.new_task(task_url, target='manage')
+    util.new_task(task_url, target='manage', transactional=True)
 
   def ingest_versions(self):
     if self.library.shallow_ingestion:
