@@ -101,11 +101,11 @@ class RequestHandler(webapp2.RequestHandler):
         def transactional_get():
           try:
             self.handle_get(**kwargs)
-            self.commit()
           except util.GitHubError as error:
             self.abort_error = error
           except RequestAborted as error:
             self.abort_error = error
+          self.commit()
         transactional_get()
         if self.abort_error is not None:
           raise self.abort_error
@@ -118,6 +118,8 @@ class RequestHandler(webapp2.RequestHandler):
       pass
 
   def post(self, **kwargs):
+    # because it's not implemented yet...
+    assert not self.is_transactional()
     if self.is_mutation() and not validate_mutation_request(self):
       return
     try:
