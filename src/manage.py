@@ -195,23 +195,22 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.abort('could not update contributors (%d)' % response.status_code)
 
-    if not self.library.shallow_ingestion:
-      response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
-      if response.status_code == 200:
-        try:
-          json.loads(response.content)
-        except ValueError:
-          return self.error("could not parse stats/participation")
-        self.library.participation = response.content
-        self.library.participation_etag = response.headers.get('ETag', None)
-        self.library.participation_updated = datetime.datetime.now()
-        self.library_dirty = True
-      elif response.status_code == 202:
-        # GitHub is "computing" the data. We'll try again next update cycle.
-        # TODO: Alternatively we could abort this task and try again.
-        pass
-      elif response.status_code != 304:
-        return self.abort('could not update stats/participation (%d)' % response.status_code)
+    response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
+    if response.status_code == 200:
+      try:
+        json.loads(response.content)
+      except ValueError:
+        return self.error("could not parse stats/participation")
+      self.library.participation = response.content
+      self.library.participation_etag = response.headers.get('ETag', None)
+      self.library.participation_updated = datetime.datetime.now()
+      self.library_dirty = True
+    elif response.status_code == 202:
+      # GitHub is "computing" the data. We'll try again next update cycle.
+      # TODO: Alternatively we could abort this task and try again.
+      pass
+    elif response.status_code != 304:
+      return self.abort('could not update stats/participation (%d)' % response.status_code)
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)

@@ -229,6 +229,7 @@ class ManageAddTest(ManageTestBase):
   def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
