@@ -54,7 +54,7 @@ class Library(ndb.Model):
   participation_etag = ndb.StringProperty()
   participation_updated = ndb.DateTimeProperty()
 
-  ingest_versions = ndb.BooleanProperty(default=True)
+  shallow_ingestion = ndb.BooleanProperty(default=False)
 
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty()
