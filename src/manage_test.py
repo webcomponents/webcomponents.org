@@ -171,7 +171,7 @@ class ManageAddTest(ManageTestBase):
 
   @ndb.toplevel
   def test_ingest_version(self):
-    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
+    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
     version = Version(parent=library.key, id='v1.0.0', sha='lol')
     library.put()
     version.put()
@@ -199,7 +199,7 @@ class ManageAddTest(ManageTestBase):
 
   @ndb.toplevel
   def test_ingest_version_falls_back(self):
-    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', contributor_count=417)
+    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
     library.tags = ["v1.0.0", "v1.0.1"]
     library.put()
     version1 = Version(parent=library.key, id='v1.0.0', sha='lol')
