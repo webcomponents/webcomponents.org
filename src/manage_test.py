@@ -60,7 +60,7 @@ class ManageUpdateTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', {'status': 304})
-    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', 'STAT')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
 
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
@@ -141,17 +141,17 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo', 'element'))
 
-    self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
-    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', 'STAT')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
     self.assertEqual(library.kind, 'element')
-    self.assertEqual(library.metadata, 'metadata bits')
+    self.assertEqual(library.metadata, '{"metadata": "bits"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v1.0.0'])
 
@@ -227,7 +227,7 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'v1.0.0') + '?latestVersion=True')
 
   def test_ingest_commit(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', 'metadata bits')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     response = self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)

@@ -147,19 +147,13 @@ class LibraryMetadata(object):
 
     bower = yield bower_future
     if bower is not None:
-      try:
-        # TODO: We shouldn't store it if it's not valid
-        bower_json = json.loads(bower.content)
-      except ValueError:
-        bower_json = None
-
-      if bower_json is not None:
-        result['bower'] = {
-            'description': bower_json.get('description', ''),
-            'license': bower_json.get('license', ''),
-            'dependencies': bower_json.get('dependencies', []),
-            'keywords': bower_json.get('keywords', []),
-        }
+      bower_json = json.loads(bower.content)
+      result['bower'] = {
+          'description': bower_json.get('description', ''),
+          'license': bower_json.get('license', ''),
+          'dependencies': bower_json.get('dependencies', []),
+          'keywords': bower_json.get('keywords', []),
+      }
 
     if not brief:
       result['collections'] = yield collections_future
