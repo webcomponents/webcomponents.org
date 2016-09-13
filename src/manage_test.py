@@ -20,8 +20,8 @@ class XsrfTest(ManageTestBase):
     self.respond_to('https://api.github.com/rate_limit', '')
     self.app.get('/manage/github', status=200)
     self.app.get('/manage/update-all', status=403)
-    self.app.get('/manage/add/element/org/repo', status=403)
-    self.app.get('/manage/delete/element/org', status=403)
+    self.app.get('/manage/add/org/repo', status=403)
+    self.app.get('/manage/delete/org/repo', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
@@ -29,7 +29,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/ingest/author/owner', status=403)
     self.app.get('/task/ingest/commit/owner/repo', status=403)
     self.app.get('/task/ingest/webhook/owner/repo', status=403)
-    self.app.get('/task/ingest/library/owner/repo/kind', status=403)
+    self.app.get('/task/ingest/library/owner/repo', status=403)
     self.app.get('/task/update-indexes/owner/repo', status=403)
     self.app.get('/task/ingest/version/owner/repo/version', status=403)
 
@@ -41,7 +41,7 @@ class XsrfTest(ManageTestBase):
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
 
-class DeleteTest(ManageTestBase):
+class DeleteVersionTest(ManageTestBase):
   def test_delete_version(self):
     library_key = ndb.Key(Library, 'owner/repo')
     version_key = Version(id='v1.0.0', parent=library_key, sha='1', status=Status.ready).put()
@@ -53,7 +53,7 @@ class DeleteTest(ManageTestBase):
     self.assertIsNone(version)
     self.assertEqual(Library.versions_for_key_async(library_key).get_result(), [])
 
-class ManageUpdateTest(ManageTestBase):
+class UpdateLibraryTest(ManageTestBase):
   def test_update_respects_304(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
     library.put()
@@ -98,7 +98,7 @@ class ManageUpdateTest(ManageTestBase):
     ]""")
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
 
-    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -108,7 +108,35 @@ class ManageUpdateTest(ManageTestBase):
         # We intentionally don't update tags that have changed to point to different commits.
     ], [task.url for task in tasks])
 
-class ManageAuthorTest(ManageTestBase):
+  def test_update_collection(self):
+    library_key = Library(id='org/repo', tags=['v0.0.1'], collection_sequence_number=1, kind='collection').put()
+    Version(id='v0.0.1', parent=library_key, sha="old", status=Status.ready).put()
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/heads/master', """{
+      "ref": "refs/heads/master",
+      "object": {"sha": "new-master-sha"}
+    }""")
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+    library = library_key.get()
+    self.assertEqual(library.error, None)
+    self.assertEqual(library.status, Status.ready)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.delete_task('org', 'repo', 'v0.0.1'),
+        util.ingest_version_task('org', 'repo', 'v0.0.2'),
+    ], [task.url for task in tasks])
+
+    version = Version.get_by_id('v0.0.2', parent=library_key)
+    self.assertEqual(version.sha, 'new-master-sha')
+    self.assertEqual(version.status, Status.pending)
+
+class AuthorTest(ManageTestBase):
   def test_ingest_author(self):
     metadata = '{HI}'
     self.respond_to_github('https://api.github.com/users/name', metadata)
@@ -130,32 +158,37 @@ class ManageAuthorTest(ManageTestBase):
     author = Author.get_by_id('test')
     self.assertIsNone(author)
 
-class ManageAddTest(ManageTestBase):
-  def test_add_element(self):
+class AddTest(ManageTestBase):
+  def test_add(self):
     token = self.app.get('/manage/token').normal_body
-    response = self.app.get('/manage/add/element/org/repo', params={'token': token})
+    response = self.app.get('/manage/add/org/repo', params={'token': token})
     self.assertEqual(response.status_int, 200)
     self.assertEqual(response.normal_body, 'OK')
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo', 'element'))
+    self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo'))
 
-  def test_ingest_library(self):
+class IngestLibraryTest(ManageTestBase):
+  def test_ingest_element(self):
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
-    response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
 
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertEqual(library.kind, 'element')
     self.assertEqual(library.metadata, '{"metadata": "bits"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v1.0.0'])
+
+    version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, 'lol')
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
@@ -163,9 +196,36 @@ class ManageAddTest(ManageTestBase):
         util.ingest_author_task('org'),
     ], [task.url for task in tasks])
 
+  def test_ingest_collection(self):
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"]}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/heads/master', '{"ref": "refs/heads/master", "object": {"sha": "master-sha"}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"metadata": "bits"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['v0.0.1'])
+
+    version = ndb.Key(Library, 'org/repo', Version, 'v0.0.1').get()
+    self.assertIsNone(version.error)
+    self.assertEqual(version.status, Status.pending)
+    self.assertEqual(version.sha, 'master-sha')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_version_task('org', 'repo', 'v0.0.1'),
+        util.ingest_author_task('org'),
+    ], [task.url for task in tasks])
+
   def test_github_error_fails_gracefully(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': '500'})
-    response = self.app.get(util.ingest_library_task('org', 'repo', 'element'), headers={'X-AppEngine-QueueName': 'default'}, status=502)
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'}, status=502)
     self.assertEqual(response.status_int, 502)
 
   def test_ingest_version(self):
@@ -235,8 +295,8 @@ class UpdateIndexesTest(ManageTestBase):
     # Triggers ingestions
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_library_task('org', 'element-1', 'element'),
-        util.ingest_library_task('org', 'element-2', 'element'),
+        util.ingest_library_task('org', 'element-1'),
+        util.ingest_library_task('org', 'element-2'),
     ], [task.url for task in tasks])
 
     # Ensures collection references

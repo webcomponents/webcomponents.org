@@ -67,6 +67,7 @@ class LibraryMetadata(object):
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
+        'kind': metadata['kind'],
         # TODO: Resolve this difference (description toplevel, vs in 'bower').
         'description': metadata['bower']['description'],
         'stars': metadata['stars'],
@@ -138,6 +139,7 @@ class LibraryMetadata(object):
       raise ndb.Return(None)
 
     result['version'] = version.key.id()
+    result['kind'] = library.kind
     result['version_status'] = version.status
     if version.status == Status.error:
       result['version_error'] = version.error
