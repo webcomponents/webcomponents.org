@@ -167,6 +167,10 @@ class LibraryTask(RequestHandler):
   def update_metadata(self):
     response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag)
     if response.status_code == 200:
+      try:
+        json.loads(response.content)
+      except ValueError:
+        return self.error("could not parse metadata")
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
       self.library.metadata_updated = datetime.datetime.now()
@@ -180,6 +184,10 @@ class LibraryTask(RequestHandler):
 
     response = util.github_get('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
+      try:
+        json.loads(response.content)
+      except ValueError:
+        return self.error("could not parse contributors")
       self.library.contributors = response.content
       self.library.contributors_etag = response.headers.get('ETag', None)
       self.library.contributors_updated = datetime.datetime.now()
@@ -190,6 +198,10 @@ class LibraryTask(RequestHandler):
     if self.library.ingest_versions:
       response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
       if response.status_code == 200:
+        try:
+          json.loads(response.content)
+        except ValueError:
+          return self.error("could not parse stats/participation")
         self.library.participation = response.content
         self.library.participation_etag = response.headers.get('ETag', None)
         self.library.participation_updated = datetime.datetime.now()
@@ -243,7 +255,11 @@ class LibraryTask(RequestHandler):
 
     old_tags = self.library.tags
 
-    data = json.loads(response.content)
+    try:
+      data = json.loads(response.content)
+    except ValueError:
+      return self.error("could not parse git/refs/tags")
+
     if not isinstance(data, object):
       data = {}
 
