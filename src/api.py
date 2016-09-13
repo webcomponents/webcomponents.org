@@ -35,7 +35,8 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
-      result_futures.append(LibraryMetadata.brief_async(owner, repo, version))
+      library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+      result_futures.append(LibraryMetadata.brief_async(library_key, version))
     results = []
     for future in result_futures:
       result = yield future
@@ -51,8 +52,8 @@ class SearchContents(webapp2.RequestHandler):
 class LibraryMetadata(object):
   @staticmethod
   @ndb.tasklet
-  def brief_async(owner, repo, tag=None):
-    metadata = yield LibraryMetadata.full_async(owner, repo, tag=tag, brief=True)
+  def brief_async(library_key, tag=None):
+    metadata = yield LibraryMetadata.full_async(library_key, tag=tag, brief=True)
     if metadata is None or metadata['status'] != Status.ready or metadata['version_status'] != Status.ready:
       raise ndb.Return(None)
     result = {
@@ -70,11 +71,7 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def full_async(owner, repo, tag=None, brief=False):
-    owner = owner.lower()
-    repo = repo.lower()
-
-    library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+  def full_async(library_key, tag=None, brief=False):
     library_future = library_key.get_async()
 
     # TODO: Restrict based on version status == ready when tag != None.
@@ -101,8 +98,6 @@ class LibraryMetadata(object):
       result['error'] = library.error
 
     if not brief and version_key is not None:
-      collections_future = LibraryMetadata.collections_async(version_key)
-      dependencies_future = LibraryMetadata.dependencies_async(library_future, bower_future)
       versions = yield versions_future
       result['versions'] = versions
 
@@ -155,49 +150,37 @@ class LibraryMetadata(object):
           'keywords': bower_json.get('keywords', []),
       }
 
-    if not brief:
-      result['collections'] = yield collections_future
-
-    if not brief and library.kind == 'collection':
-      result['dependencies'] = yield dependencies_future
-
     raise ndb.Return(result)
 
-  @staticmethod
-  @ndb.tasklet
-  def collection_entry_async(collection_version_key):
-    collection_version = collection_version_key.id()
-    collection_library = yield collection_version_key.parent().get_async()
-    collection_metadata = json.loads(collection_library.metadata)
-    collection_name_match = re.match(r'(.*)/(.*)', collection_metadata['full_name'])
-    result = {
-        'owner': collection_name_match.groups()[0],
-        'repo': collection_name_match.groups()[1],
-        'version': collection_version
-    }
-    raise ndb.Return(result)
+class GetCollections(webapp2.RequestHandler):
+  @ndb.toplevel
+  def get(self, owner, repo, version):
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    self.response.headers['Content-Type'] = 'application/json'
 
-  @staticmethod
-  @ndb.tasklet
-  def collections_async(version_key):
+    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
     collection_versions = yield Version.collections_for_key_async(version_key)
     collection_futures = []
     for collection_version in collection_versions:
-      collection_futures.append(LibraryMetadata.collection_entry_async(collection_version.key))
+      collection_futures.append(LibraryMetadata.brief_async(collection_version.key.parent(), collection_version.key.id()))
     collections = []
     for future in collection_futures:
       collection_result = yield future
       collections.append(collection_result)
-    raise ndb.Return(collections)
 
-  @staticmethod
-  @ndb.tasklet
-  def dependencies_async(library_future, bower_future):
-    library = yield library_future
-    if library.kind != 'collection':
-      raise ndb.Return([])
+    self.response.write(json.dumps(collections))
 
-    bower = yield bower_future
+class GetDependencies(webapp2.RequestHandler):
+  @ndb.toplevel
+  def get(self, owner, repo, version):
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    self.response.headers['Content-Type'] = 'application/json'
+
+    owner = owner.lower()
+    repo = repo.lower()
+    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+
+    bower = yield Content.get_by_id_async('bower', parent=version_key)
     bower_json = json.loads(bower.content)
     bower_dependencies = bower_json.get('dependencies', {})
 
@@ -206,8 +189,8 @@ class LibraryMetadata(object):
     for name in bower_dependencies.keys():
       dependency = Dependency.from_string(bower_dependencies[name])
       dependencies.append(dependency)
-      library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
-      version_futures.append(Library.versions_for_key_async(library_key))
+      dependency_library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
+      version_futures.append(Library.versions_for_key_async(dependency_library_key))
 
     dependency_futures = []
     for i, dependency in enumerate(dependencies):
@@ -224,31 +207,35 @@ class LibraryMetadata(object):
         })
         dependency_futures.append(error_future)
       else:
-        dependency_futures.append(LibraryMetadata.brief_async(dependency.owner, dependency.repo, versions[-1]))
+        dependency_library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
+        dependency_futures.append(LibraryMetadata.brief_async(dependency_library_key, versions[-1]))
 
     results = []
     for future in dependency_futures:
       dependency_result = yield future
       if dependency_result is not None:
         results.append(dependency_result)
-    raise ndb.Return(results)
 
+    self.response.write(json.dumps(results))
 
-class GetDataMeta(webapp2.RequestHandler):
+class GetMetadata(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, owner, repo, ver=None):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
 
-    result = yield LibraryMetadata.full_async(owner, repo, ver)
+    owner = owner.lower()
+    repo = repo.lower()
+    library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+    result = yield LibraryMetadata.full_async(library_key, ver)
     if result is None:
       self.response.set_status(404)
     else:
       self.response.write(json.dumps(result))
 
-class GetHydroData(webapp2.RequestHandler):
+class GetDocs(webapp2.RequestHandler):
   def get(self, owner, repo, ver=None):
-    # TODO: Share all of this boilerplate between GetDataMeta and GetHydroData
+    # TODO: Share all of this boilerplate between API handlers
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
@@ -450,10 +437,12 @@ class OnDemand(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/preview', handler=RegisterPreview),
     webapp2.Route(r'/api/preview/event', handler=PreviewEventHandler),
-    webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetDataMeta),
-    webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetDataMeta),
-    webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetHydroData),
-    webapp2.Route(r'/api/docs/<owner>/<repo>/<ver>', handler=GetHydroData),
-    webapp2.Route(r'/api/search/<terms>', handler=SearchContents, name='search'),
+    webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetMetadata),
+    webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetMetadata),
+    webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetDocs),
+    webapp2.Route(r'/api/docs/<owner>/<repo>/<ver>', handler=GetDocs),
+    webapp2.Route(r'/api/dependencies/<owner>/<repo>/<version>', handler=GetDependencies),
+    webapp2.Route(r'/api/collections/<owner>/<repo>/<version>', handler=GetCollections),
+    webapp2.Route(r'/api/search/<terms>', handler=SearchContents),
     webapp2.Route(r'/api/ondemand', handler=OnDemand),
 ], debug=True)
