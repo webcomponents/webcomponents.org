@@ -273,7 +273,12 @@ class LibraryTask(RequestHandler):
     self.library.tags_updated = datetime.datetime.now()
     self.library_dirty = True
 
+    # FIXME: Rename to tags_to_delete.
+    # FIXME: And change to (Library.versions_for_key_async - new_tags).
+    # FIXME: And do this check regardless of whether the tags have changed.
+    # FIXME: But not if there are any pending ingestions.
     removed_tags = list(set(old_tags) - set(new_tags))
+    added_tags = list(set(new_tags) - set(old_tags))
 
     for tag in removed_tags:
       self.trigger_version_deletion(tag)
@@ -281,10 +286,13 @@ class LibraryTask(RequestHandler):
     if len(new_tags) is 0:
       return self.error("couldn't find any tagged versions")
 
-    new_tags.reverse()
-    for tag in new_tags:
-      is_latest = tag == new_tags[0]
-      self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
+    added_tags.sort()
+    added_tags.reverse()
+    for tag in added_tags:
+      is_latest = tag == new_tags[-1]
+      # Only ingest the latest version if we're doing ingestion for the first time.
+      if old_tags != [] or is_latest:
+        self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
 
 class IngestLibrary(LibraryTask):
   @ndb.toplevel
