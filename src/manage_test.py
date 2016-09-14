@@ -104,7 +104,7 @@ class ManageUpdateTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.1.0'),
-        util.ingest_version_task('org', 'repo', 'v3.0.0') + '?sha=new',
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
         # We intentionally don't update tags that have changed to point to different commits.
     ], [task.url for task in tasks])
 
@@ -159,7 +159,7 @@ class ManageAddTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v1.0.0') + '?sha=lol',
+        util.ingest_version_task('org', 'repo', 'v1.0.0'),
         util.ingest_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -171,12 +171,13 @@ class ManageAddTest(ManageTestBase):
   def test_ingest_version(self):
     library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
     library.put()
+    Version(id='v1.0.0', parent=library.key, sha='sha').put()
 
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/README.md', 'README')
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), params={'latestVersion': 'True', 'sha': 'lol'}, headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     version = Version.get_by_id('v1.0.0', parent=library.key)
@@ -207,7 +208,7 @@ class ManageAddTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), params={'sha': 'sha'}, headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     version2 = version2.key.get()
@@ -235,7 +236,7 @@ class ManageAddTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha') + '?url=url&sha=commit-sha')
+    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha'))
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):

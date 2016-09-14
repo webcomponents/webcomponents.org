@@ -241,19 +241,14 @@ class LibraryTask(RequestHandler):
 
   def trigger_version_ingestion(self, tag, sha, url=None):
     version_object = Version.get_by_id(tag, parent=self.library.key)
-    if version_object is not None and version_object.sha == sha and version_object.status == Status.ready:
+    if version_object is not None and version_object.status == Status.ready:
       # Version object is already up to date
       return
 
-    params = {
-        'sha': sha,
-    }
-
-    if url is not None:
-      params['url'] = url
+    Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, params=params, target='manage', transactional=True)
+    util.new_task(task_url, target='manage', transactional=True)
     util.publish_analysis_request(self.owner, self.repo, tag)
 
   def trigger_author_ingestion(self):
@@ -450,15 +445,12 @@ class IngestVersion(RequestHandler):
     self.repo = repo
     self.version = version
 
-    url = self.request.get('url', None)
-    sha = self.request.get('sha', None)
-    assert sha is not None
-
     library_key = ndb.Key(Library, Library.id(owner, repo))
-    self.version_object = Version.get_or_insert(version, parent=library_key, sha=sha)
-    self.version_key = self.version_object.key
+    self.version_object = Version.get_by_id(version, parent=library_key)
+    if self.version_object is None:
+      return self.error('Version entity does not exist: %s/%s' % (Library.id(owner, repo), version))
 
-    logging.info('ingesting version %s/%s', Library.id(owner, repo), version)
+    self.version_key = self.version_object.key
 
     self.update_readme()
     self.update_bower()
@@ -476,8 +468,9 @@ class IngestVersion(RequestHandler):
       util.new_task(task_url, target='manage', transactional=True)
 
   def error(self, error_string):
-    self.version_object.status = Status.error
-    self.version_object.error = error_string
+    if self.version_object is not None:
+      self.version_object.status = Status.error
+      self.version_object.error = error_string
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
