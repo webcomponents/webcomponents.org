@@ -61,6 +61,10 @@ class Library(ndb.Model):
   updated = ndb.DateTimeProperty(auto_now=True)
 
   @staticmethod
+  def id(owner, repo):
+    return '%s/%s' % (owner.lower(), repo.lower())
+
+  @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
     library = Library.get_or_insert('%s/%s' % (owner, repo))
     # FIXME: Probably don't want libraries to change kind.
@@ -80,28 +84,38 @@ class Library(ndb.Model):
 
   @staticmethod
   @ndb.tasklet
-  def uncached_versions_for_key_async(key):
-    versions = yield Version.query(Version.status == Status.ready, ancestor=key).fetch_async(keys_only=True)
+  def latest_version_for_key_async(key):
+    versions = yield Library.versions_for_key_async(key)
+    if versions == []:
+      raise ndb.Return(None)
+    raise ndb.Return(versions[-1])
+
+  @staticmethod
+  def uncached_versions_for_key(key):
+    versions = Version.query(Version.status == Status.ready, ancestor=key).fetch(keys_only=True)
     versions = [key.id() for key in versions if versiontag.is_valid(key.id())]
     versions.sort(versiontag.compare)
-    raise ndb.Return(versions)
+    return versions
 
 class VersionCache(ndb.Model):
   versions = ndb.StringProperty(repeated=True, indexed=False)
 
   @staticmethod
-  @ndb.tasklet
   @ndb.transactional
-  def update_async(library_key, create=False):
-    versions = yield Library.uncached_versions_for_key_async(library_key)
-    if create:
-      version_cache = yield VersionCache.get_or_insert_async('versions', parent=library_key, versions=versions)
-    else:
-      version_cache = yield VersionCache.get_by_id_async('versions', parent=library_key)
-    if version_cache is not None and version_cache.versions != versions:
+  def update(library_key):
+    """Updates the version cache and returns whether the latest version has
+       changed and an index update is needed.
+    """
+    versions = Library.uncached_versions_for_key(library_key)
+    version_cache = VersionCache.get_or_insert('versions', parent=library_key)
+    needs_index_update = False
+    if version_cache.versions != versions:
+      old_latest = version_cache.versions[-1] if len(version_cache.versions) > 0 else None
+      new_latest = versions[-1] if len(versions) > 0 else None
+      needs_index_update = old_latest != new_latest
       version_cache.versions = versions
       version_cache.put()
-    raise ndb.Return(None)
+    return needs_index_update
 
 class Version(ndb.Model):
   sha = ndb.StringProperty(required=True)

@@ -79,24 +79,46 @@ class RequestHandler(webapp2.RequestHandler):
   Stashing a permanent error in a datastore entity.
   """
 
+  def __init__(self, request, response):
+    super(RequestHandler, self).__init__(request, response)
+
   def commit(self):
     pass
 
   def is_mutation(self):
     return True
 
+  def is_transactional(self):
+    return False
+
   def get(self, **kwargs):
     if self.is_mutation() and not validate_mutation_request(self):
       return
     try:
-      self.handle_get(**kwargs)
-      self.commit()
+      if self.is_transactional():
+        @ndb.transactional
+        def transactional_get():
+          try:
+            self.handle_get(**kwargs)
+          except util.GitHubError as error:
+            return error
+          except RequestAborted as error:
+            return error
+          self.commit()
+        exception = transactional_get()
+        if isinstance(exception, Exception):
+          raise exception
+      else:
+        self.handle_get(**kwargs)
+        self.commit()
     except util.GitHubError:
       self.response.set_status(502)
     except RequestAborted:
       pass
 
   def post(self, **kwargs):
+    # because it's not implemented yet...
+    assert not self.is_transactional()
     if self.is_mutation() and not validate_mutation_request(self):
       return
     try:
@@ -147,7 +169,7 @@ class LibraryTask(RequestHandler):
       assert kind is not None
       self.library = Library.maybe_create_with_kind(self.owner, self.repo, kind)
     else:
-      self.library = Library.get_by_id('%s/%s' % (owner, repo))
+      self.library = Library.get_by_id(Library.id(owner, repo))
 
   def set_ready(self):
     if self.library.status != Status.ready:
@@ -176,7 +198,7 @@ class LibraryTask(RequestHandler):
       self.library.metadata_updated = datetime.datetime.now()
       self.library_dirty = True
     elif response.status_code == 404:
-      logging.info('deleting non-existing repo %s/%s', self.owner, self.repo)
+      logging.info('deleting non-existing repo %s', Library.id(self.owner, self.repo))
       delete_library(self.library.key)
       raise RequestAborted('repo no longer exists')
     elif response.status_code != 304:
@@ -214,32 +236,25 @@ class LibraryTask(RequestHandler):
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
-    util.new_task(task_url, target='manage')
+    util.new_task(task_url, target='manage', transactional=True)
 
-  def trigger_version_ingestion(self, tag, sha, latest=False, url=None):
-    version_object = Version.get_or_insert(tag, parent=self.library.key, sha=sha)
-    if version_object.sha == sha and version_object.status == Status.ready:
+  def trigger_version_ingestion(self, tag, sha, url=None):
+    version_object = Version.get_by_id(tag, parent=self.library.key)
+    if version_object is not None and version_object.status == Status.ready:
       # Version object is already up to date
       return
 
-    version_object.url = url
-    version_object.sha = sha
-    version_object.status = Status.pending
-    version_object.put()
-
-    params = {}
-    if latest:
-      params["latestVersion"] = "True"
+    Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, params=params, target='manage')
+    util.new_task(task_url, target='manage', transactional=True)
     util.publish_analysis_request(self.owner, self.repo, tag)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
       return
     task_url = util.ingest_author_task(self.owner)
-    util.new_task(task_url, target='manage')
+    util.new_task(task_url, target='manage', transactional=True)
 
   def ingest_versions(self):
     if self.library.shallow_ingestion:
@@ -292,10 +307,11 @@ class LibraryTask(RequestHandler):
       is_latest = tag == new_tags[-1]
       # Only ingest the latest version if we're doing ingestion for the first time.
       if old_tags != [] or is_latest:
-        self.trigger_version_ingestion(tag, new_tag_map[tag], is_latest)
+        self.trigger_version_ingestion(tag, new_tag_map[tag])
 
 class IngestLibrary(LibraryTask):
-  @ndb.toplevel
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo, kind):
     assert kind == 'element' or kind == 'collection'
     self.init_library(owner, repo, kind)
@@ -308,7 +324,8 @@ class IngestLibrary(LibraryTask):
     self.set_ready()
 
 class UpdateLibrary(LibraryTask):
-  @ndb.toplevel
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo):
     self.init_library(owner, repo, create=False)
     if self.library is None:
@@ -318,7 +335,8 @@ class UpdateLibrary(LibraryTask):
     self.set_ready()
 
 class IngestLibraryCommit(LibraryTask):
-  @ndb.toplevel
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo):
     commit = self.request.get('commit', None)
     url = self.request.get('url', None)
@@ -335,6 +353,8 @@ class IngestLibraryCommit(LibraryTask):
     self.set_ready()
 
 class IngestWebhookLibrary(LibraryTask):
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo):
     access_token = self.request.get('access_token', None)
     assert access_token is not None
@@ -380,7 +400,6 @@ class AuthorTask(RequestHandler):
       return self.abort('could not update author metadata (%d)' % response.status_code)
 
 class IngestAuthor(AuthorTask):
-  @ndb.toplevel
   def handle_get(self, name):
     self.init_author(name, insert=True)
     if self.author.metadata is not None:
@@ -390,7 +409,6 @@ class IngestAuthor(AuthorTask):
     self.author.status = Status.ready
 
 class UpdateAuthor(AuthorTask):
-  @ndb.toplevel
   def handle_get(self, name):
     self.init_author(name, insert=False)
     if self.author is None:
@@ -399,9 +417,12 @@ class UpdateAuthor(AuthorTask):
 
 class DeleteVersion(RequestHandler):
   def handle_get(self, owner, repo, version):
-    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    # FIXME: Make deletion transactional with check on library that tag is excluded.
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
     ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))
-    VersionCache.update_async(version_key.parent()).get_result()
+    if VersionCache.update(version_key.parent()):
+      task_url = util.update_indexes_task(owner, repo)
+      util.new_task(task_url, target='manage')
 
 class IngestVersion(RequestHandler):
   def __init__(self, request, response):
@@ -411,52 +432,38 @@ class IngestVersion(RequestHandler):
     self.owner = None
     self.repo = None
     self.version = None
-    self.latest_version = False
 
-  @ndb.toplevel
   def handle_get(self, owner, repo, version):
     self.owner = owner
     self.repo = repo
     self.version = version
-    self.version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
-    self.version_object = self.version_key.get()
 
-    logging.info('ingesting version %s/%s/%s', owner, repo, version)
-    self.latest_version = self.request.get('latestVersion', False)
-
+    library_key = ndb.Key(Library, Library.id(owner, repo))
+    self.version_object = Version.get_by_id(version, parent=library_key)
     if self.version_object is None:
-      return self.error('version object is missing')
+      return self.error('Version entity does not exist: %s/%s' % (Library.id(owner, repo), version))
+
+    self.version_key = self.version_object.key
 
     self.update_readme()
-    bower = self.update_bower()
-
-    if self.latest_version:
-      self.update_indexes(bower)
-
+    self.update_bower()
     self.set_ready()
 
   def commit(self):
     if self.version_object is not None:
       self.version_object.put()
+      self.update_versions_and_index()
 
-      # Update the version cache if it exists.
-      # Create it if we're ingesting the latest version.
-      VersionCache.update_async(self.version_key.parent(), create=self.latest_version).get_result()
+  @ndb.transactional
+  def update_versions_and_index(self):
+    if VersionCache.update(self.version_key.parent()):
+      task_url = util.update_indexes_task(self.owner, self.repo)
+      util.new_task(task_url, target='manage', transactional=True)
 
   def error(self, error_string):
-    self.version_object.status = Status.error
-    self.version_object.error = error_string
-    if self.latest_version:
-      # No longer the latest valid version. Prevent creation of the version cache.
-      self.latest_version = False
-      library = self.version_key.parent().get()
-      tags = library.tags
-      idx = tags.index(self.version)
-      if idx > 0:
-        next_tag = tags[idx - 1]
-        logging.info('ingestion for %s/%s falling back to version %s', self.owner, self.repo, next_tag)
-        task_url = util.ingest_version_task(self.owner, self.repo, next_tag)
-        util.new_task(task_url, params={'latestVersion':'True'}, target='manage')
+    if self.version_object is not None:
+      self.version_object.status = Status.error
+      self.version_object.error = error_string
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
@@ -501,43 +508,53 @@ class IngestVersion(RequestHandler):
   def set_ready(self):
     self.version_object.status = Status.ready
 
-  def update_indexes(self, bower):
-    assert self.latest_version
-    library = self.version_key.parent().get()
-    if library.kind == "collection":
-      task_url = util.ingest_dependencies_task(self.owner, self.repo, self.version)
+class UpdateIndexes(RequestHandler):
+  def handle_get(self, owner, repo):
+    library_key = ndb.Key(Library, Library.id(owner, repo))
+    version = Library.latest_version_for_key_async(library_key).get_result()
+    if version is None:
+      return self.error('no versions for %s' % Library.id(owner, repo))
+
+    bower_key = ndb.Key(Library, Library.id(owner, repo), Version, version, Content, 'bower')
+    bower = json.loads(bower_key.get().content)
+    version_key = bower_key.parent()
+    library = version_key.parent().get()
+
+    self.update_search_index(owner, repo, version_key, library, bower)
+
+    if library.kind == 'collection':
+      self.trigger_dependency_ingestion(version_key, bower)
+
+    latest_version = Library.latest_version_for_key_async(library_key).get_result()
+    if latest_version is not None and latest_version != version:
+      return self.abort('latest version changed while updating indexes')
+
+  def trigger_dependency_ingestion(self, collection_version_key, bower):
+    dependencies = bower.get('dependencies', {})
+    for name in dependencies.keys():
+      dep = Dependency.from_string(dependencies[name])
+      library_key = ndb.Key(Library, Library.id(dep.owner, dep.repo))
+      CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
+
+      # FIXME: Can't assume this is an element.
+      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
       util.new_task(task_url, target='manage')
+
+  def update_search_index(self, owner, repo, version_key, library, bower):
     metadata = json.loads(library.metadata)
-    logging.info('adding search index for %s', self.version)
     description = bower.get("description", metadata.get("description", ""))
-    document = search.Document(doc_id='%s/%s' % (self.owner, self.repo), fields=[
+    document = search.Document(doc_id=Library.id(owner, repo), fields=[
         search.AtomField(name='full_name', value=metadata['full_name']),
-        search.TextField(name='owner', value=self.owner),
-        search.TextField(name='repo', value=self.repo),
-        search.TextField(name='version', value=self.version),
-        search.TextField(name='repoparts', value=' '.join(self.repo.split('-'))),
+        search.TextField(name='owner', value=owner),
+        search.TextField(name='repo', value=repo),
+        search.TextField(name='version', value=version_key.id()),
+        search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
         search.TextField(name='description', value=description),
         search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
     ])
     index = search.Index('repo')
     index.put(document)
 
-class IngestDependencies(RequestHandler):
-  def handle_get(self, owner, repo, version):
-    logging.info('ingesting version %s/%s/%s', owner, repo, version)
-    bower_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version, Content, 'bower')
-    collection_version_key = bower_key.parent()
-    bower = json.loads(bower_key.get().content)
-    dependencies = bower.get('dependencies', {})
-
-    for name in dependencies.keys():
-      dep = Dependency.from_string(dependencies[name])
-      library_key = ndb.Key(Library, '%s/%s' % (dep.owner.lower(), dep.repo.lower()))
-      CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
-
-      # FIXME: Can't assume this is an element.
-      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
-      util.new_task(task_url, target='manage')
 
 class IngestAnalysis(RequestHandler):
   def is_mutation(self):
@@ -553,8 +570,8 @@ class IngestAnalysis(RequestHandler):
     repo = attributes['repo']
     version = attributes['version']
 
-    logging.info('Ingesting analysis data %s/%s/%s', owner, repo, version)
-    parent = Version.get_by_id(version, parent=ndb.Key(Library, '%s/%s' % (owner, repo)))
+    logging.info('Ingesting analysis data %s/%s', Library.id(owner, repo), version)
+    parent = Version.get_by_id(version, parent=ndb.Key(Library, Library.id(owner, repo)))
 
     # Don't accept the analysis data unless the version still exists in the datastore
     if parent is not None:
@@ -617,7 +634,7 @@ class GithubStatus(RequestHandler):
 class DeleteLibrary(RequestHandler):
   def handle_get(self, owner, repo):
     self.response.headers['Content-Type'] = 'text/plain'
-    delete_library(ndb.Key(Library, ('%s/%s' % (owner, repo)).lower()), response_for_logging=self.response)
+    delete_library(ndb.Key(Library, Library.id(owner, repo).lower()), response_for_logging=self.response)
 
 class DeleteEverything(RequestHandler):
   def handle_get(self):
@@ -659,12 +676,12 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
+    webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
     webapp2.Route(r'/task/delete/<owner>/<repo>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/author/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
     webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
-    webapp2.Route(r'/task/ingest/dependencies/<owner>/<repo>/<version>', handler=IngestDependencies),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion),
     webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis),
 ], debug=True)
