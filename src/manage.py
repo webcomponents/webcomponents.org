@@ -423,6 +423,7 @@ class UpdateAuthor(AuthorTask):
 
 class DeleteVersion(RequestHandler):
   def handle_get(self, owner, repo, version):
+    # FIXME: Make deletion transactional with check on library that tag is excluded.
     version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
     ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))
     if VersionCache.update(version_key.parent()):
