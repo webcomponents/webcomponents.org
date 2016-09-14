@@ -149,8 +149,8 @@ class GetXsrfToken(RequestHandler):
     self.response.write(mint_xsrf_token())
 
 class AddLibrary(RequestHandler):
-  def handle_get(self, owner, repo, kind):
-    task_url = util.ingest_library_task(owner, repo, kind)
+  def handle_get(self, owner, repo):
+    task_url = util.ingest_library_task(owner, repo)
     util.new_task(task_url, target='manage')
     self.response.write('OK')
 
@@ -162,12 +162,11 @@ class LibraryTask(RequestHandler):
     self.library = None
     self.library_dirty = False
 
-  def init_library(self, owner, repo, kind=None, create=True):
+  def init_library(self, owner, repo, create=True):
     self.owner = owner.lower()
     self.repo = repo.lower()
     if create:
-      assert kind is not None
-      self.library = Library.maybe_create_with_kind(self.owner, self.repo, kind)
+      self.library = Library.get_or_insert('%s/%s' % (owner, repo))
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
 
@@ -234,6 +233,23 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update stats/participation (%d)' % response.status_code)
 
+  def update_kind(self):
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, 'master', 'bower.json'), validate_certificate=True)
+    if response.status_code == 200:
+      try:
+        bower_json = json.loads(response.content)
+        if 'element-collection' in bower_json.get('keywords', []) and self.library.kind != 'collection':
+          self.library.kind = 'collection'
+          self.library_dirty = True
+      except db.BadValueError:
+        return self.error("Could not parse master/bower.json")
+    elif response.status_code == 404:
+      if self.library.kind == 'collection':
+        self.library.kind = 'element'
+        self.library_dirty = True
+    else:
+      return self.retry('error fetching master/bower.json' % response.status_code)
+
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
@@ -256,26 +272,43 @@ class LibraryTask(RequestHandler):
     task_url = util.ingest_author_task(self.owner)
     util.new_task(task_url, target='manage', transactional=True)
 
-  def ingest_versions(self):
-    if self.library.shallow_ingestion:
-      return
-
-    response = util.github_get('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+  def update_collection_tags(self):
+    response = util.github_get('repos', self.owner, self.repo, 'git/refs/heads/master', etag=self.library.tags_etag)
     if response.status_code == 304:
       return
 
     if response.status_code != 200:
-      return self.retry('could not upate repo tags (%d)' % response.status_code)
+      return self.retry('could not update git/refs/heads/master (%d)' % response.status_code)
 
-    old_tags = self.library.tags
+    try:
+      data = json.loads(response.content)
+    except ValueError:
+      return self.error("could not parse git/refs/heads/master")
+
+    if data.get('ref', None) != 'refs/heads/master':
+      return self.error('could not find master branch')
+
+    self.library.collection_sequence_number = self.library.collection_sequence_number + 1
+    version = 'v0.0.%d' % self.library.collection_sequence_number
+    self.library.tags = [version]
+    self.library.tags_etag = response.headers.get('ETag', None)
+    self.library.tags_updated = datetime.datetime.now()
+    self.library.library_dirty = True
+
+    return {version: data['object']['sha']}
+
+  def update_element_tags(self):
+    response = util.github_get('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+    if response.status_code == 304:
+      return None
+
+    if response.status_code != 200:
+      return self.retry('could not update git/refs/tags (%d)' % response.status_code)
 
     try:
       data = json.loads(response.content)
     except ValueError:
       return self.error("could not parse git/refs/tags")
-
-    if not isinstance(data, object):
-      data = {}
 
     # normalize the tag from 'refs/tags/v0.8.0' to 'v0.8.0'
     new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
@@ -286,7 +319,27 @@ class LibraryTask(RequestHandler):
     self.library.tags = new_tags
     self.library.tags_etag = response.headers.get('ETag', None)
     self.library.tags_updated = datetime.datetime.now()
-    self.library_dirty = True
+    self.library.library_dirty = True
+
+    return new_tag_map
+
+  def update_versions(self):
+    if self.library.shallow_ingestion:
+      return
+
+    old_tags = self.library.tags
+
+    if self.library.kind == 'collection':
+      new_tag_map = self.update_collection_tags()
+    else:
+      assert self.library.kind == 'element'
+      new_tag_map = self.update_element_tags()
+
+    if new_tag_map is None:
+      new_tags = old_tags
+    else:
+      new_tags = new_tag_map.keys()
+      new_tags.sort(versiontag.compare)
 
     # FIXME: Rename to tags_to_delete.
     # FIXME: And change to (Library.versions_for_key_async - new_tags).
@@ -312,14 +365,14 @@ class LibraryTask(RequestHandler):
 class IngestLibrary(LibraryTask):
   def is_transactional(self):
     return True
-  def handle_get(self, owner, repo, kind):
-    assert kind == 'element' or kind == 'collection'
-    self.init_library(owner, repo, kind)
+  def handle_get(self, owner, repo):
+    self.init_library(owner, repo)
     if self.library.shallow_ingestion:
       self.library.shallow_ingestion = False
       self.library_dirty = True
     self.update_metadata()
-    self.ingest_versions()
+    self.update_kind()
+    self.update_versions()
     self.trigger_author_ingestion()
     self.set_ready()
 
@@ -331,7 +384,7 @@ class UpdateLibrary(LibraryTask):
     if self.library is None:
       return
     self.update_metadata()
-    self.ingest_versions()
+    self.update_versions()
     self.set_ready()
 
 class IngestLibraryCommit(LibraryTask):
@@ -342,7 +395,7 @@ class IngestLibraryCommit(LibraryTask):
     url = self.request.get('url', None)
     assert commit is not None and url is not None
 
-    self.init_library(owner, repo, 'element')
+    self.init_library(owner, repo)
     is_new = self.library.metadata is None and self.library.error is None
     if is_new:
       self.library.shallow_ingestion = True
@@ -359,7 +412,7 @@ class IngestWebhookLibrary(LibraryTask):
     access_token = self.request.get('access_token', None)
     assert access_token is not None
 
-    self.init_library(owner, repo, 'element')
+    self.init_library(owner, repo)
     is_new = self.library.metadata is None and self.library.error is None
     if is_new:
       self.library.shallow_ingestion = True
@@ -432,6 +485,7 @@ class IngestVersion(RequestHandler):
     self.owner = None
     self.repo = None
     self.version = None
+    self.sha = None
 
   def handle_get(self, owner, repo, version):
     self.owner = owner
@@ -443,6 +497,7 @@ class IngestVersion(RequestHandler):
     if self.version_object is None:
       return self.error('Version entity does not exist: %s/%s' % (Library.id(owner, repo), version))
 
+    self.sha = self.version_object.sha
     self.version_key = self.version_object.key
 
     self.update_readme()
@@ -467,7 +522,7 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'README.md'), validate_certificate=True)
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'README.md'), validate_certificate=True)
     if response.status_code == 200:
       readme = response.content
       try:
@@ -490,7 +545,7 @@ class IngestVersion(RequestHandler):
         return self.retry('error converting readme to markdown (%d)' % response.status_code)
 
   def update_bower(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'bower.json'), validate_certificate=True)
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'bower.json'), validate_certificate=True)
     if response.status_code == 200:
       try:
         bower_json = json.loads(response.content)
@@ -536,8 +591,7 @@ class UpdateIndexes(RequestHandler):
       library_key = ndb.Key(Library, Library.id(dep.owner, dep.repo))
       CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
 
-      # FIXME: Can't assume this is an element.
-      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower(), 'element')
+      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower())
       util.new_task(task_url, target='manage')
 
   def update_search_index(self, owner, repo, version_key, library, bower):
@@ -547,6 +601,7 @@ class UpdateIndexes(RequestHandler):
         search.AtomField(name='full_name', value=metadata['full_name']),
         search.TextField(name='owner', value=owner),
         search.TextField(name='repo', value=repo),
+        search.TextField(name='kind', value=library.kind),
         search.TextField(name='version', value=version_key.id()),
         search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
         search.TextField(name='description', value=description),
@@ -671,7 +726,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
-    webapp2.Route(r'/manage/add/<kind>/<owner>/<repo>', handler=AddLibrary),
+    webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
@@ -681,7 +736,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/ingest/author/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/commit/<owner>/<repo>', handler=IngestLibraryCommit),
     webapp2.Route(r'/task/ingest/webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
-    webapp2.Route(r'/task/ingest/library/<owner>/<repo>/<kind>', handler=IngestLibrary),
+    webapp2.Route(r'/task/ingest/library/<owner>/<repo>', handler=IngestLibrary),
     webapp2.Route(r'/task/ingest/version/<owner>/<repo>/<version>', handler=IngestVersion),
     webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis),
 ], debug=True)

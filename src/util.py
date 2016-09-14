@@ -58,14 +58,18 @@ def content_url(owner, repo, version, path):
 def update_author_task(name):
   return '/task/update/%s' % name
 
+def update_library_task(library_id):
+  assert '/' in library_id
+  return '/task/update/%s' % library_id
+
 def update_indexes_task(owner, repo):
   return '/task/update-indexes/%s/%s' % (owner, repo)
 
 def ingest_author_task(name):
   return '/task/ingest/author/%s' % name
 
-def ingest_library_task(owner, repo, kind):
-  return '/task/ingest/library/%s/%s/%s' % (owner, repo, kind)
+def ingest_library_task(owner, repo):
+  return '/task/ingest/library/%s/%s' % (owner, repo)
 
 def ingest_commit_task(owner, repo):
   return '/task/ingest/commit/%s/%s' % (owner, repo)

@@ -34,9 +34,10 @@ class Author(ndb.Model):
   updated = ndb.DateTimeProperty(auto_now=True)
 
 class Library(ndb.Model):
-  kind = ndb.StringProperty()
-
   github_access_token = ndb.StringProperty()
+
+  kind = ndb.StringProperty(default='element')
+  collection_sequence_number = ndb.IntegerProperty(indexed=False, default=0)
 
   metadata = ndb.TextProperty()
   metadata_etag = ndb.StringProperty()
