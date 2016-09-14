@@ -61,6 +61,10 @@ class Library(ndb.Model):
   updated = ndb.DateTimeProperty(auto_now=True)
 
   @staticmethod
+  def id(owner, repo):
+    return '%s/%s' % (owner.lower(), repo.lower())
+
+  @staticmethod
   def maybe_create_with_kind(owner, repo, kind):
     library = Library.get_or_insert('%s/%s' % (owner, repo))
     # FIXME: Probably don't want libraries to change kind.
@@ -77,6 +81,14 @@ class Library(ndb.Model):
     if version_cache is not None:
       versions = version_cache.versions
     raise ndb.Return(versions)
+
+  @staticmethod
+  @ndb.tasklet
+  def latest_version_for_key_async(key):
+    versions = yield Library.versions_for_key_async(key)
+    if versions == []:
+      raise ndb.Return(None)
+    raise ndb.Return(versions[-1])
 
   @staticmethod
   def uncached_versions_for_key(key):
