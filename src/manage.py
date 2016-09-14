@@ -287,7 +287,7 @@ class LibraryTask(RequestHandler):
 
     if data.get('ref', None) != 'refs/heads/master':
       return self.error('could not find master branch')
-    
+
     self.library.collection_sequence_number = self.library.collection_sequence_number + 1
     version = 'v0.0.%d' % self.library.collection_sequence_number
     self.library.tags = [version]
@@ -304,8 +304,6 @@ class LibraryTask(RequestHandler):
 
     if response.status_code != 200:
       return self.retry('could not update git/refs/tags (%d)' % response.status_code)
-
-    old_tags = self.library.tags
 
     try:
       data = json.loads(response.content)
