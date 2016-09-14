@@ -434,12 +434,6 @@ class IngestVersion(RequestHandler):
     self.repo = None
     self.version = None
 
-  def is_transactional(self):
-    """ Version ingestion need not be transactional since it's always triggered
-        from library ingestion or update.
-    """
-    return False
-
   def handle_get(self, owner, repo, version):
     self.owner = owner
     self.repo = repo
