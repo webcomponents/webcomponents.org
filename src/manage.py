@@ -266,7 +266,7 @@ class LibraryTask(RequestHandler):
     new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
                        if versiontag.is_valid(d['ref'][10:]))
     new_tags = new_tag_map.keys()
-    new_tags.sort()
+    new_tags.sort(versiontag.compare)
 
     self.library.tags = new_tags
     self.library.tags_etag = response.headers.get('ETag', None)
@@ -286,7 +286,7 @@ class LibraryTask(RequestHandler):
     if len(new_tags) is 0:
       return self.error("couldn't find any tagged versions")
 
-    added_tags.sort()
+    added_tags.sort(versiontag.compare)
     added_tags.reverse()
     for tag in added_tags:
       is_latest = tag == new_tags[-1]
