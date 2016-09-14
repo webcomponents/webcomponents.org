@@ -20,12 +20,6 @@
           "version":      "8"
         },
 
-        // Disable due to Sauce labs failure
-        // {
-        //   "browserName":  "chrome",
-        //   "platform":     "Windows 10",
-        //   "version":      "beta"
-        // },
         {
           "browserName":  "chrome",
           "platform":     "Linux",
