@@ -22,11 +22,6 @@
 
         {
           "browserName":  "chrome",
-          "platform":     "Windows 10",
-          "version":      "beta"
-        },
-        {
-          "browserName":  "chrome",
           "platform":     "Linux",
           "version":      ""
         },
