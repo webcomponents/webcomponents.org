@@ -1,7 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
@@ -15,121 +12,8 @@
 <dom-module id="catalog-element">
   <template>
     <style>
-      :host {
-        display: block;
-        --border-color: #ddd;
-        --theme-accent-color: #6A1B9A;
-      }
-
       a {
         text-decoration: none;
-      }
-
-      /* Drawer */
-
-      app-drawer {
-        --app-drawer-content-container: {
-          background-color: white;
-          border-right: 1px solid var(--border-color);
-        }
-        font-size: 14px;
-      }
-
-      .scroller {
-        height: 100%;
-        overflow: auto;
-      }
-
-      .menu-item {
-        padding: 12px 16px;
-        position: relative;
-      }
-
-      app-drawer a {
-        color: inherit;
-        display: flex;
-        text-decoration: none;
-      }
-
-      #elementTitle {
-        background: var(--theme-accent-color);
-        color: white;
-      }
-
-      app-drawer a[active] {
-        color: #3F51B5;
-        font-weight: 500;
-      }
-
-      app-drawer a:hover {
-        text-decoration: none;
-      }
-
-      app-drawer .section-title {
-        font-weight: 600;
-      }
-
-      .menu-item.indent {
-        margin-left: 8px;
-      }
-
-      app-drawer a div {
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      iron-icon[icon=search] {
-        position: absolute;
-        margin-left: 16px;
-        margin-top: 11px;
-        color: #bdbdbd;
-      }
-
-      input[type=search] {
-        -webkit-appearance: none;
-        border: 0;
-        height: 46px;
-        line-height: 46px;
-        padding-left: 50px;
-        padding-right: 16px;
-        -webkit-font-smoothing: antialiased;
-        font-size: 14px;
-        font-family: 'Roboto', 'Noto', sans-serif;
-        font-weight: 400;
-        width: 100%;
-        background: #424242;
-      }
-
-      input[type=search]:focus {
-        outline: 0;
-        background-color: #ECEFF1;
-        border-color: #cfd8dc;
-      }
-
-      h2[title] {
-        display: inline-block;
-        font-weight: 400;
-        font-size: 18px;
-        letter-spacing: 0;
-        line-height: 32px;
-        margin: 0;
-      }
-
-      h2[title].repo-title, .repo-title {
-        font-weight: 500;
-      }
-
-      #version {
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      /* Content page */
-
-      @media (min-width: 641px) {
-        paper-icon-button {
-          display: none;
-        }
       }
 
       #content {
@@ -164,14 +48,6 @@
       [hidden] {
         display: none;
       }
-
-      img.avatar {
-        width: 64px;
-        height: 64px;
-        border-radius: 3px;
-        margin-right: 16px;
-      }
-
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
@@ -199,75 +75,55 @@
     <lazy-block condition="[[!loading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
-    <app-drawer-layout>
-      <app-drawer id="drawer" swipe-open>
-        <div class="scroller">
-          <iron-icon icon="search"></iron-icon>
-          <input type="search" placeholder="Search" on-tap="_navigateToSearch">
-          <a href="/element/[[routeMatch.owner]]/[[repo]][[versionRoute]]" id="elementTitle">
-            <div class="menu-item" selected>
-              <h2 title>[[routeMatch.owner]] /</h2>
-              <h2 title class="repo-title">[[repo]]</h2>
-              <template is="dom-if" if="[[data]]">
-                <span id="version">[[data.version]]</span>
-              </template>
-            </div>
-          </a>
-          <a class="menu-item" href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View on Github</a>
 
-          <template is="dom-if" if="[[bundledElements]]">
-            <div class="menu-item section-title">Demos</div>
+    <iron-icon icon="search"></iron-icon>
+    <input type="search" placeholder="Search" on-tap="_navigateToSearch">
 
-            <template is="dom-repeat" items=[[bundledDemos]] as="demo">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]">
-                <div>[[demo.desc]]</div>
-              </a>
-            </template>
+    <h2 title class="repo-title">[[repo]]</h2>
+    [[data.version]]
+    [[data.bower.description]]
 
-            <div class="menu-item section-title">Docs</div>
+    <img class="avatar" src="[[data.avatar_url]]&s=64">by [[routeMatch.owner]]
 
-            <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">
-                <div>[[element.is]]</div>
-              </a>
-            </template>
-            <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="menu-item indent" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">
-                <div>[[behavior.is]]</div>
-              </a>
-            </template>
-          </template>
-        </div>
-      </app-drawer>
+    <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
 
-      <template is="dom-if" if="[[!demo]]">
-        <div id="content" hidden="[[loading]]">
-          <paper-icon-button icon="menu" on-tap="tapped"></paper-icon-button>
-          <template is="dom-if" if="[[_showMainView(subElement, demo)]]">
-            <div id="header">
-              <h2 title>
-                <img class="avatar" src="[[data.avatar_url]]&s=64">
-                <a href="/author/[[routeMatch.owner]]/">[[routeMatch.owner]]</a> /
-                <span class="repo-title"><a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a></span>
-              </h2>
-            </div>
+    <!-- Repository contents sidebar -->
+    <template is="dom-repeat" items=[[bundledDemos]] as="demo">
+      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]">
+        <div>[[demo.desc]]</div>
+      </a>
+    </template>
 
-            <catalog-element-readme data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
-          </template>
+    <template is="dom-repeat" items="[[bundledElements]]" as="element">
+      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">
+        <div>[[element.is]]</div>
+      </a>
+    </template>
+    <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
+      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">
+        <div>[[behavior.is]]</div>
+      </a>
+    </template>
 
-          <template is="dom-if" if="[[subElement]]">
-            <h2 title>[[subElement]]</h2>
-            <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
-          </template>
-        </div>
-      </template>
+    <template is="dom-if" if="[[!demo]]">
+      <div id="content" hidden="[[loading]]">
+        <template is="dom-if" if="[[_showMainView(subElement, demo)]]">
+          <catalog-element-readme data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+        </template>
 
-      <!-- TODO(samli): Lacking drawer button -->
-      <template is="dom-if" if="[[demo]]">
-        <iframe id="demo-frame"
-                src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
-        </iframe>
-      </template>
+        <template is="dom-if" if="[[subElement]]">
+          <h2 title>[[subElement]]</h2>
+          <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
+        </template>
+      </div>
+    </template>
+
+    <!-- TODO(samli): Lacking drawer button -->
+    <template is="dom-if" if="[[demo]]">
+      <iframe id="demo-frame"
+              src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
+      </iframe>
+    </template>
 
     </app-drawer-layout>
   </template>
@@ -290,15 +146,9 @@
         'onload(loading)'
       ],
 
-      tapped: function() {
-        this.$.drawer.toggle();
-      },
-
       ready: function() {
         this._loaded = true;
         this._routeChanged(this.route, this.visible);
-        if (this.route)
-          this.async(this._updateActiveLinks);
       },
 
       _showMainView: function(subElement, demo) {
@@ -386,17 +236,13 @@
           this._cachedData = this.repo;
         } else {
           this._updateDescriptor();
-          this._updateActiveLinks();
         }
-        if (!this.$.drawer.persistent)
-          this.$.drawer.close();
       },
 
       _handleResponse: function() {
         if (this.data)
           document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
-        Polymer.RenderStatus.afterNextRender(this, this._updateActiveLinks);
       },
 
       _updateDescriptor: function() {
@@ -406,16 +252,6 @@
         this.bundledBehaviors = this._behaviors();
         this.bundledDemos = this._demos();
         this.descriptor = this.docs.elementsByTagName[this.subElement] || this.docs.behaviorsByName[this.subElement];
-      },
-
-      _updateActiveLinks: function() {
-        var links = Polymer.dom(this.$.drawer).querySelectorAll('a');
-        links.forEach(function(a) {
-          if (a.getAttribute('href') === this.route.prefix + this.route.path)
-            a.setAttribute('active', '');
-          else
-            a.removeAttribute('active');
-        }.bind(this));
       },
 
       _navigateToSearch: function() {
