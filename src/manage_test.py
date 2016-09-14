@@ -169,9 +169,8 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(response.status_int, 502)
 
   def test_ingest_version(self):
-    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
-    library.put()
-    Version(id='v1.0.0', parent=library.key, sha='sha').put()
+    library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
+    Version(id='v1.0.0', parent=library_key, sha='sha').put()
 
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/README.md', 'README')
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/bower.json', '{}')
@@ -180,11 +179,11 @@ class ManageAddTest(ManageTestBase):
     response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
-    version = Version.get_by_id('v1.0.0', parent=library.key)
+    version = Version.get_by_id('v1.0.0', parent=library_key)
     self.assertIsNone(version.error)
     self.assertEqual(version.status, Status.ready)
 
-    versions = Library.versions_for_key_async(library.key).get_result()
+    versions = Library.versions_for_key_async(library_key).get_result()
     self.assertEqual(['v1.0.0'], versions)
 
     readme = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme').get()
@@ -195,12 +194,10 @@ class ManageAddTest(ManageTestBase):
     self.assertEqual(bower.content, '{}')
 
   def fix_test_ingest_version_falls_back(self):
-    library = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}')
-    library.tags = ["v1.0.0", "v1.0.1"]
-    library.put()
-    version1 = Version(parent=library.key, id='v1.0.0', sha='lol')
+    library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', tags = ["v1.0.0", "v1.0.1"]).put()
+    version1 = Version(parent=library_key, id='v1.0.0', sha='lol')
     version1.put()
-    version2 = Version(parent=library.key, id='v1.0.1', sha='lol')
+    version2 = Version(parent=library_key, id='v1.0.1', sha='lol')
     version2.put()
 
     self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.1/README.md', chr(248))
@@ -234,9 +231,16 @@ class ManageAddTest(ManageTestBase):
     self.assertIsNone(library.error)
     self.assertTrue(library.shallow_ingestion)
 
+    version = Version.get_by_id('commit-sha', parent=library.key)
+    self.assertEquals(version.status, Status.pending)
+    self.assertEquals(version.sha, 'commit-sha')
+    self.assertEquals(version.url, 'url')
+
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'commit-sha'))
+    self.assertEqual([
+        util.ingest_version_task('org', 'repo', 'commit-sha'),
+    ], [task.url for task in tasks])
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):
