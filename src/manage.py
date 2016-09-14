@@ -54,7 +54,7 @@ class RequestAborted(Exception):
   pass
 
 class RequestHandler(webapp2.RequestHandler):
-  """A specialized Request Handler that deals with erroring/aborting and committing.
+  """A specialized Request Handler that deals with erroring/retrying and committing.
 
   Subclasses should define one of ``handle_get`` or ``handle_post`` and add logic
   to commit any permanent changes in ``commit``.
@@ -66,15 +66,15 @@ class RequestHandler(webapp2.RequestHandler):
   * ``util.GitHubError`` which signals that the request should be retried.
   * ``RequestAborted`` which completes the request immediately.
 
-  Subclasses can use the ``error`` and ``abort`` functions to short-circuit a request:
+  Subclasses can use the ``error`` and ``retry`` functions to short-circuit a request:
   * The ``error`` function is used to denote a permanent error.
-  * The ``abort`` function is used to denote a temporary error, indicating that the
+  * The ``retry`` function is used to denote a temporary error, indicating that the
   request should be retried.
 
   These functions raise the ``RequestAborted`` exception and should be typically
   called in a ``return self.error()`` style.
 
-  Subclasses should override and re-delegate the ``error`` and ``abort``
+  Subclasses should override and re-delegate the ``error`` and ``retry``
   functions when they need to store additional information about the state. eg.
   Stashing a permanent error in a datastore entity.
   """
@@ -135,7 +135,7 @@ class RequestHandler(webapp2.RequestHandler):
     self.response.set_status(200)
     raise RequestAborted()
 
-  def abort(self, message):
+  def retry(self, message):
     logging.error(message)
     self.response.set_status(500)
     self.commit()
@@ -202,7 +202,7 @@ class LibraryTask(RequestHandler):
       delete_library(self.library.key)
       raise RequestAborted('repo no longer exists')
     elif response.status_code != 304:
-      return self.abort('could not update repo metadata (%d)' % response.status_code)
+      return self.retry('could not update repo metadata (%d)' % response.status_code)
 
     response = util.github_get('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
@@ -215,7 +215,7 @@ class LibraryTask(RequestHandler):
       self.library.contributors_updated = datetime.datetime.now()
       self.library_dirty = True
     elif response.status_code != 304:
-      return self.abort('could not update contributors (%d)' % response.status_code)
+      return self.retry('could not update contributors (%d)' % response.status_code)
 
     response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
     if response.status_code == 200:
@@ -229,10 +229,10 @@ class LibraryTask(RequestHandler):
       self.library_dirty = True
     elif response.status_code == 202:
       # GitHub is "computing" the data. We'll try again next update cycle.
-      # TODO: Alternatively we could abort this task and try again.
+      # TODO: Alternatively we could retry this task
       pass
     elif response.status_code != 304:
-      return self.abort('could not update stats/participation (%d)' % response.status_code)
+      return self.retry('could not update stats/participation (%d)' % response.status_code)
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
@@ -265,7 +265,7 @@ class LibraryTask(RequestHandler):
       return
 
     if response.status_code != 200:
-      return self.abort('could not upate repo tags (%d)' % response.status_code)
+      return self.retry('could not upate repo tags (%d)' % response.status_code)
 
     old_tags = self.library.tags
 
@@ -397,7 +397,7 @@ class AuthorTask(RequestHandler):
       delete_author(self.author.key)
       raise RequestAborted('author no longer exists')
     elif response.status_code != 304:
-      return self.abort('could not update author metadata (%d)' % response.status_code)
+      return self.retry('could not update author metadata (%d)' % response.status_code)
 
 class IngestAuthor(AuthorTask):
   def handle_get(self, name):
@@ -479,7 +479,7 @@ class IngestVersion(RequestHandler):
     elif response.status_code == 404:
       readme = None
     else:
-      return self.abort('error fetching readme (%d)' % response.status_code)
+      return self.retry('error fetching readme (%d)' % response.status_code)
 
     if readme is not None:
       response = util.github_markdown(readme)
@@ -487,7 +487,7 @@ class IngestVersion(RequestHandler):
         content = Content(parent=self.version_key, id='readme.html', content=response.content)
         content.put()
       else:
-        return self.abort('error converting readme to markdown (%d)' % response.status_code)
+        return self.retry('error converting readme to markdown (%d)' % response.status_code)
 
   def update_bower(self):
     response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'bower.json'), validate_certificate=True)
@@ -503,7 +503,7 @@ class IngestVersion(RequestHandler):
     elif response.status_code == 404:
       return self.error("missing bower.json")
     else:
-      return self.abort('could not access bower.json (%d)' % response.status_code)
+      return self.retry('could not access bower.json (%d)' % response.status_code)
 
   def set_ready(self):
     self.version_object.status = Status.ready
@@ -527,7 +527,7 @@ class UpdateIndexes(RequestHandler):
 
     latest_version = Library.latest_version_for_key_async(library_key).get_result()
     if latest_version is not None and latest_version != version:
-      return self.abort('latest version changed while updating indexes')
+      return self.retry('latest version changed while updating indexes')
 
   def trigger_dependency_ingestion(self, collection_version_key, bower):
     dependencies = bower.get('dependencies', {})
