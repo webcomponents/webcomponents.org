@@ -105,7 +105,8 @@ class ManageUpdateTest(ManageTestBase):
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0') + '?latestVersion=True',
-        util.ingest_version_task('org', 'repo', 'v1.0.0'),
+        # We intentionally don't detect changes to existing tags.
+        # util.ingest_version_task('org', 'repo', 'v1.0.0'),
     ], [task.url for task in tasks])
 
 class ManageAuthorTest(ManageTestBase):
