@@ -103,10 +103,11 @@ class VersionCache(ndb.Model):
   @staticmethod
   @ndb.transactional
   def update(library_key):
-    """Returns whether the latest version has changed and an index update is needed.
+    """Updates the version cache and returns whether the latest version has
+       changed and an index update is needed.
     """
     versions = Library.uncached_versions_for_key(library_key)
-    version_cache = VersionCache.get_or_insert('versions', parent=library_key, versions=[])
+    version_cache = VersionCache.get_or_insert('versions', parent=library_key)
     needs_index_update = False
     if version_cache.versions != versions:
       old_latest = version_cache.versions[-1] if len(version_cache.versions) > 0 else None
