@@ -81,7 +81,6 @@ class RequestHandler(webapp2.RequestHandler):
 
   def __init__(self, request, response):
     super(RequestHandler, self).__init__(request, response)
-    self.abort_error = None
 
   def commit(self):
     pass
@@ -102,13 +101,13 @@ class RequestHandler(webapp2.RequestHandler):
           try:
             self.handle_get(**kwargs)
           except util.GitHubError as error:
-            self.abort_error = error
+            return error
           except RequestAborted as error:
-            self.abort_error = error
+            return error
           self.commit()
-        transactional_get()
-        if self.abort_error is not None:
-          raise self.abort_error
+        exception = transactional_get()
+        if isinstance(exception, Exception):
+          raise exception
       else:
         self.handle_get(**kwargs)
         self.commit()
@@ -528,7 +527,7 @@ class UpdateIndexes(RequestHandler):
 
     latest_version = Library.latest_version_for_key_async(library_key).get_result()
     if latest_version is not None and latest_version != version:
-      return abort('latest version changed while updating indexes')
+      return self.abort('latest version changed while updating indexes')
 
   def trigger_dependency_ingestion(self, collection_version_key, bower):
     dependencies = bower.get('dependencies', {})

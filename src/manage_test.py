@@ -193,32 +193,6 @@ class ManageAddTest(ManageTestBase):
     bower = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'bower').get()
     self.assertEqual(bower.content, '{}')
 
-  def fix_test_ingest_version_falls_back(self):
-    library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}', tags = ["v1.0.0", "v1.0.1"]).put()
-    version1 = Version(parent=library_key, id='v1.0.0', sha='lol')
-    version1.put()
-    version2 = Version(parent=library_key, id='v1.0.1', sha='lol')
-    version2.put()
-
-    self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.1/README.md', chr(248))
-
-    tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 0)
-
-    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.1'), headers={'X-AppEngine-QueueName': 'default'})
-    self.assertEqual(response.status_int, 200)
-
-    version2 = version2.key.get()
-    self.assertEqual(version2.status, Status.error)
-    self.assertEqual(version2.error, "Could not store README.md as a utf-8 string")
-
-    versions = Library.versions_for_key_async(library.key).get_result()
-    self.assertEqual([], versions)
-
-    tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 1)
-    self.assertEqual(tasks[0].url, util.ingest_version_task('org', 'repo', 'v1.0.0'))
-
   def test_ingest_commit(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
