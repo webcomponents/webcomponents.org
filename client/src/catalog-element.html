@@ -12,6 +12,10 @@
 <dom-module id="catalog-element">
   <template>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       a {
         text-decoration: none;
       }
@@ -28,12 +32,14 @@
         font-size: 38px;
         line-height: 45px;
         color: hsl(0, 0%, 18%);
-        margin: 0 0 8px 0;
+        margin: 0;
+        margin-bottom: 8px;
       }
 
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
+        line-height: 45px;
       }
 
       #repo-desc {
@@ -55,6 +61,11 @@
         margin-right: 8px;
       }
 
+      #header .avatar[src=] {
+        visibility: hidden;
+        background: red;
+      }
+
       /* Repo info */
       #info-header, #info-footer {
         border: 2px solid #ededed;
@@ -69,17 +80,51 @@
 
       #info-header > * {
         padding: 15px 20px;
+        border-left: 2px solid #ededed;
+        text-align: center;
+      }
+
+      #info-header > *:first-child {
+        border-left: none;
+      }
+
+      #info-view-github, #info-contributors {
+        flex: 0 0 270px !important;
+      }
+
+      #info-body {
+        display: flex;
+        padding: 30px 0;
+      }
+
+      #info-contributors {
+        font-size: 0;
+        line-height: 0;
       }
 
       #info-footer {
         border-radius: 0 0 4px 4px;
         background: #f7f7f7;
+        padding: 8px 12px;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      #info-footer a {
+        margin-right: 16px;
+      }
+
+      #info-body > *, #info-header > * {
+        flex: 1 0;
       }
 
       #info-body h3 {
         text-transform: uppercase;
         font-weight: bold;
         font-size: 14px;
+        line-height: 16px;
+        margin: 0;
         margin-bottom: 16px;
       }
 
@@ -90,9 +135,12 @@
         margin: 0 10px 10px 0;
       }
 
+      #info-body img.avatar:nth-of-type(7n) {
+        margin-right: 0;
+      }
+
       #content {
         padding: 16px 32px;
-        box-sizing: border-box;
         min-width: 200px;
         max-width: 980px;
         margin: 0 auto;
@@ -166,15 +214,34 @@
 
     <!-- Repo info -->
     <div id="info-header">
-      <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
+      <div id="info-download">$ bower install --save [[routeMatch.owner]]/[[repo]]</div>
+      <div id="info-stats">[[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching</div>
+      <div id="info-view-github"><a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a></div>
     </div>
-    <div id="info-body">
-      <h3>[[data.contributors.length]] contributors</h3>
-      <template is="dom-repeat" items=[[data.contributors]]>
-        <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.login]]">
+
+    <template is="dom-if" if="[[!loading]]">
+      <div id="info-body">
+        <div id="info-dependencies">
+          <h3>Dependencies</h3>
+          <template is="dom-repeat" items="[[_dependencies()]]">
+            <div>[[item]]</div>
+          </template>
+        </div>
+        <div id="info-graph">
+          <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
+        </div>
+        <div id="info-contributors">
+          <h3>[[data.contributors.length]] contributors</h3>
+          <template is="dom-repeat" items=[[data.contributors]]><img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.login]]"></template>
+        </div>
+      </div>
+    </template>
+
+    <div id="info-footer">
+      <template is="dom-repeat" items="[[data.bower.keywords]]">
+        <a href="/tag/[[item]]">[[item]]</a>
       </template>
     </div>
-    <div id="info-footer">info footer</div>
 
     <!-- Repository contents sidebar -->
     <template is="dom-repeat" items=[[bundledDemos]] as="demo">
@@ -345,6 +412,25 @@
 
       _navigateToSearch: function() {
         this.set('routeLocation.path', '/search');
+      },
+
+      _dependencies: function() {
+        if (!this.data || !this.data.bower || !this.data.bower.dependencies)
+          return [];
+        return Object.keys(this.data.bower.dependencies);
+      },
+
+      _timeSinceString: function(time) {
+        var ms = Date.now() - Date.parse(time);
+        if (ms < 1000 * 60)
+          return "less than a minute";
+        if (ms < 1000 * 60 * 60)
+          return "less than an hour";
+        if (ms < 1000 * 60 * 60 * 24)
+          return Math.round(ms / 1000 / 60 / 60) + " hours";
+        if (ms < 1000 * 60 * 60 * 24 * 30)
+          return Math.round(ms / 1000 / 60 / 60 / 24) + " days";
+        return Math.round(ms / 1000 / 60 / 60 / 24 / 365 * 12) + " months";
       },
 
     });
