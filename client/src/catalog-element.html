@@ -16,6 +16,80 @@
         text-decoration: none;
       }
 
+      /* Header */
+
+      #header {
+        color: hsl(0, 0%, 50%);
+        margin: 30px 0;
+      }
+
+      #repo-title {
+        display: inline-block;
+        font-size: 38px;
+        line-height: 45px;
+        color: hsl(0, 0%, 18%);
+        margin: 0 0 8px 0;
+      }
+
+      #repo-version {
+        margin-left: 6px;
+        font-size: 24px;
+      }
+
+      #repo-desc {
+        font-size: 24px;
+        line-height: 24px;
+        margin: 0 0 8px 0;
+      }
+
+      #repo-author {
+        line-height: 40px;
+        vertical-align: top;
+        display: flex;
+      }
+
+      #header .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        margin-right: 8px;
+      }
+
+      /* Repo info */
+      #info-header, #info-footer {
+        border: 2px solid #ededed;
+        border-bottom-width: 4px;
+        width: 100%;
+      }
+
+      #info-header {
+        border-radius: 4px 4px 0 0;
+        display: flex;
+      }
+
+      #info-header > * {
+        padding: 15px 20px;
+      }
+
+      #info-footer {
+        border-radius: 0 0 4px 4px;
+        background: #f7f7f7;
+      }
+
+      #info-body h3 {
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 16px;
+      }
+
+      #info-body img.avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        margin: 0 10px 10px 0;
+      }
+
       #content {
         padding: 16px 32px;
         box-sizing: border-box;
@@ -79,13 +153,28 @@
     <iron-icon icon="search"></iron-icon>
     <input type="search" placeholder="Search" on-tap="_navigateToSearch">
 
-    <h2 title class="repo-title">[[repo]]</h2>
-    [[data.version]]
-    [[data.bower.description]]
+    <!-- Header -->
+    <div id="header">
+      <h1 id="repo-title">[[repo]]</h1>
+      <span id="repo-version">[[data.version]]</span>
+      <div id="repo-desc">[[data.bower.description]]</div>
+      <div id="repo-author">
+        <img class="avatar" src="[[data.avatar_url]]&s=40">
+        <span>by <a href="/author/[[routeMatch.owner]]">[[routeMatch.owner]]</a></span>
+      </div>
+    </div>
 
-    <img class="avatar" src="[[data.avatar_url]]&s=64">by [[routeMatch.owner]]
-
-    <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
+    <!-- Repo info -->
+    <div id="info-header">
+      <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
+    </div>
+    <div id="info-body">
+      <h3>[[data.contributors.length]] contributors</h3>
+      <template is="dom-repeat" items=[[data.contributors]]>
+        <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.login]]">
+      </template>
+    </div>
+    <div id="info-footer">info footer</div>
 
     <!-- Repository contents sidebar -->
     <template is="dom-repeat" items=[[bundledDemos]] as="demo">
