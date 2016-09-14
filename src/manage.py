@@ -278,7 +278,7 @@ class LibraryTask(RequestHandler):
     # FIXME: And do this check regardless of whether the tags have changed.
     # FIXME: But not if there are any pending ingestions.
     removed_tags = list(set(old_tags) - set(new_tags))
-    added_tags =  list(set(new_tags) - set(old_tags))
+    added_tags = list(set(new_tags) - set(old_tags))
 
     for tag in removed_tags:
       self.trigger_version_deletion(tag)
