@@ -232,8 +232,8 @@ class IngestLibraryTest(ManageTestBase):
     library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
     Version(id='v1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/README.md', 'README')
-    self.respond_to('https://raw.githubusercontent.com/org/repo/v1.0.0/bower.json', '{}')
+    self.respond_to('https://raw.githubusercontent.com/org/repo/sha/README.md', 'README')
+    self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
     response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})

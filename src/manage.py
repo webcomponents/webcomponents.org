@@ -485,6 +485,7 @@ class IngestVersion(RequestHandler):
     self.owner = None
     self.repo = None
     self.version = None
+    self.sha = None
 
   def handle_get(self, owner, repo, version):
     self.owner = owner
@@ -496,6 +497,7 @@ class IngestVersion(RequestHandler):
     if self.version_object is None:
       return self.error('Version entity does not exist: %s/%s' % (Library.id(owner, repo), version))
 
+    self.sha = self.version_object.sha
     self.version_key = self.version_object.key
 
     self.update_readme()
@@ -520,7 +522,7 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'README.md'), validate_certificate=True)
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'README.md'), validate_certificate=True)
     if response.status_code == 200:
       readme = response.content
       try:
@@ -543,7 +545,7 @@ class IngestVersion(RequestHandler):
         return self.retry('error converting readme to markdown (%d)' % response.status_code)
 
   def update_bower(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.version, 'bower.json'), validate_certificate=True)
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'bower.json'), validate_certificate=True)
     if response.status_code == 200:
       try:
         bower_json = json.loads(response.content)
