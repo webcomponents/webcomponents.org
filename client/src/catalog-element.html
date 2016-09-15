@@ -18,6 +18,23 @@
 
       a {
         text-decoration: none;
+        color: #18B4D9;
+      }
+
+      h3 {
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 16px;
+        margin: 0;
+        margin-bottom: 16px;
+      }
+
+      .box {
+        border: 2px solid #ededed;
+        border-bottom-width: 4px;
+        width: 100%;
+        border-radius: 4px;
       }
 
       /* Header */
@@ -63,15 +80,9 @@
 
       #header .avatar[src=] {
         visibility: hidden;
-        background: red;
       }
 
       /* Repo info */
-      #info-header, #info-footer {
-        border: 2px solid #ededed;
-        border-bottom-width: 4px;
-        width: 100%;
-      }
 
       #info-header {
         border-radius: 4px 4px 0 0;
@@ -119,15 +130,6 @@
         flex: 1 0;
       }
 
-      #info-body h3 {
-        text-transform: uppercase;
-        font-weight: bold;
-        font-size: 14px;
-        line-height: 16px;
-        margin: 0;
-        margin-bottom: 16px;
-      }
-
       #info-body img.avatar {
         width: 30px;
         height: 30px;
@@ -139,36 +141,46 @@
         margin-right: 0;
       }
 
-      #content {
-        padding: 16px 32px;
-        min-width: 200px;
-        max-width: 980px;
-        margin: 0 auto;
-        animation: fade 167ms cubic-bezier(0, 0, 0.2, 1);
-      }
-
-      @keyframes fade {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      #content.hidden {
-        animation: none;
-      }
-
-      #demo-frame {
-        border: none;
+      /* Body */
+      #body {
         width: 100%;
-        height: 100vh;
-        position: absolute;
+        display: flex;
+        margin: 40px 0;
       }
 
-      [hidden] {
-        display: none;
+      #main-content {
+        flex: 1 0;
+        max-width: calc(100% - 270px);
+        padding-right: 40px;
+      }
+
+      /* Sidebar */
+      #sidebar {
+        flex: 0 0 270px;
+        order: 2;
+      }
+
+      #sidebar-nav a {
+        padding: 16px 20px;
+        display: block;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 14px;
+        border-top: 1px solid #ededed;
+      }
+
+      #sidebar-nav a:first-child {
+        font-size: 18px;
+        line-height: 21px;
+        border: none;
+      }
+
+      #sidebar a.demo-link:after {
+        content: 'demo';
+        text-transform: uppercase;
+        font-weight: normal;
+        float: right;
+        color: #c2c2c2;
       }
     </style>
 
@@ -213,7 +225,7 @@
     </div>
 
     <!-- Repo info -->
-    <div id="info-header">
+    <div id="info-header" class="box">
       <div id="info-download">$ bower install --save [[routeMatch.owner]]/[[repo]]</div>
       <div id="info-stats">[[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching</div>
       <div id="info-view-github"><a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a></div>
@@ -237,51 +249,45 @@
       </div>
     </template>
 
-    <div id="info-footer">
+    <div id="info-footer" class="box">
       <template is="dom-repeat" items="[[data.bower.keywords]]">
         <a href="/tag/[[item]]">[[item]]</a>
       </template>
     </div>
 
-    <!-- Repository contents sidebar -->
-    <template is="dom-repeat" items=[[bundledDemos]] as="demo">
-      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]">
-        <div>[[demo.desc]]</div>
-      </a>
-    </template>
+    <div id="body">
+      <!-- Repository contents sidebar -->
+      <div id="sidebar">
+        <h3>Repository contents</h3>
 
-    <template is="dom-repeat" items="[[bundledElements]]" as="element">
-      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">
-        <div>[[element.is]]</div>
-      </a>
-    </template>
-    <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-      <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">
-        <div>[[behavior.is]]</div>
-      </a>
-    </template>
+        <div id="sidebar-nav" class="box">
+          <a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a>
 
-    <template is="dom-if" if="[[!demo]]">
-      <div id="content" hidden="[[loading]]">
-        <template is="dom-if" if="[[_showMainView(subElement, demo)]]">
-          <catalog-element-readme data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
-        </template>
+          <template is="dom-repeat" items=[[bundledDemos]] as="demo">
+            <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank">[[demo.desc]]</a>
+          </template>
 
-        <template is="dom-if" if="[[subElement]]">
+          <template is="dom-repeat" items="[[bundledElements]]" as="element">
+            <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+          </template>
+
+          <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
+            <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+          </template>
+        </div>
+      </div>
+
+      <!-- Main content pane -->
+      <div id="main-content">
+        <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+
+        <div hidden="[[!subElement]]">
           <h2 title>[[subElement]]</h2>
           <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
-        </template>
+        </div>
       </div>
-    </template>
+    </div>
 
-    <!-- TODO(samli): Lacking drawer button -->
-    <template is="dom-if" if="[[demo]]">
-      <iframe id="demo-frame"
-              src="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo]]">
-      </iframe>
-    </template>
-
-    </app-drawer-layout>
   </template>
 
   <script>
@@ -305,10 +311,6 @@
       ready: function() {
         this._loaded = true;
         this._routeChanged(this.route, this.visible);
-      },
-
-      _showMainView: function(subElement, demo) {
-        return !(subElement || demo);
       },
 
       _elements: function() {
@@ -349,7 +351,7 @@
           return;
 
         this.data = {};
-        this.descriptor = {};
+        delete this.descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
       },
@@ -431,6 +433,10 @@
         if (ms < 1000 * 60 * 60 * 24 * 30)
           return Math.round(ms / 1000 / 60 / 60 / 24) + " days";
         return Math.round(ms / 1000 / 60 / 60 / 24 / 365 * 12) + " months";
+      },
+
+      _docLabel: function(element) {
+        return this.bundledElements.length == 1 ? 'Element API' : element;
       },
 
     });
