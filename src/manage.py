@@ -298,7 +298,7 @@ class LibraryTask(RequestHandler):
     return {version: data['object']['sha']}
 
   def update_element_tags(self):
-    response = util.github_get('repos', self.owner, self.repo, 'git/refs/tags', etag=self.library.tags_etag)
+    response = util.github_get('repos', self.owner, self.repo, 'tags', etag=self.library.tags_etag)
     if response.status_code == 304:
       return None
 
@@ -310,9 +310,8 @@ class LibraryTask(RequestHandler):
     except ValueError:
       return self.error("could not parse git/refs/tags")
 
-    # normalize the tag from 'refs/tags/v0.8.0' to 'v0.8.0'
-    new_tag_map = dict((d['ref'][10:], d['object']['sha']) for d in data
-                       if versiontag.is_valid(d['ref'][10:]))
+    new_tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
+                       if versiontag.is_valid(tag['name']))
     new_tags = new_tag_map.keys()
     new_tags.sort(versiontag.compare)
 
