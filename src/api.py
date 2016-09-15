@@ -74,6 +74,7 @@ class LibraryMetadata(object):
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
         'updated_at': metadata['updated_at'],
+        'dependency_count': metadata['dependency_count'],
     }
     raise ndb.Return(result)
 
@@ -152,10 +153,12 @@ class LibraryMetadata(object):
     bower = yield bower_future
     if bower is not None:
       bower_json = json.loads(bower.content)
+      dependencies = bower_json.get('dependencies', [])
+      result['dependency_count'] = len(dependencies)
       result['bower'] = {
           'description': bower_json.get('description', ''),
           'license': bower_json.get('license', ''),
-          'dependencies': bower_json.get('dependencies', []),
+          'dependencies': dependencies,
           'keywords': bower_json.get('keywords', []),
       }
 
