@@ -59,7 +59,7 @@ class UpdateLibraryTest(ManageTestBase):
     library.put()
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
-    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
 
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
@@ -91,10 +91,10 @@ class UpdateLibraryTest(ManageTestBase):
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
-    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', """[
-        {"ref": "refs/tags/v1.0.0", "object": {"sha": "new"}},
-        {"ref": "refs/tags/v2.0.0", "object": {"sha": "old"}},
-        {"ref": "refs/tags/v3.0.0", "object": {"sha": "new"}}
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v1.0.0", "commit": {"sha": "new"}},
+        {"name": "v2.0.0", "commit": {"sha": "old"}},
+        {"name": "v3.0.0", "commit": {"sha": "new"}}
     ]""")
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
 
@@ -174,7 +174,7 @@ class IngestLibraryTest(ManageTestBase):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/tags', '[{"ref": "refs/tags/v1.0.0", "object": {"sha": "lol"}}]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
 
