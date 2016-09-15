@@ -66,19 +66,19 @@ def update_indexes_task(owner, repo):
   return '/task/update-indexes/%s/%s' % (owner, repo)
 
 def ingest_author_task(name):
-  return '/task/ingest/author/%s' % name
+  return '/task/ingest/%s' % name
 
 def ingest_library_task(owner, repo):
-  return '/task/ingest/library/%s/%s' % (owner, repo)
-
-def ingest_commit_task(owner, repo):
-  return '/task/ingest/commit/%s/%s' % (owner, repo)
-
-def ingest_webhook_task(owner, repo):
-  return '/task/ingest/webhook/%s/%s' % (owner, repo)
+  return '/task/ingest/%s/%s' % (owner, repo)
 
 def ingest_version_task(owner, repo, version):
-  return '/task/ingest/version/%s/%s/%s' % (owner, repo, version)
+  return '/task/ingest/%s/%s/%s' % (owner, repo, version)
+
+def ingest_commit_task(owner, repo):
+  return '/task/ingest-commit/%s/%s' % (owner, repo)
+
+def ingest_webhook_task(owner, repo):
+  return '/task/ingest-webhook/%s/%s' % (owner, repo)
 
 def delete_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)

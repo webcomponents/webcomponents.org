@@ -26,12 +26,12 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
     self.app.get('/task/delete/owner/repo/version', status=403)
-    self.app.get('/task/ingest/author/owner', status=403)
-    self.app.get('/task/ingest/commit/owner/repo', status=403)
-    self.app.get('/task/ingest/webhook/owner/repo', status=403)
-    self.app.get('/task/ingest/library/owner/repo', status=403)
+    self.app.get('/task/ingest/owner', status=403)
+    self.app.get('/task/ingest/owner/repo', status=403)
+    self.app.get('/task/ingest/owner/repo/version', status=403)
+    self.app.get('/task/ingest-commit/owner/repo', status=403)
+    self.app.get('/task/ingest-webhook/owner/repo', status=403)
     self.app.get('/task/update-indexes/owner/repo', status=403)
-    self.app.get('/task/ingest/version/owner/repo/version', status=403)
 
   def test_token_only_valid_once(self):
     token = self.app.get('/manage/token').normal_body
