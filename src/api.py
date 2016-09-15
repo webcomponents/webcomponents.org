@@ -42,7 +42,7 @@ class SearchContents(webapp2.RequestHandler):
         if field.name == 'version':
           version = field.value
           break
-      library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+      library_key = ndb.Key(Library, Library.id(owner, repo))
       result_futures.append(LibraryMetadata.brief_async(library_key, version))
     results = []
     for future in result_futures:
@@ -167,7 +167,7 @@ class GetCollections(webapp2.RequestHandler):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
 
-    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
     collection_versions = yield Version.collections_for_key_async(version_key)
     collection_futures = []
     for collection_version in collection_versions:
@@ -187,7 +187,7 @@ class GetDependencies(webapp2.RequestHandler):
 
     owner = owner.lower()
     repo = repo.lower()
-    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, version)
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
     bower = yield Content.get_by_id_async('bower', parent=version_key)
     bower_json = json.loads(bower.content)
@@ -198,7 +198,7 @@ class GetDependencies(webapp2.RequestHandler):
     for name in bower_dependencies.keys():
       dependency = Dependency.from_string(bower_dependencies[name])
       dependencies.append(dependency)
-      dependency_library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
+      dependency_library_key = ndb.Key(Library, Library.id(dependency.owner, dependency.repo))
       version_futures.append(Library.versions_for_key_async(dependency_library_key))
 
     dependency_futures = []
@@ -216,7 +216,7 @@ class GetDependencies(webapp2.RequestHandler):
         })
         dependency_futures.append(error_future)
       else:
-        dependency_library_key = ndb.Key(Library, '%s/%s' % (dependency.owner.lower(), dependency.repo.lower()))
+        dependency_library_key = ndb.Key(Library, Library.id(dependency.owner.lower(), dependency.repo.lower()))
         dependency_futures.append(LibraryMetadata.brief_async(dependency_library_key, versions[-1]))
 
     results = []
@@ -235,7 +235,7 @@ class GetMetadata(webapp2.RequestHandler):
 
     owner = owner.lower()
     repo = repo.lower()
-    library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+    library_key = ndb.Key(Library, Library.id(owner, repo))
     result = yield LibraryMetadata.full_async(library_key, ver)
     if result is None:
       self.response.set_status(404)
@@ -249,14 +249,14 @@ class GetDocs(webapp2.RequestHandler):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
-    library_key = ndb.Key(Library, '%s/%s' % (owner, repo))
+    library_key = ndb.Key(Library, Library.id(owner, repo))
     if ver is None:
       versions = yield Library.versions_for_key_async(library_key)
       if versions == []:
         self.response.set_status(404)
         return
       ver = versions[-1]
-    version_key = ndb.Key(Library, '%s/%s' % (owner, repo), Version, ver)
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, ver)
     analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
     if analysis is None:
       self.response.set_status(404)
