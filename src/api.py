@@ -9,7 +9,7 @@ import urllib
 from urlparse import urlparse
 import webapp2
 
-from datamodel import Library, Version, Content, Dependency, Status
+from datamodel import Author, Library, Version, Content, Dependency, Status
 import versiontag
 
 import util
@@ -265,6 +265,37 @@ class GetDocs(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(analysis.content)
 
+class GetAuthor(webapp2.RequestHandler):
+  @ndb.toplevel
+  def get(self, author):
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+
+    author_object = Author.get_by_id(author.lower())
+    if author_object is None or author_object.status != Status.ready:
+      self.response.set_status(404)
+      return
+
+    metadata = json.loads(author_object.metadata)
+
+    result = {
+        'type': metadata['type'],
+        'login': metadata['login'],
+        'name': metadata['name'],
+        'company': metadata['company'],
+        'blog': metadata['blog'],
+        'location': metadata['location'],
+        'email': metadata['email'],
+        'bio': metadata['bio'],
+        'avatar_url': metadata['avatar_url'],
+        'followers': metadata['followers'],
+        'following': metadata['following'],
+        'public_gists': metadata['public_gists'],
+        'public_repos': metadata['public_repos'],
+    }
+
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.write(json.dumps(result))
+
 class RegisterPreview(webapp2.RequestHandler):
   def post(self):
     code = self.request.get('code')
@@ -445,6 +476,7 @@ class OnDemand(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/preview', handler=RegisterPreview),
     webapp2.Route(r'/api/preview/event', handler=PreviewEventHandler),
+    webapp2.Route(r'/api/meta/<author>', handler=GetAuthor),
     webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetMetadata),
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetMetadata),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetDocs),
