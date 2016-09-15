@@ -68,12 +68,13 @@ class LibraryMetadata(object):
         'repo': metadata['repo'],
         'version': metadata['version'],
         'kind': metadata['kind'],
-        # TODO: Resolve this difference (description toplevel, vs in 'bower').
-        'description': metadata['bower']['description'],
+        'description': metadata['description'],
         'stars': metadata['stars'],
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
         'updated_at': metadata['updated_at'],
+        'dependency_count': metadata['dependency_count'],
+        'avatar_url': metadata['avatar_url'],
     }
     raise ndb.Return(result)
 
@@ -122,6 +123,7 @@ class LibraryMetadata(object):
 
     if library.metadata is not None:
       metadata = json.loads(library.metadata)
+      result['description'] = metadata['description']
       result['subscribers'] = metadata['subscribers_count']
       result['stars'] = metadata['stargazers_count']
       result['forks'] = metadata['forks']
@@ -152,12 +154,15 @@ class LibraryMetadata(object):
     bower = yield bower_future
     if bower is not None:
       bower_json = json.loads(bower.content)
+      dependencies = bower_json.get('dependencies', [])
+      result['dependency_count'] = len(dependencies)
       result['bower'] = {
-          'description': bower_json.get('description', ''),
           'license': bower_json.get('license', ''),
-          'dependencies': bower_json.get('dependencies', []),
+          'dependencies': dependencies,
           'keywords': bower_json.get('keywords', []),
       }
+      if result.get('description', '') == '':
+        result['description'] = bower_json.get('description', '')
 
     raise ndb.Return(result)
 

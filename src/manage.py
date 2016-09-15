@@ -595,16 +595,15 @@ class UpdateIndexes(RequestHandler):
 
   def update_search_index(self, owner, repo, version_key, library, bower):
     metadata = json.loads(library.metadata)
-    description = bower.get("description", metadata.get("description", ""))
     document = search.Document(doc_id=Library.id(owner, repo), fields=[
         search.AtomField(name='full_name', value=metadata['full_name']),
         search.TextField(name='owner', value=owner),
         search.TextField(name='repo', value=repo),
         search.TextField(name='kind', value=library.kind),
         search.TextField(name='version', value=version_key.id()),
-        search.TextField(name='repoparts', value=' '.join(repo.split('-'))),
-        search.TextField(name='description', value=description),
-        search.TextField(name='keywords', value=' '.join(bower.get('keywords', []))),
+        search.TextField(name='github_description', value=metadata.get('description', '')),
+        search.TextField(name='bower_description', value=bower.get('description', '')),
+        search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
     ])
     index = search.Index('repo')
     index.put(document)
