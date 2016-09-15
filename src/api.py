@@ -75,6 +75,7 @@ class LibraryMetadata(object):
         'forks': metadata['forks'],
         'updated_at': metadata['updated_at'],
         'dependency_count': metadata['dependency_count'],
+        'avatar_url': metadata['avatar_url'],
     }
     raise ndb.Return(result)
 
