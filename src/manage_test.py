@@ -72,7 +72,7 @@ class EnsureLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-      util.ingest_library_task('owner', 'repo'),
+        util.ingest_library_task('owner', 'repo'),
     ], [task.url for task in tasks])
 
 class EnsureAuthorTest(ManageTestBase):
@@ -92,7 +92,7 @@ class EnsureAuthorTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-      util.ingest_author_task('author'),
+        util.ingest_author_task('author'),
     ], [task.url for task in tasks])
 
 class UpdateLibraryTest(ManageTestBase):
