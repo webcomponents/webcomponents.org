@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-viewer.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
@@ -252,6 +253,20 @@
         margin-right: 16px;
       }
 
+      #demo-dialog {
+        width: calc(100vw - 50px);
+        height: calc(100vh - 50px);
+        margin: 0;
+        padding: 0;
+      }
+
+      #demo-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
@@ -391,7 +406,7 @@
             <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
             <template is="dom-repeat" items=[[element.demos]] as="demo">
-              <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank"><span>[[demo.desc]]</span></a>
+              <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank" on-click="_showDemo"><span>[[demo.desc]]</span></a>
             </template>
           </template>
 
@@ -431,6 +446,10 @@
       </div>
     </div>
 
+    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-closed="_hideDemo">
+      <iframe id="demo-frame"></iframe>
+    </paper-dialog>
+
   </template>
 
   <script>
@@ -455,6 +474,22 @@
         this._loaded = true;
         this._infoBodyCollapsed = false;
         this._routeChanged(this.route, this.visible);
+      },
+
+      _showDemo: function(e) {
+        var a = e.target;
+        while (a && a.tagName != 'A') {
+          a = a.parentElement;
+        }
+        if (a) {
+          this.$['demo-dialog'].open();
+          this.$['demo-frame'].src = a.href;
+          e.preventDefault();
+        }
+      },
+
+      _hideDemo: function(e) {
+        this.$['demo-frame'].src = 'about:blank';
       },
 
       _elements: function() {
