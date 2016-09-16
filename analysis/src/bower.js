@@ -36,8 +36,8 @@ class Bower {
           var mainHtmls = installed[bowerPackage].pkgMeta.main;
           if (!mainHtmls) {
             // TODO: Look in the directory and see what .html files we might be able to consume.
-            Ana.fail("bower/install", "Couldn't find main.html after installing", packageToInstall);
-            reject(Error("BOWER: No main.html"));
+            Ana.log("bower/install", "Couldn't find main.html after installing", packageToInstall);
+            resolve([]);
             return;
           }
 
