@@ -1,0 +1,114 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="activity-graph">
+  <style>
+    #container {
+      width: 326px;
+      height: 110px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #svg {
+      margin-top: 16px;
+      position: absolute;
+      right: 0;
+    }
+
+    .date {
+      font-size: 12px;
+      font-weight: bold;
+      color: hsl(0, 0%, 50%);
+    }
+
+    #today {
+      float: right;
+    }
+
+    #today-9 {
+      display: none;
+    }
+
+    @media (max-width: 700px) {
+      #container {
+        width: 194px;
+      }
+
+      #startDate {
+        display: none;
+      }
+
+      #today-9 {
+        display: inline-block;
+      }
+    }
+  </style>
+
+  <template>
+    <div id="container">
+      <svg id="svg" height="94"></svg>
+      <div id="today" class="date">[[_computeDate(0)]]</div>
+      <div id="today-9" class="date">[[_computeDate(9)]]</div>
+      <div id="startDate" class="date">[[_computeDate(45)]]</div>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'activity-graph',
+
+      properties: {
+        activity: Object,
+      },
+
+      observers: [
+        '_activityChanged(activity)'
+      ],
+
+      _computeDate: function(weeksBeforeToday) {
+        var date = new Date(Date.now());
+        date.setDate(date.getDate() - 7 * weeksBeforeToday);
+        return date.getMonth() + '/' + date.getFullYear();
+      },
+
+      _activityChanged: function(activity) {
+        if (!activity)
+          return;
+
+        this.$.svg.innerHTML = '';
+        var columnWidth = 18;
+        var spacing = 4;
+        var width = (columnWidth + spacing) * 15 - spacing;
+        this.$.svg.setAttribute('width', width);
+
+        var buckets = [];
+        var maxCommits = 20;
+
+        // Use the 45 most recent weeks
+        activity = activity.slice(52 - 45);
+        var i;
+        for (i = 0; i < activity.length; i++) {
+          var bucket = Math.floor(i / 3);
+          buckets[bucket] = (buckets[bucket] || 0) + activity[i];
+          maxCommits = Math.max(buckets[bucket], maxCommits);
+        }
+
+        var xmlns = "http://www.w3.org/2000/svg";
+        for (i = 0; i < buckets.length; i++) {
+          var height = Math.max(1, buckets[i] / maxCommits * 100);
+          var rect = document.createElementNS(xmlns, 'rect');
+          rect.setAttribute('x', (columnWidth + spacing) * i);
+          rect.setAttribute('y', 100 - height + '%');
+          rect.setAttribute('width', columnWidth);
+          rect.setAttribute('height', height + '%');
+          // Normalise alpha values to 10, 30, 50, 70
+          var alpha = Math.round(height / 25) * 20 + 10;
+          rect.setAttribute('fill', 'hsla(0, 0%, 0%, ' + alpha / 100 + ')');
+          this.$.svg.appendChild(rect);
+        }
+      },
+
+    });
+  </script>
+</dom-module>
