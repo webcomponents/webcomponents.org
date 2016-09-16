@@ -329,10 +329,12 @@
 
           <template is="dom-repeat" items="[[collections]]">
             <div class="box collection">
-              <div class="header">
-                <h1>[[item.repo]]</h1>
-                <div>[[item.description]]</div>
-              </div>
+              <a href="/collection/[[item.owner]]/[[item.repo]]">
+                <div class="header">
+                  <h1>[[item.repo]]</h1>
+                  <div>[[item.description]]</div>
+                </div>
+              </a>
               <div class="footer">
                 <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.owner]]">
                 <span>Collected by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
