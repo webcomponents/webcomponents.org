@@ -66,6 +66,12 @@ def update_library_task(library_id):
 def update_indexes_task(owner, repo):
   return '/task/update-indexes/%s/%s' % (owner, repo)
 
+def ensure_author_task(name):
+  return '/task/ensure/%s' % name
+
+def ensure_library_task(owner, repo):
+  return '/task/ensure/%s/%s' % (owner, repo)
+
 def ingest_author_task(name):
   return '/task/ingest/%s' % name
 
