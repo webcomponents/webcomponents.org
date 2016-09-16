@@ -264,7 +264,7 @@
 
     <iron-ajax
       id="collectionsAjax"
-      url="[[baseUrls.api]]/api/collections/[[routeMatch.owner]]/[[repo]]/[[data.version]]"
+      url="[[baseUrls.api]]/api/collections/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
@@ -470,6 +470,7 @@
         if (!this._cachedData || this._cachedData !== this.repo) {
           this.$.metaAjax.generateRequest();
           this.$.docsAjax.generateRequest();
+          this.$.collectionsAjax.generateRequest();
           this._cachedData = this.repo;
         } else {
           this._updateDescriptor();
@@ -480,8 +481,6 @@
         if (this.data)
           document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
-        // TODO: Fire this earlier when version is optional
-        this.$.collectionsAjax.generateRequest();
       },
 
       _updateDescriptor: function() {
