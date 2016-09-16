@@ -26,11 +26,10 @@ class TestBase(unittest.TestCase):
         testbed.TASKQUEUE_SERVICE_NAME)
 
   def tearDown(self):
-    # ndb testing is Awesome!
     @ndb.transactional
-    def foo():
+    def ndb_testing_is_awesome():
       pass
-    foo()
+    ndb_testing_is_awesome()
 
     self.testbed.deactivate()
     ndb.get_context().clear_cache()
