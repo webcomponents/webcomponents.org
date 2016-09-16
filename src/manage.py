@@ -644,8 +644,6 @@ class EnsureLibrary(RequestHandler):
       util.new_task(task_url, target='manage')
 
 class EnsureAuthor(RequestHandler):
-  def is_transactional(self):
-    return True
   def handle_get(self, name):
     author = Author.get_by_id(name.lower())
     if author is None:
