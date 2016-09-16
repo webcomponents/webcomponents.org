@@ -16,12 +16,12 @@ class Bower {
    * returning a list of them via the promise.
    * @param {string} owner - the package owner
    * @param {string} repo - the package repository name
-   * @param {string} version - the package version code
+   * @param {string} versionOrSha - the package version code or sha
    * @return {Promise} a promise, returning a list of main html files found.
    */
-  install(owner, repo, version) {
+  install(owner, repo, versionOrSha) {
     var packageWithOwner = owner + "/" + repo;
-    var packageToInstall = packageWithOwner + "#" + version;
+    var packageToInstall = packageWithOwner + "#" + versionOrSha;
     Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
       bower.commands.install([packageToInstall]).on('end', function(installed) {
@@ -65,11 +65,11 @@ class Bower {
    * Dependencies look like {name:string, owner:string, repo:string, version:string}.
    * @param {string} owner - the package owner
    * @param {string} repo - the package repository name
-   * @param {string} version - the package version code
+   * @param {string} versionOrSha - the package version code or sha
    * @return {Promise.<Array.<object>>} a promise, returning a list of dependency objects.
    */
-  findDependencies(owner, repo, version) {
-    var ownerPackageVersionString = owner + "/" + repo + "#" + version;
+  findDependencies(owner, repo, versionOrSha) {
+    var ownerPackageVersionString = owner + "/" + repo + "#" + versionOrSha;
     Ana.log("bower/findDependencies", ownerPackageVersionString);
 
     // The Bower API is pretty annoying. Unless the results are cached it will not reliably

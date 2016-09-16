@@ -41,11 +41,11 @@ class Analysis {
         errorHandler("Task was missing attributes");
         return;
       }
-
-      this.bower.install(attributes.owner, attributes.repo, attributes.version).then(mainHtmlPaths => {
+      var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
+      this.bower.install(attributes.owner, attributes.repo, versionOrSha).then(mainHtmlPaths => {
         return Promise.all([
           this.hydrolysis.analyze(mainHtmlPaths),
-          this.bower.findDependencies(attributes.owner, attributes.repo, attributes.version)]);
+          this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = results[0];
         data.bowerDependencies = results[1];
