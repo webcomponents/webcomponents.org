@@ -503,7 +503,10 @@
         if (!this.data || !this.data.bower || !this.data.bower.dependencies)
           return [];
         var results = [];
-        for (var name in this.data.bower.dependencies) {
+        var names = Object.keys(this.data.bower.dependencies);
+        var i;
+        for (i = 0; i < names.length; i++) {
+          var name = names[i];
           var parts = this.data.bower.dependencies[name].split(/[\/#]/g);
           results.push({
             owner: parts[0],
