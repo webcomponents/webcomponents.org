@@ -35,13 +35,14 @@ def get_topic():
     ANALYSIS['topic'] = topic
   return ANALYSIS['topic']
 
-def publish_analysis_request(owner, repo, version):
+def publish_analysis_request(owner, repo, version, sha=None):
   try:
     get_topic().publish(
         "",
         owner=owner,
         repo=repo,
         version=version,
+        sha=sha,
         responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
   # TODO: Which exception is this for?
   # pylint: disable=bare-except
