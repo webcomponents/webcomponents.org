@@ -21,9 +21,16 @@
         color: #18B4D9;
       }
 
+      h1 {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+        margin-bottom: 16px;
+      }
+
       h3 {
         text-transform: uppercase;
-        font-weight: bold;
+        font-weight: normal;
         font-size: 14px;
         line-height: 16px;
         margin: 0;
@@ -35,6 +42,12 @@
         border-bottom-width: 4px;
         width: 100%;
         border-radius: 4px;
+      }
+
+      .avatar {
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
       }
 
       /* Header */
@@ -131,9 +144,6 @@
       }
 
       #info-body img.avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
         margin: 0 10px 10px 0;
       }
 
@@ -160,13 +170,29 @@
         order: 2;
       }
 
+      #sidebar .box {
+        margin-bottom: 16px;
+      }
+
+      #sidebar-nav {
+        margin-bottom: 32px !important;
+      }
+
       #sidebar-nav a {
         padding: 16px 20px;
-        display: block;
         font-weight: bold;
         font-size: 14px;
         line-height: 14px;
         border-top: 1px solid #ededed;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #sidebar-nav a span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 185px;
       }
 
       #sidebar-nav a:first-child {
@@ -175,12 +201,42 @@
         border: none;
       }
 
+      #sidebar a.demo-link {
+        background: hsl(0, 0%, 98%);
+      }
+
       #sidebar a.demo-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
         float: right;
         color: #c2c2c2;
+      }
+
+      .collection .header {
+        padding: 16px;
+        height: 160px;
+      }
+
+      .collection .header h1 {
+        margin: 0 0 16px;
+      }
+
+      .collection .header div {
+        color: hsl(0, 0%, 50%);
+        overflow: hidden;
+        max-height: 90px;
+      }
+
+      .collection .footer {
+        border-top: 1px solid #ededed;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+      }
+
+      .collection .footer .avatar {
+        margin-right: 16px;
       }
     </style>
 
@@ -206,6 +262,12 @@
       last-response="{{docs}}"
       on-response="_handleResponse"></iron-ajax>
 
+    <iron-ajax
+      id="collectionsAjax"
+      url="[[baseUrls.api]]/api/collections/[[routeMatch.owner]]/[[repo]]/[[data.version]]"
+      handle-as="json"
+      last-response="{{collections}}"></iron-ajax>
+
     <lazy-block condition="[[!loading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
@@ -217,7 +279,7 @@
     <div id="header">
       <h1 id="repo-title">[[repo]]</h1>
       <span id="repo-version">[[data.version]]</span>
-      <div id="repo-desc">[[data.bower.description]]</div>
+      <div id="repo-desc">[[data.description]]</div>
       <div id="repo-author">
         <img class="avatar" src="[[data.avatar_url]]&s=40">
         <span>by <a href="/author/[[routeMatch.owner]]">[[routeMatch.owner]]</a></span>
@@ -258,23 +320,40 @@
     <div id="body">
       <!-- Repository contents sidebar -->
       <div id="sidebar">
-        <h3>Repository contents</h3>
+        <h1>Repository contents</h1>
 
         <div id="sidebar-nav" class="box">
           <a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a>
 
-          <template is="dom-repeat" items=[[bundledDemos]] as="demo">
-            <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank">[[demo.desc]]</a>
-          </template>
-
           <template is="dom-repeat" items="[[bundledElements]]" as="element">
             <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+
+            <template is="dom-repeat" items=[[element.demos]] as="demo">
+              <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank"><span>[[demo.desc]]</span></a>
+            </template>
           </template>
 
           <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
             <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
           </template>
         </div>
+
+        <template is="dom-if" if="[[collections.length]]">
+          <h3>[[collections.length]] collections</h3>
+
+          <template is="dom-repeat" items="[[collections]]">
+            <div class="box collection">
+              <div class="header">
+                <h1>[[item.repo]]</h1>
+                <div>[[item.description]]</div>
+              </div>
+              <div class="footer">
+                <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.owner]]">
+                <span>Collected by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
+              </div>
+            </div>
+          </template>
+        </template>
       </div>
 
       <!-- Main content pane -->
@@ -401,6 +480,8 @@
         if (this.data)
           document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
+        // TODO: Fire this earlier when version is optional
+        this.$.collectionsAjax.generateRequest();
       },
 
       _updateDescriptor: function() {
