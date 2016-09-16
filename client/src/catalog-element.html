@@ -113,6 +113,18 @@
         flex: 0 0 270px !important;
       }
 
+      #info-dependencies {
+        line-height: 32px;
+        color: black;
+      }
+      #info-dependencies .owner {
+        color: hsl(0, 0%, 50%);
+      }
+
+      #info-dependencies .repo {
+        font-weight: bold;
+      }
+
       #info-body {
         display: flex;
         padding: 30px 0;
@@ -278,7 +290,12 @@
         <div id="info-dependencies">
           <h3>Dependencies</h3>
           <template is="dom-repeat" items="[[_dependencies()]]">
-            <div>[[item]]</div>
+            <div class="dependency">
+              <a href="/elements/[[item.owner]]/[[item.repo]]">
+                <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+              </a>
+              <span>[[item.version]]</span>
+            </div>
           </template>
         </div>
         <div id="info-graph">
@@ -479,7 +496,16 @@
       _dependencies: function() {
         if (!this.data || !this.data.bower || !this.data.bower.dependencies)
           return [];
-        return Object.keys(this.data.bower.dependencies);
+        var results = [];
+        for (var name in this.data.bower.dependencies) {
+          var parts = this.data.bower.dependencies[name].split(/[\/#]/g);
+          results.push({
+            owner: parts[0],
+            repo: parts[1],
+            version: parts[2],
+          });
+        }
+        return results;
       },
 
       _timeSinceString: function(time) {
