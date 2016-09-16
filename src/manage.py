@@ -669,8 +669,23 @@ class UpdateAll(RequestHandler):
       keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
       for key in keys:
         task_count = task_count + 1
-        taskqueue.add(queue_name='update', method='GET', url='/task/update/%s' % key.id())
-    self.response.write('triggered %d update tasks' % task_count)
+        task_url = util.update_library_task(key.id())
+        util.new_task(task_url, target='update')
+
+    logging.info('triggered %d library updates' % task_count)
+
+    query = Author.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        task_url = util.update_author_task(key.id())
+        util.new_task(task_url, target='update')
+
+    logging.info('triggered %d author updates' % task_count)
 
 
 def delete_author(author_key, response_for_logging=None):
