@@ -672,7 +672,7 @@ class UpdateAll(RequestHandler):
         task_url = util.update_library_task(key.id())
         util.new_task(task_url, target='update')
 
-    logging.info('triggered %d library updates' % task_count)
+    logging.info('triggered %d library updates', task_count)
 
     query = Author.query()
     cursor = None
@@ -685,7 +685,7 @@ class UpdateAll(RequestHandler):
         task_url = util.update_author_task(key.id())
         util.new_task(task_url, target='update')
 
-    logging.info('triggered %d author updates' % task_count)
+    logging.info('triggered %d author updates', task_count)
 
 
 def delete_author(author_key, response_for_logging=None):
