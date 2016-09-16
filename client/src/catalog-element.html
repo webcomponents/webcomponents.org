@@ -7,6 +7,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="catalog-element-readme.html">
+<link rel="import" href="contributors-list.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
@@ -91,10 +92,6 @@
         margin-right: 8px;
       }
 
-      #header .avatar[src=] {
-        visibility: hidden;
-      }
-
       /* Repo info */
 
       #info-header {
@@ -121,11 +118,6 @@
         padding: 30px 0;
       }
 
-      #info-contributors {
-        font-size: 0;
-        line-height: 0;
-      }
-
       #info-footer {
         border-radius: 0 0 4px 4px;
         background: #f7f7f7;
@@ -141,14 +133,6 @@
 
       #info-body > *, #info-header > * {
         flex: 1 0;
-      }
-
-      #info-body img.avatar {
-        margin: 0 10px 10px 0;
-      }
-
-      #info-body img.avatar:nth-of-type(7n) {
-        margin-right: 0;
       }
 
       /* Body */
@@ -302,7 +286,7 @@
         </div>
         <div id="info-contributors">
           <h3>[[data.contributors.length]] contributors</h3>
-          <template is="dom-repeat" items=[[data.contributors]]><img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.login]]"></template>
+          <contributors-list contributors="[[data.contributors]]"></contributors-list>
         </div>
       </div>
     </template>

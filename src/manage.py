@@ -262,14 +262,18 @@ class LibraryTask(RequestHandler):
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
+    analysis_sha = None
+    if self.library.kind == 'collection':
+      analysis_sha = sha
+
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
-    util.publish_analysis_request(self.owner, self.repo, tag)
+    util.publish_analysis_request(self.owner, self.repo, tag, analysis_sha)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
       return
-    task_url = util.ingest_author_task(self.owner)
+    task_url = util.ensure_author_task(self.owner)
     util.new_task(task_url, target='manage', transactional=True)
 
   def update_collection_tags(self):
@@ -577,20 +581,20 @@ class UpdateIndexes(RequestHandler):
     self.update_search_index(owner, repo, version_key, library, bower)
 
     if library.kind == 'collection':
-      self.trigger_dependency_ingestion(version_key, bower)
+      self.update_collection_dependencies(version_key, bower)
 
     latest_version = Library.latest_version_for_key_async(library_key).get_result()
     if latest_version is not None and latest_version != version:
       return self.retry('latest version changed while updating indexes')
 
-  def trigger_dependency_ingestion(self, collection_version_key, bower):
+  def update_collection_dependencies(self, collection_version_key, bower):
     dependencies = bower.get('dependencies', {})
     for name in dependencies.keys():
       dep = Dependency.from_string(dependencies[name])
       library_key = ndb.Key(Library, Library.id(dep.owner, dep.repo))
       CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
 
-      task_url = util.ingest_library_task(dep.owner.lower(), dep.repo.lower())
+      task_url = util.ensure_library_task(dep.owner.lower(), dep.repo.lower())
       util.new_task(task_url, target='manage')
 
   def update_search_index(self, owner, repo, version_key, library, bower):
@@ -635,6 +639,20 @@ class IngestAnalysis(RequestHandler):
       # pylint: disable=bare-except
       except:
         logging.error(sys.exc_info()[0])
+
+class EnsureLibrary(RequestHandler):
+  def handle_get(self, owner, repo):
+    library = Library.get_by_id(Library.id(owner, repo))
+    if library is None:
+      task_url = util.ingest_library_task(owner, repo)
+      util.new_task(task_url, target='manage')
+
+class EnsureAuthor(RequestHandler):
+  def handle_get(self, name):
+    author = Author.get_by_id(name.lower())
+    if author is None:
+      task_url = util.ingest_author_task(name)
+      util.new_task(task_url, target='manage')
 
 class UpdateAll(RequestHandler):
   def handle_get(self):
@@ -727,6 +745,8 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
+    webapp2.Route(r'/task/ensure/<name>', handler=EnsureAuthor),
+    webapp2.Route(r'/task/ensure/<owner>/<repo>', handler=EnsureLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
