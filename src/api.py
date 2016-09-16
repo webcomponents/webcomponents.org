@@ -110,6 +110,9 @@ class LibraryMetadata(object):
       versions = yield versions_future
       result['versions'] = versions
 
+    if not brief and library.participation is not None:
+      result['activity'] = json.loads(library.participation).get('all', [])
+
     if not brief and library.contributors is not None:
       contributors = []
       raw = json.loads(library.contributors)
