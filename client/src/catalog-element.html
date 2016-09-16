@@ -7,53 +7,16 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="activity-graph.html">
+<link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="contributors-list.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
   <template>
+    <style include="catalog-styles"></style>
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      a {
-        text-decoration: none;
-        color: #18B4D9;
-      }
-
-      h1 {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 0;
-        margin-bottom: 16px;
-      }
-
-      h3 {
-        text-transform: uppercase;
-        font-weight: normal;
-        font-size: 14px;
-        line-height: 16px;
-        margin: 0;
-        margin-bottom: 16px;
-      }
-
-      .box {
-        border: 2px solid #ededed;
-        border-bottom-width: 4px;
-        width: 100%;
-        border-radius: 4px;
-      }
-
-      .avatar {
-        border-radius: 4px;
-        width: 30px;
-        height: 30px;
-      }
-
       /* Header */
-
       #header {
         color: hsl(0, 0%, 50%);
         margin: 30px 0;
@@ -100,6 +63,10 @@
         display: flex;
       }
 
+      #info-header[body-collapsed] {
+        border-bottom: none;
+      }
+
       #info-header > * {
         padding: 15px 20px;
         border-left: 2px solid #ededed;
@@ -107,6 +74,11 @@
 
       #info-header > *:first-child {
         border-left: none;
+      }
+
+      #info-stats {
+        display: flex;
+        justify-content: space-between;
       }
 
       #info-view-github, #info-contributors {
@@ -130,21 +102,46 @@
         padding: 30px 0;
       }
 
+      #info-body[body-collapsed] {
+        display: none;
+      }
+
       #info-body > div {
         margin: 0 16px;
       }
 
       #info-footer {
         border-radius: 0 0 4px 4px;
-        background: #f7f7f7;
-        padding: 8px 12px;
         text-transform: uppercase;
         font-weight: bold;
         font-size: 14px;
+        height: 44px;
+        display: flex;
+        justify-content: space-between;
       }
 
       #info-footer a {
         margin-right: 16px;
+      }
+
+      #info-tags {
+        padding: 8px 12px;
+      }
+
+      #expand-collapse {
+        padding: 8px 12px;
+        width: 100px;
+        height: 100%;
+        border-left: 1px solid #ededed;
+        text-align: center;
+      }
+
+      #expand-collapse:after {
+        content: '-';
+      }
+
+      #expand-collapse[body-collapsed]:after {
+        content: '+';
       }
 
       #info-body > *, #info-header > * {
@@ -283,10 +280,15 @@
     </div>
 
     <!-- Repo info -->
-    <div id="info-header" class="box">
-      <div id="info-stats">
+    <div id="info-header" class="box" body-collapsed$="[[_infoBodyCollapsed]]">
+      <div>
         <h3>GitHub Statistics</h3>
-        [[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching
+        <div id="info-stats">
+          <div>[[data.stars]] stars</div>
+          <div>[[data.forks]] forks</div>
+          <div>[[data.subscribers]] watching</div>
+          <div>[[data.open_issues]] issues</div>
+        </div>
       </div>
       <div id="info-download">
         <h3>Download</h3>
@@ -297,7 +299,7 @@
     </div>
 
     <template is="dom-if" if="[[!loading]]">
-      <div id="info-body">
+      <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
         <div id="info-dependencies">
           <h3>Dependencies</h3>
           <template is="dom-repeat" items="[[_dependencies()]]">
@@ -321,9 +323,12 @@
     </template>
 
     <div id="info-footer" class="box">
-      <template is="dom-repeat" items="[[data.bower.keywords]]">
-        <a href="/tag/[[item]]">[[item]]</a>
-      </template>
+      <div id="info-tags">
+        <template is="dom-repeat" items="[[data.bower.keywords]]">
+          <a href="/tag/[[item]]">[[item]]</a>
+        </template>
+      </div>
+      <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]"></div>
     </div>
 
     <div id="body">
@@ -540,6 +545,10 @@
 
       _docLabel: function(element) {
         return this.bundledElements.length == 1 ? 'Element API' : element;
+      },
+
+      _toggleExpand: function() {
+        this._infoBodyCollapsed = !this._infoBodyCollapsed;
       },
 
     });

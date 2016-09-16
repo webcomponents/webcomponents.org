@@ -21,6 +21,10 @@ handlers:
 - url: /bower_components
   static_dir: bower_components
   secure: always
+- url: /sprite.octicons.svg
+  static_files: third_party/octicons/build/sprite.octicons.svg
+  upload: third_party/octicons/build/sprite.octicons.svg
+  secure: always
 - url: /.*
   upload: index.html
   static_files: index.html
