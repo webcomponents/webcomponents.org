@@ -103,7 +103,6 @@
       #info-header > * {
         padding: 15px 20px;
         border-left: 2px solid #ededed;
-        text-align: center;
       }
 
       #info-header > *:first-child {
@@ -112,6 +111,18 @@
 
       #info-view-github, #info-contributors {
         flex: 0 0 270px !important;
+      }
+
+      #info-dependencies {
+        line-height: 32px;
+      }
+
+      #info-dependencies .owner {
+        color: hsl(0, 0%, 50%);
+      }
+
+      #info-dependencies .repo {
+        font-weight: bold;
       }
 
       #info-body {
@@ -273,9 +284,16 @@
 
     <!-- Repo info -->
     <div id="info-header" class="box">
-      <div id="info-download">$ bower install --save [[routeMatch.owner]]/[[repo]]</div>
-      <div id="info-stats">[[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching</div>
-      <div id="info-view-github"><a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a></div>
+      <div id="info-stats">
+        <h3>GitHub Statistics</h3>
+        [[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching
+      </div>
+      <div id="info-download">
+        <h3>Download</h3>
+        $ bower install --save [[routeMatch.owner]]/[[repo]]</div>
+      <div id="info-view-github">
+        <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
+     </div>
     </div>
 
     <template is="dom-if" if="[[!loading]]">
@@ -283,7 +301,12 @@
         <div id="info-dependencies">
           <h3>Dependencies</h3>
           <template is="dom-repeat" items="[[_dependencies()]]">
-            <div>[[item]]</div>
+            <div class="dependency">
+              <a href="/element/[[item.owner]]/[[item.repo]]">
+                <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+              </a>
+              <span>[[item.version]]</span>
+            </div>
           </template>
         </div>
         <div id="info-graph">
@@ -485,7 +508,19 @@
       _dependencies: function() {
         if (!this.data || !this.data.bower || !this.data.bower.dependencies)
           return [];
-        return Object.keys(this.data.bower.dependencies);
+        var results = [];
+        var names = Object.keys(this.data.bower.dependencies);
+        var i;
+        for (i = 0; i < names.length; i++) {
+          var name = names[i];
+          var parts = this.data.bower.dependencies[name].split(/[\/#]/g);
+          results.push({
+            owner: parts[0],
+            repo: parts[1],
+            version: parts[2],
+          });
+        }
+        return results;
       },
 
       _timeSinceString: function(time) {
