@@ -111,7 +111,7 @@
 
     <iron-ajax
       id="metaAjax"
-      url="[[queryParams.base]]/api/meta/[[routeMatch.owner]]/[[routeMatch.repo]]"
+      url="[[baseUrls.api]]/api/meta/[[routeMatch.owner]]/[[routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_handleResponse"></iron-ajax>
@@ -155,6 +155,8 @@
 
       properties: {
         visible: Boolean,
+
+        baseUrls: Object,
 
         route: String
       },
