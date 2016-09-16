@@ -27,7 +27,7 @@ class Bower {
       bower.commands.install([packageToInstall]).on('end', function(installed) {
         Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
-          if (installed[bowerPackage].endpoint.source != packageWithOwner) {
+          if (installed[bowerPackage].endpoint.source.toLowerCase() != packageWithOwner.toLowerCase()) {
             // Skip over dependencies (we're not interested in them)
             continue;
           }
