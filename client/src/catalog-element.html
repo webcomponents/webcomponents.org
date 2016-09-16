@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
+<link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="contributors-list.html">
 <link rel="import" href="lazy-block.html">
@@ -116,6 +117,10 @@
       #info-body {
         display: flex;
         padding: 30px 0;
+      }
+
+      #info-body > div {
+        margin: 0 16px;
       }
 
       #info-footer {
@@ -283,6 +288,7 @@
         </div>
         <div id="info-graph">
           <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
+          <activity-graph activity="[[data.activity]]"></activity-graph>
         </div>
         <div id="info-contributors">
           <h3>[[data.contributors.length]] contributors</h3>

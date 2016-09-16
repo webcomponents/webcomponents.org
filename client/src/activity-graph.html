@@ -1,0 +1,82 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="activity-graph">
+  <style>
+    #container {
+      width: 326px;
+      height: 110px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #svg {
+      position: absolute;
+      right: 0;
+    }
+
+    @media (max-width: 700px) {
+      #container {
+        width: 194px;
+      }
+    }
+  </style>
+
+  <template>
+    <div id="container">
+      <svg id="svg" height="110"></svg>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'activity-graph',
+
+      properties: {
+        activity: Object,
+      },
+
+      observers: [
+        '_activityChanged(activity)'
+      ],
+
+      _activityChanged: function(activity) {
+        if (!activity)
+          return;
+
+        this.$.svg.innerHTML = '';
+        var columnWidth = 18;
+        var spacing = 4;
+        var width = (columnWidth + spacing) * 15 - spacing;
+        this.$.svg.setAttribute('width', width);
+
+        var buckets = [];
+        var maxCommits = 20;
+
+        // Use the 45 most recent weeks
+        activity = activity.slice(52 - 45);
+        var i;
+        for (i = 0; i < activity.length; i++) {
+          var bucket = Math.floor(i / 3);
+          buckets[bucket] = (buckets[bucket] || 0) + activity[i];
+          maxCommits = Math.max(buckets[bucket], maxCommits);
+        }
+
+        var xmlns = "http://www.w3.org/2000/svg";
+        for (i = 0; i < buckets.length; i++) {
+          var height = Math.max(1, buckets[i] / maxCommits * 100);
+          var rect = document.createElementNS(xmlns, 'rect');
+          rect.setAttribute('x', (columnWidth + spacing) * i);
+          rect.setAttribute('y', 100 - height + '%');
+          rect.setAttribute('width', columnWidth);
+          rect.setAttribute('height', height + '%');
+          // Normalise alpha values to 10, 30, 50, 70
+          var alpha = Math.round(height / 25) * 20 + 10;
+          rect.setAttribute('fill', 'hsla(0, 0%, 0%, ' + alpha / 100 + ')');
+          this.$.svg.appendChild(rect);
+        }
+      },
+
+    });
+  </script>
+</dom-module>
