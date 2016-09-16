@@ -10,20 +10,46 @@
     }
 
     #svg {
+      margin-top: 16px;
       position: absolute;
       right: 0;
+    }
+
+    .date {
+      font-size: 12px;
+      font-weight: bold;
+      color: hsl(0, 0%, 50%);
+    }
+
+    #today {
+      float: right;
+    }
+
+    #today-9 {
+      display: none;
     }
 
     @media (max-width: 700px) {
       #container {
         width: 194px;
       }
+
+      #startDate {
+        display: none;
+      }
+
+      #today-9 {
+        display: inline-block;
+      }
     }
   </style>
 
   <template>
     <div id="container">
-      <svg id="svg" height="110"></svg>
+      <svg id="svg" height="94"></svg>
+      <div id="today" class="date">[[_computeDate(0)]]</div>
+      <div id="today-9" class="date">[[_computeDate(9)]]</div>
+      <div id="startDate" class="date">[[_computeDate(45)]]</div>
     </div>
   </template>
 
@@ -39,6 +65,12 @@
       observers: [
         '_activityChanged(activity)'
       ],
+
+      _computeDate: function(weeksBeforeToday) {
+        var date = new Date(Date.now());
+        date.setDate(date.getDate() - 7 * weeksBeforeToday);
+        return date.getMonth() + '/' + date.getFullYear();
+      },
 
       _activityChanged: function(activity) {
         if (!activity)
