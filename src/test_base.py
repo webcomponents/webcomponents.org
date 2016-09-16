@@ -26,6 +26,12 @@ class TestBase(unittest.TestCase):
         testbed.TASKQUEUE_SERVICE_NAME)
 
   def tearDown(self):
+    # ndb testing is Awesome!
+    @ndb.transactional
+    def foo():
+      pass
+    foo()
+
     self.testbed.deactivate()
     ndb.get_context().clear_cache()
     self.assertEqual(self._expected_fetches, [])

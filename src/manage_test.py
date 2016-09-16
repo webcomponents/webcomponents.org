@@ -25,6 +25,8 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
+    self.app.get('/task/ensure/owner', status=403)
+    self.app.get('/task/ensure/owner/repo', status=403)
     self.app.get('/task/delete/owner/repo/version', status=403)
     self.app.get('/task/ingest/owner', status=403)
     self.app.get('/task/ingest/owner/repo', status=403)
@@ -52,6 +54,46 @@ class DeleteVersionTest(ManageTestBase):
     version = version_key.get()
     self.assertIsNone(version)
     self.assertEqual(Library.versions_for_key_async(library_key).get_result(), [])
+
+class EnsureLibraryTest(ManageTestBase):
+  def test_ensure_when_present(self):
+    Library(id=Library.id('owner', 'repo')).put()
+    response = self.app.get(util.ensure_library_task('owner', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([], [task.url for task in tasks])
+
+  def test_ensure_when_missing(self):
+    response = self.app.get(util.ensure_library_task('owner', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+      util.ingest_library_task('owner', 'repo'),
+    ], [task.url for task in tasks])
+
+class EnsureAuthorTest(ManageTestBase):
+  def test_ensure_when_present(self):
+    Author(id='author').put()
+    response = self.app.get(util.ensure_author_task('author'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([], [task.url for task in tasks])
+
+  def test_ensure_when_missing(self):
+    response = self.app.get(util.ensure_author_task('author'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+      util.ingest_author_task('author'),
+    ], [task.url for task in tasks])
 
 class UpdateLibraryTest(ManageTestBase):
   def test_update_respects_304(self):
@@ -193,7 +235,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v1.0.0'),
-        util.ingest_author_task('org'),
+        util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
   def test_ingest_collection(self):
@@ -220,7 +262,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v0.0.1'),
-        util.ingest_author_task('org'),
+        util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
   def test_github_error_fails_gracefully(self):
@@ -295,8 +337,8 @@ class UpdateIndexesTest(ManageTestBase):
     # Triggers ingestions
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_library_task('org', 'element-1'),
-        util.ingest_library_task('org', 'element-2'),
+        util.ensure_library_task('org', 'element-1'),
+        util.ensure_library_task('org', 'element-2'),
     ], [task.url for task in tasks])
 
     # Ensures collection references
