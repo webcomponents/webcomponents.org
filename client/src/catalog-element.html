@@ -366,7 +366,7 @@
     <div id="info-footer" class="box">
       <div id="info-tags">
         <template is="dom-repeat" items="[[data.bower.keywords]]">
-          <a href="/tag/[[item]]">[[item]]</a>
+          <a href="/search/bower_keywords:[[item]]">[[item]]</a>
         </template>
       </div>
       <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]"></div>
