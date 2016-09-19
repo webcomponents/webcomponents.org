@@ -26,10 +26,12 @@ class Catalog {
    * Creates a catalog service using the given pubsub client. It will connect to
    * (or create) the specified topic and subscription.
    * @param {Object} pubsub - The pubsub client.
+   * @param {bool} debug - debug mode
    */
-  constructor(pubsub) {
+  constructor(pubsub, debug) {
     Ana.log("catalog/constructor");
     this.pubsub = pubsub;
+    this.debug = debug
   }
 
   /**
@@ -44,6 +46,10 @@ class Catalog {
       Ana.log("catalog/postResponse", topicName);
       // omit ridiculously huge (or circular) fields from JSON stringify
       removeProperties(data, ["scriptElement", "javascriptNode"]);
+      if (this.debug) {
+        Ana.log("catalog/postResponse/debug attributes ", attributes);
+        Ana.log("catalog/postResponse/debug data ", data);
+      }
       this.pubsub.topic(topicName).publish({
         data: data,
         attributes: attributes

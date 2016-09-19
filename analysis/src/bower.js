@@ -24,7 +24,7 @@ class Bower {
     var packageToInstall = packageWithOwner + "#" + versionOrSha;
     Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
-      bower.commands.install([packageToInstall]).on('end', function(installed) {
+      bower.commands.install([packageToInstall], {}, {force: true}).on('end', function(installed) {
         Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
           if (installed[bowerPackage].endpoint.source.toLowerCase() != packageWithOwner.toLowerCase()) {
@@ -48,7 +48,7 @@ class Bower {
           resolve(mainHtmls.map(mainHtml => [canonicalDir, mainHtml].join("/"))); // eslint-disable-line no-loop-func
           return;
         }
-        Ana.fail("bower/install", "Couldn't find package after installing", packageToInstall);
+        Ana.fail("bower/install", "Couldn't find package after installing [", packageToInstall, "] found [" + JSON.stringify(installed) + "]");
         reject(Error("BOWER: install: package installed not in list"));
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
