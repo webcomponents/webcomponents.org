@@ -230,8 +230,8 @@ class GetDependencies(webapp2.RequestHandler):
       def matches(version, spec):
         try:
           return versiontag.match(version, spec)
-        except ValueError as e:
-          # FIXME: What other cases do we need to support support here?
+        except ValueError:
+          # FIXME: What other cases do we need to support here?
           return False
       while len(versions) > 0 and not matches(versions[-1], dependency.version):
         versions.pop()
