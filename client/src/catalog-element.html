@@ -81,6 +81,17 @@
         justify-content: space-between;
       }
 
+      #info-stats div {
+        display: flex;
+        align-items: center;
+      }
+
+      #info-stats svg {
+        width: 18px;
+        height: 18px;
+        margin-right: 5px;
+      }
+
       #info-view-github, #info-contributors {
         flex: 0 0 270px !important;
       }
@@ -235,6 +246,7 @@
       .collection .footer .avatar {
         margin-right: 16px;
       }
+
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
@@ -284,10 +296,30 @@
       <div>
         <h3>GitHub Statistics</h3>
         <div id="info-stats">
-          <div>[[data.stars]] stars</div>
-          <div>[[data.forks]] forks</div>
-          <div>[[data.subscribers]] watching</div>
-          <div>[[data.open_issues]] issues</div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon-star">
+             <use xlink:href="/sprite.octicons.svg#star"></use>
+            </svg>
+            [[data.stars]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon-repo-forked">
+             <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+            </svg>
+            [[data.forks]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon-eye">
+             <use xlink:href="/sprite.octicons.svg#eye"></use>
+            </svg>
+            [[data.subscribers]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon-issue-opened">
+             <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
+            </svg>
+            [[data.open_issues]]
+          </div>
         </div>
       </div>
       <div id="info-download">
