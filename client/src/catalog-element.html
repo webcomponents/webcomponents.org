@@ -23,15 +23,6 @@
         margin: 30px 0;
       }
 
-      #repo-title {
-        display: inline-block;
-        font-size: 38px;
-        line-height: 45px;
-        color: hsl(0, 0%, 18%);
-        margin: 0;
-        margin-bottom: 8px;
-      }
-
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
@@ -92,6 +83,22 @@
         width: 24px;
         height: 24px;
         margin-right: 5px;
+      }
+
+      .octicon-star {
+        color: #ffe200;
+      }
+
+      .octicon-repo-forked {
+        color: #8342bd;
+      }
+
+      .octicon-eye {
+        color: #66ce8f;
+      }
+
+      .octicon-issue-opened {
+        color: #939ca1;
       }
 
       #info-view-github {
@@ -165,29 +172,7 @@
         flex: 1 0;
       }
 
-      /* Body */
-      #body {
-        width: 100%;
-        display: flex;
-        margin: 40px 0;
-      }
-
-      #main-content {
-        flex: 1 0;
-        max-width: calc(100% - 270px);
-        padding-right: 40px;
-      }
-
       /* Sidebar */
-      #sidebar {
-        flex: 0 0 270px;
-        order: 2;
-      }
-
-      #sidebar .box {
-        margin-bottom: 16px;
-      }
-
       #sidebar-nav {
         margin-bottom: 32px !important;
       }
@@ -215,11 +200,11 @@
         border: none;
       }
 
-      #sidebar a.demo-link {
+      .sidebar a.demo-link {
         background: hsl(0, 0%, 98%);
       }
 
-      #sidebar a.demo-link:after {
+      .sidebar a.demo-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -330,9 +315,9 @@
 
     <!-- Header -->
     <div id="header">
-      <h1 id="repo-title">[[repo]]</h1>
+      <h1 class="page-title">[[repo]]</h1>
       <span id="repo-version">[[data.version]]</span>
-      <div id="repo-desc">[[data.description]]</div>
+      <h2 class="page-subtitle">[[data.description]]</h2>
       <div id="repo-author">
         <img class="avatar" src="[[data.avatar_url]]&s=40">
         <span>by <a href="/author/[[routeMatch.owner]]">[[routeMatch.owner]]</a></span>
@@ -422,9 +407,9 @@
       </div>
     </div>
 
-    <div id="body">
+    <div class="body">
       <!-- Repository contents sidebar -->
-      <div id="sidebar">
+      <div class="sidebar">
         <h1>Repository contents</h1>
 
         <div id="sidebar-nav" class="box">
@@ -464,7 +449,8 @@
       </div>
 
       <!-- Main content pane -->
-      <div id="main-content">
+      <div class="main-content">
+        <h1 hidden="[[subElement]]">README.md</h1>
         <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
         <div hidden="[[!subElement]]">

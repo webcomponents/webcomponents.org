@@ -17,6 +17,25 @@
         font-weight: bold;
         margin: 0;
         margin-bottom: 16px;
+        color: hsl(0, 0%, 18%);
+      }
+
+      h1.page-title {
+        display: inline-block;
+        font-size: 38px;
+        font-weight: bold;
+        line-height: 45px;
+        color: hsl(0, 0%, 18%);
+        margin: 0;
+        margin-bottom: 8px;
+      }
+
+      h2.page-subtitle {
+        font-size: 24px;
+        line-height: 24px;
+        margin: 0 0 8px 0;
+        color: hsl(0, 0%, 50%);
+        font-weight: normal;
       }
 
       h3 {
@@ -28,11 +47,33 @@
         margin-bottom: 8px;
       }
 
+      .body {
+        width: 100%;
+        display: flex;
+        margin: 40px 0;
+      }
+
+      .main-content {
+        flex: 1 0;
+        max-width: calc(100% - 270px);
+        padding-right: 40px;
+      }
+
+      .sidebar {
+        flex: 0 0 270px;
+        order: 2;
+      }
+
+      .sidebar .box {
+        margin-bottom: 16px;
+      }
+
       .box {
-        border: 2px solid #ededed;
-        border-bottom-width: 4px;
+        border: 1px solid #ededed;
+        border-bottom-width: 3px;
         width: 100%;
         border-radius: 4px;
+        overflow: hidden;
       }
 
       .avatar {
@@ -45,22 +86,6 @@
         display: inline-block;
         vertical-align: text-top;
         fill: currentColor;
-      }
-
-      .octicon-star {
-        color: #ffe200;
-      }
-
-      .octicon-repo-forked {
-        color: #8342bd;
-      }
-
-      .octicon-eye {
-        color: #66ce8f;
-      }
-
-      .octicon-issue-opened {
-        color: #939ca1;
       }
     </style>
   </template>
