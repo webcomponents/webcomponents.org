@@ -18,6 +18,7 @@
     "test-mocha": "mocha -R spec ./test/bower-test.js"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "mocha": "^3.0.2"
   }
 }
