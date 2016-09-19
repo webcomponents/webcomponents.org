@@ -47,8 +47,8 @@ class Catalog {
       // omit ridiculously huge (or circular) fields from JSON stringify
       removeProperties(data, ["scriptElement", "javascriptNode"]);
       if (this.debug) {
-        Ana.log("catalog/postResponse/debug attributes ", attributes);
-        Ana.log("catalog/postResponse/debug data ", data);
+        Ana.log("catalog/postResponse/debug attributes ", JSON.stringify(attributes));
+        Ana.log("catalog/postResponse/debug data ", JSON.stringify(data, null, '\t'));
       }
       this.pubsub.topic(topicName).publish({
         data: data,

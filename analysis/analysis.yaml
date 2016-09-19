@@ -1,4 +1,5 @@
 service: analysis
 runtime: nodejs
 vm: true
-threadsafe: true
+threadsafe: false
+
