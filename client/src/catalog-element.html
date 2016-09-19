@@ -7,53 +7,16 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="activity-graph.html">
+<link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="contributors-list.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
   <template>
+    <style include="catalog-styles"></style>
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      a {
-        text-decoration: none;
-        color: #18B4D9;
-      }
-
-      h1 {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 0;
-        margin-bottom: 16px;
-      }
-
-      h3 {
-        text-transform: uppercase;
-        font-weight: normal;
-        font-size: 14px;
-        line-height: 16px;
-        margin: 0;
-        margin-bottom: 16px;
-      }
-
-      .box {
-        border: 2px solid #ededed;
-        border-bottom-width: 4px;
-        width: 100%;
-        border-radius: 4px;
-      }
-
-      .avatar {
-        border-radius: 4px;
-        width: 30px;
-        height: 30px;
-      }
-
       /* Header */
-
       #header {
         color: hsl(0, 0%, 50%);
         margin: 30px 0;
@@ -98,18 +61,47 @@
       #info-header {
         border-radius: 4px 4px 0 0;
         display: flex;
+        padding: 12px 16px;
       }
 
-      #info-header > * {
-        padding: 15px 20px;
-        border-left: 2px solid #ededed;
+      #info-header[body-collapsed] {
+        border-bottom: none;
       }
 
-      #info-header > *:first-child {
-        border-left: none;
+      #info-download {
+        padding-left: 16px;
+        border-left: 1px solid #ededed;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
 
-      #info-view-github, #info-contributors {
+      #info-stats {
+        display: flex;
+        justify-content: space-between;
+        padding-right: 16px;
+      }
+
+      #info-stats div {
+        display: flex;
+        align-items: center;
+      }
+
+      #info-stats svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 5px;
+      }
+
+      #info-view-github {
+        flex: 0 0 220px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 16px;
+      }
+
+      #info-contributors {
         flex: 0 0 270px !important;
       }
 
@@ -130,21 +122,46 @@
         padding: 30px 0;
       }
 
+      #info-body[body-collapsed] {
+        display: none;
+      }
+
       #info-body > div {
         margin: 0 16px;
       }
 
       #info-footer {
         border-radius: 0 0 4px 4px;
-        background: #f7f7f7;
-        padding: 8px 12px;
         text-transform: uppercase;
         font-weight: bold;
         font-size: 14px;
+        height: 44px;
+        display: flex;
+        justify-content: space-between;
       }
 
       #info-footer a {
         margin-right: 16px;
+      }
+
+      #info-tags {
+        padding: 8px 12px;
+      }
+
+      #expand-collapse {
+        padding: 8px 12px;
+        width: 100px;
+        height: 100%;
+        border-left: 1px solid #ededed;
+        text-align: center;
+      }
+
+      #expand-collapse:after {
+        content: '-';
+      }
+
+      #expand-collapse[body-collapsed]:after {
+        content: '+';
       }
 
       #info-body > *, #info-header > * {
@@ -238,6 +255,7 @@
       .collection .footer .avatar {
         margin-right: 16px;
       }
+
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
@@ -283,21 +301,46 @@
     </div>
 
     <!-- Repo info -->
-    <div id="info-header" class="box">
-      <div id="info-stats">
+    <div id="info-header" class="box" body-collapsed$="[[_infoBodyCollapsed]]">
+      <div>
         <h3>GitHub Statistics</h3>
-        [[data.stars]] stars  [[data.forks]] forks  [[data.subscribers]] watching
+        <div id="info-stats">
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon octicon-star">
+             <use xlink:href="/sprite.octicons.svg#star"></use>
+            </svg>
+            [[data.stars]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+             <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+            </svg>
+            [[data.forks]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+             <use xlink:href="/sprite.octicons.svg#eye"></use>
+            </svg>
+            [[data.subscribers]]
+          </div>
+          <div>
+            <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+             <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
+            </svg>
+            [[data.open_issues]]
+          </div>
+        </div>
       </div>
       <div id="info-download">
         <h3>Download</h3>
         $ bower install --save [[routeMatch.owner]]/[[repo]]</div>
-      <div id="info-view-github">
+      <div id="info-view-github" class="box">
         <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
      </div>
     </div>
 
     <template is="dom-if" if="[[!loading]]">
-      <div id="info-body">
+      <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
         <div id="info-dependencies">
           <h3>Dependencies</h3>
           <template is="dom-repeat" items="[[_dependencies()]]">
@@ -321,9 +364,12 @@
     </template>
 
     <div id="info-footer" class="box">
-      <template is="dom-repeat" items="[[data.bower.keywords]]">
-        <a href="/tag/[[item]]">[[item]]</a>
-      </template>
+      <div id="info-tags">
+        <template is="dom-repeat" items="[[data.bower.keywords]]">
+          <a href="/tag/[[item]]">[[item]]</a>
+        </template>
+      </div>
+      <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]"></div>
     </div>
 
     <div id="body">
@@ -540,6 +586,10 @@
 
       _docLabel: function(element) {
         return this.bundledElements.length == 1 ? 'Element API' : element;
+      },
+
+      _toggleExpand: function() {
+        this._infoBodyCollapsed = !this._infoBodyCollapsed;
       },
 
     });
