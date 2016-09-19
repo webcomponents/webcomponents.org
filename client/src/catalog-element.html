@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
@@ -255,6 +256,18 @@
         padding: 0;
       }
 
+      #demo-spinner {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
+        margin-left: -30px;
+        margin-top: -30px;
+        --paper-spinner-stroke-width: 8px;
+      }
+
       #close-dialog {
         width: 40px;
         height: 40px;
@@ -461,13 +474,14 @@
       </div>
     </div>
 
+    <paper-spinner-lite id="demo-spinner"></paper-spinner-lite>
     <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>
       </div>
-      <iframe id="demo-frame"></iframe>
+      <iframe id="demo-frame" on-load="_demoLoaded"></iframe>
     </paper-dialog>
 
 
@@ -602,6 +616,11 @@
         var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         this.$['demo-dialog'].open();
+        this.$['demo-spinner'].setAttribute('active', '');
+      },
+
+      _demoLoaded: function() {
+        this.$['demo-spinner'].removeAttribute('active');
       },
 
       _cancelDemo: function() {
@@ -609,6 +628,7 @@
       },
 
       _demoCanceled: function() {
+        this.$['demo-spinner'].removeAttribute('active');
         this.$['demo-frame'].src = 'about:blank';
         var path = this.pathBeforeDemo;
         this.pathBeforeDemo = null;
