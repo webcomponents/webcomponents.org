@@ -29,18 +29,23 @@ function processTasks() {
   }
 
   Ana.log("main/processTasks", "Using project [", project, "]");
+  var catalog = new Catalog(pubsub({projectId: project}));
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(pubsub({projectId: project})));
+      catalog);
 
   app.post('/process/next', jsonBodyParser, (req, res) => {
     var message = req.body.message;
     analysis.processNextTask(message).then(function() {
       Ana.success("main/processTasks");
       res.status(200).send();
-    }, function(/* error */) {
+    }, function(error) {
       // We have no way of retrying failed tasks yet. Just ack the message.
+      if (message && message.attributes && message.attributes.responseTopic) {
+        var attributes = message.attributes;
+        this.catalog.postResponse(attributes.responseTopic, {error: error}, attributes);
+      }
       Ana.fail("main/processTasks");
       res.status(200).send();
     });
