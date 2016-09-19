@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
@@ -16,6 +18,14 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 22px;
+        padding-top: 60px;
+      }
+
+      app-header {
+        @apply(--layout-fixed-top);
+        z-index: 1;
+        background-color: #6dc38f;
+        color: white;
       }
     </style>
 
@@ -29,6 +39,12 @@
       tail="{{subroute}}"
       query-params="{{queryParams}}"></app-route>
 
+    <app-header role="navigation" reveals>
+      <app-toolbar>
+        <div>elements</div>
+      </app-toolbar>
+    </app-header>
+
     <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
@@ -36,6 +52,7 @@
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
     </iron-pages>
+
   </template>
 
   <script>
