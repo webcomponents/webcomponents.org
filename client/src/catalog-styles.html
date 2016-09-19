@@ -51,11 +51,13 @@
         width: 100%;
         display: flex;
         margin: 40px 0;
+        flex-wrap: wrap-reverse;
       }
 
       .main-content {
         flex: 1 0;
         max-width: calc(100% - 270px);
+        min-width: 300px;
         padding-right: 40px;
       }
 
@@ -96,6 +98,13 @@
       .loader[loading] {
         opacity: 0;
         transition: none;
+      }
+
+       @media (max-width: 425px) {
+        .main-content {
+          max-width: 100%;
+          padding-right: 0;
+        }
       }
     </style>
   </template>
