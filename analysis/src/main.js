@@ -21,18 +21,20 @@ const jsonBodyParser = bodyParser.json();
 function processTasks() {
 
   var project = process.env.GAE_LONG_APP_ID;
+  var debug = false;
 
   // If NODE_ENV isn't set, we're probably not running in GAE,
   // so override the project with whatever the command line says.
   if (!process.env.NODE_ENV && process.argv.length == 3) {
     project = process.argv[2];
+    debug = true;
   }
 
   Ana.log("main/processTasks", "Using project [", project, "]");
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(pubsub({projectId: project})));
+      new Catalog(pubsub({projectId: project}), debug));
 
   app.post('/process/next', jsonBodyParser, (req, res) => {
     var message = req.body.message;
