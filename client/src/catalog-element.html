@@ -254,8 +254,8 @@
       }
 
       #demo-dialog {
-        width: calc(100vw - 50px);
-        height: calc(100vh - 50px);
+        width: calc(100vw - 100px);
+        height: calc(100vh - 100px);
         margin: 0;
         padding: 0;
       }
@@ -406,7 +406,7 @@
             <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
             <template is="dom-repeat" items=[[element.demos]] as="demo">
-              <a class="demo-link" href="[[baseUrls.userContent]]/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[repo]]/[[demo.path]]" target="_blank" on-click="_showDemo"><span>[[demo.desc]]</span></a>
+              <a class="demo-link" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
           </template>
 
@@ -446,7 +446,7 @@
       </div>
     </div>
 
-    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-closed="_hideDemo">
+    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoDismissed">
       <iframe id="demo-frame"></iframe>
     </paper-dialog>
 
@@ -466,30 +466,14 @@
       },
 
       observers: [
-        '_routeChanged(route, visible)',
+        '_routeChanged(route.path, route.prefix, visible)',
         'onload(loading)'
       ],
 
       ready: function() {
         this._loaded = true;
         this._infoBodyCollapsed = false;
-        this._routeChanged(this.route, this.visible);
-      },
-
-      _showDemo: function(e) {
-        var a = e.target;
-        while (a && a.tagName != 'A') {
-          a = a.parentElement;
-        }
-        if (a) {
-          this.$['demo-dialog'].open();
-          this.$['demo-frame'].src = a.href;
-          e.preventDefault();
-        }
-      },
-
-      _hideDemo: function() {
-        this.$['demo-frame'].src = 'about:blank';
+        this._routeChanged(this.route.path, this.route.prefix, this.visible);
       },
 
       _elements: function() {
@@ -559,8 +543,8 @@
           this.subElement = split.shift();
       },
 
-      _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded || route.prefix !== '/element')
+      _routeChanged: function(path, prefix, visible) {
+        if (!visible || !this._loaded || prefix !== '/element')
           return;
 
         this._splitRoute();
@@ -575,6 +559,37 @@
         } else {
           this._updateDescriptor();
         }
+
+        // Trigger / hide demo UI.
+        if (this.demo) {
+          this._showDemo();
+        } else {
+          this._hideDemo();
+        }
+      },
+
+      _demoClicked: function(e) {
+        this.pathBeforeDemo = this.route.path;
+      },
+
+      _showDemo: function(e) {
+        var demoUrl = this.baseUrls.userContent + '/' + this.routeMatch.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
+        this.$['demo-frame'].src = demoUrl
+        this.$['demo-dialog'].open();
+      },
+
+      _hideDemo: function() {
+        this.$['demo-dialog'].close();
+        this.$['demo-frame'].src = 'about:blank';
+      },
+
+      _demoDismissed: function() {
+        var path = this.pathBeforeDemo;
+        this.pathBeforeDemo = null;
+        if (!path) {
+          path = this.routeMatch.owner + '/' + this.repo + this.versionRoute;
+        }
+        this.set('route.path', path);
       },
 
       _handleResponse: function() {
