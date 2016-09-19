@@ -473,7 +473,8 @@
       ready: function() {
         this._loaded = true;
         this._infoBodyCollapsed = false;
-        this._routeChanged(this.route.path, this.route.prefix, this.visible);
+        if (this.route)
+          this._routeChanged(this.route.path, this.route.prefix, this.visible);
       },
 
       _elements: function() {
