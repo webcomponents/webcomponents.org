@@ -150,18 +150,14 @@
 
       #expand-collapse {
         padding: 8px 12px;
-        width: 100px;
         height: 100%;
         border-left: 1px solid #ededed;
         text-align: center;
       }
 
-      #expand-collapse:after {
-        content: '-';
-      }
-
-      #expand-collapse[body-collapsed]:after {
-        content: '+';
+      #expand-collapse svg {
+        width: 16px;
+        height: 16px;
       }
 
       #info-body > *, #info-header > * {
@@ -369,7 +365,18 @@
           <a href="/search/bower_keywords:[[item]]">[[item]]</a>
         </template>
       </div>
-      <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]"></div>
+      <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
+        <template is="dom-if" if="[[_infoBodyCollapsed]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-plus">
+           <use xlink:href="/sprite.octicons.svg#plus"></use>
+          </svg>
+        </template>
+        <template is="dom-if" if="[[!_infoBodyCollapsed]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-dash">
+           <use xlink:href="/sprite.octicons.svg#dash"></use>
+          </svg>
+        </template>
+      </div>
     </div>
 
     <div id="body">
@@ -446,6 +453,7 @@
 
       ready: function() {
         this._loaded = true;
+        this._infoBodyCollapsed = false;
         this._routeChanged(this.route, this.visible);
       },
 
