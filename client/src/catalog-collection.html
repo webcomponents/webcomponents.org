@@ -29,37 +29,42 @@
 
     <iron-ajax
       id="metaAjax"
+      loading="{{metaLoading}}"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"></iron-ajax>
 
     <iron-ajax
       id="dependenciesAjax"
+      loading="{{dependenciesLoading}}"
       url="[[baseUrls.api]]/api/dependencies/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
       last-response="{{dependencies}}"></iron-ajax>
 
+    <div class="loader" loading$="[[metaLoading]]">
+      <h3>Collection</h3>
+      <h1 class="page-title">[[data.repo]]</h1>
+      <h2 class="page-subtitle">[[data.description]]</h2>
 
-    <h3>Collection</h3>
-    <h1 class="page-title">[[data.repo]]</h1>
-    <h2 class="page-subtitle">[[data.description]]</h2>
-
-    <div class="body">
-      <div class="sidebar">
-        <div class="box">
-          <img id="profile-image" src="[[data.avatar_url]]&s=270">
-          <div id="profile-info">
-            <h1>[[data.owner]]</h1>
+      <div class="body">
+        <div class="sidebar">
+          <div class="box">
+            <img id="profile-image" src="[[data.avatar_url]]&s=270">
+            <div id="profile-info">
+              <h1>[[data.owner]]</h1>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="main-content">
-        <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+        <div class="main-content">
+          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
-        <template is="dom-repeat" items="[[dependencies]]">
-          <catalog-item data="[[item]]"></catalog-item>
-        </template>
+          <div class="loader" loading$="[[dependenciesLoading]]">
+            <template is="dom-repeat" items="[[dependencies]]">
+              <catalog-item data="[[item]]"></catalog-item>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -88,7 +93,7 @@
       },
 
       _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded)
+        if (!visible || !this._loaded || route.prefix != '/collection')
           return;
 
         document.title = this._routeMatch.repo;

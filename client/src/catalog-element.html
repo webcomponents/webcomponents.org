@@ -283,179 +283,180 @@
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
-    <app-route
-      route="{{route}}"
-      pattern="/:owner"
-      data="{{routeMatch}}"
-      tail="{{routeTail}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
-      loading="{{loading}}"
-      url="[[baseUrls.api]]/api/meta/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      loading="{{metaLoading}}"
+      url="[[baseUrls.api]]/api/meta/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_handleResponse"></iron-ajax>
 
     <iron-ajax
       id="docsAjax"
-      url="[[baseUrls.api]]/api/docs/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      loading="{{docsLoading}}"
+      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
       on-response="_handleResponse"></iron-ajax>
 
     <iron-ajax
       id="collectionsAjax"
-      url="[[baseUrls.api]]/api/collections/[[routeMatch.owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/collections/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
-    <lazy-block condition="[[!loading]]"></lazy-block>
+    <lazy-block condition="[[!metaLoading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
-    <!-- Header -->
-    <div id="header">
-      <h1 class="page-title">[[repo]]</h1>
-      <span id="repo-version">[[data.version]]</span>
-      <h2 class="page-subtitle">[[data.description]]</h2>
-      <div id="repo-author">
-        <img class="avatar" src="[[data.avatar_url]]&s=40">
-        <span>by <a href="/author/[[routeMatch.owner]]">[[routeMatch.owner]]</a></span>
-      </div>
-    </div>
+    <div class="loader" loading$="[[metaLoading]]">
 
-    <!-- Repo info -->
-    <div id="info-header" class="box" body-collapsed$="[[_infoBodyCollapsed]]">
-      <div>
-        <h3>GitHub Statistics</h3>
-        <div id="info-stats">
-          <div>
-            <svg viewBox="0 0 100 100" class="octicon octicon-star">
-             <use xlink:href="/sprite.octicons.svg#star"></use>
-            </svg>
-            [[data.stars]]
-          </div>
-          <div>
-            <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
-             <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
-            </svg>
-            [[data.forks]]
-          </div>
-          <div>
-            <svg viewBox="0 0 100 100" class="octicon octicon-eye">
-             <use xlink:href="/sprite.octicons.svg#eye"></use>
-            </svg>
-            [[data.subscribers]]
-          </div>
-          <div>
-            <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
-             <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
-            </svg>
-            [[data.open_issues]]
-          </div>
+      <!-- Header -->
+      <div id="header">
+        <h1 class="page-title">[[repo]]</h1>
+        <span id="repo-version">[[data.version]]</span>
+        <h2 class="page-subtitle">[[data.description]]</h2>
+        <div id="repo-author">
+          <img class="avatar" src="[[data.avatar_url]]&s=40">
+          <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
         </div>
       </div>
-      <div id="info-download">
-        <h3>Download</h3>
-        $ bower install --save [[routeMatch.owner]]/[[repo]]</div>
-      <div id="info-view-github" class="box">
-        <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
-     </div>
-    </div>
 
-    <template is="dom-if" if="[[!loading]]">
-      <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
-        <div id="info-dependencies">
-          <h3>Dependencies</h3>
-          <template is="dom-repeat" items="[[_dependencies()]]">
-            <div class="dependency">
-              <a href="/element/[[item.owner]]/[[item.repo]]">
-                <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
-              </a>
-              <span>[[item.version]]</span>
+      <!-- Repo info -->
+      <div id="info-header" class="box" body-collapsed$="[[_infoBodyCollapsed]]">
+        <div>
+          <h3>GitHub Statistics</h3>
+          <div id="info-stats">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-star">
+               <use xlink:href="/sprite.octicons.svg#star"></use>
+              </svg>
+              [[data.stars]]
             </div>
-          </template>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+               <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+              </svg>
+              [[data.forks]]
+            </div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+               <use xlink:href="/sprite.octicons.svg#eye"></use>
+              </svg>
+              [[data.subscribers]]
+            </div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+               <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
+              </svg>
+              [[data.open_issues]]
+            </div>
+          </div>
         </div>
-        <div id="info-graph">
-          <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
-          <activity-graph activity="[[data.activity]]"></activity-graph>
-        </div>
-        <div id="info-contributors">
-          <h3>[[data.contributors.length]] contributors</h3>
-          <contributors-list contributors="[[data.contributors]]"></contributors-list>
-        </div>
+        <div id="info-download">
+          <h3>Download</h3>
+          $ bower install --save [[owner]]/[[repo]]</div>
+        <div id="info-view-github" class="box">
+          <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">View source on Github</a>
+       </div>
       </div>
-    </template>
 
-    <div id="info-footer" class="box">
-      <div id="info-tags">
-        <template is="dom-repeat" items="[[data.bower.keywords]]">
-          <a href="/search/bower_keywords:[[item]]">[[item]]</a>
-        </template>
-      </div>
-      <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
-        <template is="dom-if" if="[[_infoBodyCollapsed]]">
-          <svg viewBox="0 0 100 100" class="octicon octicon-plus">
-           <use xlink:href="/sprite.octicons.svg#plus"></use>
-          </svg>
-        </template>
-        <template is="dom-if" if="[[!_infoBodyCollapsed]]">
-          <svg viewBox="0 0 100 100" class="octicon octicon-dash">
-           <use xlink:href="/sprite.octicons.svg#dash"></use>
-          </svg>
-        </template>
-      </div>
-    </div>
-
-    <div class="body">
-      <!-- Repository contents sidebar -->
-      <div class="sidebar">
-        <h1>Repository contents</h1>
-
-        <div id="sidebar-nav" class="box">
-          <a href="/element/[[routeMatch.owner]]/[[repo]]">[[repo]]</a>
-
-          <template is="dom-repeat" items="[[bundledElements]]" as="element">
-            <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
-
-            <template is="dom-repeat" items=[[element.demos]] as="demo">
-              <a class="demo-link" href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
-            </template>
-          </template>
-
-          <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-            <a href="/element/[[routeMatch.owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
-          </template>
-        </div>
-
-        <template is="dom-if" if="[[collections.length]]">
-          <h3>[[collections.length]] collections</h3>
-
-          <template is="dom-repeat" items="[[collections]]">
-            <div class="box collection">
-              <a href="/collection/[[item.owner]]/[[item.repo]]">
-                <div class="header">
-                  <h1>[[item.repo]]</h1>
-                  <div>[[item.description]]</div>
-                </div>
-              </a>
-              <div class="footer">
-                <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.owner]]">
-                <span>Collected by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
+      <template is="dom-if" if="[[!metaLoading]]">
+        <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
+          <div id="info-dependencies">
+            <h3>Dependencies</h3>
+            <template is="dom-repeat" items="[[_dependencies()]]">
+              <div class="dependency">
+                <a href="/element/[[item.owner]]/[[item.repo]]">
+                  <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                </a>
+                <span>[[item.version]]</span>
               </div>
-            </div>
+            </template>
+          </div>
+          <div id="info-graph">
+            <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
+            <activity-graph activity="[[data.activity]]"></activity-graph>
+          </div>
+          <div id="info-contributors">
+            <h3>[[data.contributors.length]] contributors</h3>
+            <contributors-list contributors="[[data.contributors]]"></contributors-list>
+          </div>
+        </div>
+      </template>
+
+      <div id="info-footer" class="box">
+        <div id="info-tags">
+          <template is="dom-repeat" items="[[data.bower.keywords]]">
+            <a href="/search/bower_keywords:[[item]]">[[item]]</a>
           </template>
-        </template>
+        </div>
+        <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
+          <template is="dom-if" if="[[_infoBodyCollapsed]]">
+            <svg viewBox="0 0 100 100" class="octicon octicon-plus">
+             <use xlink:href="/sprite.octicons.svg#plus"></use>
+            </svg>
+          </template>
+          <template is="dom-if" if="[[!_infoBodyCollapsed]]">
+            <svg viewBox="0 0 100 100" class="octicon octicon-dash">
+             <use xlink:href="/sprite.octicons.svg#dash"></use>
+            </svg>
+          </template>
+        </div>
       </div>
 
-      <!-- Main content pane -->
-      <div class="main-content">
-        <h1 hidden="[[subElement]]">README.md</h1>
-        <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+      <div class="body">
+        <!-- Repository contents sidebar -->
+        <div class="sidebar">
+          <h1>Repository contents</h1>
 
-        <div hidden="[[!subElement]]">
-          <h2 title>[[subElement]]</h2>
-          <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
+          <div id="sidebar-nav" class="box loader" loading$="[[docsLoading]]">
+            <a href="/element/[[owner]]/[[repo]]">[[repo]]</a>
+
+            <template is="dom-repeat" items="[[bundledElements]]" as="element">
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+
+              <template is="dom-repeat" items=[[element.demos]] as="demo">
+                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
+              </template>
+            </template>
+
+            <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+            </template>
+          </div>
+
+          <div class="loader" loading$="[[_or(docsLoading, collectionsLoading)]]">
+            <template is="dom-if" if="[[collections.length]]">
+              <h3>[[collections.length]] collections</h3>
+
+              <template is="dom-repeat" items="[[collections]]">
+                <div class="box collection">
+                  <a href="/collection/[[item.owner]]/[[item.repo]]">
+                    <div class="header">
+                      <h1>[[item.repo]]</h1>
+                      <div>[[item.description]]</div>
+                    </div>
+                  </a>
+                  <div class="footer">
+                    <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.owner]]">
+                    <span>Collected by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
+                  </div>
+                </div>
+              </template>
+            </template>
+          </div>
+        </div>
+
+        <!-- Main content pane -->
+        <div class="main-content">
+          <h1 hidden="[[subElement]]">README.md</h1>
+          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+
+          <div hidden="[[!subElement]]">
+            <h2 title>[[subElement]]</h2>
+            <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
+          </div>
         </div>
       </div>
     </div>
@@ -468,6 +469,7 @@
       </div>
       <iframe id="demo-frame"></iframe>
     </paper-dialog>
+
 
   </template>
 
@@ -486,7 +488,7 @@
 
       observers: [
         '_routeChanged(route.path, route.prefix, visible)',
-        'onload(loading)'
+        'onload(metaLoading)'
       ],
 
       ready: function() {
@@ -529,14 +531,16 @@
         });
       },
 
-      onload: function(loading) {
-        if (!this.visible || !loading)
+      onload: function(metaLoading) {
+        if (!this.visible || !metaLoading)
           return;
 
         this.data = {};
         delete this.descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
+        this.collections = null;
+        this.docs = null;
       },
 
       _splitRoute: function() {
@@ -544,8 +548,9 @@
         this.subElement = null;
         this.demo = null;
 
-        var split = this.routeTail.path.split('/');
+        var split = this.route.path.split('/');
         split.shift(); // Skip first /
+        this.owner = split.shift();
         this.repo = split.shift();
 
         if (split.length && split[0].indexOf('.') != -1)
@@ -568,7 +573,7 @@
           return;
 
         this._splitRoute();
-        document.title = this.routeMatch.owner + '/' + this.repo;
+        document.title = this.owner + '/' + this.repo;
 
         // Generate requests
         if (!this._cachedData || this._cachedData !== this.repo) {
@@ -594,7 +599,7 @@
       },
 
       _showDemo: function() {
-        var demoUrl = this.baseUrls.userContent + '/' + this.routeMatch.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
+        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         this.$['demo-dialog'].open();
       },
@@ -608,7 +613,7 @@
         var path = this.pathBeforeDemo;
         this.pathBeforeDemo = null;
         if (!path) {
-          path = this.routeMatch.owner + '/' + this.repo + this.versionRoute;
+          path = this.owner + '/' + this.repo + this.versionRoute;
         }
         this.set('route.path', path);
       },
@@ -669,6 +674,10 @@
 
       _toggleExpand: function() {
         this._infoBodyCollapsed = !this._infoBodyCollapsed;
+      },
+
+      _or: function(a, b) {
+        return a || b;
       },
 
     });

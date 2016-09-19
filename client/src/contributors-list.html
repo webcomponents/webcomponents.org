@@ -58,6 +58,11 @@
       ],
 
       _contributorsChanged: function(contributors) {
+        if (!contributors) {
+          this._contributors = [];
+          this._overflowCount = 0;
+          return;
+        }
         this._overflowCount = Math.max(contributors.length - 21, 0);
         this._contributors = contributors.slice(0, 21);
       },

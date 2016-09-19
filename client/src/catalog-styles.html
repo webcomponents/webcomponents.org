@@ -87,6 +87,16 @@
         vertical-align: text-top;
         fill: currentColor;
       }
+
+      .loader {
+        transition: opacity 250ms cubic-bezier(0, 0, 0.2, 1);
+        opacity: 1;
+      }
+
+      .loader[loading] {
+        opacity: 0;
+        transition: none;
+      }
     </style>
   </template>
 </dom-module>
