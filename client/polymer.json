@@ -9,5 +9,9 @@
     "src/catalog-preview.html",
     "src/catalog-search.html",
     "src/lazy-resources.html"
+  ],
+  "includeDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
   ]
 }
