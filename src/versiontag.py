@@ -21,6 +21,8 @@ def compare(version1, version2):
   return cmp(version1.group(1), version2.group(1))
 
 def match(version, spec):
+  if spec == '*' or spec == 'master':
+    return True
   if version[0] == 'v':
     version = version[1:]
   if spec[0] == '^':
