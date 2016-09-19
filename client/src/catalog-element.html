@@ -23,15 +23,6 @@
         margin: 30px 0;
       }
 
-      #repo-title {
-        display: inline-block;
-        font-size: 38px;
-        line-height: 45px;
-        color: hsl(0, 0%, 18%);
-        margin: 0;
-        margin-bottom: 8px;
-      }
-
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
@@ -92,6 +83,22 @@
         width: 24px;
         height: 24px;
         margin-right: 5px;
+      }
+
+      .octicon-star {
+        color: #ffe200;
+      }
+
+      .octicon-repo-forked {
+        color: #8342bd;
+      }
+
+      .octicon-eye {
+        color: #66ce8f;
+      }
+
+      .octicon-issue-opened {
+        color: #939ca1;
       }
 
       #info-view-github {
@@ -165,29 +172,7 @@
         flex: 1 0;
       }
 
-      /* Body */
-      #body {
-        width: 100%;
-        display: flex;
-        margin: 40px 0;
-      }
-
-      #main-content {
-        flex: 1 0;
-        max-width: calc(100% - 270px);
-        padding-right: 40px;
-      }
-
       /* Sidebar */
-      #sidebar {
-        flex: 0 0 270px;
-        order: 2;
-      }
-
-      #sidebar .box {
-        margin-bottom: 16px;
-      }
-
       #sidebar-nav {
         margin-bottom: 32px !important;
       }
@@ -215,11 +200,11 @@
         border: none;
       }
 
-      #sidebar a.demo-link {
+      .sidebar a.demo-link {
         background: hsl(0, 0%, 98%);
       }
 
-      #sidebar a.demo-link:after {
+      .sidebar a.demo-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -253,6 +238,8 @@
         margin-right: 16px;
       }
 
+      /* Demo frame */
+
       #demo-dialog {
         width: calc(100vw - 100px);
         height: calc(100vh - 100px);
@@ -266,6 +253,32 @@
         border: none;
         margin: 0;
         padding: 0;
+      }
+
+      #close-dialog {
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        left: -20px;
+        top: -20px;
+        background: white;
+        border: 1px solid #ededed;
+        border-radius: 50%;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                  0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                  0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      }
+
+      #close-dialog svg {
+        height: 20px;
+        width: 20px;
+        color: hsl(0, 0%, 40%);
       }
     </style>
 
@@ -302,9 +315,9 @@
 
     <!-- Header -->
     <div id="header">
-      <h1 id="repo-title">[[repo]]</h1>
+      <h1 class="page-title">[[repo]]</h1>
       <span id="repo-version">[[data.version]]</span>
-      <div id="repo-desc">[[data.description]]</div>
+      <h2 class="page-subtitle">[[data.description]]</h2>
       <div id="repo-author">
         <img class="avatar" src="[[data.avatar_url]]&s=40">
         <span>by <a href="/author/[[routeMatch.owner]]">[[routeMatch.owner]]</a></span>
@@ -394,9 +407,9 @@
       </div>
     </div>
 
-    <div id="body">
+    <div class="body">
       <!-- Repository contents sidebar -->
-      <div id="sidebar">
+      <div class="sidebar">
         <h1>Repository contents</h1>
 
         <div id="sidebar-nav" class="box">
@@ -436,7 +449,8 @@
       </div>
 
       <!-- Main content pane -->
-      <div id="main-content">
+      <div class="main-content">
+        <h1 hidden="[[subElement]]">README.md</h1>
         <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
         <div hidden="[[!subElement]]">
@@ -446,7 +460,12 @@
       </div>
     </div>
 
-    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoDismissed">
+    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
+      <div id="close-dialog" on-tap="_cancelDemo">
+        <svg viewBox="0 0 100 100" class="octicon octicon-x">
+          <use xlink:href="/sprite.octicons.svg#x"></use>
+        </svg>
+      </div>
       <iframe id="demo-frame"></iframe>
     </paper-dialog>
 
@@ -565,7 +584,8 @@
         if (this.demo) {
           this._showDemo();
         } else {
-          this._hideDemo();
+          this.$['demo-dialog'].close();
+          this.$['demo-frame'].src = 'about:blank';
         }
       },
 
@@ -579,12 +599,12 @@
         this.$['demo-dialog'].open();
       },
 
-      _hideDemo: function() {
-        this.$['demo-dialog'].close();
-        this.$['demo-frame'].src = 'about:blank';
+      _cancelDemo: function() {
+        this.$['demo-dialog'].cancel();
       },
 
-      _demoDismissed: function() {
+      _demoCanceled: function() {
+        this.$['demo-frame'].src = 'about:blank';
         var path = this.pathBeforeDemo;
         this.pathBeforeDemo = null;
         if (!path) {
