@@ -227,7 +227,13 @@ class GetDependencies(webapp2.RequestHandler):
     dependency_futures = []
     for i, dependency in enumerate(dependencies):
       versions = yield version_futures[i]
-      while len(versions) > 0 and not versiontag.match(versions[-1], dependency.version):
+      def matches(version, spec):
+        try:
+          return versiontag.match(version, spec)
+        except ValueError as e:
+          # FIXME: What other cases do we need to support support here?
+          return False
+      while len(versions) > 0 and not matches(versions[-1], dependency.version):
         versions.pop()
       if len(versions) == 0:
         error_future = ndb.Future()
