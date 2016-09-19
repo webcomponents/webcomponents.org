@@ -568,11 +568,11 @@
         }
       },
 
-      _demoClicked: function(e) {
+      _demoClicked: function() {
         this.pathBeforeDemo = this.route.path;
       },
 
-      _showDemo: function(e) {
+      _showDemo: function() {
         var demoUrl = this.baseUrls.userContent + '/' + this.routeMatch.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         this.$['demo-dialog'].open();
