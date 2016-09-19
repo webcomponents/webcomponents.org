@@ -166,7 +166,7 @@ class LibraryTask(RequestHandler):
     self.owner = owner.lower()
     self.repo = repo.lower()
     if create:
-      self.library = Library.get_or_insert('%s/%s' % (owner, repo))
+      self.library = Library.get_or_insert(Library.id(owner, repo))
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
 
@@ -385,6 +385,7 @@ class UpdateLibrary(LibraryTask):
   def handle_get(self, owner, repo):
     self.init_library(owner, repo, create=False)
     if self.library is None:
+      logging.warning('Library not found: %s', Library.id(owner, repo))
       return
     self.update_metadata()
     self.update_versions()
@@ -670,7 +671,7 @@ class UpdateAll(RequestHandler):
       for key in keys:
         task_count = task_count + 1
         task_url = util.update_library_task(key.id())
-        util.new_task(task_url, target='update')
+        util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d library updates', task_count)
 
@@ -683,7 +684,7 @@ class UpdateAll(RequestHandler):
       for key in keys:
         task_count = task_count + 1
         task_url = util.update_author_task(key.id())
-        util.new_task(task_url, target='update')
+        util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d author updates', task_count)
 
