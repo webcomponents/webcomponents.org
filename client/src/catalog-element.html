@@ -61,24 +61,25 @@
       #info-header {
         border-radius: 4px 4px 0 0;
         display: flex;
+        padding: 12px 16px;
       }
 
       #info-header[body-collapsed] {
         border-bottom: none;
       }
 
-      #info-header > * {
-        padding: 15px 20px;
-        border-left: 2px solid #ededed;
-      }
-
-      #info-header > *:first-child {
-        border-left: none;
+      #info-download {
+        padding-left: 16px;
+        border-left: 1px solid #ededed;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
 
       #info-stats {
         display: flex;
         justify-content: space-between;
+        padding-right: 16px;
       }
 
       #info-stats div {
@@ -87,12 +88,20 @@
       }
 
       #info-stats svg {
-        width: 18px;
-        height: 18px;
+        width: 24px;
+        height: 24px;
         margin-right: 5px;
       }
 
-      #info-view-github, #info-contributors {
+      #info-view-github {
+        flex: 0 0 220px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 16px;
+      }
+
+      #info-contributors {
         flex: 0 0 270px !important;
       }
 
@@ -297,25 +306,25 @@
         <h3>GitHub Statistics</h3>
         <div id="info-stats">
           <div>
-            <svg viewBox="0 0 100 100" class="octicon-star">
+            <svg viewBox="0 0 100 100" class="octicon octicon-star">
              <use xlink:href="/sprite.octicons.svg#star"></use>
             </svg>
             [[data.stars]]
           </div>
           <div>
-            <svg viewBox="0 0 100 100" class="octicon-repo-forked">
+            <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
              <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
             </svg>
             [[data.forks]]
           </div>
           <div>
-            <svg viewBox="0 0 100 100" class="octicon-eye">
+            <svg viewBox="0 0 100 100" class="octicon octicon-eye">
              <use xlink:href="/sprite.octicons.svg#eye"></use>
             </svg>
             [[data.subscribers]]
           </div>
           <div>
-            <svg viewBox="0 0 100 100" class="octicon-issue-opened">
+            <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
              <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
             </svg>
             [[data.open_issues]]
@@ -325,7 +334,7 @@
       <div id="info-download">
         <h3>Download</h3>
         $ bower install --save [[routeMatch.owner]]/[[repo]]</div>
-      <div id="info-view-github">
+      <div id="info-view-github" class="box">
         <a href="https://github.com/[[routeMatch.owner]]/[[repo]]" target="_blank">View source on Github</a>
      </div>
     </div>
