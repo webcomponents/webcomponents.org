@@ -440,7 +440,7 @@
           <h1>Repository contents</h1>
 
           <div id="sidebar-nav" class="box loader" loading$="[[docsLoading]]">
-            <a href="/element/[[owner]]/[[repo]]">[[repo]]</a>
+            <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
               <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
