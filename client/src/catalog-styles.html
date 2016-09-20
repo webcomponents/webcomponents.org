@@ -51,7 +51,6 @@
         width: 100%;
         display: flex;
         margin: 40px 0;
-        flex-wrap: wrap-reverse;
       }
 
       .main-content {
@@ -100,7 +99,11 @@
         transition: none;
       }
 
-       @media (max-width: 425px) {
+      @media (max-width: 500px), (max-height: 500px) {
+        .body {
+          flex-wrap: wrap-reverse;
+        }
+
         .main-content {
           max-width: 100%;
           padding-right: 0;

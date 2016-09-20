@@ -21,7 +21,7 @@
       /* Header */
       #header {
         color: hsl(0, 0%, 50%);
-        margin: 30px 0;
+        margin-bottom: 30px;
       }
 
       #repo-version {
@@ -129,7 +129,7 @@
       #info-body {
         display: flex;
         padding: 30px 0;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
       }
 
       #info-body[body-collapsed] {
@@ -266,15 +266,15 @@
         height: 60px;
         margin-left: -30px;
         margin-top: -30px;
-        --paper-spinner-stroke-width: 8px;
+        --paper-spinner-stroke-width: 4px;
       }
 
       #close-dialog {
         width: 40px;
         height: 40px;
         position: absolute;
-        left: -20px;
-        top: -20px;
+        left: -16px;
+        top: -16px;
         background: white;
         border: 1px solid #ededed;
         border-radius: 50%;
@@ -293,6 +293,21 @@
         height: 20px;
         width: 20px;
         color: hsl(0, 0%, 40%);
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        #container {
+          padding: 16px;
+        }
+
+        #info-body, #info-download, #info-view-github, #info-footer, #info-header h3 {
+          display: none;
+        }
+
+        #demo-dialog {
+          width: calc(100vw - 50px);
+          height: calc(100vh - 50px);
+        }
       }
     </style>
 
@@ -323,7 +338,7 @@
     <lazy-block condition="[[!metaLoading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
-    <div class="loader" loading$="[[metaLoading]]">
+    <div id="container" class="loader" loading$="[[metaLoading]]">
 
       <!-- Header -->
       <div id="header">
@@ -428,15 +443,15 @@
             <a href="/element/[[owner]]/[[repo]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
-                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
+                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
               </template>
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]" on-tap="_scrollToMain">[[behavior.is]]</a>
             </template>
           </div>
 
@@ -463,7 +478,7 @@
         </div>
 
         <!-- Main content pane -->
-        <div class="main-content">
+        <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
@@ -699,6 +714,11 @@
 
       _or: function(a, b) {
         return a || b;
+      },
+
+      _scrollToMain: function() {
+        var top = this.$['main-content'].offsetTop - 16;
+        Polymer.AppLayout.scroll({top: top, behavior: 'smooth'});
       },
 
     });
