@@ -443,7 +443,7 @@
             <a href="/element/[[owner]]/[[repo]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
+              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
                 <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
