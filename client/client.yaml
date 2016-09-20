@@ -18,6 +18,10 @@ handlers:
   upload: service-worker.js
   static_files: service-worker.js
   secure: always
+- url: /robots.txt
+  upload: robots.txt
+  static_files: robots.txt
+  secure: always
 - url: /bower_components
   static_dir: bower_components
   secure: always
