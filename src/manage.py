@@ -592,6 +592,8 @@ class UpdateIndexes(RequestHandler):
     dependencies = bower.get('dependencies', {})
     for name in dependencies.keys():
       dep = Dependency.from_string(dependencies[name])
+      if dep is None:
+        continue
       library_key = ndb.Key(Library, Library.id(dep.owner, dep.repo))
       CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
 
