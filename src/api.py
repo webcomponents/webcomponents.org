@@ -220,6 +220,8 @@ class GetDependencies(webapp2.RequestHandler):
     version_futures = []
     for name in bower_dependencies.keys():
       dependency = Dependency.from_string(bower_dependencies[name])
+      if dependency is None:
+        continue
       dependencies.append(dependency)
       dependency_library_key = ndb.Key(Library, Library.id(dependency.owner, dependency.repo))
       version_futures.append(Library.versions_for_key_async(dependency_library_key))

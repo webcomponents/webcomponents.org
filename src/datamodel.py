@@ -159,9 +159,12 @@ class Dependency(object):
 
   @staticmethod
   def from_string(dep_string):
-    bits = dep_string.split('#')
+    bits = dep_string.split('#', 1)
     if len(bits) == 1:
       bits.append('*')
-    owner, repo = bits[0].split('/')
+    repo_bits = bits[0].split('/', 1)
+    if len(repo_bits) != 2:
+      return None
+    owner, repo = repo_bits
     return Dependency(owner, repo, bits[1])
 
