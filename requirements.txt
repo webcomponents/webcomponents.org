@@ -1,5 +1,5 @@
 gcloud==0.15.0
-semver==2.6.0
+semantic_version==2.5.0
 webtest==2.0.23
 httplib2==0.9.2
 googleapis-common-protos==1.2.0

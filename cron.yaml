@@ -1,5 +1,5 @@
 cron:
 - description: periodic update of authors and libraries
-  url: /tasks/update-all
+  url: /manage/update-all
   target: manage
   schedule: every 10 minutes

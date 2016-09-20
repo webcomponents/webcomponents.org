@@ -1,5 +1,5 @@
 import re
-import semver
+import semantic_version
 
 EXPR = re.compile(r'^(v)?(\d+)\.(\d+)\.(\d+)$')
 
@@ -25,19 +25,8 @@ def match(version, spec):
     return True
   if version[0] == 'v':
     version = version[1:]
-  if spec[0] == '^':
-    base = spec[1:]
-    parsed_base = semver.parse(base)
-    if parsed_base['major'] > 0:
-      top = semver.bump_major(base)
-    elif parsed_base['minor'] > 0:
-      top = semver.bump_minor(base)
-    else:
-      top = semver.bump_patch(base)
-    return semver.match(version, ">="+base) and semver.match(version, "<="+top)
-  else:
-    try:
-      return semver.match(version, spec)
-    except ValueError:
-      # this happens when the spec isn't an expression, in which case we need an exact match
-      return semver.parse(version) == semver.parse(spec)
+  try:
+    return semantic_version.match(spec, version)
+  except ValueError:
+    # If the spec is malformed or we don't support it.
+    return False
