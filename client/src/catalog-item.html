@@ -62,7 +62,7 @@
     </style>
 
     <div class="box">
-      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]]">
+      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[versionPathIfNecessary(data.version, data.latest_version)]]">
         <div id="header">
           <h1>[[data.repo]]</h1>
           <div id="description">[[data.description]]</div>
@@ -104,6 +104,14 @@
 
       properties: {
         data: Object
+      },
+
+      versionPathIfNecessary: function(version, latestVersion) {
+        if (version != latestVersion) {
+          return '/' + version;
+        } else {
+          return '';
+        }
       },
 
     });
