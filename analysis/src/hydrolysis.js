@@ -2,6 +2,7 @@
 
 const Ana = require('./ana_log');
 const hyd = require('hydrolysis');
+const path = require('path');
 
 /**
  * Service for running Hydrolysis on the local machine.
@@ -26,11 +27,42 @@ class Hydrolysis {
       };
 
       Promise.all(
-        mainHtmlPaths.map(function(mainHtmlPath) {
-          return hyd.Analyzer.analyze(mainHtmlPath, {clean: true})
-            .then(function(result) {
-              data.elementsByTagName = Object.assign(result.elementsByTagName, data.elementsByTagName);
-              data.behaviorsByName = Object.assign(result.behaviorsByName, data.behaviorsByName);
+        mainHtmlPaths.map(mainHtmlPath => {
+          return hyd.Analyzer.analyze(mainHtmlPath, {clean: true, filter: () => false})
+            .then(analyzer => {
+
+              // There's a weird name.indexOf === 0 thing in hydrolysis that means that
+              // paper-dialog-x will be included in paper-dialog. We don't want that, so
+              // we need to add this additional filtering.
+              var pathFilter = item => !path.relative(mainHtmlPath, item.contentHref).includes("..");
+
+              // Get only the elements in the folder containing the element we're looking at.
+              var elements = analyzer.elementsForFolder(mainHtmlPath).filter(pathFilter);
+              var behaviors = analyzer.behaviorsForFolder(mainHtmlPath).filter(pathFilter);
+
+              Ana.debug("Got elements and behaviors");
+              // Ana.debug("Elements", elements);
+              Ana.debug("Behaviors", behaviors);
+
+              // Strip useless (bloated) parts from the elements.
+              elements.forEach(element => {
+                element.scriptElement = undefined;
+                element.properties && element.properties.forEach(property => {
+                  property.javascriptNode = undefined;
+                });
+              });
+              Ana.debug("Filtered elements");
+
+              // Get the element names that were in the folder.
+              var els = elements.map(el => el.is);
+              var bes = behaviors.map(be => be.is);
+              Ana.debug("Elements", els);
+              Ana.debug("Behaviors", bes);
+
+              // Copy the elements from the folder to our output data.
+              els.forEach(el => data.elementsByTagName[el] = elements[els.indexOf(el)]);
+              bes.forEach(be => data.behaviorsByName[be] = behaviors[bes.indexOf(be)]);
+
             }).catch(function() {
               Ana.fail("hydrolysis/analyze", mainHtmlPath);
             });

@@ -3,8 +3,8 @@
         "data": "",
         "attributes": {
           "owner":"PolymerElements",
-          "repo":"paper-dialog",
-          "version":"v1.1.0",
+          "repo":"paper-dialog-behavior",
+          "version":"v1.2.7",
           "responseTopic":"analysis-responses"
         }
     }
