@@ -41,10 +41,10 @@ function processTasks() {
 
   app.post('/process/next', jsonBodyParser, (req, res) => {
     var message = req.body.message;
-    // force single-thread, wait up to 40 seconds to acquire lock
-    lockfile.lock(locky, {wait: 40000, stale: 200000}, err => {
+    // force single-thread, immediately fail
+    lockfile.lock(locky, {}, err => {
       if (err) {
-        Ana.success("main/processTasks/busy/willRetry");
+        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(message.attributes));
         res.status(503).send();
         return;
       }
