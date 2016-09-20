@@ -81,8 +81,6 @@
       properties: {
         data: Object,
 
-        width: Number,
-
         height: Number,
 
         code: String,
@@ -144,8 +142,9 @@
 
       _setFrame: function() {
         this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
-        this.$.frame.style.minWidth = this.width || 0;
-        this.$.frame.style.minHeight = this.height || 0;
+        this.$.frame.style.minHeight = (this.height +'px') || 0;
+        this.$.demoContainer.style.minHeight = (this.height +'px') || 0;
+
 
         window.addEventListener('message', this._onDemoLoad.bind(this), false);
       },
@@ -169,6 +168,7 @@
         this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
         this.$.demoContainer.style.height = event.data.height + 'px';
+        this.$.editor._refresh();
       }
 
     });

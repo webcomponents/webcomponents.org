@@ -480,7 +480,9 @@
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
-          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+          <template is="dom-if" if="[[data]]">
+            <catalog-element-readme data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+          </template>
 
           <div hidden="[[!subElement]]">
             <h2 title>[[subElement]]</h2>
@@ -565,7 +567,7 @@
         if (!this.visible || !metaLoading)
           return;
 
-        this.data = {};
+        this.data = null;
         delete this.descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
