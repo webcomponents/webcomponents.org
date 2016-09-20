@@ -18,7 +18,7 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 22px;
-        padding-top: 60px;
+        padding-top: 80px;
         --theme-accent-1: #6dc38f;
       }
 
@@ -47,6 +47,7 @@
     </app-header>
 
     <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+      <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-author>
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-search name="search" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
