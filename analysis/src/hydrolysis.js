@@ -34,9 +34,7 @@ class Hydrolysis {
               // There's a weird name.indexOf === 0 thing in hydrolysis that means that
               // paper-dialog-x will be included in paper-dialog. We don't want that, so
               // we need to add this additional filtering.
-              var pathFilter = item => {
-                return !path.relative(item.contentHref, mainHtmlPath).includes("..");
-              };
+              var pathFilter = item => !path.relative(mainHtmlPath, item.contentHref).includes("..");
 
               // Get only the elements in the folder containing the element we're looking at.
               var elements = analyzer.elementsForFolder(mainHtmlPath).filter(pathFilter);
@@ -62,12 +60,8 @@ class Hydrolysis {
               Ana.debug("Behaviors", bes);
 
               // Copy the elements from the folder to our output data.
-              els.forEach(el => {
-                data.elementsByTagName[el] = elements[els.indexOf(el)];
-              });
-              bes.forEach(be => {
-                data.behaviorsByName[be] = behaviors[bes.indexOf(be)];
-              });
+              els.forEach(el => data.elementsByTagName[el] = elements[els.indexOf(el)]);
+              bes.forEach(be => data.behaviorsByName[be] = behaviors[bes.indexOf(be)]);
 
             }).catch(function() {
               Ana.fail("hydrolysis/analyze", mainHtmlPath);
