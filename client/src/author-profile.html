@@ -36,11 +36,12 @@
 
       #header, #more {
         border-top: 1px solid #ededed;
-        padding: 30px;
+        padding: 20px 30px;
       }
 
       h1 {
         margin: 0;
+        margin-top: 8px;
       }
 
       #subtitle {
@@ -48,9 +49,20 @@
         color: hsl(0, 0%, 50%);
       }
 
-      #stats {
+      #more > div {
         display: flex;
+        align-items: center;
+        margin: 16px 0;
+      }
+
+      #more > div:last-of-type {
+        margin-bottom: 0;
+      }
+
+      #more #stats {
         justify-content: space-between;
+        margin-top: 0;
+        margin-right: 40px;
       }
 
       #followers:before {
@@ -64,12 +76,22 @@
       #followers, #following {
         display: flex;
         flex-direction: column;
+        font-weight: bold;
+        font-size: 18px;
       }
 
       #followers:before, #following:before {
         text-transform: uppercase;
         color: hsl(0, 0%, 50%);
         font-size: 12px;
+        font-weight: normal;
+      }
+
+      #more svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        color: hsl(0, 0%, 60%);
       }
     </style>
 
@@ -82,23 +104,43 @@
         </template>
       </div>
 
-      <template is="dom-if" if="[[!condensed]]">
+      <template is="dom-if" if="[[_showMore(condensed, author.type)]]">
         <div id="more">
           <div id="stats">
             <div id="followers">[[author.followers]]</div>
             <div id="following">[[author.following]]</div>
           </div>
           <template is="dom-if" if="[[author.company]]">
-            <div>[[author.company]]</div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-organization">
+                <use xlink:href="/sprite.octicons.svg#organization"></use>
+              </svg>
+              [[author.company]]
+            </div>
           </template>
           <template is="dom-if" if="[[author.location]]">
-            <div>[[author.location]]</div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-location">
+                <use xlink:href="/sprite.octicons.svg#location"></use>
+              </svg>
+              [[author.location]]
+            </div>
           </template>
           <template is="dom-if" if="[[author.email]]">
-            <div>[[author.email]]</div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-mail">
+                <use xlink:href="/sprite.octicons.svg#mail"></use>
+              </svg>
+              [[author.email]]
+            </div>
           </template>
           <template is="dom-if" if="[[author.blog]]">
-            <div>[[author.blog]]</div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-link">
+                <use xlink:href="/sprite.octicons.svg#link"></use>
+              </svg>
+              [[author.blog]]
+            </div>
           </template>
         </div>
       </template>
@@ -119,11 +161,12 @@
         author: Object,
       },
 
-      observers: [
-      ],
-
       _nameOrLogin: function(name, login) {
         return name || login;
+      },
+
+      _showMore: function(condensed, type) {
+        return !condensed && type.toLowerCase() == 'user';
       },
     });
   </script>
