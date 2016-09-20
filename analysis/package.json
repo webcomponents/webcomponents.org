@@ -3,11 +3,12 @@
   "version": "1.0.1",
   "private": true,
   "dependencies": {
+    "@google-cloud/pubsub": "0.1.1",
     "body-parser": "1.14.2",
     "bower": "1.7.9",
     "express": "4.13.4",
-    "@google-cloud/pubsub": "0.1.1",
-    "hydrolysis": "1.24.1"
+    "hydrolysis": "1.24.1",
+    "lockfile": "1.0.1"
   },
   "engines": {
     "node": "4.4.5"

@@ -42,7 +42,9 @@ class Analysis {
         return;
       }
       var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
-      this.bower.install(attributes.owner, attributes.repo, versionOrSha).then(mainHtmlPaths => {
+      this.bower.prune().then(() => {
+        return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
+      }).then(mainHtmlPaths => {
         return Promise.all([
           this.hydrolysis.analyze(mainHtmlPaths),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);

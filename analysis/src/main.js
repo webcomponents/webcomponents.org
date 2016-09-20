@@ -10,6 +10,7 @@ const pubsub = require('@google-cloud/pubsub');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const lockfile = require('lockfile');
 
 const app = express();
 const jsonBodyParser = bodyParser.json();
@@ -36,15 +37,32 @@ function processTasks() {
       new Hydrolysis(),
       new Catalog(pubsub({projectId: project}), debug));
 
+  var locky = new Date().toString() + ".lock";
+
   app.post('/process/next', jsonBodyParser, (req, res) => {
     var message = req.body.message;
-    analysis.processNextTask(message).then(function() {
-      Ana.success("main/processTasks");
-      res.status(200).send();
-    }, function(/* error */) {
-      // We have no way of retrying failed tasks yet. Just ack the message.
-      Ana.fail("main/processTasks");
-      res.status(200).send();
+    // force single-thread, immediately fail
+    lockfile.lock(locky, {}, err => {
+      if (err) {
+        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(message.attributes));
+        res.status(503).send();
+        return;
+      }
+
+      analysis.processNextTask(message).then(function() {
+        Ana.success("main/processTasks");
+        lockfile.unlockSync(locky, {});
+        res.status(200).send();
+      }, function(error) {
+        lockfile.unlockSync(locky, {});
+        if (error.retry) {
+          Ana.fail("main/processTasks/willRetry");
+          res.status(500).send();
+        } else {
+          Ana.fail("main/processTasks");
+          res.status(200).send();
+        }
+      });
     });
   });
 
