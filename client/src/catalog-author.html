@@ -3,88 +3,65 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="author-profile.html">
-<link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
 
-<dom-module id="catalog-collection">
-  <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
-  <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
+<dom-module id="catalog-author">
   <template>
     <style include="catalog-styles"></style>
-    <style>
-      #profile-image {
-        width: 100%;
-      }
-
-      #profile-info {
-        padding: 25px;
-      }
-    </style>
 
     <app-route
       route="[[route]]"
-      pattern="/:owner/:repo"
-      data="{{_routeMatch}}"
-      query-params="{{queryParams}}"></app-route>
+      pattern="/:owner"
+      data="{{_routeMatch}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
       loading="{{metaLoading}}"
-      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
-      handle-as="json"
-      last-response="{{data}}"></iron-ajax>
-
-    <iron-ajax
-      id="dependenciesAjax"
-      loading="{{dependenciesLoading}}"
-      url="[[baseUrls.api]]/api/dependencies/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
-      handle-as="json"
-      last-response="{{dependencies}}"></iron-ajax>
-
-    <iron-ajax
-      id="authorsAjax"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
       handle-as="json"
       last-response="{{author}}"></iron-ajax>
 
+    <iron-ajax
+      id="dependenciesAjax"
+      loading="{{metaLoading}}"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]]"
+      handle-as="json"
+      last-response="{{search}}"></iron-ajax>
+
     <div class="loader" loading$="[[metaLoading]]">
-      <h3>Collection</h3>
-      <h1 class="page-title">[[data.repo]]</h1>
-      <h2 class="page-subtitle">[[data.description]]</h2>
+      <h3>Author</h3>
+      <h1 class="page-title">[[author.login]]</h1>
+      <h2 class="page-subtitle">[[search.count]] elements</h2>
 
       <div class="body">
         <div class="sidebar">
-          <a href="/author/[[_routeMatch.owner]]">
-            <author-profile condensed author="[[author]]"></author-profile>
-          </a>
+          <author-profile author="[[author]]"></author-profile>
         </div>
 
         <div class="main-content">
           <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
           <div class="loader" loading$="[[dependenciesLoading]]">
-            <template is="dom-repeat" items="[[dependencies]]">
+            <template is="dom-repeat" items="[[search.results]]">
               <catalog-item data="[[item]]"></catalog-item>
             </template>
           </div>
         </div>
       </div>
     </div>
-
   </template>
-
   <script>
     Polymer({
 
-      is: 'catalog-collection',
+      is: 'catalog-author',
 
       properties: {
         visible: Boolean,
 
         baseUrls: Object,
 
-        route: String
+        route: Object,
       },
 
       observers: [
@@ -97,14 +74,13 @@
       },
 
       _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded || route.prefix != '/collection')
+        if (!visible || !this._loaded || route.prefix != '/author')
           return;
 
-        document.title = this._routeMatch.repo;
+        document.title = this._routeMatch.owner;
 
         this.$.metaAjax.generateRequest();
         this.$.dependenciesAjax.generateRequest();
-        this.$.authorsAjax.generateRequest();
       },
 
     });
