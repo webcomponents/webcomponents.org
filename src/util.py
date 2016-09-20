@@ -25,29 +25,16 @@ def add_authorization_header(headers, access_token=None):
   if access_token is not None:
     headers['Authorization'] = 'token %s' % access_token
 
-ANALYSIS = {}
-def get_topic():
-  if 'topic' not in ANALYSIS:
-    topic = pubsub.Client().topic(os.environ['ANALYSIS_REQUEST_TOPIC'])
-    if not topic.exists():
-      topic.create()
-      assert topic.exists()
-    ANALYSIS['topic'] = topic
-  return ANALYSIS['topic']
-
 def publish_analysis_request(owner, repo, version, sha=None):
-  try:
-    get_topic().publish(
-        "",
-        owner=owner,
-        repo=repo,
-        version=version,
-        sha=sha,
-        responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
-  # TODO: Which exception is this for?
-  # pylint: disable=bare-except
-  except:
-    logging.error('Failed to publish %s', logging.error(sys.exc_info()[0]))
+  params = {
+    'owner': owner,
+    'repo': repo,
+    'version': version,
+    'responseTopic': os.environ['ANALYSIS_RESPONSE_TOPIC']
+  }
+  if sha:
+    params['sha'] = sha
+  taskqueue.add(url='/process/next', queue_name='analysis', params=params, method='GET')
 
 def github_url(prefix, owner=None, repo=None, detail=None):
   parts = [part for part in [prefix, owner, repo, detail] if part is not None]

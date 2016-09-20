@@ -22,13 +22,11 @@ class Analysis {
    * Processes the next received task.
    * Gets the task, installs and pulls dependencies from Bower, runs Hydrolysis over it,
    * gathers all data, posts it back to Catalog and acks the task.
-   * @param {Object} message - The task to be processed
+   * @param {Object} attributes - The task to be processed
    * @return {Promise} A promise that handles the next task.
    */
-  processNextTask(message) {
+  processNextTask(attributes) {
     return new Promise((resolve, reject) => {
-      var ackId = message.ackId;
-      var attributes = message.attributes;
       var taskAsString = JSON.stringify(attributes);
 
       var errorHandler = error => {

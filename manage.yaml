@@ -1,6 +1,4 @@
-application: custom-elements-staging
-module: manage
-version: 1
+service: manage
 runtime: python27
 api_version: 1
 threadsafe: true

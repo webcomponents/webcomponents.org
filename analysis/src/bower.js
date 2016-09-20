@@ -76,7 +76,8 @@ class Bower {
         Ana.fail("bower/install", packageToInstall);
         var retry = true;
         // Don't retry ECONFLICT errors ("Unable to find suitable version for...").
-        if (error.code && error.code == 'ECONFLICT') {
+        // Don't retry ENORESTARGET errors ("Tag/branch x does not exist").
+        if (error.code && (error.code == 'ECONFLICT' || error.code == 'ENORESTARGET')) {
           retry = false;
         }
         reject({retry: retry, error: error});

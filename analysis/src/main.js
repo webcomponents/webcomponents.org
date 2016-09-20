@@ -13,7 +13,6 @@ const bodyParser = require('body-parser');
 const lockfile = require('lockfile');
 
 const app = express();
-const jsonBodyParser = bodyParser.json();
 
 /**
  * Main entry point. Constructs all of the pieces, wires them up and executes
@@ -38,17 +37,25 @@ function processTasks() {
 
   var locky = new Date().toString() + ".lock";
 
-  app.post('/process/next', jsonBodyParser, (req, res) => {
-    var message = req.body.message;
+  app.get('/process/next', (req, res) => {
+    var attributes = {
+      owner: req.query.owner,
+      repo: req.query.repo,
+      version: req.query.version,
+      responseTopic: req.query.responseTopic
+    };
+    if (req.query.sha) {
+      attributes.sha = req.query.sha;
+    }
     // force single-thread, immediately fail
-    lockfile.lock(locky, {}, err => {
+    lockfile.lock(locky, {stale: 60000}, err => {
       if (err) {
-        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(message.attributes));
+        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(attributes));
         res.status(503).send();
         return;
       }
 
-      analysis.processNextTask(message).then(function() {
+      analysis.processNextTask(attributes).then(function() {
         Ana.success("main/processTasks");
         lockfile.unlockSync(locky, {});
         res.status(200).send();
