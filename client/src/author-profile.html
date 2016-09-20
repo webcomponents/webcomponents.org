@@ -1,0 +1,130 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="author-profile">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <style>
+      .box {
+        max-width: 270px;
+      }
+
+      #avatar {
+        font-size: 0;
+        line-height: 0;
+      }
+
+      #avatar {
+        background: hsl(204, 15%, 94%);
+      }
+
+      #avatar[type=organization] img {
+        max-width: calc(100% - 80px);
+        border-radius: 50%;
+        overflow: hidden;
+        background: white;
+        padding: 35px;
+        margin: 40px;
+        box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.1);
+      }
+
+      img {
+        max-width: 100%;
+      }
+
+      #header, #more {
+        border-top: 1px solid #ededed;
+        padding: 30px;
+      }
+
+      h1 {
+        margin: 0;
+      }
+
+      #subtitle {
+        margin-top: 8px;
+        color: hsl(0, 0%, 50%);
+      }
+
+      #stats {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #followers:before {
+        content: 'followers';
+      }
+
+      #following:before {
+        content: 'following';
+      }
+
+      #followers, #following {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #followers:before, #following:before {
+        text-transform: uppercase;
+        color: hsl(0, 0%, 50%);
+        font-size: 12px;
+      }
+    </style>
+
+    <div class="box">
+      <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]"></div>
+      <div id="header">
+        <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
+        <template is="dom-if" if="[[author.name]]">
+          <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a> on Github</div>
+        </template>
+      </div>
+
+      <template is="dom-if" if="[[!condensed]]">
+        <div id="more">
+          <div id="stats">
+            <div id="followers">[[author.followers]]</div>
+            <div id="following">[[author.following]]</div>
+          </div>
+          <template is="dom-if" if="[[author.company]]">
+            <div>[[author.company]]</div>
+          </template>
+          <template is="dom-if" if="[[author.location]]">
+            <div>[[author.location]]</div>
+          </template>
+          <template is="dom-if" if="[[author.email]]">
+            <div>[[author.email]]</div>
+          </template>
+          <template is="dom-if" if="[[author.blog]]">
+            <div>[[author.blog]]</div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'author-profile',
+
+      properties: {
+        condensed: {
+          type: Boolean,
+          value: false
+        },
+
+        author: Object,
+      },
+
+      observers: [
+      ],
+
+      _nameOrLogin: function(name, login) {
+        return name || login;
+      },
+    });
+  </script>
+</dom-module>

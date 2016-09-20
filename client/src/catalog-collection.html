@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
+<link rel="import" href="author-profile.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
@@ -41,6 +42,12 @@
       handle-as="json"
       last-response="{{dependencies}}"></iron-ajax>
 
+    <iron-ajax
+      id="authorsAjax"
+      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
+      handle-as="json"
+      last-response="{{author}}"></iron-ajax>
+
     <div class="loader" loading$="[[metaLoading]]">
       <h3>Collection</h3>
       <h1 class="page-title">[[data.repo]]</h1>
@@ -48,12 +55,7 @@
 
       <div class="body">
         <div class="sidebar">
-          <div class="box">
-            <img id="profile-image" src="[[data.avatar_url]]&s=270">
-            <div id="profile-info">
-              <h1>[[data.owner]]</h1>
-            </div>
-          </div>
+          <author-profile author="[[author]]"></author-profile>
         </div>
 
         <div class="main-content">
@@ -100,6 +102,7 @@
 
         this.$.metaAjax.generateRequest();
         this.$.dependenciesAjax.generateRequest();
+        this.$.authorsAjax.generateRequest();
       },
 
     });
