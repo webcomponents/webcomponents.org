@@ -108,8 +108,8 @@
         var isLocalhost = window.location.hostname == 'localhost';
         var result = {api: '', userContent: 'https://user-content-dot-' + window.location.hostname};
         if (isLocalhost) {
-          result.api = 'https://custom-elements-staging.appspot.com';
-          result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
+          result.api = 'https://custom-elements.appspot.com';
+          result.userContent = 'https://user-content-dot-custom-elements.appspot.com';
         } else if (this.isStaging()) {
           result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
         }

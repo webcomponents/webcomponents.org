@@ -1,0 +1,173 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="author-profile">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <style>
+      .box {
+        max-width: 270px;
+      }
+
+      #avatar {
+        font-size: 0;
+        line-height: 0;
+      }
+
+      #avatar {
+        background: hsl(204, 15%, 94%);
+      }
+
+      #avatar[type=organization] img {
+        max-width: calc(100% - 80px);
+        border-radius: 50%;
+        overflow: hidden;
+        background: white;
+        padding: 35px;
+        margin: 40px;
+        box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.1);
+      }
+
+      img {
+        max-width: 100%;
+      }
+
+      #header, #more {
+        border-top: 1px solid #ededed;
+        padding: 20px 30px;
+      }
+
+      h1 {
+        margin: 0;
+        margin-top: 8px;
+      }
+
+      #subtitle {
+        margin-top: 8px;
+        color: hsl(0, 0%, 50%);
+      }
+
+      #more > div {
+        display: flex;
+        align-items: center;
+        margin: 16px 0;
+      }
+
+      #more > div:last-of-type {
+        margin-bottom: 0;
+      }
+
+      #more #stats {
+        justify-content: space-between;
+        margin-top: 0;
+        margin-right: 40px;
+      }
+
+      #followers:before {
+        content: 'followers';
+      }
+
+      #following:before {
+        content: 'following';
+      }
+
+      #followers, #following {
+        display: flex;
+        flex-direction: column;
+        font-weight: bold;
+        font-size: 18px;
+      }
+
+      #followers:before, #following:before {
+        text-transform: uppercase;
+        color: hsl(0, 0%, 50%);
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      #more svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        color: hsl(0, 0%, 60%);
+      }
+    </style>
+
+    <div class="box">
+      <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]"></div>
+      <div id="header">
+        <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
+        <template is="dom-if" if="[[author.name]]">
+          <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a> on Github</div>
+        </template>
+      </div>
+
+      <template is="dom-if" if="[[_showMore(condensed, author.type)]]">
+        <div id="more">
+          <div id="stats">
+            <div id="followers">[[author.followers]]</div>
+            <div id="following">[[author.following]]</div>
+          </div>
+          <template is="dom-if" if="[[author.company]]">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-organization">
+                <use xlink:href="/sprite.octicons.svg#organization"></use>
+              </svg>
+              [[author.company]]
+            </div>
+          </template>
+          <template is="dom-if" if="[[author.location]]">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-location">
+                <use xlink:href="/sprite.octicons.svg#location"></use>
+              </svg>
+              [[author.location]]
+            </div>
+          </template>
+          <template is="dom-if" if="[[author.email]]">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-mail">
+                <use xlink:href="/sprite.octicons.svg#mail"></use>
+              </svg>
+              [[author.email]]
+            </div>
+          </template>
+          <template is="dom-if" if="[[author.blog]]">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-link">
+                <use xlink:href="/sprite.octicons.svg#link"></use>
+              </svg>
+              [[author.blog]]
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'author-profile',
+
+      properties: {
+        condensed: {
+          type: Boolean,
+          value: false
+        },
+
+        author: Object,
+      },
+
+      _nameOrLogin: function(name, login) {
+        return name || login;
+      },
+
+      _showMore: function(condensed, type) {
+        return !condensed && type.toLowerCase() == 'user';
+      },
+    });
+  </script>
+</dom-module>
