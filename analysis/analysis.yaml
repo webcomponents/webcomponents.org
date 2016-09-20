@@ -2,4 +2,7 @@ service: analysis
 runtime: nodejs
 vm: true
 threadsafe: false
-
+handlers:
+- url: /process/next
+  script: IGNORED
+  secure: always
