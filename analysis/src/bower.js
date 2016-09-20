@@ -74,7 +74,12 @@ class Bower {
         reject(Error("BOWER: install: package installed not in list"));
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
-        reject({retry: true, error: error});
+        var retry = true;
+        // Don't retry ECONFLICT errors ("Unable to find suitable version for...").
+        if (error.code && error.code == 'ECONFLICT') {
+          retry = false;
+        }
+        reject({retry: retry, error: error});
       });
     });
   }
