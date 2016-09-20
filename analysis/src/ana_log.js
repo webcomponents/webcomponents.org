@@ -1,5 +1,7 @@
 'use strict';
 
+var debug = false;
+
 class Ana {
   static success(counterPath) {
     var path = counterPath + "/success";
@@ -19,8 +21,19 @@ class Ana {
       console.log(path);
     }
   }
+  static debug() {
+    if (debug) {
+      console.log.apply(null, arguments);
+    }
+  }
   static log() {
     console.log.apply(null, arguments);
+  }
+  static isDebug() {
+    return debug;
+  }
+  static enableDebug() {
+    debug = true;
   }
 }
 
