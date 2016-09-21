@@ -3,7 +3,6 @@ from google.appengine.api import urlfetch
 
 import json
 import logging
-import os
 import re
 import yaml
 
