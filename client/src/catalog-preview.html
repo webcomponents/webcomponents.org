@@ -17,6 +17,13 @@
       .g-recaptcha {
         margin: 16px 0;
       }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        #container {
+          padding: 16px;
+        }
+      }
+
     </style>
 
     <iron-ajax
@@ -27,17 +34,18 @@
       on-response="_taskTriggered"
       on-error="_error"></iron-ajax>
 
-    <h3>Preview</h3>
-    <h1 class="page-title">Preview element</h1>
-    <h2 class="page-subtitle">Preview allows you to view what you element would look like without publishing it. Simply enter any  full Github URL, including pull requests, commits, or branches.</h2>
+    <div id="container">
+      <h3>Preview</h3>
+      <h1 class="page-title">Preview element</h1>
+      <h2 class="page-subtitle">Preview allows you to view what you element would look like without publishing it. Simply enter any  full Github URL, including pull requests, commits, or branches.</h2>
 
-    <div class="main-content">
-      <h1>Enter a Github URL</h1>
-      <input type="text" name="url" value="{{url::input}}" placeholder="Any Github URL">
-      <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
-      <button on-tap="onSubmit">Preview</button>
+      <div class="main-content">
+        <h1>Enter a Github URL</h1>
+        <input type="text" name="url" value="{{url::input}}" placeholder="Any Github URL">
+        <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+        <button on-tap="onSubmit">Preview</button>
+      </div>
     </div>
-
 
   </template>
 
