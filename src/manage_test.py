@@ -148,6 +148,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
         # We intentionally don't update tags that have changed to point to different commits.
     ], [task.url for task in tasks])
 
@@ -173,6 +174,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.0.1'),
         util.ingest_version_task('org', 'repo', 'v0.0.2'),
+        util.ingest_analysis_task('org', 'repo', 'v0.0.2', 'new-master-sha'),
     ], [task.url for task in tasks])
 
     version = Version.get_by_id('v0.0.2', parent=library_key)
@@ -236,6 +238,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v1.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v1.0.0'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -263,6 +266,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v0.0.1'),
+        util.ingest_analysis_task('org', 'repo', 'v0.0.1', 'master-sha'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -314,9 +318,10 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEquals(version.url, 'url')
 
     tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 1)
+    self.assertEqual(len(tasks), 2)
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'commit-sha'),
+        util.ingest_analysis_task('org', 'repo', 'commit-sha'),
     ], [task.url for task in tasks])
 
 class UpdateIndexesTest(ManageTestBase):

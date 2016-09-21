@@ -13,7 +13,6 @@ const bodyParser = require('body-parser');
 const lockfile = require('lockfile');
 
 const app = express();
-const jsonBodyParser = bodyParser.json();
 
 /**
  * Main entry point. Constructs all of the pieces, wires them up and executes
@@ -23,32 +22,52 @@ function processTasks() {
 
   var project = process.env.GAE_LONG_APP_ID;
 
-  // If NODE_ENV isn't set, we're probably not running in GAE,
+  // node main.js <responseTopic> <?project? - only used outside of GAE>
+  var responseTopic = process.argv[2];
+
+  // If NODE_ENV isn't set, we're not running in GAE,
   // so override the project with whatever the command line says.
-  if (!process.env.NODE_ENV && process.argv.length == 3) {
-    project = process.argv[2];
+  if (!process.env.NODE_ENV && process.argv.length == 4) {
+    project = process.argv[3];
     Ana.enableDebug();
   }
 
-  Ana.log("main/processTasks", "Using project [", project, "]");
+  Ana.log("main/processTasks", "Using project [", project, "] and response topic [", responseTopic, "]");
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(pubsub({projectId: project})));
+      new Catalog(pubsub({projectId: project}), responseTopic));
 
   var locky = new Date().toString() + ".lock";
 
-  app.post('/process/next', jsonBodyParser, (req, res) => {
-    var message = req.body.message;
-    // force single-thread, immediately fail
-    lockfile.lock(locky, {}, err => {
+  app.get('/task/analyze/:owner/:repo/:version/:sha*?', (req, res) => {
+    var attributes = {
+      owner: req.params.owner,
+      repo: req.params.repo,
+      version: req.params.version
+    };
+    if (req.params.sha) {
+      attributes.sha = req.params.sha;
+    }
+
+    // We only accept requests from the task queue service.
+    // This check is valid because appengine strips external x-appengine headers.
+    // By definition, this is internal.
+    if (!req.get('x-appengine-queuename')) {
+      Ana.fail("main/processTasks/originator-not-appengine", JSON.stringify(attributes));
+      res.status(403).send(); // Don't retry
+      return;
+    }
+
+    // force single-thread, immediately fail, expire lock after two minutes
+    lockfile.lock(locky, {stale: 120000}, err => {
       if (err) {
-        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(message.attributes));
+        Ana.success("main/processTasks/busy/willRetry", JSON.stringify(attributes));
         res.status(503).send();
         return;
       }
 
-      analysis.processNextTask(message).then(function() {
+      analysis.processNextTask(attributes).then(function() {
         Ana.success("main/processTasks");
         lockfile.unlockSync(locky, {});
         res.status(200).send();

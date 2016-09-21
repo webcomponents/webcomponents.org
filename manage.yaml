@@ -1,6 +1,4 @@
-application: custom-elements-staging
-module: manage
-version: 1
+service: manage
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -23,7 +21,3 @@ handlers:
 - url: /.*
   script: src.manage.app
   login: admin
-
-env_variables:
-  ANALYSIS_REQUEST_TOPIC: 'analysis-requests'
-  ANALYSIS_RESPONSE_TOPIC: 'analysis-responses'

@@ -14,7 +14,7 @@
     "node": "4.4.5"
   },
   "scripts": {
-    "start": "node src/main.js custom-elements-staging",
+    "start": "node src/main.js analysis-responses custom-elements-staging",
     "test": "npm run test-mocha",
     "test-mocha": "mocha -R spec ./test/bower-test.js"
   },

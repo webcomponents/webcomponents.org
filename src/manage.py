@@ -270,7 +270,8 @@ class LibraryTask(RequestHandler):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
-    util.publish_analysis_request(self.owner, self.repo, tag, analysis_sha)
+    task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
+    util.new_task(task_url, target='analysis', transactional=True)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
@@ -428,6 +429,8 @@ class IngestWebhookLibrary(LibraryTask):
     self.library_dirty = True
 
 class AnalyzeLibrary(LibraryTask):
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo):
     self.init_library(owner, repo)
     if self.library is None:
@@ -437,7 +440,7 @@ class AnalyzeLibrary(LibraryTask):
 
     versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
     for version in versions:
-      self.trigger_analysis(version.id(), version.sha)
+      self.trigger_analysis(version.key.id(), version.sha)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
