@@ -241,6 +241,9 @@ class LibraryTask(RequestHandler):
         if 'element-collection' in bower_json.get('keywords', []) and self.library.kind != 'collection':
           self.library.kind = 'collection'
           self.library_dirty = True
+        elif self.library.kind == 'collection':
+          self.library.kind = 'element'
+          self.library_dirty = True
       except ValueError:
         return self.error("Could not parse master/bower.json")
     elif response.status_code == 404:
