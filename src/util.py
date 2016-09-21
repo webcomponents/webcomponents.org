@@ -62,7 +62,7 @@ def ingest_webhook_task(owner, repo):
   return '/task/ingest-webhook/%s/%s' % (owner, repo)
 
 def ingest_analysis_task(owner, repo, version, sha=None):
-  if sha:
+  if sha is not None:
     return '/task/analyze/%s/%s/%s/%s' % (owner, repo, version, sha)
   return '/task/analyze/%s/%s/%s' % (owner, repo, version)
 
