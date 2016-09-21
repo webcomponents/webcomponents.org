@@ -182,6 +182,7 @@
       /* Sidebar */
       #sidebar-nav {
         margin-bottom: 32px !important;
+        overflow: visible;
       }
 
       #sidebar-nav a {
@@ -192,6 +193,18 @@
         border-top: 1px solid #ededed;
         display: flex;
         justify-content: space-between;
+        box-sizing: border-box;
+        border-bottom: 2px solid transparent;
+      }
+
+      #sidebar-nav a[active] {
+        padding-bottom: 16px;
+        background: var(--theme-blue);
+        border-bottom-color: var(--theme-blue-dark) !important;
+        color: white;
+        padding-left: 36px;
+        margin-left: -16px;
+        margin-right: -1px;
       }
 
       #sidebar-nav a span {
@@ -204,7 +217,7 @@
       #sidebar-nav a:first-child {
         font-size: 18px;
         line-height: 21px;
-        border: none;
+        border-top: none;
       }
 
       .sidebar a.demo-link {
@@ -611,6 +624,7 @@
           return;
 
         this._splitRoute();
+        this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
 
         // Generate requests
@@ -679,7 +693,7 @@
       },
 
       _updateDescriptor: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
@@ -737,6 +751,17 @@
       _scrollToMain: function() {
         var top = this.$['main-content'].offsetTop - 16;
         Polymer.AppLayout.scroll({top: top, behavior: 'smooth'});
+      },
+
+      _updateActiveLinks: function() {
+        var currentPath = this.route.prefix + this.route.path;
+        var links = this.$['sidebar-nav'].querySelectorAll('a');
+        for (var i = 0; i < links.length; i++) {
+          if (links[i].getAttribute('href') == currentPath)
+            links[i].setAttribute('active', '');
+          else
+            links[i].removeAttribute('active');
+        }
       },
 
     });
