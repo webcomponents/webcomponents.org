@@ -532,18 +532,18 @@
       },
 
       _elements: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.elementsByTagName).map(function(elem) {
-          return this.docs.elementsByTagName[elem];
+        return Object.keys(this.docs.content.elementsByTagName).map(function(elem) {
+          return this.docs.content.elementsByTagName[elem];
         }.bind(this));
       },
 
       _behaviors: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.behaviorsByName).map(function(elem) {
-          return this.docs.behaviorsByName[elem];
+        return Object.keys(this.docs.content.behaviorsByName).map(function(elem) {
+          return this.docs.content.behaviorsByName[elem];
         }.bind(this));
       },
 
@@ -679,7 +679,7 @@
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         this.bundledDemos = this._demos();
-        this.descriptor = this.docs.elementsByTagName[this.subElement] || this.docs.behaviorsByName[this.subElement];
+        this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 
       _navigateToSearch: function() {

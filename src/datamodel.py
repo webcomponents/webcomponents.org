@@ -147,8 +147,11 @@ class Version(ndb.Model):
     raise ndb.Return(result_map.values())
 
 class Content(ndb.Model):
-  content = ndb.TextProperty(required=True)
+  content = ndb.TextProperty()
+
   etag = ndb.StringProperty()
+  status = ndb.StringProperty(default=Status.pending)
+  error = ndb.StringProperty()
   updated = ndb.DateTimeProperty(auto_now=True)
 
 class Dependency(object):
