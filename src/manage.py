@@ -262,12 +262,14 @@ class LibraryTask(RequestHandler):
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
+    task_url = util.ingest_version_task(self.owner, self.repo, tag)
+    util.new_task(task_url, target='manage', transactional=True)
+    self.trigger_analysis(tag, sha)
+
+  def trigger_analysis(self, tag, sha):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
-
-    task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, target='manage', transactional=True)
     util.publish_analysis_request(self.owner, self.repo, tag, analysis_sha)
 
   def trigger_author_ingestion(self):
@@ -424,6 +426,18 @@ class IngestWebhookLibrary(LibraryTask):
       self.update_metadata()
     self.library.github_access_token = access_token
     self.library_dirty = True
+
+class AnalyzeLibrary(LibraryTask):
+  def handle_get(self, owner, repo):
+    self.init_library(owner, repo)
+    if self.library is None:
+      self.response.set_status(404)
+      self.response.write('could not find library: %s' % Library.id(owner, repo))
+      return
+
+    versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
+    for version in versions:
+      self.trigger_analysis(version.id(), version.sha)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
@@ -664,7 +678,7 @@ class UpdateAll(RequestHandler):
       self.response.write('update already in progress')
       return
 
-    query = Library.query()
+    query = Version.query()
     cursor = None
     more = True
     task_count = 0
@@ -689,7 +703,6 @@ class UpdateAll(RequestHandler):
         util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d author updates', task_count)
-
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
@@ -760,6 +773,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
+    webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
