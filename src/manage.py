@@ -651,7 +651,6 @@ class IngestAnalysis(RequestHandler):
 
     content = Content.get_by_id('analysis', parent=version_key)
     if content is not None:
-      content = Content(id='analysis', parent=version_key)
       content.content = data
       # FIXME: Set status/error when it failed.
       content.status = Status.ready
