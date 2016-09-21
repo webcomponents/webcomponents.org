@@ -1,5 +1,3 @@
-application: custom-elements-staging
-
 dispatch:
   - url: "*/api/*"
     module: api
