@@ -40,7 +40,6 @@ function processTasks() {
 
   var locky = new Date().toString() + ".lock";
 
-  // owner/repo/version are path params, response topic and sha are query params.
   app.get('/task/analyze/:owner/:repo/:version/:sha*?', (req, res) => {
     var attributes = {
       owner: req.params.owner,
