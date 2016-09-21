@@ -44,6 +44,33 @@ class XsrfTest(ManageTestBase):
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
 
+class UpdateAllTest(ManageTestBase):
+  def test_update_all(self):
+    library_key = Library(id='owner/repo').put()
+    author_key = Author(id='owner').put()
+
+    response = self.app.get('/manage/update-all', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.update_library_task(library_key.id()),
+        util.update_author_task(author_key.id()),
+    ], [task.url for task in tasks])
+
+class AnalyzeTest(ManageTestBase):
+  def test_analyze(self):
+    library_key = Library(id='owner/repo').put()
+    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    response = self.app.get('/manage/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
+    ], [task.url for task in tasks])
+
 class DeleteVersionTest(ManageTestBase):
   def test_delete_version(self):
     library_key = ndb.Key(Library, 'owner/repo')
