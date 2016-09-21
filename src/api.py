@@ -67,6 +67,7 @@ class LibraryMetadata(object):
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
+        'latest_version': metadata['latest_version'],
         'kind': metadata['kind'],
         'description': metadata['description'],
         'stars': metadata['stars'],
@@ -106,9 +107,10 @@ class LibraryMetadata(object):
     if library.status == Status.error:
       result['error'] = library.error
 
-    if not brief and version_key is not None:
+    if version_key is not None:
       versions = yield versions_future
       result['versions'] = versions
+      result['latest_version'] = versions[-1]
 
     if not brief and library.participation is not None:
       result['activity'] = json.loads(library.participation).get('all', [])
@@ -237,16 +239,7 @@ class GetDependencies(webapp2.RequestHandler):
           return False
       while len(versions) > 0 and not matches(versions[-1], dependency.version):
         versions.pop()
-      if len(versions) == 0:
-        error_future = ndb.Future()
-        error_future.set_result({
-            'error': 'unsatisfyable dependency',
-            'owner': dependency.owner,
-            'repo': dependency.repo,
-            'versionSpec': dependency.version
-        })
-        dependency_futures.append(error_future)
-      else:
+      if len(versions) > 0:
         dependency_library_key = ndb.Key(Library, Library.id(dependency.owner.lower(), dependency.repo.lower()))
         dependency_futures.append(LibraryMetadata.brief_async(dependency_library_key, versions[-1]))
 
