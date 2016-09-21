@@ -682,7 +682,7 @@ class UpdateAll(RequestHandler):
       self.response.write('update already in progress')
       return
 
-    query = Version.query()
+    query = Library.query()
     cursor = None
     more = True
     task_count = 0
