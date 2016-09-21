@@ -27,9 +27,9 @@ class SearchContents(webapp2.RequestHandler):
       return
     index = search.Index('repo')
     try:
-      search_results = index.search(
-          search.Query(query_string=terms,
-                       options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
+      sort_options = search.SortOptions(match_scorer=search.MatchScorer())
+      query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100, sort_options=sort_options)
+      search_results = index.search(search.Query(query_string=terms, options=query_options))
     except search.QueryError:
       self.response.set_status(400)
       self.response.write('bad query')
