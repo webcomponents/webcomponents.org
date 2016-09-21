@@ -22,7 +22,7 @@ function processTasks() {
 
   var project = process.env.GAE_LONG_APP_ID;
 
-  // If NODE_ENV isn't set, we're probably not running in GAE,
+  // If NODE_ENV isn't set, we're not running in GAE,
   // so override the project with whatever the command line says.
   if (!process.env.NODE_ENV && process.argv.length == 3) {
     project = process.argv[2];
@@ -47,6 +47,16 @@ function processTasks() {
     if (req.query.sha) {
       attributes.sha = req.query.sha;
     }
+
+    // We only accept requests from the task queue service.
+    // This check is valid because appengine strips external x-appengine headers.
+    // By definition, this is internal.
+    if (!req.get('x-appengine-queuename')) {
+      Ana.fail("main/processTasks/originator-not-appengine", JSON.stringify(attributes));
+      res.status(200).send(); // Don't retry
+      return;
+    }
+
     // force single-thread, immediately fail
     lockfile.lock(locky, {stale: 60000}, err => {
       if (err) {

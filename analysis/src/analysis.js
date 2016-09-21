@@ -30,15 +30,16 @@ class Analysis {
       var taskAsString = JSON.stringify(attributes);
 
       var errorHandler = error => {
-        Ana.fail("analysis/processNextTask", error, taskAsString);
+        Ana.fail("analysis/processNextTask", taskAsString, error);
         reject(error);
       };
 
       Ana.log("analysis/processNextTask", taskAsString);
-      if (!attributes) {
-        errorHandler("Task was missing attributes");
+      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.responseTopic) {
+        errorHandler({retry: false, error: "Task attributes missing required field."});
         return;
       }
+
       var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
