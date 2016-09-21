@@ -281,12 +281,20 @@ class GetDocs(webapp2.RequestHandler):
       return
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, ver)
     analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+
     if analysis is None:
       self.response.set_status(404)
       return
 
+    result = {}
+    result['status'] = analysis.status
+    if analysis.status == Status.ready:
+      result['content'] = json.loads(analysis.content)
+    if analysis.status == Status.error:
+      result['error'] = analysis.error
+
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(analysis.content)
+    self.response.write(json.dumps(analysis.content))
 
 class GetAuthor(webapp2.RequestHandler):
   @ndb.toplevel

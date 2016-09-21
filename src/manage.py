@@ -270,6 +270,8 @@ class LibraryTask(RequestHandler):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
+    version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
+    Content(id='analysis', parent=version_key, status=Status.pending).put()
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
     util.new_task(task_url, target='analysis', transactional=True)
 
@@ -547,9 +549,8 @@ class IngestVersion(RequestHandler):
     if response.status_code == 200:
       readme = response.content
       try:
-        content = Content(parent=self.version_key, id='readme', content=readme)
-        content.etag = response.headers.get('ETag', None)
-        content.put()
+        Content(parent=self.version_key, id='readme', content=readme,
+                status=Status.ready, etag=response.headers.get('ETag', None)).put()
       except db.BadValueError:
         return self.error("Could not store README.md as a utf-8 string")
     elif response.status_code == 404:
@@ -560,8 +561,8 @@ class IngestVersion(RequestHandler):
     if readme is not None:
       response = util.github_markdown(readme)
       if response.status_code == 200:
-        content = Content(parent=self.version_key, id='readme.html', content=response.content)
-        content.put()
+        Content(parent=self.version_key, id='readme.html', content=response.content,
+                status=Status.ready, etag=response.headers.get('ETag', None)).put()
       else:
         return self.retry('error converting readme to markdown (%d)' % response.status_code)
 
@@ -572,9 +573,8 @@ class IngestVersion(RequestHandler):
         bower_json = json.loads(response.content)
       except ValueError:
         return self.error("could not parse bower.json")
-      content = Content(parent=self.version_key, id='bower', content=response.content)
-      content.etag = response.headers.get('ETag', None)
-      content.put()
+      Content(parent=self.version_key, id='bower', content=response.content,
+              status=Status.ready, etag=response.headers.get('ETag', None)).put()
       return bower_json
     elif response.status_code == 404:
       return self.error("missing bower.json")
@@ -647,12 +647,14 @@ class IngestAnalysis(RequestHandler):
     repo = attributes['repo']
     version = attributes['version']
 
-    logging.info('Ingesting analysis data %s/%s', Library.id(owner, repo), version)
-    parent = Version.get_by_id(version, parent=ndb.Key(Library, Library.id(owner, repo)))
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
-    # Don't accept the analysis data unless the version still exists in the datastore
-    if parent is not None:
-      content = Content(parent=parent.key, id='analysis', content=data)
+    content = Content.get_by_id('analysis', parent=version_key)
+    if content is not None:
+      content = Content(id='analysis', parent=version_key)
+      content.content = data
+      # FIXME: Set status/error when it failed.
+      content.status = Status.ready
       try:
         content.put()
       # TODO: Which exception is this for?
