@@ -53,7 +53,9 @@
       <catalog-search name="search" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
+      <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
+
 
   </template>
 
@@ -70,6 +72,10 @@
           observer: '_pageChanged'
         }
 
+      },
+
+      listeners: {
+        'error': '_handleError',
       },
 
       observers: [
@@ -119,6 +125,18 @@
           result.userContent = 'https://user-content-dot-' + queryParams.instance;
         }
         return result;
+      },
+
+      _handleError: function(event) {
+        var status;
+        var message;
+        if (event.detail) {
+          status = event.detail.status;
+          message = event.detail.message;
+        }
+        this.page = 'error';
+        this.$.error.status = status;
+        this.$.error.message = message;
       },
 
     });

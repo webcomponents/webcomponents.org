@@ -33,7 +33,8 @@
       loading="{{metaLoading}}"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
-      last-response="{{data}}"></iron-ajax>
+      last-response="{{data}}"
+      on-error="_metaError"></iron-ajax>
 
     <iron-ajax
       id="dependenciesAjax"
@@ -105,6 +106,11 @@
         this.$.metaAjax.generateRequest();
         this.$.dependenciesAjax.generateRequest();
         this.$.authorsAjax.generateRequest();
+      },
+
+      _metaError: function(event, error) {
+        if (error.request.status == 404)
+          this.fire('error', {status: 404, message: 'Could not find collection'});
       },
 
     });
