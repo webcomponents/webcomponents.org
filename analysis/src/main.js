@@ -57,8 +57,8 @@ function processTasks() {
       return;
     }
 
-    // force single-thread, immediately fail
-    lockfile.lock(locky, {stale: 60000}, err => {
+    // force single-thread, immediately fail, expire lock after two minutes
+    lockfile.lock(locky, {stale: 120000}, err => {
       if (err) {
         Ana.success("main/processTasks/busy/willRetry", JSON.stringify(attributes));
         res.status(503).send();
