@@ -17,7 +17,7 @@ rebuild-pubsub.sh [custom-elements, custom-elements-staging]
 
 ## Running it locally
 Make sure you have node and npm installed and then run the following. It will
-use the custom-elements-staging pubsub to responde (but won't receive push requests for
+use the custom-elements-staging pubsub to respond (but won't receive push requests for
 analysis).
 
 ```bash
