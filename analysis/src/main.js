@@ -53,7 +53,7 @@ function processTasks() {
     // By definition, this is internal.
     if (!req.get('x-appengine-queuename')) {
       Ana.fail("main/processTasks/originator-not-appengine", JSON.stringify(attributes));
-      res.status(200).send(); // Don't retry
+      res.status(403).send(); // Don't retry
       return;
     }
 
