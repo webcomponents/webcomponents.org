@@ -28,6 +28,11 @@
         margin-left: 6px;
         font-size: 24px;
         line-height: 45px;
+        display: inline-block;
+        max-width: 150px;
+        text-overflow: clip;
+        overflow: hidden;
+        vertical-align: top;
       }
 
       #repo-desc {
@@ -444,7 +449,7 @@
             <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
+              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-click="_scrollToMain">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
                 <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
@@ -532,18 +537,18 @@
       },
 
       _elements: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.elementsByTagName).map(function(elem) {
-          return this.docs.elementsByTagName[elem];
+        return Object.keys(this.docs.content.elementsByTagName).map(function(elem) {
+          return this.docs.content.elementsByTagName[elem];
         }.bind(this));
       },
 
       _behaviors: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.behaviorsByName).map(function(elem) {
-          return this.docs.behaviorsByName[elem];
+        return Object.keys(this.docs.content.behaviorsByName).map(function(elem) {
+          return this.docs.content.behaviorsByName[elem];
         }.bind(this));
       },
 
@@ -679,7 +684,7 @@
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         this.bundledDemos = this._demos();
-        this.descriptor = this.docs.elementsByTagName[this.subElement] || this.docs.behaviorsByName[this.subElement];
+        this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 
       _navigateToSearch: function() {

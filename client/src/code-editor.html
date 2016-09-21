@@ -14,7 +14,8 @@
       #container .CodeMirror {
         padding: 16px;
         background: #f7f7f7;
-        font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        font-size: 13.6px;
+        font-family: var(--monospace-font);
         line-height: 1.45;
         height: auto;
         -webkit-filter: grayscale(0%);
@@ -42,7 +43,7 @@
         this._isReady = true;
         this.scopeSubtree(this.$.container, true);
         /* global CodeMirror */
-        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: true, viewportMargin: Infinity});
+        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: false, viewportMargin: Infinity});
         this.codeMirror.on('changes', this._onChanges.bind(this));
         if (this.value)
           this._valueChanged(this.value);

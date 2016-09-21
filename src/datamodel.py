@@ -3,7 +3,7 @@ from google.appengine.ext import ndb
 import versiontag
 
 class CollectionReference(ndb.Model):
-  semver = ndb.StringProperty()
+  semver = ndb.StringProperty(indexed=False)
 
   def collection_version_key(self):
     (owner, repo, version) = self.key.id().split('/')
@@ -24,41 +24,41 @@ class Status(object):
   ready = 'ready'
 
 class Author(ndb.Model):
-  metadata = ndb.TextProperty()
+  metadata = ndb.TextProperty(indexed=False)
 
-  metadata_etag = ndb.StringProperty()
+  metadata_etag = ndb.StringProperty(indexed=False)
   metadata_updated = ndb.DateTimeProperty()
 
   status = ndb.StringProperty(default=Status.pending)
-  error = ndb.StringProperty()
+  error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
 
 class Library(ndb.Model):
-  github_access_token = ndb.StringProperty()
+  github_access_token = ndb.StringProperty(indexed=False)
 
   kind = ndb.StringProperty(default='element')
   collection_sequence_number = ndb.IntegerProperty(indexed=False, default=0)
 
-  metadata = ndb.TextProperty()
-  metadata_etag = ndb.StringProperty()
+  metadata = ndb.TextProperty(indexed=False)
+  metadata_etag = ndb.StringProperty(indexed=False)
   metadata_updated = ndb.DateTimeProperty()
 
-  contributors = ndb.TextProperty()
-  contributors_etag = ndb.StringProperty()
+  contributors = ndb.TextProperty(indexed=False)
+  contributors_etag = ndb.StringProperty(indexed=False)
   contributors_updated = ndb.DateTimeProperty()
 
-  tags = ndb.StringProperty(repeated=True)
-  tags_etag = ndb.StringProperty()
+  tags = ndb.StringProperty(repeated=True, indexed=False)
+  tags_etag = ndb.StringProperty(indexed=False)
   tags_updated = ndb.DateTimeProperty()
 
-  participation = ndb.TextProperty()
-  participation_etag = ndb.StringProperty()
+  participation = ndb.TextProperty(indexed=False)
+  participation_etag = ndb.StringProperty(indexed=False)
   participation_updated = ndb.DateTimeProperty()
 
   shallow_ingestion = ndb.BooleanProperty(default=False)
 
   status = ndb.StringProperty(default=Status.pending)
-  error = ndb.StringProperty()
+  error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
 
   @staticmethod
@@ -119,11 +119,11 @@ class VersionCache(ndb.Model):
     return needs_index_update
 
 class Version(ndb.Model):
-  sha = ndb.StringProperty(required=True)
-  url = ndb.StringProperty()
+  sha = ndb.StringProperty(required=True, indexed=False)
+  url = ndb.StringProperty(indexed=False)
 
   status = ndb.StringProperty(default=Status.pending)
-  error = ndb.StringProperty()
+  error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
 
   @staticmethod
@@ -147,8 +147,11 @@ class Version(ndb.Model):
     raise ndb.Return(result_map.values())
 
 class Content(ndb.Model):
-  content = ndb.TextProperty(required=True)
-  etag = ndb.StringProperty()
+  content = ndb.TextProperty(indexed=False)
+
+  etag = ndb.StringProperty(indexed=False)
+  status = ndb.StringProperty(default=Status.pending)
+  error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
 
 class Dependency(object):
