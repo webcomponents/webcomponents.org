@@ -1,5 +1,10 @@
 'use strict';
 
+if (process.env.NODE_ENV === 'production') {
+  require('@google/cloud-trace').start();
+  require('@google/cloud-debug');
+}
+
 const Ana = require('./ana_log');
 const Analysis = require('./analysis');
 const Bower = require('./bower');
@@ -82,6 +87,10 @@ function processTasks() {
         }
       });
     });
+  });
+
+  app.get('/_ah/health', (req, res) => {
+    res.status(200).send();
   });
 
   app.listen(process.env.PORT || '8080', function() {
