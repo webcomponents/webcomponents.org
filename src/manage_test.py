@@ -68,7 +68,7 @@ class AnalyzeTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-      util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
     ], [task.url for task in tasks])
 
 class DeleteVersionTest(ManageTestBase):
