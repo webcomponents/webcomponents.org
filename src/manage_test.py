@@ -21,6 +21,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/github', status=200)
     self.app.get('/manage/update-all', status=403)
     self.app.get('/manage/add/org/repo', status=403)
+    self.app.get('/manage/analyze/owner/repo', status=403)
     self.app.get('/manage/delete/org/repo', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner', status=403)

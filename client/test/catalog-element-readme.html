@@ -17,6 +17,7 @@
     var readmeElement;
     setup(function() {
       readmeElement = fixture('basic');
+      readmeElement.data = {owner: 'owner', repo: 'repo', version: 'version'};
       readmeElement.baseUrls = {userContent:''};
     });
     test('Should create custom-element-demo', function() {
@@ -24,7 +25,6 @@
 
       var demos = Polymer.dom(readmeElement.root).querySelectorAll('custom-element-demo');
       assert.equal(demos.length, 1, 'one inline demo created');
-      assert.equal(demos[0].getAttribute('width'), 500);
       assert.equal(demos[0].getAttribute('height'), 500);
     })
   });

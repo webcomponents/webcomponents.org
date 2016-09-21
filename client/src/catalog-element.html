@@ -319,7 +319,8 @@
       url="[[baseUrls.api]]/api/meta/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
-      on-response="_handleResponse"></iron-ajax>
+      on-response="_metaResponse"
+      on-error="_metaError"></iron-ajax>
 
     <iron-ajax
       id="docsAjax"
@@ -440,7 +441,7 @@
           <h1>Repository contents</h1>
 
           <div id="sidebar-nav" class="box loader" loading$="[[docsLoading]]">
-            <a href="/element/[[owner]]/[[repo]]">[[repo]]</a>
+            <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
               <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-tap="_scrollToMain">[[_docLabel(element.is)]]</a>
@@ -480,7 +481,9 @@
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
-          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+          <template is="dom-if" if="[[data]]">
+            <catalog-element-readme data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+          </template>
 
           <div hidden="[[!subElement]]">
             <h2 title>[[subElement]]</h2>
@@ -565,7 +568,7 @@
         if (!this.visible || !metaLoading)
           return;
 
-        this.data = {};
+        this.data = null;
         delete this.descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
@@ -652,6 +655,16 @@
           path = this.owner + '/' + this.repo + this.versionRoute;
         }
         this.set('route.path', path);
+      },
+
+      _metaResponse: function() {
+        // TODO: handle status != ready
+        this._handleResponse();
+      },
+
+      _metaError: function(event, error) {
+        if (error.request.status == 404)
+          this.fire('error', {status: 404, message: 'Could not find element'});
       },
 
       _handleResponse: function() {

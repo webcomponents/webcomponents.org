@@ -29,16 +29,18 @@
       is: 'catalog-element-readme',
 
       properties: {
+        data: Object,
+
         readme: String,
 
         baseUrls: Object
       },
 
       observers: [
-        'readmeChanged(readme)'
+        'readmeChanged(data, readme)'
       ],
 
-      readmeChanged: function(readme) {
+      readmeChanged: function(data, readme) {
         if (!readme)
           return;
 
@@ -59,13 +61,13 @@
           dummyParse.innerHTML = block.textContent;
           var dummyDemoElement = dummyParse.content.firstChild;
           var demoElement = document.createElement('custom-element-demo');
-          demoElement.setAttribute('width', dummyDemoElement.getAttribute('width'));
-          demoElement.setAttribute('height', dummyDemoElement.getAttribute('height'));
+          var height = dummyDemoElement.getAttribute('height');
+          if (height)
+            demoElement.setAttribute('height', height);
           demoElement.baseUrl = this.baseUrls.userContent;
 
           // Swap elements out.
-          var parent = block.parentElement;
-          parent.parentElement.replaceChild(demoElement, parent);
+          block.parentElement.replaceChild(demoElement, block);
 
           // Find and set code.
           var code = dummyDemoElement.firstElementChild.innerHTML;
