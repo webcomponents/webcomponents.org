@@ -294,7 +294,7 @@ class GetDocs(webapp2.RequestHandler):
       result['error'] = analysis.error
 
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(json.dumps(analysis.content))
+    self.response.write(json.dumps(result))
 
 class GetAuthor(webapp2.RequestHandler):
   @ndb.toplevel
