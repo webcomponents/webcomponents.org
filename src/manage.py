@@ -238,9 +238,10 @@ class LibraryTask(RequestHandler):
     if response.status_code == 200:
       try:
         bower_json = json.loads(response.content)
-        if 'element-collection' in bower_json.get('keywords', []) and self.library.kind != 'collection':
-          self.library.kind = 'collection'
-          self.library_dirty = True
+        if 'element-collection' in bower_json.get('keywords', []):
+          if self.library.kind != 'collection':
+            self.library.kind = 'collection'
+            self.library_dirty = True
         elif self.library.kind == 'collection':
           self.library.kind = 'element'
           self.library_dirty = True
