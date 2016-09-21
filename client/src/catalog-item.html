@@ -107,7 +107,7 @@
       },
 
       _versionPath: function(version, latestVersion) {
-        return version != latestVersion ? '/' + version : version;
+        return version = latestVersion ? '' : '/' + version;
       },
 
     });
