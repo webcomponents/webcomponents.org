@@ -429,6 +429,8 @@ class IngestWebhookLibrary(LibraryTask):
     self.library_dirty = True
 
 class AnalyzeLibrary(LibraryTask):
+  def is_transactional(self):
+    return True
   def handle_get(self, owner, repo):
     self.init_library(owner, repo)
     if self.library is None:
@@ -438,7 +440,7 @@ class AnalyzeLibrary(LibraryTask):
 
     versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
     for version in versions:
-      self.trigger_analysis(version.id(), version.sha)
+      self.trigger_analysis(version.key.id(), version.sha)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
