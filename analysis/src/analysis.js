@@ -35,7 +35,7 @@ class Analysis {
       };
 
       Ana.log("analysis/processNextTask", taskAsString);
-      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.responseTopic) {
+      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version) {
         errorHandler({retry: false, error: "Task attributes missing required field."});
         return;
       }
@@ -50,7 +50,7 @@ class Analysis {
       }).then(results => {
         var data = results[0];
         data.bowerDependencies = results[1];
-        return this.catalog.postResponse(attributes.responseTopic, data, attributes);
+        return this.catalog.postResponse(data, attributes);
       }).then(() => {
         Ana.success("analysis/processNextTask", taskAsString);
         resolve();

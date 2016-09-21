@@ -24,10 +24,10 @@ analysis).
 npm start
 ```
 
-To send an analysis request, you can use curl in this form...
+To send an analysis request, you can use curl (the last param - commit sha - is optional)...
 
 ```bash
-curl -i "localhost:8080/process/next?owner=PolymerElements&repo=paper-dialog-behavior&version=v1.2.7&responseTopic=analysis-responses" -H "x-appengine-queuename:analysis"
+curl -i "localhost:8080/task/analyze/PolymerElements/paper-dialog-behavior/v1.2.7/eacabc02ab06e03f17d26e0b777b102bdc2ed556" -H "x-appengine-queuename:analysis"
 ```
 
 ## Deploying

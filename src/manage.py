@@ -262,13 +262,15 @@ class LibraryTask(RequestHandler):
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
+    version_task_url = util.ingest_version_task(self.owner, self.repo, tag)
+    util.new_task(version_task_url, target='manage', transactional=True)
+
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
 
-    task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, target='manage', transactional=True)
-    util.publish_analysis_request(self.owner, self.repo, tag, analysis_sha)
+    analysis_task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
+    util.new_task(analysis_task_url, target='analysis', transactional=True)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:

@@ -1,4 +1,3 @@
-from gcloud import pubsub
 from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 
@@ -6,7 +5,6 @@ import json
 import logging
 import os
 import re
-import sys
 import yaml
 
 SECRETS = {}
@@ -24,17 +22,6 @@ def add_authorization_header(headers, access_token=None):
 
   if access_token is not None:
     headers['Authorization'] = 'token %s' % access_token
-
-def publish_analysis_request(owner, repo, version, sha=None):
-  params = {
-    'owner': owner,
-    'repo': repo,
-    'version': version,
-    'responseTopic': os.environ['ANALYSIS_RESPONSE_TOPIC']
-  }
-  if sha:
-    params['sha'] = sha
-  taskqueue.add(url='/process/next', queue_name='analysis', params=params, method='GET')
 
 def github_url(prefix, owner=None, repo=None, detail=None):
   parts = [part for part in [prefix, owner, repo, detail] if part is not None]
@@ -73,6 +60,11 @@ def ingest_commit_task(owner, repo):
 
 def ingest_webhook_task(owner, repo):
   return '/task/ingest-webhook/%s/%s' % (owner, repo)
+
+def ingest_analysis_task(owner, repo, version, sha=None):
+  if sha:
+    return '/task/analyze/%s/%s/%s/%s' % (owner, repo, version, sha)
+  return '/task/analyze/%s/%s/%s' % (owner, repo, version)
 
 def delete_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)

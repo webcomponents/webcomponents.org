@@ -22,30 +22,33 @@ function processTasks() {
 
   var project = process.env.GAE_LONG_APP_ID;
 
+  // node main.js <responseTopic> <?project? - only used outside of GAE>
+  var responseTopic = process.argv[2];
+
   // If NODE_ENV isn't set, we're not running in GAE,
   // so override the project with whatever the command line says.
-  if (!process.env.NODE_ENV && process.argv.length == 3) {
-    project = process.argv[2];
+  if (!process.env.NODE_ENV && process.argv.length == 4) {
+    project = process.argv[3];
     Ana.enableDebug();
   }
 
-  Ana.log("main/processTasks", "Using project [", project, "]");
+  Ana.log("main/processTasks", "Using project [", project, "] and response topic [", responseTopic, "]");
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(pubsub({projectId: project})));
+      new Catalog(pubsub({projectId: project}), responseTopic));
 
   var locky = new Date().toString() + ".lock";
 
-  app.get('/process/next', (req, res) => {
+  // owner/repo/version are path params, response topic and sha are query params.
+  app.get('/task/analyze/:owner/:repo/:version/:sha*?', (req, res) => {
     var attributes = {
-      owner: req.query.owner,
-      repo: req.query.repo,
-      version: req.query.version,
-      responseTopic: req.query.responseTopic
+      owner: req.params.owner,
+      repo: req.params.repo,
+      version: req.params.version
     };
-    if (req.query.sha) {
-      attributes.sha = req.query.sha;
+    if (req.params.sha) {
+      attributes.sha = req.params.sha;
     }
 
     // We only accept requests from the task queue service.
