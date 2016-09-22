@@ -1,6 +1,6 @@
-# v2
+# webcomponents.org beta
 
-[![Travis](https://img.shields.io/travis/customelements/v2.svg?maxAge=2592000&style=flat-square)](https://travis-ci.org/customelements/v2)
+[![Travis](https://img.shields.io/travis/webcomponents/beta.svg?maxAge=2592000&style=flat-square)](https://travis-ci.org/webcomponents/beta)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000&style=flat-square)]()
 
 # Dependencies
