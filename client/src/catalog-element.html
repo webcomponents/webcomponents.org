@@ -182,6 +182,7 @@
       /* Sidebar */
       #sidebar-nav {
         margin-bottom: 32px !important;
+        overflow: visible;
       }
 
       #sidebar-nav a {
@@ -192,6 +193,30 @@
         border-top: 1px solid #ededed;
         display: flex;
         justify-content: space-between;
+        box-sizing: border-box;
+      }
+
+      #sidebar-nav a[active] {
+        background: var(--theme-blue);
+        color: white;
+        margin-right: -1px;
+        position: relative;
+        -webkit-filter: drop-shadow(0px 2px 0.5px var(--theme-blue-dark));
+        filter: drop-shadow(0px 2px 0px var(--theme-blue-dark));
+      }
+
+      #sidebar-nav a[active]::before {
+        content: '';
+        width: 11px;
+        position: absolute;
+        top: 0px;
+        left: -10px;
+        height: 100%;
+        background: inherit;
+        -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
+        border-bottom-left-radius: 3px;
+        border-top-left-radius: 3px;
       }
 
       #sidebar-nav a span {
@@ -204,7 +229,7 @@
       #sidebar-nav a:first-child {
         font-size: 18px;
         line-height: 21px;
-        border: none;
+        border-top: none;
       }
 
       .sidebar a.demo-link {
@@ -449,7 +474,7 @@
             <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-click="_scrollToMain">[[_docLabel(element.is)]]</a>
+              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
                 <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
@@ -457,7 +482,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]" on-tap="_scrollToMain">[[behavior.is]]</a>
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
             </template>
           </div>
 
@@ -611,6 +636,7 @@
           return;
 
         this._splitRoute();
+        this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
 
         // Generate requests
@@ -676,10 +702,11 @@
         if (this.data)
           document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
+        this.async(this._updateActiveLinks);
       },
 
       _updateDescriptor: function() {
-        if (!this.docs)
+        if (!this.docs || !this.docs.content)
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
@@ -734,9 +761,15 @@
         return a || b;
       },
 
-      _scrollToMain: function() {
-        var top = this.$['main-content'].offsetTop - 16;
-        Polymer.AppLayout.scroll({top: top, behavior: 'smooth'});
+      _updateActiveLinks: function() {
+        var currentPath = this.route.prefix + this.route.path;
+        var links = this.$['sidebar-nav'].querySelectorAll('a');
+        for (var i = 0; i < links.length; i++) {
+          if (links[i].getAttribute('href') == currentPath)
+            links[i].setAttribute('active', '');
+          else
+            links[i].removeAttribute('active');
+        }
       },
 
     });
