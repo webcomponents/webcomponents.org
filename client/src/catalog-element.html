@@ -207,14 +207,14 @@
 
       #sidebar-nav a[active]::before {
         content: '';
-        width: 10px;
+        width: 11px;
         position: absolute;
         top: 0px;
         left: -10px;
         height: 100%;
         background: inherit;
-        -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 4px), 10px 50%, 0% 4px);
-        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 4px), 10px 50%, 0% 4px);
+        -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
         border-bottom-left-radius: 3px;
         border-top-left-radius: 3px;
       }
@@ -474,7 +474,7 @@
             <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]" on-click="_scrollToMain">[[_docLabel(element.is)]]</a>
+              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
                 <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
@@ -482,7 +482,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]" on-tap="_scrollToMain">[[behavior.is]]</a>
+              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
             </template>
           </div>
 
@@ -702,6 +702,7 @@
         if (this.data)
           document.title = this.data.owner + '/' + this.data.repo;
         this._updateDescriptor();
+        this.async(this._updateActiveLinks);
       },
 
       _updateDescriptor: function() {
@@ -758,11 +759,6 @@
 
       _or: function(a, b) {
         return a || b;
-      },
-
-      _scrollToMain: function() {
-        var top = this.$['main-content'].offsetTop - 16;
-        Polymer.AppLayout.scroll({top: top, behavior: 'smooth'});
       },
 
       _updateActiveLinks: function() {
