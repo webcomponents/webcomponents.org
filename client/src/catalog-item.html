@@ -61,40 +61,42 @@
 
     </style>
 
-    <div class="box">
-      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]">
-        <div id="header">
-          <h1>[[data.repo]]</h1>
-          <div id="description">[[data.description]]</div>
-          <div id="stats">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-star">
-               <use xlink:href="/sprite.octicons.svg#star"></use>
-              </svg>
-              [[data.stars]]
-            </div>
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
-               <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
-              </svg>
-              [[data.forks]]
-            </div>
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-eye">
-               <use xlink:href="/sprite.octicons.svg#eye"></use>
-              </svg>
-              [[data.subscribers]]
+    <template is="dom-if" if="[[data]]">
+      <div class="box">
+        <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]">
+          <div id="header">
+            <h1>[[data.repo]]</h1>
+            <div id="description">[[data.description]]</div>
+            <div id="stats">
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                 <use xlink:href="/sprite.octicons.svg#star"></use>
+                </svg>
+                [[data.stars]]
+              </div>
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+                 <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+                </svg>
+                [[data.forks]]
+              </div>
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+                 <use xlink:href="/sprite.octicons.svg#eye"></use>
+                </svg>
+                [[data.subscribers]]
+              </div>
             </div>
           </div>
-        </div>
-      </a>
-      <div id="footer">
-        <div id="author">
-          <img class="avatar" src="[[data.avatar_url]]&s=40">
-          <div>by <a href="/author/[[data.owner]]">[[data.owner]]</a></div>
+        </a>
+        <div id="footer">
+          <div id="author">
+            <img class="avatar" src="[[data.avatar_url]]&s=40">
+            <div>by <a href="/author/[[data.owner]]">[[data.owner]]</a></div>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </template>
 
   <script>
