@@ -110,7 +110,8 @@ class LibraryMetadata(object):
     if version_key is not None:
       versions = yield versions_future
       result['versions'] = versions
-      result['latest_version'] = versions[-1]
+      if len(versions) > 0:
+        result['latest_version'] = versions[-1]
 
     if not brief and library.participation is not None:
       result['activity'] = json.loads(library.participation).get('all', [])
