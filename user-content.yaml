@@ -1,6 +1,4 @@
-application: custom-elements-staging
-module: user-content
-version: 1
+service: user-content
 runtime: python27
 api_version: 1
 threadsafe: true

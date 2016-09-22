@@ -1,4 +1,4 @@
-module: default
+service: default
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -18,6 +18,10 @@ handlers:
   upload: service-worker.js
   static_files: service-worker.js
   secure: always
+- url: /robots.txt
+  upload: robots.txt
+  static_files: robots.txt
+  secure: always
 - url: /bower_components
   static_dir: bower_components
   secure: always
@@ -25,7 +29,7 @@ handlers:
   static_files: third_party/octicons/sprite.octicons.svg
   upload: third_party/octicons/sprite.octicons.svg
   secure: always
-- url: /.*
+- url: /((author|collection|element|search|preview|preview-integration).*)?
   upload: index.html
   static_files: index.html
   secure: always

@@ -21,6 +21,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/github', status=200)
     self.app.get('/manage/update-all', status=403)
     self.app.get('/manage/add/org/repo', status=403)
+    self.app.get('/manage/analyze/owner/repo', status=403)
     self.app.get('/manage/delete/org/repo', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/update/owner', status=403)
@@ -42,6 +43,33 @@ class XsrfTest(ManageTestBase):
 
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
+
+class UpdateAllTest(ManageTestBase):
+  def test_update_all(self):
+    library_key = Library(id='owner/repo').put()
+    author_key = Author(id='owner').put()
+
+    response = self.app.get('/manage/update-all', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.update_library_task(library_key.id()),
+        util.update_author_task(author_key.id()),
+    ], [task.url for task in tasks])
+
+class AnalyzeTest(ManageTestBase):
+  def test_analyze(self):
+    library_key = Library(id='owner/repo').put()
+    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    response = self.app.get('/manage/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
+    ], [task.url for task in tasks])
 
 class DeleteVersionTest(ManageTestBase):
   def test_delete_version(self):
@@ -147,6 +175,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
         # We intentionally don't update tags that have changed to point to different commits.
     ], [task.url for task in tasks])
 
@@ -172,6 +201,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual([
         util.delete_task('org', 'repo', 'v0.0.1'),
         util.ingest_version_task('org', 'repo', 'v0.0.2'),
+        util.ingest_analysis_task('org', 'repo', 'v0.0.2', 'new-master-sha'),
     ], [task.url for task in tasks])
 
     version = Version.get_by_id('v0.0.2', parent=library_key)
@@ -235,6 +265,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v1.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v1.0.0'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -262,6 +293,7 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'v0.0.1'),
+        util.ingest_analysis_task('org', 'repo', 'v0.0.1', 'master-sha'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -313,9 +345,10 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEquals(version.url, 'url')
 
     tasks = self.tasks.get_filtered_tasks()
-    self.assertEqual(len(tasks), 1)
+    self.assertEqual(len(tasks), 2)
     self.assertEqual([
         util.ingest_version_task('org', 'repo', 'commit-sha'),
+        util.ingest_analysis_task('org', 'repo', 'commit-sha'),
     ], [task.url for task in tasks])
 
 class UpdateIndexesTest(ManageTestBase):

@@ -2,9 +2,11 @@
   "entrypoint": "index.html",
   "shell": "src/catalog-app.html",
   "fragments": [
+    "src/catalog-author.html",
     "src/catalog-add.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
+    "src/catalog-error.html",
     "src/catalog-preview-integration.html",
     "src/catalog-preview.html",
     "src/catalog-search.html",
@@ -12,6 +14,7 @@
   ],
   "includeDependencies": [
     "manifest.json",
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
+    "third_party/octicons/sprite.octicons.svg"
   ]
 }

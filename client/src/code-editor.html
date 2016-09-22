@@ -5,23 +5,24 @@
   <!-- rel=stylesheet works nicely in shady DOM, and rel=import works nicely in shadow DOM -->
   <link rel="stylesheet" href="../bower_components/codemirror/lib/codemirror.css">
   <link rel="import" type="css" href="../bower_components/codemirror/lib/codemirror.css">
-  <style>
-    :host[unresolved] #container .CodeMirror {
-      -webkit-filter: grayscale(100%);
-    }
-
-    #container .CodeMirror {
-      padding: 16px;
-      background: #f7f7f7;
-      font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      line-height: 1.45;
-      height: auto;
-      -webkit-filter: grayscale(0%);
-      transition: -webkit-filter 1s;
-    }
-  </style>
-
   <template>
+    <style>
+      :host[unresolved] #container .CodeMirror {
+        -webkit-filter: grayscale(100%);
+      }
+
+      #container .CodeMirror {
+        padding: 16px;
+        background: #f7f7f7;
+        font-size: 13.6px;
+        font-family: var(--monospace-font);
+        line-height: 1.45;
+        height: auto;
+        -webkit-filter: grayscale(0%);
+        transition: -webkit-filter 1s;
+      }
+    </style>
+
     <div id="container"></div>
   </template>
 
@@ -42,7 +43,7 @@
         this._isReady = true;
         this.scopeSubtree(this.$.container, true);
         /* global CodeMirror */
-        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: true, viewportMargin: Infinity});
+        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: false, viewportMargin: Infinity});
         this.codeMirror.on('changes', this._onChanges.bind(this));
         if (this.value)
           this._valueChanged(this.value);

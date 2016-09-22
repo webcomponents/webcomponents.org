@@ -2,148 +2,75 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
+<link rel="import" href="author-profile.html">
+<link rel="import" href="catalog-element-readme.html">
+<link rel="import" href="catalog-item.html">
+<link rel="import" href="catalog-styles.html">
+
 <dom-module id="catalog-collection">
   <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
   <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
   <template>
+    <style include="catalog-styles"></style>
     <style>
-      #container {
-        margin: 0 auto;
-        display: flex;
-        max-width: 980px;
-        flex-direction: column;
-      }
-
-      a {
-        color: #1565C0;
-        text-decoration: none;
-      }
-
-      a:hover {
-        text-decoration: underline;
-      }
-
-      .markdown-body {
+      #profile-image {
         width: 100%;
       }
 
-      /** Readme.md override */
-      .markdown-body .anchor {
-        margin-left: 0;
-        padding-right: 0;
+      #profile-info {
+        padding: 25px;
       }
-
-      .markdown-body > *:first-child {
-        display: none;
-      }
-
-      #dependencies {
-        border: 1px solid #d0d0d0;
-        border-radius: 3px;
-        flex: 1 0 200px;
-        background: #FAFAFA;
-      }
-
-      @media (max-width: 980px) {
-        #dependencies {
-          border-left: none;
-          border-right: none;
-          border-radius: 0;
-        }
-      }
-
-      #dependencies a {
-        color: inherit;
-        text-decoration: inherit;
-      }
-
-      .row {
-        padding: 12px 16px;
-        line-height: 24px;
-        background: white;
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #e5e5e5;
-      }
-
-      .row-health {
-        flex: 0 0 50px;
-        border-right: 1px solid #e5e5e5;
-        padding-right: 8px;
-        color: #616161;
-      }
-
-      .row-health svg {
-        height: 14px;
-        width: 16px;
-        margin: -2px 8px 0 0;
-        vertical-align: middle;
-        fill: #616161;
-      }
-
-      .row-content {
-        flex: 1 0 200px;
-        margin-left: 16px;
-      }
-
-      .repo-title {
-        font-weight: 400;
-        font-size: 18px;
-        letter-spacing: 0;
-        line-height: 32px;
-      }
-
-      .repo-name {
-        font-weight: 600;
-      }
-
-      .repo-description {
-        color: #757575;
-      }
-
     </style>
 
     <app-route
       route="[[route]]"
       pattern="/:owner/:repo"
-      data="{{routeMatch}}"
+      data="{{_routeMatch}}"
       query-params="{{queryParams}}"></app-route>
 
     <iron-ajax
       id="metaAjax"
-      url="[[baseUrls.api]]/api/meta/[[routeMatch.owner]]/[[routeMatch.repo]]"
+      loading="{{metaLoading}}"
+      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"
-      on-response="_handleResponse"></iron-ajax>
+      on-error="_metaError"></iron-ajax>
 
-    <div id="container">
+    <iron-ajax
+      id="dependenciesAjax"
+      loading="{{dependenciesLoading}}"
+      url="[[baseUrls.api]]/api/dependencies/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
+      handle-as="json"
+      last-response="{{dependencies}}"></iron-ajax>
 
-      <template is="dom-if" if="[[data]]">
-        <h2 title>[[data.owner]] / [[data.repo]]</h2>
-      </template>
+    <iron-ajax
+      id="authorsAjax"
+      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
+      handle-as="json"
+      last-response="{{author}}"></iron-ajax>
 
-      <article id="contents" class="markdown-body"></article>
+    <div class="loader" loading$="[[metaLoading]]">
+      <h3>Collection</h3>
+      <h1 class="page-title">[[data.repo]]</h1>
+      <h2 class="page-subtitle">[[data.description]]</h2>
 
-      <template is="dom-if" if="[[data]]">
-        <div id="dependencies">
-          <template is="dom-repeat" items=[[data.dependencies]]>
-            <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]">
-              <div class="row">
-                <div class="row-health">
-                  <div><svg aria-hidden="true" class="octicon octicon-star" height="16" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>[[item.stars]]</div>
-                  <div><svg aria-hidden="true" class="octicon octicon-eye" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M8.06 2C3 2 0 8 0 8s3 6 8.06 6c4.94 0 7.94-6 7.94-6S13 2 8.06 2z m-0.06 10c-2.2 0-4-1.78-4-4 0-2.2 1.8-4 4-4 2.22 0 4 1.8 4 4 0 2.22-1.78 4-4 4z m2-4c0 1.11-0.89 2-2 2s-2-0.89-2-2 0.89-2 2-2 2 0.89 2 2z"></path></svg>[[item.subscribers]]</div>
-                  <div><svg aria-hidden="true" class="octicon octicon-repo-forked" height="16" version="1.1" viewBox="0 0 10 16" width="10"><path d="M8 1c-1.11 0-2 0.89-2 2 0 0.73 0.41 1.38 1 1.72v1.28L5 8 3 6v-1.28c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2S0 1.89 0 3c0 0.73 0.41 1.38 1 1.72v1.78l3 3v1.78c-0.59 0.34-1 0.98-1 1.72 0 1.11 0.89 2 2 2s2-0.89 2-2c0-0.73-0.41-1.38-1-1.72V9.5l3-3V4.72c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2zM2 4.2c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3 10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m3-10c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z"></path></svg>[[item.forks]]</div>
-                </div>
-                <div class="row-content">
-                  <div class="repo-title">[[item.owner]] / <span class="repo-name">[[item.repo]]</span></div>
-                  <div class="repo-description">[[item.description]]</div>
-                </div>
-              </div>
-            </a>
-          </template>
+      <div class="body">
+        <div class="sidebar">
+          <a href="/author/[[_routeMatch.owner]]">
+            <author-profile condensed author="[[author]]"></author-profile>
+          </a>
         </div>
-      </template>
 
+        <div class="main-content">
+          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+
+          <div class="loader" loading$="[[dependenciesLoading]]">
+            <template is="dom-repeat" items="[[dependencies]]">
+              <catalog-item data="[[item]]"></catalog-item>
+            </template>
+          </div>
+        </div>
+      </div>
     </div>
 
   </template>
@@ -168,18 +95,22 @@
       ready: function() {
         this._loaded = true;
         this._routeChanged(this.route, this.visible);
-        this.scopeSubtree(this.$.contents, true);
-      },
-
-      _handleResponse: function() {
-        this.$.contents.innerHTML = this.data.readme;
       },
 
       _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded)
+        if (!visible || !this._loaded || route.prefix != '/collection')
           return;
 
+        document.title = this._routeMatch.repo;
+
         this.$.metaAjax.generateRequest();
+        this.$.dependenciesAjax.generateRequest();
+        this.$.authorsAjax.generateRequest();
+      },
+
+      _metaError: function(event, error) {
+        if (error.request.status == 404)
+          this.fire('error', {status: 404, message: 'Could not find collection'});
       },
 
     });

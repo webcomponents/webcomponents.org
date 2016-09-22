@@ -166,7 +166,7 @@ class LibraryTask(RequestHandler):
     self.owner = owner.lower()
     self.repo = repo.lower()
     if create:
-      self.library = Library.get_or_insert('%s/%s' % (owner, repo))
+      self.library = Library.get_or_insert(Library.id(owner, repo))
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
 
@@ -238,8 +238,12 @@ class LibraryTask(RequestHandler):
     if response.status_code == 200:
       try:
         bower_json = json.loads(response.content)
-        if 'element-collection' in bower_json.get('keywords', []) and self.library.kind != 'collection':
-          self.library.kind = 'collection'
+        if 'element-collection' in bower_json.get('keywords', []):
+          if self.library.kind != 'collection':
+            self.library.kind = 'collection'
+            self.library_dirty = True
+        elif self.library.kind == 'collection':
+          self.library.kind = 'element'
           self.library_dirty = True
       except ValueError:
         return self.error("Could not parse master/bower.json")
@@ -262,13 +266,18 @@ class LibraryTask(RequestHandler):
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
 
+    task_url = util.ingest_version_task(self.owner, self.repo, tag)
+    util.new_task(task_url, target='manage', transactional=True)
+    self.trigger_analysis(tag, sha)
+
+  def trigger_analysis(self, tag, sha):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
-
-    task_url = util.ingest_version_task(self.owner, self.repo, tag)
-    util.new_task(task_url, target='manage', transactional=True)
-    util.publish_analysis_request(self.owner, self.repo, tag, analysis_sha)
+    version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
+    Content(id='analysis', parent=version_key, status=Status.pending).put()
+    task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
+    util.new_task(task_url, target='analysis', transactional=True)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
@@ -385,6 +394,7 @@ class UpdateLibrary(LibraryTask):
   def handle_get(self, owner, repo):
     self.init_library(owner, repo, create=False)
     if self.library is None:
+      logging.warning('Library not found: %s', Library.id(owner, repo))
       return
     self.update_metadata()
     self.update_versions()
@@ -423,6 +433,20 @@ class IngestWebhookLibrary(LibraryTask):
       self.update_metadata()
     self.library.github_access_token = access_token
     self.library_dirty = True
+
+class AnalyzeLibrary(LibraryTask):
+  def is_transactional(self):
+    return True
+  def handle_get(self, owner, repo):
+    self.init_library(owner, repo)
+    if self.library is None:
+      self.response.set_status(404)
+      self.response.write('could not find library: %s' % Library.id(owner, repo))
+      return
+
+    versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
+    for version in versions:
+      self.trigger_analysis(version.key.id(), version.sha)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
@@ -529,9 +553,8 @@ class IngestVersion(RequestHandler):
     if response.status_code == 200:
       readme = response.content
       try:
-        content = Content(parent=self.version_key, id='readme', content=readme)
-        content.etag = response.headers.get('ETag', None)
-        content.put()
+        Content(parent=self.version_key, id='readme', content=readme,
+                status=Status.ready, etag=response.headers.get('ETag', None)).put()
       except db.BadValueError:
         return self.error("Could not store README.md as a utf-8 string")
     elif response.status_code == 404:
@@ -542,8 +565,8 @@ class IngestVersion(RequestHandler):
     if readme is not None:
       response = util.github_markdown(readme)
       if response.status_code == 200:
-        content = Content(parent=self.version_key, id='readme.html', content=response.content)
-        content.put()
+        Content(parent=self.version_key, id='readme.html', content=response.content,
+                status=Status.ready, etag=response.headers.get('ETag', None)).put()
       else:
         return self.retry('error converting readme to markdown (%d)' % response.status_code)
 
@@ -554,9 +577,8 @@ class IngestVersion(RequestHandler):
         bower_json = json.loads(response.content)
       except ValueError:
         return self.error("could not parse bower.json")
-      content = Content(parent=self.version_key, id='bower', content=response.content)
-      content.etag = response.headers.get('ETag', None)
-      content.put()
+      Content(parent=self.version_key, id='bower', content=response.content,
+              status=Status.ready, etag=response.headers.get('ETag', None)).put()
       return bower_json
     elif response.status_code == 404:
       return self.error("missing bower.json")
@@ -591,6 +613,8 @@ class UpdateIndexes(RequestHandler):
     dependencies = bower.get('dependencies', {})
     for name in dependencies.keys():
       dep = Dependency.from_string(dependencies[name])
+      if dep is None:
+        continue
       library_key = ndb.Key(Library, Library.id(dep.owner, dep.repo))
       CollectionReference.ensure(library_key, collection_version_key, semver=dep.version)
 
@@ -626,13 +650,14 @@ class IngestAnalysis(RequestHandler):
     owner = attributes['owner']
     repo = attributes['repo']
     version = attributes['version']
+    error = attributes['error']
 
-    logging.info('Ingesting analysis data %s/%s', Library.id(owner, repo), version)
-    parent = Version.get_by_id(version, parent=ndb.Key(Library, Library.id(owner, repo)))
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
-    # Don't accept the analysis data unless the version still exists in the datastore
-    if parent is not None:
-      content = Content(parent=parent.key, id='analysis', content=data)
+    content = Content.get_by_id('analysis', parent=version_key)
+    if content is not None:
+      content.content = data
+      content.status = Status.error if error is not None else Status.ready
       try:
         content.put()
       # TODO: Which exception is this for?
@@ -670,7 +695,7 @@ class UpdateAll(RequestHandler):
       for key in keys:
         task_count = task_count + 1
         task_url = util.update_library_task(key.id())
-        util.new_task(task_url, target='update')
+        util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d library updates', task_count)
 
@@ -683,10 +708,9 @@ class UpdateAll(RequestHandler):
       for key in keys:
         task_count = task_count + 1
         task_url = util.update_author_task(key.id())
-        util.new_task(task_url, target='update')
+        util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d author updates', task_count)
-
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
@@ -757,6 +781,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
+    webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),

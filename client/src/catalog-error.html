@@ -1,0 +1,26 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="catalog-error">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <h3>Error [[status]]</h3>
+    <h1 class="page-title">[[message]]</h1>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'catalog-error',
+
+      properties: {
+        status: Number,
+
+        message: String
+      },
+
+    });
+  </script>
+</dom-module>

@@ -13,20 +13,27 @@
         padding-right: 0;
       }
 
+      article.markdown-body {
+        font-family: var(--theme-font);
+        line-height: 24px;
+        font-size: 16px;
+      }
+
       article.markdown-body > h2:first-of-type, article.markdown-body > h1:first-of-type {
         display: none;
       }
 
-      h1 {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 0;
-        margin-bottom: 16px;
+      article.markdown-body pre {
+        font-family: var(--monospace-font);
       }
 
+      @media (max-width: 500px), (max-height: 500px) {
+        article.markdown-body pre {
+          margin-left: -16px;
+          margin-right: -16px;
+        }
+      }
     </style>
-
-    <h1>README.md</h1>
     <article id="contents" class="markdown-body"></article>
 
   </template>
@@ -37,16 +44,18 @@
       is: 'catalog-element-readme',
 
       properties: {
+        data: Object,
+
         readme: String,
 
         baseUrls: Object
       },
 
       observers: [
-        'readmeChanged(readme)'
+        'readmeChanged(data, readme)'
       ],
 
-      readmeChanged: function(readme) {
+      readmeChanged: function(data, readme) {
         if (!readme)
           return;
 
@@ -67,13 +76,13 @@
           dummyParse.innerHTML = block.textContent;
           var dummyDemoElement = dummyParse.content.firstChild;
           var demoElement = document.createElement('custom-element-demo');
-          demoElement.setAttribute('width', dummyDemoElement.getAttribute('width'));
-          demoElement.setAttribute('height', dummyDemoElement.getAttribute('height'));
+          var height = dummyDemoElement.getAttribute('height');
+          if (height)
+            demoElement.setAttribute('height', height);
           demoElement.baseUrl = this.baseUrls.userContent;
 
           // Swap elements out.
-          var parent = block.parentElement;
-          parent.parentElement.replaceChild(demoElement, parent);
+          block.parentElement.replaceChild(demoElement, block);
 
           // Find and set code.
           var code = dummyDemoElement.firstElementChild.innerHTML;

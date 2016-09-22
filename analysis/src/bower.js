@@ -3,6 +3,7 @@
 const bower = require('bower');
 const childProcess = require('child_process');
 const url = require('url');
+
 const Ana = require('./ana_log');
 
 /**
@@ -10,6 +11,27 @@ const Ana = require('./ana_log');
  * Provides support for installing packages, enumerating their dependencies etc...
  */
 class Bower {
+
+ /**
+  * Clean up (rm -rf) the local Bower working area.
+  * This deletes the installs for this directory, not the Bower cache
+  * (usually stored in ~/.cache/bower).
+  * @return {Promise} A promise handling the prune operation.
+  */
+  prune() {
+    return new Promise((resolve, reject) => {
+      Ana.log("bower/prune");
+      childProcess.exec("rm -rf bower_components", function(err) {
+        if (err) {
+          Ana.fail("bower/prune");
+          reject({retry: true, error: err});
+        } else {
+          Ana.success("bower/prune");
+          resolve();
+        }
+      });
+    });
+  }
 
   /**
    * Installs the specified Bower package and analyses it for main html files in the bower.json,
@@ -24,7 +46,7 @@ class Bower {
     var packageToInstall = packageWithOwner + "#" + versionOrSha;
     Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
-      bower.commands.install([packageToInstall]).on('end', function(installed) {
+      bower.commands.install([packageToInstall], {}, {force: false}).on('end', function(installed) {
         Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
           if (installed[bowerPackage].endpoint.source.toLowerCase() != packageWithOwner.toLowerCase()) {
@@ -48,11 +70,17 @@ class Bower {
           resolve(mainHtmls.map(mainHtml => [canonicalDir, mainHtml].join("/"))); // eslint-disable-line no-loop-func
           return;
         }
-        Ana.fail("bower/install", "Couldn't find package after installing", packageToInstall);
+        Ana.fail("bower/install", "Couldn't find package after installing [", packageToInstall, "] found [" + JSON.stringify(installed) + "]");
         reject(Error("BOWER: install: package installed not in list"));
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
-        reject(Error(error));
+        var retry = true;
+        // Don't retry ECONFLICT errors ("Unable to find suitable version for...").
+        // Don't retry ENORESTARGET errors ("Tag/branch x does not exist").
+        if (error.code && (error.code == 'ECONFLICT' || error.code == 'ENORESTARGET')) {
+          retry = false;
+        }
+        reject({retry: retry, error: error});
       });
     });
   }
@@ -130,7 +158,6 @@ class Bower {
         }
       ).on('end', function(info) {
         info.metadata = metadata;
-        Ana.success("bower/findDependencies/info", ownerPackageVersionString);
         resolve(info);
       }).on('error', function(error) {
         Ana.fail("bower/findDependencies/info");

@@ -1,4 +1,8 @@
 service: analysis
 runtime: nodejs
 vm: true
-threadsafe: true
+threadsafe: false
+handlers:
+- url: /task/analyze/.*
+  script: IGNORED
+  secure: always

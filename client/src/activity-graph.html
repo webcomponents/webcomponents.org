@@ -1,52 +1,52 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <dom-module id="activity-graph">
-  <style>
-    #container {
-      width: 326px;
-      height: 110px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #svg {
-      margin-top: 16px;
-      position: absolute;
-      right: 0;
-    }
-
-    .date {
-      font-size: 12px;
-      font-weight: bold;
-      color: hsl(0, 0%, 50%);
-    }
-
-    #today {
-      float: right;
-    }
-
-    #today-9 {
-      display: none;
-    }
-
-    @media (max-width: 700px) {
+  <template>
+    <style>
       #container {
-        width: 194px;
+        width: 326px;
+        height: 110px;
+        position: relative;
+        overflow: hidden;
       }
 
-      #startDate {
-        display: none;
+      #svg {
+        margin-top: 24px;
+        position: absolute;
+        right: 0;
+      }
+
+      .date {
+        font-size: 12px;
+        font-weight: bold;
+        color: hsl(0, 0%, 50%);
+      }
+
+      #today {
+        float: right;
       }
 
       #today-9 {
-        display: inline-block;
+        display: none;
       }
-    }
-  </style>
 
-  <template>
+      @media (max-width: 700px) {
+        #container {
+          width: 194px;
+        }
+
+        #startDate {
+          display: none;
+        }
+
+        #today-9 {
+          display: inline-block;
+        }
+      }
+    </style>
+
     <div id="container">
-      <svg id="svg" height="94"></svg>
+      <svg id="svg" height="86"></svg>
       <div id="today" class="date">[[_computeDate(0)]]</div>
       <div id="today-9" class="date">[[_computeDate(9)]]</div>
       <div id="startDate" class="date">[[_computeDate(45)]]</div>

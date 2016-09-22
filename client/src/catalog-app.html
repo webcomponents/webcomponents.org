@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
@@ -16,6 +18,17 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 22px;
+        padding-top: 80px;
+        --theme-accent-1: #6dc38f;
+        --theme-font: 'Source Sans Pro', sans-serif;
+        --monospace-font: 'Source Code Pro', monospace;
+      }
+
+      app-header {
+        @apply(--layout-fixed-top);
+        z-index: 1;
+        background-color: var(--theme-accent-1);
+        color: white;
       }
     </style>
 
@@ -29,13 +42,23 @@
       tail="{{subroute}}"
       query-params="{{queryParams}}"></app-route>
 
+    <app-header role="navigation" reveals>
+      <app-toolbar>
+        <div>elements</div>
+      </app-toolbar>
+    </app-header>
+
     <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+      <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-author>
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
-      <catalog-element name="element" route="[[subroute]]" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
+      <catalog-element name="element" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-search name="search" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
+      <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
+
+
   </template>
 
   <script>
@@ -53,6 +76,10 @@
 
       },
 
+      listeners: {
+        error: '_handleError',
+      },
+
       observers: [
         '_routePageChanged(routeData.page)'
       ],
@@ -64,6 +91,8 @@
       },
 
       _routePageChanged: function(page) {
+        if (page != this.page)
+          Polymer.AppLayout.scroll({top: 0, behavior: 'silent'});
         this.page = page || 'search';
       },
 
@@ -88,8 +117,8 @@
         var isLocalhost = window.location.hostname == 'localhost';
         var result = {api: '', userContent: 'https://user-content-dot-' + window.location.hostname};
         if (isLocalhost) {
-          result.api = 'https://custom-elements-staging.appspot.com';
-          result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
+          result.api = 'https://custom-elements.appspot.com';
+          result.userContent = 'https://user-content-dot-custom-elements.appspot.com';
         } else if (this.isStaging()) {
           result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
         }
@@ -98,6 +127,18 @@
           result.userContent = 'https://user-content-dot-' + queryParams.instance;
         }
         return result;
+      },
+
+      _handleError: function(event) {
+        var status;
+        var message;
+        if (event.detail) {
+          status = event.detail.status;
+          message = event.detail.message;
+        }
+        this.page = 'error';
+        this.$.error.status = status;
+        this.$.error.message = message;
       },
 
     });

@@ -27,9 +27,9 @@ class SearchContents(webapp2.RequestHandler):
       return
     index = search.Index('repo')
     try:
-      search_results = index.search(
-          search.Query(query_string=terms,
-                       options=search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100)))
+      sort_options = search.SortOptions(match_scorer=search.MatchScorer())
+      query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100, sort_options=sort_options)
+      search_results = index.search(search.Query(query_string=terms, options=query_options))
     except search.QueryError:
       self.response.set_status(400)
       self.response.write('bad query')
@@ -67,6 +67,7 @@ class LibraryMetadata(object):
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
+        'latest_version': metadata['latest_version'],
         'kind': metadata['kind'],
         'description': metadata['description'],
         'stars': metadata['stars'],
@@ -106,9 +107,10 @@ class LibraryMetadata(object):
     if library.status == Status.error:
       result['error'] = library.error
 
-    if not brief and version_key is not None:
+    if version_key is not None:
       versions = yield versions_future
       result['versions'] = versions
+      result['latest_version'] = versions[-1]
 
     if not brief and library.participation is not None:
       result['activity'] = json.loads(library.participation).get('all', [])
@@ -220,6 +222,8 @@ class GetDependencies(webapp2.RequestHandler):
     version_futures = []
     for name in bower_dependencies.keys():
       dependency = Dependency.from_string(bower_dependencies[name])
+      if dependency is None:
+        continue
       dependencies.append(dependency)
       dependency_library_key = ndb.Key(Library, Library.id(dependency.owner, dependency.repo))
       version_futures.append(Library.versions_for_key_async(dependency_library_key))
@@ -227,18 +231,15 @@ class GetDependencies(webapp2.RequestHandler):
     dependency_futures = []
     for i, dependency in enumerate(dependencies):
       versions = yield version_futures[i]
-      while len(versions) > 0 and not versiontag.match(versions[-1], dependency.version):
+      def matches(version, spec):
+        try:
+          return versiontag.match(version, spec)
+        except ValueError:
+          # FIXME: What other cases do we need to support here?
+          return False
+      while len(versions) > 0 and not matches(versions[-1], dependency.version):
         versions.pop()
-      if len(versions) == 0:
-        error_future = ndb.Future()
-        error_future.set_result({
-            'error': 'unsatisfyable dependency',
-            'owner': dependency.owner,
-            'repo': dependency.repo,
-            'versionSpec': dependency.version
-        })
-        dependency_futures.append(error_future)
-      else:
+      if len(versions) > 0:
         dependency_library_key = ndb.Key(Library, Library.id(dependency.owner.lower(), dependency.repo.lower()))
         dependency_futures.append(LibraryMetadata.brief_async(dependency_library_key, versions[-1]))
 
@@ -280,12 +281,20 @@ class GetDocs(webapp2.RequestHandler):
       return
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, ver)
     analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+
     if analysis is None:
       self.response.set_status(404)
       return
 
+    result = {}
+    result['status'] = analysis.status
+    if analysis.status == Status.ready:
+      result['content'] = json.loads(analysis.content)
+    if analysis.status == Status.error:
+      result['error'] = analysis.error
+
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(analysis.content)
+    self.response.write(json.dumps(result))
 
 class GetAuthor(webapp2.RequestHandler):
   @ndb.toplevel

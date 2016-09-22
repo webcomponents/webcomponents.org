@@ -1,12 +1,9 @@
-from gcloud import pubsub
 from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 
 import json
 import logging
-import os
 import re
-import sys
 import yaml
 
 SECRETS = {}
@@ -24,30 +21,6 @@ def add_authorization_header(headers, access_token=None):
 
   if access_token is not None:
     headers['Authorization'] = 'token %s' % access_token
-
-ANALYSIS = {}
-def get_topic():
-  if 'topic' not in ANALYSIS:
-    topic = pubsub.Client().topic(os.environ['ANALYSIS_REQUEST_TOPIC'])
-    if not topic.exists():
-      topic.create()
-      assert topic.exists()
-    ANALYSIS['topic'] = topic
-  return ANALYSIS['topic']
-
-def publish_analysis_request(owner, repo, version, sha=None):
-  try:
-    get_topic().publish(
-        "",
-        owner=owner,
-        repo=repo,
-        version=version,
-        sha=sha,
-        responseTopic=os.environ['ANALYSIS_RESPONSE_TOPIC'])
-  # TODO: Which exception is this for?
-  # pylint: disable=bare-except
-  except:
-    logging.error('Failed to publish %s', logging.error(sys.exc_info()[0]))
 
 def github_url(prefix, owner=None, repo=None, detail=None):
   parts = [part for part in [prefix, owner, repo, detail] if part is not None]
@@ -87,13 +60,18 @@ def ingest_commit_task(owner, repo):
 def ingest_webhook_task(owner, repo):
   return '/task/ingest-webhook/%s/%s' % (owner, repo)
 
+def ingest_analysis_task(owner, repo, version, sha=None):
+  if sha is not None:
+    return '/task/analyze/%s/%s/%s/%s' % (owner, repo, version, sha)
+  return '/task/analyze/%s/%s/%s' % (owner, repo, version)
+
 def delete_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)
 
-def new_task(url, params=None, target=None, transactional=False):
+def new_task(url, params=None, target=None, transactional=False, queue_name='default'):
   if params is None:
     params = {}
-  return taskqueue.add(method='GET', url=url, params=params, target=target, transactional=transactional)
+  return taskqueue.add(method='GET', url=url, params=params, target=target, transactional=transactional, queue_name=queue_name)
 
 def inline_demo_transform(markdown):
   return re.sub(r'<!---?\n*(```(?:html)?\n<custom-element-demo.*?```)\n-->', r'\1', markdown, flags=re.DOTALL)

@@ -1,41 +1,41 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <dom-module id="contributors-list">
-  <style>
-    #container {
-      position: relative;
-      max-height: 110px;
-      line-height: 0;
-    }
-
-    img.avatar {
-      border-radius: 4px;
-      width: 30px;
-      height: 30px;
-      margin: 0 10px 10px 0;
-    }
-
-    img.avatar:nth-of-type(7n) {
-      margin-right: 0;
-    }
-
-    div.overflow {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 30px;
-      height: 30px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      background: hsla(0, 0%, 0%, 0.6);
-      font-weight: bold;
-    }
-  </style>
-
   <template>
+    <style>
+      #container {
+        position: relative;
+        max-height: 110px;
+        line-height: 0;
+      }
+
+      img.avatar {
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+        margin: 0 10px 10px 0;
+      }
+
+      img.avatar:nth-of-type(7n) {
+        margin-right: 0;
+      }
+
+      div.overflow {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        background: hsla(0, 0%, 0%, 0.6);
+        font-weight: bold;
+      }
+    </style>
+
     <div id="container">
       <template is="dom-repeat" items="[[_contributors]]"><img class="avatar" src="[[item.avatar_url]]&s=60" title="[[item.login]]"></template>
       <template is="dom-if" if="[[_overflowCount]]">
@@ -58,6 +58,11 @@
       ],
 
       _contributorsChanged: function(contributors) {
+        if (!contributors) {
+          this._contributors = [];
+          this._overflowCount = 0;
+          return;
+        }
         this._overflowCount = Math.max(contributors.length - 21, 0);
         this._contributors = contributors.slice(0, 21);
       },
