@@ -185,6 +185,12 @@
         overflow: visible;
       }
 
+      #sidebar-spinner {
+        position: absolute;
+        margin: 14px 0 0 20px;
+        z-index: 10;
+      }
+
       #sidebar-nav a {
         padding: 16px 20px;
         font-weight: bold;
@@ -345,7 +351,7 @@
 
     <iron-ajax
       id="metaAjax"
-      loading="{{metaLoading}}"
+      loading="{{_metaLoading}}"
       url="[[baseUrls.api]]/api/meta/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
@@ -354,11 +360,11 @@
 
     <iron-ajax
       id="docsAjax"
-      loading="{{docsLoading}}"
+      loading="{{_docsLoading}}"
       url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
-      on-response="_handleResponse"></iron-ajax>
+      on-response="_docsResponse"></iron-ajax>
 
     <iron-ajax
       id="collectionsAjax"
@@ -366,10 +372,10 @@
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
-    <lazy-block condition="[[!metaLoading]]"></lazy-block>
+    <lazy-block condition="[[!_metaLoading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
-    <div id="container" class="loader" loading$="[[metaLoading]]">
+    <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
 
       <!-- Header -->
       <div id="header">
@@ -421,7 +427,7 @@
        </div>
       </div>
 
-      <template is="dom-if" if="[[!metaLoading]]">
+      <template is="dom-if" if="[[!_metaPending(_metaLoading, data)]]">
         <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
           <div id="info-dependencies">
             <h3>Dependencies</h3>
@@ -470,7 +476,9 @@
         <div class="sidebar">
           <h1>Repository contents</h1>
 
-          <div id="sidebar-nav" class="box loader" loading$="[[docsLoading]]">
+          <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
+
+          <div id="sidebar-nav" class="box loader" loading$="[[_docsPending(_docsLoading, docs)]]">
             <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -486,7 +494,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(docsLoading, collectionsLoading)]]">
+          <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
             <template is="dom-if" if="[[collections.length]]">
               <h3>[[collections.length]] collections</h3>
 
@@ -551,7 +559,7 @@
 
       observers: [
         '_routeChanged(route.path, route.prefix, visible)',
-        'onload(metaLoading)'
+        'onload(_metaLoading)'
       ],
 
       ready: function() {
@@ -688,9 +696,22 @@
         this.set('route.path', path);
       },
 
+      _metaPending: function(loading, data) {
+        return loading || data.status == 'pending';
+      },
+
       _metaResponse: function() {
-        // TODO: handle status != ready
-        this._handleResponse();
+        if (this.data.status == 'error') {
+          this.fire('error', {message: this.data.error});
+          return;
+        }
+
+        if (this.data.status == 'pending') {
+          this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 500);
+          return;
+        }
+
+        document.title = this.data.owner + '/' + this.data.repo;
       },
 
       _metaError: function(event, error) {
@@ -698,9 +719,26 @@
           this.fire('error', {status: 404, message: 'Could not find element'});
       },
 
-      _handleResponse: function() {
-        if (this.data)
-          document.title = this.data.owner + '/' + this.data.repo;
+      _docsPending: function(loading, docs) {
+        return loading || docs.status == 'pending';
+      },
+
+      _docsResponse: function() {
+        if (this.docs.status == 'error') {
+          console.error("Failed to fetch API docs: " + this.data.error);
+          return;
+        }
+
+        if (this.docs.status == 'pending') {
+          this.$['sidebar-spinner'].setAttribute('active', '');
+          this.async(function() {
+            this.$.docsAjax.generateRequest();
+            this.$.collectionsAjax.generateRequest();
+          }, 1000);
+          return;
+        }
+
+        this.$['sidebar-spinner'].removeAttribute('active');
         this._updateDescriptor();
         this.async(this._updateActiveLinks);
       },
