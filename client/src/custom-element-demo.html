@@ -34,18 +34,31 @@
         height: 0px;
       }
 
-      #editorBar {
-        padding: 16px 16px 0;
-        background: #f7f7f7;
-        display: flex;
-        align-items: center;
+      #container {
+        position: relative;
       }
 
-      button {
-        text-align: center;
-        border: 1px solid #bbb;
-        border-radius: 2px;
-        background: white;
+      #editorBar {
+        height: 20px;
+        padding: 16px;
+        background: #f7f7f7;
+        display: flex;
+        justify-content: flex-end;
+        position: absolute;
+        right: 0;
+        z-index: 1;
+      }
+
+      #editorBar button {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        margin-left: 6px;
+      }
+
+      #editorBar button > svg {
+        width: 20px;
       }
 
       #lazyEditor {
@@ -79,10 +92,23 @@
         <iframe id="frame"></iframe>
       </div>
       <div id="editorBar">
-        <button id="expandSource" on-tap="_expandSource">Expand source</button>
+        <button id="expandSource" on-tap="_expandSource">
+         <svg viewBox="0 0 100 100">
+           <use xlink:href="/sprite.octicons.svg#gist"></use>
+         </svg> 
+        </button>
+        <button id="fullScreen">
+         <svg viewBox="0 0 100 100">
+           <use xlink:href="/sprite.octicons.svg#link-external"></use>
+         </svg> 
+         </button>
         <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
           <input type="hidden" id="html" name="html">
-          <button on-tap="_openAsFiddle">Export as Fiddle</on>
+          <button on-tap="_openAsFiddle">
+            <svg viewBox="0 0 100 100">
+              <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
+            </svg> 
+          </button>
         </form>
       </div>
       <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
@@ -122,7 +148,7 @@
         this._code = this._fullSource();
         delete this._snippet;
         this.$.editor.value = this._code;
-        this.$.editorBar.setAttribute('hidden', '');
+        this.$.expandSource.setAttribute('hidden', '');
       },
 
       _fullSource: function() {
