@@ -61,7 +61,7 @@ class LibraryMetadata(object):
   @ndb.tasklet
   def brief_async(library_key, tag=None):
     metadata = yield LibraryMetadata.full_async(library_key, tag=tag, brief=True)
-    if metadata is None or metadata['status'] != Status.ready or metadata['version_status'] != Status.ready:
+    if metadata is None or metadata['status'] != Status.ready:
       raise ndb.Return(None)
     result = {
         'owner': metadata['owner'],
@@ -103,9 +103,26 @@ class LibraryMetadata(object):
       raise ndb.Return(None)
 
     result = {}
+    result['kind'] = library.kind
     result['status'] = library.status
-    if library.status == Status.error:
-      result['error'] = library.error
+    if library.status != Status.ready:
+      if library.status == Status.error:
+        result['error'] = library.error
+      raise ndb.Return(result)
+
+    version = None
+    if version_key is not None:
+      version = yield version_future
+
+    if version is None:
+      raise ndb.Return(None)
+
+    result['version'] = version.key.id()
+    if version.status != Status.ready:
+      result['status'] = version.status
+      if version.status == Status.error:
+        result['error'] = version.error
+      raise ndb.Return(result)
 
     if version_key is not None:
       versions = yield versions_future
@@ -138,20 +155,6 @@ class LibraryMetadata(object):
       result['owner'] = metadata['owner']['login']
       result['avatar_url'] = metadata['owner']['avatar_url']
       result['repo'] = metadata['name']
-
-    version = None
-    if version_key is not None:
-      version = yield version_future
-
-    if version is None:
-      raise ndb.Return(None)
-
-    result['version'] = version.key.id()
-    result['kind'] = library.kind
-    result['version_status'] = version.status
-    if version.status == Status.error:
-      result['version_error'] = version.error
-
 
     if not brief:
       readme = yield readme_future
