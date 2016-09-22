@@ -21,3 +21,4 @@ handlers:
 - url: /.*
   script: src.manage.app
   login: admin
+  secure: always

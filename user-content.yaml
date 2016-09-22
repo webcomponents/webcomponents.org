@@ -21,5 +21,7 @@ handlers:
 - url: /[^/]+/[^/]+/[^/]+/[^/]+/
   upload: inline-demo.html
   static_files: inline-demo.html
+  secure: always
 - url: /.*
   script: src.user_content.app
+  secure: always
