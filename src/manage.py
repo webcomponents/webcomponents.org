@@ -650,7 +650,7 @@ class IngestAnalysis(RequestHandler):
     owner = attributes['owner']
     repo = attributes['repo']
     version = attributes['version']
-    error = attributes['error']
+    error = attributes['error'] if 'error' in attributes else None
 
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
