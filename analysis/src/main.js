@@ -38,10 +38,11 @@ function processTasks() {
   }
 
   Ana.log("main/processTasks", "Using project [", project, "] and response topic [", responseTopic, "]");
+  var catalog = new Catalog(pubsub({projectId: project}), responseTopic);
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
-      new Catalog(pubsub({projectId: project}), responseTopic));
+      catalog);
 
   var locky = new Date().toString() + ".lock";
 
@@ -60,7 +61,7 @@ function processTasks() {
     // By definition, this is internal.
     if (!req.get('x-appengine-queuename')) {
       Ana.fail("main/processTasks/originator-not-appengine", JSON.stringify(attributes));
-      res.status(403).send(); // Don't retry
+      res.status(403).send();
       return;
     }
 
@@ -84,6 +85,8 @@ function processTasks() {
         } else {
           Ana.fail("main/processTasks");
           res.status(200).send();
+          attributes.error = "true";
+          catalog.postResponse(error, attributes);
         }
       });
     });

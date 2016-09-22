@@ -650,14 +650,14 @@ class IngestAnalysis(RequestHandler):
     owner = attributes['owner']
     repo = attributes['repo']
     version = attributes['version']
+    error = attributes.get('error', None)
 
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
     content = Content.get_by_id('analysis', parent=version_key)
     if content is not None:
       content.content = data
-      # FIXME: Set status/error when it failed.
-      content.status = Status.ready
+      content.status = Status.error if error is not None else Status.ready
       try:
         content.put()
       # TODO: Which exception is this for?
