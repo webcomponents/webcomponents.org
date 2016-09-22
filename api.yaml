@@ -20,3 +20,4 @@ skip_files:
 handlers:
 - url: /.*
   script: src.api.app
+  secure: always
