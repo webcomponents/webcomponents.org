@@ -13,7 +13,6 @@ import logging
 import os
 import urllib
 import webapp2
-import sys
 
 from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
 import versiontag
