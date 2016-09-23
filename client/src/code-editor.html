@@ -40,10 +40,16 @@
       ],
 
       ready: function() {
+        var isMobile = window.matchMedia("(max-width: 500px), (max-height: 500px)").matches;
         this._isReady = true;
         this.scopeSubtree(this.$.container, true);
         /* global CodeMirror */
-        this.codeMirror = CodeMirror(this.$.container, {mode: 'text/html', lineWrapping: false, viewportMargin: Infinity});
+        this.codeMirror = CodeMirror(this.$.container, {
+          mode: 'text/html',
+          lineWrapping: false,
+          viewportMargin: Infinity,
+          readOnly: isMobile ? 'nocursor' : false
+        });
         this.codeMirror.on('changes', this._onChanges.bind(this));
         if (this.value)
           this._valueChanged(this.value);
