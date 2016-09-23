@@ -670,7 +670,7 @@ class IngestAnalysis(RequestHandler):
     if error is None:
       content.status = Status.ready
       content.error = None
-    else
+    else:
       content.status = Status.error
       content.error = error
     content.put()
