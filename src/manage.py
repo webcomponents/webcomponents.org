@@ -13,7 +13,6 @@ import logging
 import os
 import urllib
 import webapp2
-import sys
 
 from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
 import versiontag
@@ -623,16 +622,27 @@ class UpdateIndexes(RequestHandler):
 
   def update_search_index(self, owner, repo, version_key, library, bower):
     metadata = json.loads(library.metadata)
-    document = search.Document(doc_id=Library.id(owner, repo), fields=[
-        search.AtomField(name='full_name', value=metadata['full_name']),
+    fields = [
         search.TextField(name='owner', value=owner),
         search.TextField(name='repo', value=repo),
-        search.TextField(name='kind', value=library.kind),
-        search.TextField(name='version', value=version_key.id()),
+        search.AtomField(name='kind', value=library.kind),
+        search.AtomField(name='version', value=version_key.id()),
         search.TextField(name='github_description', value=metadata.get('description', '')),
         search.TextField(name='bower_description', value=bower.get('description', '')),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
-    ])
+    ]
+
+    analysis = Content.get_by_id('analysis', parent=version_key)
+    if analysis is not None and analysis.status == Status.ready:
+      analysis = json.loads(analysis.content)
+      elements = analysis.get('elementsByTagName', {}).keys()
+      if elements != []:
+        fields.append(search.TextField(name='element', value=' '.join(elements)))
+      behaviors = analysis.get('behaviorsByTagName', {}).keys()
+      if behaviors != []:
+        fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
+
+    document = search.Document(doc_id=Library.id(owner, repo), fields=fields)
     index = search.Index('repo')
     index.put(document)
 
@@ -655,15 +665,20 @@ class IngestAnalysis(RequestHandler):
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    if content is not None:
-      content.content = data
-      content.status = Status.error if error is not None else Status.ready
-      try:
-        content.put()
-      # TODO: Which exception is this for?
-      # pylint: disable=bare-except
-      except:
-        logging.error(sys.exc_info()[0])
+    if content is None:
+      return
+    content.content = None if data == '' else data
+    if error is None:
+      content.status = Status.ready
+      content.error = None
+    else:
+      content.status = Status.error
+      content.error = error
+    content.put()
+
+    if version_key.id() == Library.latest_version_for_key_async(version_key.parent()).get_result():
+      task_url = util.update_indexes_task(owner, repo)
+      util.new_task(task_url, target='manage')
 
 class EnsureLibrary(RequestHandler):
   def handle_get(self, owner, repo):
