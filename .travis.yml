@@ -51,4 +51,5 @@ deploy:
   keyfile: custom-elements-staging-af6bde73b1eb.json
   project: custom-elements-staging
   config: client/build/bundled/client.yaml
+  version: 1
   default: true
