@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="author-profile.html">
+<link rel="import" href="collection-card.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
@@ -19,6 +20,25 @@
 
       #profile-info {
         padding: 25px;
+      }
+
+      .section-header {
+        margin: 16px 0;
+      }
+
+      #collections {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      collection-card, #spacer {
+        flex: 1 0 300px;
+        max-width: 400px;
+        margin: 0 16px 16px 0;
+      }
+
+      #collections:last-child:nth-child(2n) {
+        display: hidden;
       }
     </style>
 
@@ -41,7 +61,8 @@
       loading="{{dependenciesLoading}}"
       url="[[baseUrls.api]]/api/dependencies/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
-      last-response="{{dependencies}}"></iron-ajax>
+      last-response="{{_dependencies}}"
+      on-response="_dependenciesLoaded"></iron-ajax>
 
     <iron-ajax
       id="authorsAjax"
@@ -65,7 +86,15 @@
           <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
           <div class="loader" loading$="[[dependenciesLoading]]">
-            <template is="dom-repeat" items="[[dependencies]]">
+            <template is="dom-if" if="[[_collections.length]]"><h3 class="section-header">Collections</h3></template>
+            <div id="collections">
+              <template is="dom-repeat" items="[[_collections]]">
+                  <collection-card data="[[item]]"></collection-card>
+              </template>
+              <div id="spacer"></div>
+            </div>
+            <template is="dom-if" if="[[_elements.length]]"><h3 class="section-header">Elements</h3></template>
+            <template is="dom-repeat" items="[[_elements]]">
               <catalog-item data="[[item]]"></catalog-item>
             </template>
           </div>
@@ -106,6 +135,22 @@
         this.$.metaAjax.generateRequest();
         this.$.dependenciesAjax.generateRequest();
         this.$.authorsAjax.generateRequest();
+      },
+
+      _dependenciesLoaded: function() {
+        function getName(a, b) {
+          return a.repo > b.repo;
+        }
+
+        var collections = this._dependencies.filter(function(d) {
+          return d.kind == 'collection';
+        });
+        var elements = this._dependencies.filter(function(d) {
+          return d.kind == 'element';
+        });
+
+        this._elements = elements.sort(getName);
+        this._collections = collections.sort(getName);
       },
 
       _metaError: function(event, error) {
