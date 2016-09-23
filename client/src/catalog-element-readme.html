@@ -23,8 +23,57 @@
         display: none;
       }
 
-      article.markdown-body pre {
+      .markdown-body .highlight pre {
         font-family: var(--monospace-font);
+        background: var(--syntax-bg);
+        color: var(--syntax-fg);
+      }
+
+      .markdown-body .pl-e {
+        color: var(--hue-6);
+      }
+
+      .markdown-body .pl-c1,
+      .markdown-body .pl-s .pl-v {
+        color: var(--hue-6-2);
+      }
+
+      .highlight-source-js .pl-c1,
+      .highlight-source-js .pl-s .pl-v {
+        color: var(--hue-2);
+      }
+
+      .markdown-body .pl-en {
+        color: var(--hue-2);
+      }
+
+      .markdown-body .pl-ent {
+        color: var(--hue-5);
+      }
+
+      .markdown-body .pl-k {
+        color: var(--hue-6-2);
+      }
+
+      .markdown-body .pl-s,
+      .markdown-body .pl-pds,
+      .markdown-body .pl-s .pl-pse .pl-s1,
+      .markdown-body .pl-sr,
+      .markdown-body .pl-sr .pl-cce,
+      .markdown-body .pl-sr .pl-sre,
+      .markdown-body .pl-sr .pl-sra {
+        color: var(--hue-4);
+      }
+
+      /* Untested */
+      .markdown-body .pl-sr .pl-cce {
+        font-weight: bold;
+        color: var(--hue-5);
+      }
+
+      .markdown-body .pl-mdr {
+        font-weight: bold;
+        color: var(--hue-6);
       }
 
       @media (max-width: 500px), (max-height: 500px) {

@@ -40,13 +40,19 @@
 
       #editorBar {
         height: 20px;
-        padding: 16px;
-        background: #f7f7f7;
+        padding: 16px 16px 4px 4px;
+        background: hsla(var(--syntax-hue), var(--syntax-saturation), var(--syntax-brightness), 0.7);
+        vertical-align: text-top;
+        fill: var(--syntax-accent);
         display: flex;
         justify-content: flex-end;
         position: absolute;
         right: 0;
         z-index: 1;
+      }
+
+      #editorBar button {
+        color: var(--syntax-accent);
       }
 
       #editorBar button {
@@ -100,14 +106,14 @@
         <button id="fullScreen">
          <svg viewBox="0 0 100 100">
            <use xlink:href="/sprite.octicons.svg#link-external"></use>
-         </svg> 
-         </button>
+         </svg>
+        </button>
         <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
           <input type="hidden" id="html" name="html">
           <button on-tap="_openAsFiddle">
             <svg viewBox="0 0 100 100">
               <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
-            </svg> 
+            </svg>
           </button>
         </form>
       </div>
