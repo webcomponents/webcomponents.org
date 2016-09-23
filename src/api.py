@@ -18,6 +18,10 @@ class SearchContents(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, terms):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
+    scoring = self.request.get('noscore', None) is None
+    include_results = self.request.get('noresults', None) is None
+    if not include_results:
+      scoring = False
 
     try:
       limit = int(self.request.get('limit', 20))
@@ -27,34 +31,39 @@ class SearchContents(webapp2.RequestHandler):
       return
     index = search.Index('repo')
     try:
-      sort_options = search.SortOptions(match_scorer=search.MatchScorer())
+      sort_options = search.SortOptions(match_scorer=search.MatchScorer()) if scoring else None
       query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100, sort_options=sort_options)
       search_results = index.search(search.Query(query_string=terms, options=query_options))
     except search.QueryError:
       self.response.set_status(400)
       self.response.write('bad query')
       return
-    result_futures = []
-    for result in search_results.results:
-      (owner, repo) = result.doc_id.split('/')
-      version = None
-      for field in result.fields:
-        if field.name == 'version':
-          version = field.value
-          break
-      library_key = ndb.Key(Library, Library.id(owner, repo))
-      result_futures.append(LibraryMetadata.brief_async(library_key, version))
-    results = []
-    for future in result_futures:
-      result = yield future
-      if result is not None:
-        results.append(result)
+
+    if include_results:
+      result_futures = []
+      for result in search_results.results:
+        (owner, repo) = result.doc_id.split('/')
+        version = None
+        for field in result.fields:
+          if field.name == 'version':
+            version = field.value
+            break
+        library_key = ndb.Key(Library, Library.id(owner, repo))
+        result_futures.append(LibraryMetadata.brief_async(library_key, version))
+      results = []
+      for future in result_futures:
+        result = yield future
+        if result is not None:
+          results.append(result)
+
+    result = {
+        'count': search_results.number_found,
+    }
+    if include_results:
+      result['results'] = results
 
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.write(json.dumps({
-        'results': results,
-        'count': search_results.number_found,
-    }))
+    self.response.write(json.dumps(result))
 
 class LibraryMetadata(object):
   @staticmethod
