@@ -11,17 +11,24 @@
         -webkit-filter: grayscale(100%);
       }
 
-      #container .CodeMirror {
-        padding: 16px;
+      #container {
+        -webkit-filter: grayscale(0%);
+        transition: -webkit-filter 1s;
+      }
+
+      .CodeMirror {
+        padding: 0 16px;
         background: var(--syntax-bg);
+        border-radius: 0 0 3px 3px;
         font-size: 13.6px;
         font-family: var(--monospace-font);
         color: var(--mono-1);
         line-height: 1.45;
         height: auto;
-        -webkit-filter: grayscale(0%);
-        transition: -webkit-filter 1s;
-        border-radius: 0 0 3px 3px;
+      }
+
+      .CodeMirror-lines {
+        padding: 16px 0;
       }
 
       .CodeMirror-selected { background: var(--syntax-selection); }
