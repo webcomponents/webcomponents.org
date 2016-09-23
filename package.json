@@ -41,7 +41,8 @@
       "curly": 0,
       "comma-dangle": 0,
       "eqeqeq": 0,
-      "no-eq-null": 0
+      "no-eq-null": 0,
+      "require-jsdoc": 0
     }
   }
 }

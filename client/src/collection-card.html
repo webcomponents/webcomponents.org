@@ -1,0 +1,93 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="collection-card">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      h1 {
+        margin-bottom: 8px;
+      }
+
+      .box {
+        margin: 0;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #header {
+        padding: 24px;
+        flex-grow: 1;
+      }
+
+      #description {
+        color: hsl(0, 0%, 50%);
+      }
+
+      #footer {
+        line-height: 30px;
+        vertical-align: top;
+        display: flex;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 100%;
+        border-top: 1px solid #ededed;
+        padding: 12px 16px;
+      }
+
+      .avatar {
+        margin-right: 8px;
+      }
+
+      #stats {
+        display: flex;
+        margin-top: 8px;
+        color: black !important;
+      }
+
+      #stats div {
+        display: flex;
+        align-items: center;
+        margin-right: 16px;
+      }
+
+      #stats svg {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+      }
+
+    </style>
+
+    <template is="dom-if" if="[[data]]">
+      <div class="box">
+        <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]">
+          <h1>[[data.repo]]</h1>
+          <div id="description">[[data.description]]</div>
+        </a>
+        <a id="footer" href="/author/[[data.owner]]">
+          <img class="avatar" src="[[data.avatar_url]]&s=40">
+          <div>[[data.owner]]</div>
+        </a>
+      </div>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'collection-card',
+
+      properties: {
+        data: Object
+      },
+
+      _versionPath: function(version, latestVersion) {
+        return version == latestVersion ? '' : '/' + version;
+      },
+
+    });
+  </script>
+</dom-module>
