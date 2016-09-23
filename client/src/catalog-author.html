@@ -25,7 +25,7 @@
     <iron-ajax
       id="dependenciesAjax"
       loading="{{metaLoading}}"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]]"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]]?noscore"
       handle-as="json"
       last-response="{{search}}"></iron-ajax>
 
