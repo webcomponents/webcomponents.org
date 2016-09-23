@@ -29,6 +29,9 @@
         color: var(--syntax-fg);
       }
 
+      .highlight pre::selection, .highlight pre > span::selection, .highlight pre > span > span::selection { background: var(--syntax-corrected-selection); }
+      .highlight pre::-moz-selection, .highlight pre > span::-moz-selection, .highlight pre > span > span::-moz-selection { background: var(--syntax-corrected-selection); }
+
       .markdown-body .pl-e {
         color: var(--hue-6);
       }
