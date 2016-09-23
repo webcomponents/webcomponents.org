@@ -665,6 +665,8 @@ class IngestAnalysis(RequestHandler):
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
     content = Content.get_by_id('analysis', parent=version_key)
+    if content is None:
+      return
     content.content = None if data == '' else data
     if error is None:
       content.status = Status.ready
