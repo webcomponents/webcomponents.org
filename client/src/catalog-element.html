@@ -18,27 +18,51 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
-      /* Header */
-      #header {
-        color: hsl(0, 0%, 50%);
-        margin-bottom: 30px;
-      }
-
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
-        line-height: 45px;
         display: inline-block;
         max-width: 150px;
         text-overflow: clip;
         overflow: hidden;
-        vertical-align: top;
+        color: hsl(0, 0%, 50%);
       }
 
       #repo-desc {
         font-size: 24px;
         line-height: 24px;
-        margin: 0 0 8px 0;
+        margin: 0;
+      }
+
+      /* Header */
+      #header {
+        color: hsl(0, 0%, 50%);
+        margin-bottom: 32px;
+      }
+
+      #header-main > div {
+        padding: 12px 16px;
+      }
+
+      #header-main > div:not(:first-child) {
+        border-top: 1px solid #ededed;
+      }
+
+      /* Repo info */
+
+      #info-header {
+        /*border-radius: 4px 4px 0 0;*/
+        display: flex;
+        /*padding: 12px 16px;*/
+      }
+
+      #info-header[body-collapsed] {
+        /*border-bottom: none;*/
+      }
+
+      #info-header > div:first-child, #info-body > div:first-child {
+        flex: 0 0 270px;
+        margin-right: 32px;
       }
 
       #repo-author {
@@ -54,28 +78,30 @@
         margin-right: 8px;
       }
 
-      /* Repo info */
-
-      #info-header {
-        border-radius: 4px 4px 0 0;
-        display: flex;
-        padding: 12px 16px;
-      }
-
-      #info-header[body-collapsed] {
-        border-bottom: none;
-      }
-
       #info-download {
-        padding-left: 16px;
-        border-left: 1px solid #ededed;
+        max-width: 270px;
+        padding: 12px 16px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        background: black; /* TODO: var(--syntax-bg) */
+        border-radius: 4px 4px 0 0;
+      }
+
+      #info-download h3 {
+        margin-top: 0;
+        margin-bottom: 4px;
+      }
+
+      #info-download-command {
+        color: white;
+        font-family: var(--monospace-font);
+        font-size: 12px;
       }
 
       #info-stats {
         display: flex;
+        flex: 1 0;
         justify-content: space-between;
         padding-right: 16px;
       }
@@ -108,11 +134,13 @@
       }
 
       #info-view-github {
-        flex: 0 0 220px !important;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-left: 16px;
+        border-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        padding: 16px;
       }
 
       #info-contributors {
@@ -133,26 +161,48 @@
 
       #info-body {
         display: flex;
-        padding: 30px 0;
+        /*padding: 30px 0;*/
         flex-wrap: wrap;
+        background: hsl(0, 0%, 99%);
+        transition: height 200ms cubic-bezier(0, 0, 0.2, 1);
+        overflow: hidden;
+        height: 167px;
+      }
+
+      #info-body h3 {
+        margin-bottom: 0;
       }
 
       #info-body[body-collapsed] {
-        display: none;
+        height: 41px;
+        transition-delay: 75ms;
+      }
+
+      #info-body contributors-list, #info-body activity-graph {
+        display: block;
+        margin-top: 16px;
+        transition: opacity 300ms 50ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      #info-body[body-collapsed] contributors-list,
+      #info-body[body-collapsed] activity-graph {
+        opacity: 0;
+        transition-delay: 0ms;
       }
 
       #info-body > div {
-        margin: 0 16px;
+        /*margin: 0 16px;*/
       }
 
       #info-footer {
-        border-radius: 0 0 4px 4px;
+        /*border-radius: 0 0 4px 4px;*/
         text-transform: uppercase;
         font-weight: bold;
         font-size: 14px;
         height: 44px;
         display: flex;
         justify-content: space-between;
+        padding: 0 !important;
       }
 
       #info-footer a {
@@ -160,14 +210,15 @@
       }
 
       #info-tags {
-        padding: 8px 12px;
+        padding: 10px 16px;
       }
 
       #expand-collapse {
-        padding: 8px 12px;
+        padding: 12px 16px;
         height: 100%;
         border-left: 1px solid #ededed;
         text-align: center;
+        cursor: pointer;
       }
 
       #expand-collapse svg {
@@ -176,12 +227,11 @@
       }
 
       #info-body > *, #info-header > * {
-        flex: 1 0;
+        /*flex: 1 0;*/
       }
 
       /* Sidebar */
       #sidebar-nav {
-        margin-bottom: 32px !important;
         overflow: visible;
       }
 
@@ -273,7 +323,7 @@
       }
 
       .collection .footer .avatar {
-        margin-right: 16px;
+        margin-right: 10px;
       }
 
       /* Demo frame */
@@ -378,96 +428,86 @@
     <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
 
       <!-- Header -->
-      <div id="header">
-        <h1 class="page-title">[[repo]]</h1>
-        <span id="repo-version">[[data.version]]</span>
-        <h2 class="page-subtitle">[[data.description]]</h2>
-        <div id="repo-author">
-          <img class="avatar" src="[[data.avatar_url]]&s=40">
-          <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
-        </div>
-      </div>
+      <h1 class="page-title">[[repo]]</h1>
+      <span id="repo-version">[[data.version]]</span>
+      <h2 class="page-subtitle">[[data.description]]</h2>
 
-      <!-- Repo info -->
-      <div id="info-header" class="box" body-collapsed$="[[_infoBodyCollapsed]]">
-        <div>
-          <h3>GitHub Statistics</h3>
-          <div id="info-stats">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-star">
-               <use xlink:href="/sprite.octicons.svg#star"></use>
-              </svg>
-              [[data.stars]]
+      <div id="header" class="body">
+        <div id="header-main" class="main-content box">
+          <!-- Repo info -->
+          <div id="info-header">
+            <div id="repo-author">
+              <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]">
+              <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
             </div>
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
-               <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
-              </svg>
-              [[data.forks]]
-            </div>
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-eye">
-               <use xlink:href="/sprite.octicons.svg#eye"></use>
-              </svg>
-              [[data.subscribers]]
-            </div>
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
-               <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
-              </svg>
-              [[data.open_issues]]
-            </div>
-          </div>
-        </div>
-        <div id="info-download">
-          <h3>Download</h3>
-          $ bower install --save [[owner]]/[[repo]]</div>
-        <div id="info-view-github" class="box">
-          <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">View source on Github</a>
-       </div>
-      </div>
-
-      <template is="dom-if" if="[[!_metaPending(_metaLoading, data)]]">
-        <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
-          <div id="info-dependencies">
-            <h3>Dependencies</h3>
-            <template is="dom-repeat" items="[[_dependencies()]]">
-              <div class="dependency">
-                <a href="/element/[[item.owner]]/[[item.repo]]">
-                  <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
-                </a>
-                <span>[[item.version]]</span>
+            <div id="info-stats">
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                 <use xlink:href="/sprite.octicons.svg#star"></use>
+                </svg>
+                [[data.stars]]
               </div>
-            </template>
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+                 <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+                </svg>
+                [[data.forks]]
+              </div>
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+                 <use xlink:href="/sprite.octicons.svg#eye"></use>
+                </svg>
+                [[data.subscribers]]
+              </div>
+              <div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+                 <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
+                </svg>
+                [[data.open_issues]]
+              </div>
+            </div>
           </div>
-          <div id="info-graph">
-            <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
-            <activity-graph activity="[[data.activity]]"></activity-graph>
-          </div>
-          <div id="info-contributors">
-            <h3>[[data.contributors.length]] contributors</h3>
-            <contributors-list contributors="[[data.contributors]]"></contributors-list>
-          </div>
-        </div>
-      </template>
 
-      <div id="info-footer" class="box">
-        <div id="info-tags">
-          <template is="dom-repeat" items="[[data.bower.keywords]]">
-            <a href="/search/bower_keywords:[[item]]">[[item]]</a>
-          </template>
+          <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
+            <div id="info-contributors">
+              <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
+              <contributors-list contributors="[[data.contributors]]"></contributors-list>
+            </div>
+            <div id="info-graph">
+              <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
+              <activity-graph activity="[[data.activity]]"></activity-graph>
+            </div>
+          </div>
+
+          <div id="info-footer">
+            <div id="info-tags">
+              <template is="dom-repeat" items="[[data.bower.keywords]]">
+                <a href="/search/bower_keywords:[[item]]">[[item]]</a>
+              </template>
+            </div>
+            <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
+              <template is="dom-if" if="[[_infoBodyCollapsed]]">
+                <svg viewBox="0 0 100 100" class="octicon octicon-plus">
+                 <use xlink:href="/sprite.octicons.svg#plus"></use>
+                </svg>
+              </template>
+              <template is="dom-if" if="[[!_infoBodyCollapsed]]">
+                <svg viewBox="0 0 100 100" class="octicon octicon-dash">
+                 <use xlink:href="/sprite.octicons.svg#dash"></use>
+                </svg>
+              </template>
+            </div>
+          </div>
         </div>
-        <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
-          <template is="dom-if" if="[[_infoBodyCollapsed]]">
-            <svg viewBox="0 0 100 100" class="octicon octicon-plus">
-             <use xlink:href="/sprite.octicons.svg#plus"></use>
-            </svg>
-          </template>
-          <template is="dom-if" if="[[!_infoBodyCollapsed]]">
-            <svg viewBox="0 0 100 100" class="octicon octicon-dash">
-             <use xlink:href="/sprite.octicons.svg#dash"></use>
-            </svg>
-          </template>
+
+        <div id="header-sidebar" class="sidebar">
+          <div id="info-download">
+            <h3>Download</h3>
+            <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
+          </div>
+          <div id="info-view-github" class="box">
+            <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">View source on Github</a>
+          </div>
         </div>
       </div>
 
@@ -496,7 +536,7 @@
 
           <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
             <template is="dom-if" if="[[collections.length]]">
-              <h3>[[collections.length]] collections</h3>
+              <h3>[[collections.length]] collection[[_s(collections.length)]]</h3>
 
               <template is="dom-repeat" items="[[collections]]">
                 <div class="box collection">
@@ -507,11 +547,23 @@
                     </div>
                   </a>
                   <div class="footer">
-                    <img class="avatar" src="[[item.avatar_url]]&s=30" title="[[item.owner]]">
-                    <span>Collected by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
+                    <img class="avatar" src="[[item.avatar_url]]&s=[[_dpr(30)]]" title="[[item.owner]]">
+                    <span>by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
                   </div>
                 </div>
               </template>
+            </template>
+          </div>
+
+          <div id="info-dependencies">
+            <h3>Dependencies</h3>
+            <template is="dom-repeat" items="[[_dependencies(data)]]">
+              <div class="dependency">
+                <a href="/element/[[item.owner]]/[[item.repo]]">
+                  <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                </a>
+                <span>[[item.version]]</span>
+              </div>
             </template>
           </div>
         </div>
@@ -808,6 +860,14 @@
           else
             links[i].removeAttribute('active');
         }
+      },
+
+      _dpr: function(value) {
+        return value * (window.devicePixelRatio || 1);
+      },
+
+      _s: function(n) {
+        return n == 1 ? '' : 's';
       },
 
     });

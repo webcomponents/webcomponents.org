@@ -34,7 +34,7 @@
         font-size: 24px;
         line-height: 30px;
         max-width: 800px;
-        margin: 0 0 8px 0;
+        margin: 0 0 16px 0;
         color: hsl(0, 0%, 50%);
         font-weight: normal;
       }
@@ -51,20 +51,22 @@
       .body {
         width: 100%;
         display: flex;
-        margin: 40px 0;
-        padding-top: 16px;
       }
 
       .main-content {
         flex: 1 0;
         max-width: calc(100% - 270px);
         min-width: 300px;
-        padding-right: 40px;
+        margin-right: 40px;
       }
 
       .sidebar {
         flex: 0 0 270px;
         order: 2;
+      }
+
+      .sidebar h3 {
+        margin-top: 32px;
       }
 
       .sidebar .box {
