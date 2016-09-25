@@ -11,16 +11,65 @@
         -webkit-filter: grayscale(100%);
       }
 
-      #container .CodeMirror {
-        padding: 16px;
-        background: #f7f7f7;
-        font-size: 13.6px;
-        font-family: var(--monospace-font);
-        line-height: 1.45;
-        height: auto;
+      #container {
         -webkit-filter: grayscale(0%);
         transition: -webkit-filter 1s;
       }
+
+      .CodeMirror {
+        padding: 0 16px;
+        background: var(--syntax-bg);
+        border-radius: 0 0 3px 3px;
+        font-size: 13.6px;
+        font-family: var(--monospace-font);
+        color: var(--mono-1);
+        line-height: 1.45;
+        height: auto;
+      }
+
+      .CodeMirror-lines {
+        padding: 16px 0;
+      }
+
+      .CodeMirror-selected { background: var(--syntax-selection); }
+      .CodeMirror-focused .CodeMirror-selected { background: var(--syntax-selection); }
+      .CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: var(--syntax-corrected-selection); }
+      .CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: var(--syntax-corrected-selection); }
+      .CodeMirror-cursor {border-left-color: var(--syntax-accent);}
+      .cm-fat-cursor .CodeMirror-cursor {background: var(--syntax-accent);}
+      .cm-animate-fat-cursor {background-color: var(--syntax-accent);}
+
+      .cm-s-default .cm-header {color: var(--hue-2);}
+      .cm-s-default .cm-quote {color: var(--hue-4);}
+      .cm-negative {color: var(--hue-6-2);}
+      .cm-positive {color: var(--hue-4);}
+
+      .cm-s-default .cm-keyword {color: var(--hue-3);}
+      .cm-s-default .cm-atom {color: var(--hue-1);}
+      .cm-s-default .cm-number {color: var(--hue-6);}
+      .cm-s-default .cm-def {color: inherit;}
+      .cm-s-default .cm-property {color: var(--syntax-fg);}
+      .cm-s-default .cm-variable {color: var(--hue-6-2);}
+      .cm-s-default .cm-punctuation,
+      .cm-s-default .cm-operator {color: var(--hue-1);}
+      .cm-s-default .cm-variable-2 {color: var(--hue-5);}
+      .cm-s-default .cm-variable-3 {color: var(--hue-6);}
+      .cm-s-default .cm-comment {color: var(--mono-3);}
+      .cm-s-default .cm-string {color: var(--hue-4);}
+      .cm-s-default .cm-string-2 {color: var(--hue-4);}
+      .cm-s-default .cm-tag {color: var(--hue-5);}
+      .cm-s-default .cm-bracket {color: var(--syntax-fg);}
+      .cm-s-default .cm-attribute {color: var(--hue-6);}
+      .cm-s-default .cm-link {color: var(--hue-2);}
+
+      /* Untested */
+      .cm-s-default .cm-meta {color: var(--hue-6-2);}
+      .cm-s-default .cm-qualifier {color: var(--hue-2);}
+      .cm-s-default .cm-builtin {color: var(--hue-6-2);}
+      .cm-s-default .cm-hr {color: var(--hue-4);}
+
+      .cm-s-default .cm-error {color: var(--hue-5-2);}
+      .cm-invalidchar {color: var(--hue-5-2);}
     </style>
 
     <div id="container"></div>

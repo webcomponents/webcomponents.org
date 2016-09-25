@@ -24,6 +24,37 @@
         --monospace-font: 'Source Code Pro', monospace;
         --theme-blue: #18b4d9;
         --theme-blue-dark: #1f9bb9;
+
+        /* Based on Atom/one-dark-syntax theme https://github.com/atom/one-dark-syntax */
+        --syntax-hue:          220;
+        --syntax-saturation:   13%;
+        --syntax-brightness:   18%;
+
+        /* Monochrome */
+        --mono-1: hsl(var(--syntax-hue), 14%, 71%); /* default text */
+        --mono-2: hsl(var(--syntax-hue),  9%, 55%);
+        --mono-3: hsl(var(--syntax-hue), 10%, 40%);
+
+        /* Colors */
+        --hue-1:   hsl(187, 47%, 55%); /* cyan */
+        --hue-2:   hsl(207, 82%, 66%); /* blue */
+        --hue-3:   hsl(286, 60%, 67%); /* purple */
+        --hue-4:   hsl( 95, 38%, 62%); /* green */
+
+        --hue-5:   hsl(355, 65%, 65%); /* red 1 */
+        --hue-5-2: hsl(  5, 48%, 51%); /* red 2 */
+
+        --hue-6:   hsl( 29, 54%, 61%); /* orange 1 */
+        --hue-6-2: hsl( 39, 67%, 69%); /* orange 2 */
+
+        /* Base colors*/
+        --syntax-fg:     var(--mono-1);
+        --syntax-bg:     hsl(var(--syntax-hue), var(--syntax-saturation), var(--syntax-brightness));
+        --syntax-selection: hsl(var(--syntax-hue), var(--syntax-saturation), 28%);
+        --syntax-corrected-selection: hsl(var(--syntax-hue), 7%, 62%);
+        --syntax-accent: hsl(var(--syntax-hue), 100%, 66% );
+        --syntax-gutter: hsl(var(--syntax-hue), 14%, 45%);
+        --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
       app-header {
