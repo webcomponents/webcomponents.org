@@ -91,7 +91,7 @@
         </a>
         <div id="footer">
           <div id="author">
-            <img class="avatar" src="[[data.avatar_url]]&s=40">
+            <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]">
             <div>by <a href="/author/[[data.owner]]">[[data.owner]]</a></div>
           </div>
         </div>
@@ -117,6 +117,10 @@
           return;
         if (this.webkitRequestFullScreen)
           this.webkitRequestFullScreen();
+      },
+
+      _dpr: function(value) {
+        return value * (window.devicePixelRatio || 1);
       },
 
     });
