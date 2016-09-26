@@ -104,7 +104,7 @@ def github_get(name, owner=None, repo=None, context=None, etag=None, access_toke
 def github_post(name, owner=None, repo=None, context=None, payload=None, access_token=None):
   return github_request(name, owner=owner, repo=repo, context=context, access_token=access_token, method='POST', payload=payload)
 
-def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None, headers={}):
+def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None, headers=None):
   if headers is None:
     headers = {}
   add_authorization_header(headers, access_token)

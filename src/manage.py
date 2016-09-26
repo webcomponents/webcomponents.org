@@ -265,9 +265,9 @@ class LibraryTask(RequestHandler):
       spdx_identifier = licenses.validate_spdx(github_license.get('key', 'MISSING'))
 
     if spdx_identifier is None:
-      license = bower_json.get('license')
-      if license is not None:
-        spdx_identifier = licenses.validate_spdx(license)
+      license_name = bower_json.get('license')
+      if license_name is not None:
+        spdx_identifier = licenses.validate_spdx(license_name)
 
     if self.library.spdx_identifier != spdx_identifier:
       self.library.spdx_identifier = spdx_identifier

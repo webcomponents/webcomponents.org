@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 # Verify that each license added to this list has 'OSI Approved?: Y' on https://spdx.org/licenses/
 LICENSE_ALIASES = dict((key.lower(), value) for (key, value) in {
@@ -107,6 +106,6 @@ LICENSE_ALIASES = dict((key.lower(), value) for (key, value) in {
 
 SPDX_IDENTIFIERS = dict([(identifier.lower(), identifier) for identifier in set(LICENSE_ALIASES.values())])
 
-def validate_spdx(license):
-  spdx_identifier = LICENSE_ALIASES.get(license.lower(), license.lower()).lower()
+def validate_spdx(license_name):
+  spdx_identifier = LICENSE_ALIASES.get(license_name.lower(), license_name.lower()).lower()
   return SPDX_IDENTIFIERS.get(spdx_identifier, None)

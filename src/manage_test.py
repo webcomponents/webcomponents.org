@@ -380,8 +380,8 @@ class IngestLibraryTest(ManageTestBase):
     self.assertIsNotNone(library.error)
     self.assertEqual(library.status, Status.error)
 
-  def test_ingest_bad_license(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
+  def test_ingest_no_license(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": null}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
