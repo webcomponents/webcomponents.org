@@ -130,6 +130,7 @@ class LibraryMetadata(object):
     if version is None:
       raise ndb.Return(None)
 
+    result['spdx_identifier'] = library.spdx_identifier
     result['version'] = version.key.id()
     if version.status != Status.ready:
       result['status'] = version.status
