@@ -56,8 +56,12 @@ class SearchContents(webapp2.RequestHandler):
         if result is not None:
           results.append(result)
 
+    count = search_results.number_found
+    if len(results) < limit:
+      count = len(results)
+
     result = {
-        'count': search_results.number_found,
+        'count': count,
     }
     if include_results:
       result['results'] = results
@@ -126,6 +130,7 @@ class LibraryMetadata(object):
     if version is None:
       raise ndb.Return(None)
 
+    result['spdx_identifier'] = library.spdx_identifier
     result['version'] = version.key.id()
     if version.status != Status.ready:
       result['status'] = version.status
@@ -207,7 +212,8 @@ class GetCollections(webapp2.RequestHandler):
     collections = []
     for future in collection_futures:
       collection_result = yield future
-      collections.append(collection_result)
+      if collection_result is not None:
+        collections.append(collection_result)
 
     self.response.write(json.dumps(collections))
 
