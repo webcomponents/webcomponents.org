@@ -11,91 +11,74 @@
       }
 
       .box {
-        margin: 16px 0;
-      }
-
-      .box > a {
-        color: inherit;
-      }
-
-      #header {
-        padding: 24px;
-      }
-
-      #description {
-        color: hsl(0, 0%, 50%);
-      }
-
-      #author {
-        line-height: 30px;
-        vertical-align: top;
-        display: flex;
-      }
-
-      #footer {
-        border-top: 1px solid #ededed;
+        margin: 8px 0;
         padding: 12px 16px;
+        display: flex;
       }
 
       .avatar {
-        margin-right: 8px;
+        margin-right: 16px;
+      }
+
+      #header {
+        flex: 1 0;
+      }
+
+      #description, #author {
+        color: hsl(0, 0%, 50%);
+        line-height: 24px;
+      }
+
+      #author a:first-child {
+        color: inherit;
       }
 
       #stats {
+        flex-basis: 70px;
         display: flex;
-        margin-top: 8px;
+        flex-direction: column;
         color: black !important;
+        border-left: 1px solid #ededed;
+        padding-left: 16px;
       }
 
       #stats div {
+        margin-bottom: 4px;
         display: flex;
         align-items: center;
-        margin-right: 16px;
       }
 
       #stats svg {
         width: 16px;
         height: 16px;
-        margin-right: 5px;
+        margin-right: 8px;
       }
-
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <div class="box">
-        <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" on-click="_onClick">
+      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" on-click="_onClick">
+        <div class="box">
+          <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]"   title="[[data.owner]]">
           <div id="header">
             <h1>[[data.repo]]</h1>
             <div id="description">[[data.description]]</div>
-            <div id="stats">
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-star">
-                 <use xlink:href="/sprite.octicons.svg#star"></use>
-                </svg>
-                [[data.stars]]
-              </div>
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
-                 <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
-                </svg>
-                [[data.forks]]
-              </div>
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
-                 <use xlink:href="/sprite.octicons.svg#eye"></use>
-                </svg>
-                [[data.subscribers]]
-              </div>
+          </div>
+          <div id="stats">
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-star">
+               <use xlink:href="/sprite.octicons.svg#star"></use>
+              </svg>
+              [[data.stars]]
+            </div>
+            <div>
+              <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+               <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+              </svg>
+              [[data.forks]]
             </div>
           </div>
-        </a>
-        <div id="footer">
-          <div id="author">
-            <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]">
-            <div>by <a href="/author/[[data.owner]]">[[data.owner]]</a></div>
-          </div>
         </div>
-      </div>
+      </a>
     </template>
   </template>
 
