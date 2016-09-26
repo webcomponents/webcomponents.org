@@ -26,6 +26,11 @@
         margin: 16px 0;
       }
 
+      catalog-element-readme {
+        display: block;
+        margin-bottom: 32px;
+      }
+
       #collections {
         display: flex;
         flex-wrap: wrap;
@@ -98,16 +103,18 @@
         </div>
 
         <div class="main-content" loading$="[[metaLoading]]">
-          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+          <catalog-element-readme readme="[[data.readme]]" data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
 
           <div class="loader" loading$="[[dependenciesLoading]]">
-            <template is="dom-if" if="[[_collections.length]]"><h1 class="section-header">[[_collections.length]] Collections</h1></template>
-            <div id="collections">
-              <template is="dom-repeat" items="[[_collections]]">
-                  <collection-card data="[[item]]"></collection-card>
-              </template>
-              <div id="spacer"></div>
-            </div>
+            <template is="dom-if" if="[[_collections.length]]">
+              <h1 class="section-header">[[_collections.length]] Collections</h1>
+              <div id="collections">
+                <template is="dom-repeat" items="[[_collections]]">
+                    <collection-card data="[[item]]"></collection-card>
+                </template>
+                <div id="spacer"></div>
+              </div>
+            </template>
             <template is="dom-if" if="[[_elements.length]]"><h1 class="section-header">[[_elements.length]] Elements</h1></template>
             <template is="dom-repeat" items="[[_elements]]">
               <catalog-item data="[[item]]"></catalog-item>
