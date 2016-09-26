@@ -20,8 +20,10 @@ class SearchContents(webapp2.RequestHandler):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     scoring = self.request.get('noscore', None) is None
     include_results = self.request.get('noresults', None) is None
+    include_count = self.request.get('count', None) is not None
     if not include_results:
       scoring = False
+      include_count = True
 
     try:
       limit = int(self.request.get('limit', 20))
@@ -31,14 +33,16 @@ class SearchContents(webapp2.RequestHandler):
       return
     index = search.Index('repo')
     try:
+      accuracy = 100 if include_count else None
       sort_options = search.SortOptions(match_scorer=search.MatchScorer()) if scoring else None
-      query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=100, sort_options=sort_options)
+      query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=accuracy, sort_options=sort_options)
       search_results = index.search(search.Query(query_string=terms, options=query_options))
     except search.QueryError:
       self.response.set_status(400)
       self.response.write('bad query')
       return
 
+    count = search_results.number_found
     if include_results:
       result_futures = []
       for result in search_results.results:
@@ -49,16 +53,15 @@ class SearchContents(webapp2.RequestHandler):
             version = field.value
             break
         library_key = ndb.Key(Library, Library.id(owner, repo))
-        result_futures.append(LibraryMetadata.brief_async(library_key, version))
+        result_futures.append(LibraryMetadata.brief_async(library_key, version, assume_latest=True))
       results = []
       for future in result_futures:
         result = yield future
+        if result is None:
+          # Fixup count when we skip over incomplete entries.
+          count = count - 1
         if result is not None:
           results.append(result)
-
-    count = search_results.number_found
-    if len(results) < limit:
-      count = len(results)
 
     result = {
         'count': count,
@@ -72,8 +75,8 @@ class SearchContents(webapp2.RequestHandler):
 class LibraryMetadata(object):
   @staticmethod
   @ndb.tasklet
-  def brief_async(library_key, tag=None):
-    metadata = yield LibraryMetadata.full_async(library_key, tag=tag, brief=True)
+  def brief_async(library_key, tag=None, assume_latest=False):
+    metadata = yield LibraryMetadata.full_async(library_key, tag=tag, brief=True, assume_latest=assume_latest)
     if metadata is None or metadata['status'] != Status.ready:
       raise ndb.Return(None)
     result = {
@@ -94,11 +97,15 @@ class LibraryMetadata(object):
 
   @staticmethod
   @ndb.tasklet
-  def full_async(library_key, tag=None, brief=False):
+  def full_async(library_key, tag=None, brief=False, assume_latest=False):
+    if assume_latest:
+      assert tag is not None
+
     library_future = library_key.get_async()
 
-    # TODO: Restrict based on version status == ready when tag != None.
-    versions_future = Library.versions_for_key_async(library_key)
+    if tag is None or not brief or not assume_latest:
+      versions_future = Library.versions_for_key_async(library_key)
+
     if tag is None:
       versions = yield versions_future
       version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, versions[-1])
@@ -138,7 +145,7 @@ class LibraryMetadata(object):
         result['error'] = version.error
       raise ndb.Return(result)
 
-    if version_key is not None:
+    if not brief or not assume_latest:
       versions = yield versions_future
       result['versions'] = versions
       if len(versions) > 0:
