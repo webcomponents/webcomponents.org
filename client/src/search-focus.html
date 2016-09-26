@@ -14,6 +14,15 @@
         top: 0;
         left: 0;
         overflow: hidden;
+        font-family: var(--theme-font);
+        font-size: 16px;
+        line-height: 24px;
+        overflow: overlay;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
       }
 
       #search-box {
@@ -42,11 +51,41 @@
         overflow: auto;
       }
 
-      #collections > div {
+      .title {
+        font-weight: bold;
+        font-size: 20px;
+      }
+
+      .owner {
+        color: hsl(0, 0%, 50%);
+      }
+
+      #collections > a {
         flex: 0 0 250px;
         height: 150px;
         padding: 16px;
         border-right: 1px solid #ededed;
+      }
+
+      .element {
+        padding: 16px;
+        border-top: 1px solid #ededed;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        paper-dialog {
+          width: 100%;
+          border-radius: 0;
+          height: 100%;
+        }
+
+        #search-box, #collections {
+          width: 100%;
+        }
+
+        iron-scroll-threshold {
+          max-height: calc(100% - 40px);
+        }
       }
     </style>
 
@@ -56,7 +95,6 @@
       handle-as="json"
       on-request="_handleRequest"
       on-response="_elementResponse"
-      debounce-duration="300"
       params="[[_requestParams]]"></iron-ajax>
 
     <iron-ajax
@@ -73,15 +111,22 @@
       <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
         <div id="collections">
           <template is="dom-repeat" items="[[_collections.results]]">
-            <div class="collection">
-              <h2 class="title">[[item.owner]]/[[item.repo]]</h2>
-              <div class="description">[[item.description]]</div>
-            </div>
+            <a href="/collection/[[item.owner]]/[[item.repo]]" on-click="close">
+              <div class="collection">
+                <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
+                <div class="description">[[item.description]]</div>
+              </div>
+            </a>
           </template>
         </div>
         <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
           <template>
-            <catalog-item data="[[item]]" tabindex$="[[tabIndex]]"></catalog-item>
+            <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]" on-click="close">
+              <div class="element">
+                <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
+                <div class="description">[[item.description]]</div>
+              </div>
+            </a>
           </template>
         </iron-list>
       </iron-scroll-threshold>
@@ -100,22 +145,20 @@
         _requestParams: Object
       },
 
-      open: function(placeholder) {
-        this._visiblityChanged(true);
+      open: function(left, top) {
         var dialog = this.$.dialog;
         dialog.open();
-        dialog.style.top = placeholder.offsetTop + 'px';
-        dialog.style.left = placeholder.offsetLeft + 'px';
+
+        this.$['search-box'].select();
+
+        if (window.matchMedia("(max-width: 500px), (max-height: 500px)").matches)
+          return;
+        dialog.style.top = top + 'px';
+        dialog.style.left = left + 'px';
       },
 
-      _visiblityChanged: function(visible) {
-        if (visible) {
-          this.$.elementAjax.setAttribute('auto', '');
-          this.$.collectionAjax.setAttribute('auto', '');
-        } else {
-          this.$.elementAjax.removeAttribute('auto');
-          this.$.collectionAjax.removeAttribute('auto');
-        }
+      close: function() {
+        this.$.dialog.close();
       },
 
       _dialogOpened: function() {
@@ -123,7 +166,6 @@
       },
 
       _dialogClosed: function() {
-        this._visiblityChanged(false);
       },
 
       _onSearchKeyUp: function() {
@@ -131,33 +173,50 @@
         if (query == this._query)
           return;
 
-        if (!this._query || this._query != query)
+        if (!this._query || this._query != query) {
           this._requestParams = {offset: 0};
+          this._endOfResults = false;
+        }
         this._query = query;
         this._results = [];
+        this._generateSearch();
+      },
+
+      _generateSearch: function() {
+        this.debounce('searchAPI', function() {
+          this.$.elementAjax.generateRequest();
+          this.$.collectionAjax.generateRequest();
+        }.bind(this), 300);
       },
 
       _handleRequest: function(event) {
-        if (!this.$['search-box'].value)
+        var query = this.$['search-box'].value;
+        if (!query)
           event.detail.request.abort();
       },
 
       _elementResponse: function(event) {
         var response = event.detail.response;
-        if (!response || !response.results || !response.results.length)
+        if (!response || !response.results)
           return;
+
+        if (!response.results.length) {
+          this._endOfResults = true;
+          return;
+        }
 
         var scrollTop = this.$.threshold.scrollTop;
         this._results = this._results.concat(response.results);
+        Polymer.dom.flush();
         this.$.threshold.scroll(0, scrollTop);
         this.$.threshold.clearTriggers();
-        this.$.resultsList.fire('iron-resize');
       },
 
       _loadMoreResults: function() {
-        if (!this._results)
+        if (!this._results || this._endOfResults)
           return;
         this.set('_requestParams.offset', this._results.length);
+        this.$.elementAjax.generateRequest();
       },
 
     });
