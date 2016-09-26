@@ -1,0 +1,165 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+
+<dom-module id="search-focus">
+  <template>
+    <style>
+      paper-dialog {
+        border-radius: 4px;
+        position: fixed;
+        margin: 0;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+      }
+
+      #search-box {
+        box-sizing: border-box;
+        width: 500px;
+        height: 40px;
+        font-family: var(--theme-font);
+        font-size: 16px;
+        padding: 12px;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+        margin: 0;
+      }
+
+      iron-scroll-threshold {
+        margin: 0;
+        max-height: 600px;
+        padding: 0;
+      }
+
+      #collections {
+        box-sizing: border-box;
+        width: 500px;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow: auto;
+      }
+
+      #collections > div {
+        flex: 0 0 250px;
+        height: 150px;
+        padding: 16px;
+        border-right: 1px solid #ededed;
+      }
+    </style>
+
+    <iron-ajax
+      id="elementAjax"
+      url="[[baseUrls.api]]/api/search/[[_query]] kind:element"
+      handle-as="json"
+      on-request="_handleRequest"
+      on-response="_elementResponse"
+      debounce-duration="300"
+      params="[[_requestParams]]"></iron-ajax>
+
+    <iron-ajax
+      id="collectionAjax"
+      url="[[baseUrls.api]]/api/search/[[_query]] kind:collection"
+      handle-as="json"
+      last-response="{{_collections}}"
+      on-request="_handleRequest"
+      debounce-duration="300"></iron-ajax>
+
+    <paper-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened" on-iron-overlay-closed="_dialogClosed">
+      <input type="search" id="search-box" on-keyup="_onSearchKeyUp" placeholder="Search webcomponents.org"></input>
+
+      <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
+        <div id="collections">
+          <template is="dom-repeat" items="[[_collections.results]]">
+            <div class="collection">
+              <h2 class="title">[[item.owner]]/[[item.repo]]</h2>
+              <div class="description">[[item.description]]</div>
+            </div>
+          </template>
+        </div>
+        <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
+          <template>
+            <catalog-item data="[[item]]" tabindex$="[[tabIndex]]"></catalog-item>
+          </template>
+        </iron-list>
+      </iron-scroll-threshold>
+    </paper-dialog>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'search-focus',
+
+      properties: {
+        baseUrls: Object,
+
+        _requestParams: Object
+      },
+
+      open: function(placeholder) {
+        this._visiblityChanged(true);
+        var dialog = this.$.dialog;
+        dialog.open();
+        dialog.style.top = placeholder.offsetTop + 'px';
+        dialog.style.left = placeholder.offsetLeft + 'px';
+      },
+
+      _visiblityChanged: function(visible) {
+        if (visible) {
+          this.$.elementAjax.setAttribute('auto', '');
+          this.$.collectionAjax.setAttribute('auto', '');
+        } else {
+          this.$.elementAjax.removeAttribute('auto');
+          this.$.collectionAjax.removeAttribute('auto');
+        }
+      },
+
+      _dialogOpened: function() {
+        this.$['search-box'].focus();
+      },
+
+      _dialogClosed: function() {
+        this._visiblityChanged(false);
+      },
+
+      _onSearchKeyUp: function() {
+        var query = this.$['search-box'].value;
+        if (query == this._query)
+          return;
+
+        if (!this._query || this._query != query)
+          this._requestParams = {offset: 0};
+        this._query = query;
+        this._results = [];
+      },
+
+      _handleRequest: function(event) {
+        if (!this.$['search-box'].value)
+          event.detail.request.abort();
+      },
+
+      _elementResponse: function(event) {
+        var response = event.detail.response;
+        if (!response || !response.results || !response.results.length)
+          return;
+
+        var scrollTop = this.$.threshold.scrollTop;
+        this._results = this._results.concat(response.results);
+        this.$.threshold.scroll(0, scrollTop);
+        this.$.threshold.clearTriggers();
+        this.$.resultsList.fire('iron-resize');
+      },
+
+      _loadMoreResults: function() {
+        if (!this._results)
+          return;
+        this.set('_requestParams.offset', this._results.length);
+      },
+
+    });
+  </script>
+</dom-module>
