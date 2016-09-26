@@ -39,6 +39,8 @@ class Library(ndb.Model):
   kind = ndb.StringProperty(default='element')
   collection_sequence_number = ndb.IntegerProperty(indexed=False, default=0)
 
+  spdx_identifier = ndb.StringProperty(indexed=False)
+
   metadata = ndb.TextProperty(indexed=False)
   metadata_etag = ndb.StringProperty(indexed=False)
   metadata_updated = ndb.DateTimeProperty()

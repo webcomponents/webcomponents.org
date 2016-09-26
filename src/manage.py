@@ -15,6 +15,7 @@ import urllib
 import webapp2
 
 from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
+import licenses
 import versiontag
 import util
 
@@ -160,17 +161,20 @@ class LibraryTask(RequestHandler):
     self.repo = None
     self.library = None
     self.library_dirty = False
+    self.is_new = False
 
   def init_library(self, owner, repo, create=True):
     self.owner = owner.lower()
     self.repo = repo.lower()
     if create:
       self.library = Library.get_or_insert(Library.id(owner, repo))
+      self.is_new = self.library.metadata is None and self.library.error is None
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
 
   def set_ready(self):
     if self.library.status != Status.ready:
+      self.library.error = None
       self.library.status = Status.ready
       self.library_dirty = True
 
@@ -185,7 +189,8 @@ class LibraryTask(RequestHandler):
       self.library.put()
 
   def update_metadata(self):
-    response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag)
+    headers = {'Accept': 'application/vnd.github.drax-preview+json'}
+    response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag, headers=headers)
     if response.status_code == 200:
       try:
         json.loads(response.content)
@@ -232,26 +237,44 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update stats/participation (%d)' % response.status_code)
 
-  def update_kind(self):
+  def update_license_and_kind(self):
     response = urlfetch.fetch(util.content_url(self.owner, self.repo, 'master', 'bower.json'), validate_certificate=True)
+    bower_json = None
     if response.status_code == 200:
       try:
         bower_json = json.loads(response.content)
-        if 'element-collection' in bower_json.get('keywords', []):
-          if self.library.kind != 'collection':
-            self.library.kind = 'collection'
-            self.library_dirty = True
-        elif self.library.kind == 'collection':
-          self.library.kind = 'element'
-          self.library_dirty = True
       except ValueError:
         return self.error("Could not parse master/bower.json")
     elif response.status_code == 404:
-      if self.library.kind == 'collection':
-        self.library.kind = 'element'
-        self.library_dirty = True
+      bower_json = None
     else:
       return self.retry('error fetching master/bower.json' % response.status_code)
+
+    kind = 'element'
+    if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
+      kind = 'collection'
+
+    if self.library.kind != kind:
+      self.library.kind = kind
+      self.library_dirty = True
+
+    spdx_identifier = None
+    metadata = json.loads(self.library.metadata)
+    github_license = metadata.get('license')
+    if github_license is not None:
+      spdx_identifier = licenses.validate_spdx(github_license.get('key', 'MISSING'))
+
+    if spdx_identifier is None:
+      license_name = bower_json.get('license')
+      if license_name is not None:
+        spdx_identifier = licenses.validate_spdx(license_name)
+
+    if self.library.spdx_identifier != spdx_identifier:
+      self.library.spdx_identifier = spdx_identifier
+      self.library_dirty = True
+
+    if self.library.spdx_identifier is None:
+      return self.error('Could not find an OSI approved license in master/bower.json or via GitHub API')
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
@@ -382,7 +405,7 @@ class IngestLibrary(LibraryTask):
       self.library.shallow_ingestion = False
       self.library_dirty = True
     self.update_metadata()
-    self.update_kind()
+    self.update_license_and_kind()
     self.update_versions()
     self.trigger_author_ingestion()
     self.set_ready()
@@ -408,14 +431,15 @@ class IngestLibraryCommit(LibraryTask):
     assert commit is not None and url is not None
 
     self.init_library(owner, repo)
-    is_new = self.library.metadata is None and self.library.error is None
-    if is_new:
+    if self.is_new:
       self.library.shallow_ingestion = True
       self.library_dirty = True
       self.update_metadata()
+      self.update_license_and_kind()
+      self.set_ready()
 
-    self.trigger_version_ingestion(commit, commit, url=url)
-    self.set_ready()
+    if self.library.kind == 'element':
+      self.trigger_version_ingestion(commit, commit, url=url)
 
 class IngestWebhookLibrary(LibraryTask):
   def is_transactional(self):
@@ -425,13 +449,15 @@ class IngestWebhookLibrary(LibraryTask):
     assert access_token is not None
 
     self.init_library(owner, repo)
-    is_new = self.library.metadata is None and self.library.error is None
-    if is_new:
+    if self.is_new:
       self.library.shallow_ingestion = True
       self.library_dirty = True
       self.update_metadata()
+      self.update_license_and_kind()
+
     self.library.github_access_token = access_token
     self.library_dirty = True
+    self.set_ready()
 
 class AnalyzeLibrary(LibraryTask):
   def is_transactional(self):
