@@ -243,7 +243,7 @@ class AddTest(ManageTestBase):
 
 class IngestLibraryTest(ManageTestBase):
   def test_ingest_element(self):
-    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
@@ -270,7 +270,7 @@ class IngestLibraryTest(ManageTestBase):
     ], [task.url for task in tasks])
 
   def test_ingest_collection(self):
-    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"]}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"], "license": "MIT"}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/heads/master', '{"ref": "refs/heads/master", "object": {"sha": "master-sha"}}')
@@ -331,6 +331,7 @@ class IngestLibraryTest(ManageTestBase):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
     response = self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
@@ -350,6 +351,47 @@ class IngestLibraryTest(ManageTestBase):
         util.ingest_version_task('org', 'repo', 'commit-sha'),
         util.ingest_analysis_task('org', 'repo', 'commit-sha'),
     ], [task.url for task in tasks])
+
+  def test_ingest_license_fallback(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.status, Status.ready)
+    self.assertEqual(library.spdx_identifier, 'MIT')
+
+  def test_ingest_bad_license(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNotNone(library.error)
+    self.assertEqual(library.status, Status.error)
+
+  def test_ingest_bad_license(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNotNone(library.error)
+    self.assertEqual(library.status, Status.error)
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):
