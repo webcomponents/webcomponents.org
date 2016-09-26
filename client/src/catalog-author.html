@@ -5,11 +5,28 @@
 <link rel="import" href="author-profile.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="collection-card.html">
 
 <dom-module id="catalog-author">
   <template>
     <style include="catalog-styles"></style>
 
+    <style>
+      #collections {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      collection-card, #spacer {
+        flex: 1 0 300px;
+        max-width: 400px;
+        margin: 0 16px 16px 0;
+      }
+
+      #collections:last-child:nth-child(2n) {
+        display: hidden;
+      }
+    </style>
     <app-route
       route="[[route]]"
       pattern="/:owner"
@@ -23,11 +40,16 @@
       last-response="{{author}}"></iron-ajax>
 
     <iron-ajax
-      id="dependenciesAjax"
-      loading="{{metaLoading}}"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]]?noscore"
+      id="collectionsAjax"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:collection?noscore"
       handle-as="json"
-      last-response="{{search}}"></iron-ajax>
+      last-response="{{_collections}}"></iron-ajax>
+
+    <iron-ajax
+      id="elementsAjax"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:element?noscore&limit=100"
+      handle-as="json"
+      last-response="{{_elements}}"></iron-ajax>
 
     <div class="loader" loading$="[[metaLoading]]">
       <h3>Author</h3>
@@ -40,13 +62,17 @@
         </div>
 
         <div class="main-content">
-          <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
-
-          <div class="loader" loading$="[[dependenciesLoading]]">
-            <template is="dom-repeat" items="[[search.results]]">
-              <catalog-item data="[[item]]"></catalog-item>
+          <template is="dom-if" if="[[_collections]]"><h1 class="section-header">[[_collections.count]] Collections</h1></template>
+          <div id="collections">
+            <template is="dom-repeat" items="[[_collections.results]]">
+                <collection-card data="[[item]]"></collection-card>
             </template>
+            <div id="spacer"></div>
           </div>
+          <template is="dom-if" if="[[_elements]]"><h1 class="section-header">[[_elements.count]] Elements</h1></template>
+          <template is="dom-repeat" items="[[_elements.results]]">
+            <catalog-item data="[[item]]"></catalog-item>
+          </template>
         </div>
       </div>
     </div>
@@ -80,7 +106,8 @@
         document.title = this._routeMatch.owner;
 
         this.$.metaAjax.generateRequest();
-        this.$.dependenciesAjax.generateRequest();
+        this.$.collectionsAjax.generateRequest();
+        this.$.elementsAjax.generateRequest();
       },
 
     });
