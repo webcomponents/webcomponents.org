@@ -14,10 +14,8 @@
       #avatar {
         font-size: 0;
         line-height: 0;
-      }
-
-      #avatar {
         background: hsl(204, 15%, 94%);
+        height: 268px;
       }
 
       #avatar[type=organization] img {
@@ -99,8 +97,7 @@
       <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]"></div>
       <div id="header">
         <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
-        <template is="dom-if" if="[[author.name]]">
-          <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a> on Github</div>
+        <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a></div>
         </template>
       </div>
 
