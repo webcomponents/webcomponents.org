@@ -78,7 +78,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        background: black; /* TODO: var(--syntax-bg) */
+        background: var(--syntax-bg);
         border-radius: 4px 4px 0 0;
       }
 
@@ -129,12 +129,22 @@
 
       #info-view-github {
         display: flex;
-        align-items: center;
-        justify-content: center;
         border-top: 0;
         border-top-left-radius: 0;
         border-top-right-radius: 0;
         padding: 16px;
+        font-weight: bold;
+      }
+
+      #info-view-github div {
+        flex-grow: 1;
+        text-align: center;
+      }
+
+      #info-view-github svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--syntax-bg);
       }
 
       #info-contributors {
@@ -492,9 +502,12 @@
             <h3>Download</h3>
             <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
           </div>
-          <div id="info-view-github" class="box">
-            <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">View source on Github</a>
-          </div>
+          <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">
+            <div id="info-view-github" class="box">
+              <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+              <div>View on Github</div>
+            </div>
+          </a>
         </div>
       </div>
 
