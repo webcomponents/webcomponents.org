@@ -63,6 +63,18 @@
         background-color: var(--theme-accent-1);
         color: white;
       }
+
+      #search-box {
+        box-sizing: border-box;
+        width: 500px;
+        height: 40px;
+        font-family: var(--theme-font);
+        font-size: 16px;
+        padding: 12px;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+      }
+
     </style>
 
     <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
@@ -75,9 +87,12 @@
       tail="{{subroute}}"
       query-params="{{queryParams}}"></app-route>
 
+    <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
+
     <app-header role="navigation" reveals>
       <app-toolbar>
         <div>elements</div>
+        <input id="search-box" placeholder="Search webcomponents.org" on-click="_loadSearch"></input>
       </app-toolbar>
     </app-header>
 
@@ -172,6 +187,12 @@
         this.page = 'error';
         this.$.error.status = status;
         this.$.error.message = message;
+      },
+
+      _loadSearch: function() {
+        this.importHref(this.resolveUrl('search-focus.html'), function() {
+          this.$['search-focus'].open(this.$['search-box']);
+        });
       },
 
     });
