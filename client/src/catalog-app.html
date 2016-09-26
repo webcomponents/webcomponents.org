@@ -64,6 +64,11 @@
         color: white;
       }
 
+      app-toolbar {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
       #search-box {
         box-sizing: border-box;
         width: 500px;
@@ -90,8 +95,7 @@
     <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
 
     <app-header role="navigation" reveals>
-      <app-toolbar>
-        <div>elements</div>
+      <app-toolbar id="toolbar">
         <input id="search-box" placeholder="Search webcomponents.org" on-click="_loadSearch"></input>
       </app-toolbar>
     </app-header>
@@ -191,7 +195,8 @@
 
       _loadSearch: function() {
         this.importHref(this.resolveUrl('search-focus.html'), function() {
-          this.$['search-focus'].open(this.$['search-box']);
+          var offsetLeft = this.$['search-box'].offsetLeft + this.$.toolbar.offsetLeft;
+          this.$['search-focus'].open(offsetLeft, this.$['search-box'].offsetTop);
         });
       },
 
