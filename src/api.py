@@ -63,9 +63,9 @@ class SearchContents(webapp2.RequestHandler):
         if result is not None:
           results.append(result)
 
-    result = {
-        'count': count,
-    }
+    result = {}
+    if include_count:
+      result['count'] = count
     if include_results:
       result['results'] = results
 
@@ -83,7 +83,6 @@ class LibraryMetadata(object):
         'owner': metadata['owner'],
         'repo': metadata['repo'],
         'version': metadata['version'],
-        'latest_version': metadata['latest_version'],
         'kind': metadata['kind'],
         'description': metadata['description'],
         'stars': metadata['stars'],
@@ -93,6 +92,8 @@ class LibraryMetadata(object):
         'dependency_count': metadata['dependency_count'],
         'avatar_url': metadata['avatar_url'],
     }
+    if not assume_latest:
+      result['latest_version'] = metadata['latest_version']
     raise ndb.Return(result)
 
   @staticmethod
