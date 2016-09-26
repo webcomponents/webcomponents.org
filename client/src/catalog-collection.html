@@ -70,19 +70,33 @@
       handle-as="json"
       last-response="{{author}}"></iron-ajax>
 
-    <div class="loader" loading$="[[metaLoading]]">
+    <iron-ajax
+      id="parentsAjax"
+      loading="{{_parentsLoading}}"
+      url="[[baseUrls.api]]/api/collections/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
+      handle-as="json"
+      last-response="{{_parents}}"></iron-ajax>
+
+    <div>
       <h3>Collection</h3>
-      <h1 class="page-title">[[data.repo]]</h1>
-      <h2 class="page-subtitle">[[data.description]]</h2>
+      <h1 class="page-title">[[_routeMatch.repo]]</h1>
+      <h2 class="page-subtitle" class="loader" loading$="[[metaLoading]]">[[data.description]]</h2>
 
       <div class="body">
         <div class="sidebar">
           <a href="/author/[[_routeMatch.owner]]">
             <author-profile condensed author="[[author]]"></author-profile>
           </a>
+          <div class="loader" loading$="[[_parentsLoading]]">
+            <template is="dom-repeat" items="[[_parents]]">
+              <a href="/collection/[[item.owner]]/[[item.repo]]">
+                <collection-card data="[[item]]"></collection-card>
+              </a>
+            </template>
+          </div>
         </div>
 
-        <div class="main-content">
+        <div class="main-content" loading$="[[metaLoading]]">
           <catalog-element-readme readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
 
           <div class="loader" loading$="[[dependenciesLoading]]">
@@ -135,6 +149,7 @@
         this.$.metaAjax.generateRequest();
         this.$.dependenciesAjax.generateRequest();
         this.$.authorsAjax.generateRequest();
+        this.$.parentsAjax.generateRequest();
       },
 
       _dependenciesLoaded: function() {
