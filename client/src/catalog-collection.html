@@ -54,6 +54,7 @@
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"
+      on-response="_metaLoaded"
       on-error="_metaError"></iron-ajax>
 
     <iron-ajax
@@ -173,6 +174,12 @@
           this.fire('error', {status: 404, message: 'Could not find collection'});
       },
 
+      _metaLoaded: function() {
+        if (this.data.kind != 'collection') {
+          this.fire('error', {message: 'Not an collection, appears to be a ' + this.data.kind});
+          return;
+        }
+      },
     });
   </script>
 </dom-module>
