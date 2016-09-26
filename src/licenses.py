@@ -2,6 +2,7 @@
 
 # Verify that each license added to this list has 'OSI Approved?: Y' on https://spdx.org/licenses/
 LICENSE_ALIASES = dict((key.lower(), value) for (key, value) in {
+    'https://polymer.github.io/LICENSE.txt': 'BSD-3-Clause', # Verified on 26-Sep-2016
     'http://polymer.github.io/LICENSE.txt': 'BSD-3-Clause', # Verified on 26-Sep-2016
     'Academic Free License v1.1': 'AFL-1.1',
     'Academic Free License v1.2': 'AFL-1.2',

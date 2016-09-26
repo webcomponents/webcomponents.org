@@ -173,6 +173,7 @@ class LibraryTask(RequestHandler):
       self.library = Library.get_by_id(Library.id(owner, repo))
 
   def set_ready(self):
+    assert self.library.spdx_identifier is not None
     if self.library.status != Status.ready:
       self.library.error = None
       self.library.status = Status.ready
@@ -264,8 +265,10 @@ class LibraryTask(RequestHandler):
     if github_license is not None:
       spdx_identifier = licenses.validate_spdx(github_license.get('key', 'MISSING'))
 
+    logging.error(spdx_identifier)
     if spdx_identifier is None:
       license_name = bower_json.get('license')
+      logging.error(license_name)
       if license_name is not None:
         spdx_identifier = licenses.validate_spdx(license_name)
 
@@ -418,6 +421,9 @@ class UpdateLibrary(LibraryTask):
     if self.library is None:
       logging.warning('Library not found: %s', Library.id(owner, repo))
       return
+    if self.library.spdx_identifier is None:
+      # Can't update a library if it's not licensed correctly.
+      return
     self.update_metadata()
     self.update_versions()
     self.set_ready()
@@ -454,10 +460,10 @@ class IngestWebhookLibrary(LibraryTask):
       self.library_dirty = True
       self.update_metadata()
       self.update_license_and_kind()
+      self.set_ready()
 
     self.library.github_access_token = access_token
     self.library_dirty = True
-    self.set_ready()
 
 class AnalyzeLibrary(LibraryTask):
   def is_transactional(self):

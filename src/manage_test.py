@@ -125,7 +125,7 @@ class EnsureAuthorTest(ManageTestBase):
 
 class UpdateLibraryTest(ManageTestBase):
   def test_update_respects_304(self):
-    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
+    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
     library.put()
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -138,7 +138,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual(len(tasks), 0)
 
   def test_update_deletes_missing_repo(self):
-    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c')
+    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
     library.put()
     version = Version(parent=library.key, id='v1.0.0', sha='lol')
     version.put()
@@ -154,7 +154,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertIsNone(version)
 
   def test_update_triggers_version_ingestion(self):
-    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0']).put()
+    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0'], spdx_identifier='MIT').put()
     Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
@@ -180,7 +180,7 @@ class UpdateLibraryTest(ManageTestBase):
     ], [task.url for task in tasks])
 
   def test_update_collection(self):
-    library_key = Library(id='org/repo', tags=['v0.0.1'], collection_sequence_number=1, kind='collection').put()
+    library_key = Library(id='org/repo', tags=['v0.0.1'], collection_sequence_number=1, kind='collection', spdx_identifier='MIT').put()
     Version(id='v0.0.1', parent=library_key, sha="old", status=Status.ready).put()
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
