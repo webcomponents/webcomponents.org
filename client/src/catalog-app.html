@@ -133,7 +133,7 @@
       },
 
       observers: [
-        '_routePageChanged(routeData.page)'
+        '_routePageChanged(routeData.page, subroute)'
       ],
 
       created: function() {
@@ -145,7 +145,10 @@
       _routePageChanged: function(page) {
         if (page != this.page)
           Polymer.AppLayout.scroll({top: 0, behavior: 'silent'});
-        this.page = page || 'search';
+        if (page == 'preview' && this.subroute.path) {
+          page = 'element';
+        }
+        this.page = page;
       },
 
       _pageChanged: function(page) {

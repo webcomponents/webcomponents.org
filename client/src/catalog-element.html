@@ -7,6 +7,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
@@ -18,6 +19,14 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      #progress {
+        position: absolute;
+        top: 64px;
+        left: 0px;
+        width: 100vw;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 3s;
+      }
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
@@ -422,6 +431,7 @@
     <lazy-block condition="[[!_metaLoading]]"></lazy-block>
     <lazy-block condition="[[docs]]"></lazy-block>
 
+    <paper-progress id="progress" hidden$="[[!_metaPending(_metaLoading, data)]]" indeterminate></paper-progress>
     <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
 
       <!-- Header -->
@@ -519,21 +529,21 @@
           <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
 
           <div id="sidebar-nav" class="box loader" loading$="[[_docsPending(_docsLoading, docs)]]">
-            <a href="/element/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
+            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="/element/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+              <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
               <template is="dom-repeat" items=[[element.demos]] as="demo">
-                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
               </template>
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+              <a href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
 
               <template is="dom-repeat" items=[[behavior.demos]] as="demo">
-                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
               </template>
             </template>
           </div>
@@ -563,7 +573,7 @@
             <h3>Dependencies</h3>
             <template is="dom-repeat" items="[[_dependencies(data)]]">
               <div class="dependency">
-                <a href="/element/[[item.owner]]/[[item.repo]]">
+                <a href="[[route.prefix]]/[[item.owner]]/[[item.repo]]">
                   <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
                 </a>
                 <span>[[item.version]]</span>
@@ -679,7 +689,7 @@
       },
 
       _routeChanged: function(path, prefix, visible) {
-        if (!visible || !this._loaded || prefix !== '/element')
+        if (!visible || !this._loaded || !(prefix == '/element' || prefix == '/preview'))
           return;
 
         this._splitRoute();
@@ -736,7 +746,7 @@
       },
 
       _metaPending: function(loading, data) {
-        return loading || data.status == 'pending';
+        return loading || !data || data.status == 'pending';
       },
 
       _metaResponse: function() {
@@ -759,8 +769,17 @@
       },
 
       _metaError: function(event, error) {
-        if (error.request.status == 404)
-          this.fire('error', {status: 404, message: 'Could not find element'});
+        if (error.request.status != 404) {
+          this.fire('error', {status: error.request.status, message: 'Unable to load element'});
+          return;
+        }
+
+        if (this.route.prefix == '/preview') {
+          this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 1000);
+          return;
+        }
+
+        this.fire('error', {status: 404, message: 'Could not find element'});
       },
 
       _docsPending: function(loading, docs) {
