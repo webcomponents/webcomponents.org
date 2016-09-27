@@ -148,7 +148,7 @@
       },
 
       _pageChanged: function(page) {
-        if (page != null) {
+        if (page) {
           this.importHref(
             this.resolveUrl('catalog-' + page + '.html'), null, null, true);
         }
