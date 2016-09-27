@@ -281,13 +281,13 @@ class LibraryTask(RequestHandler):
     task_url = util.delete_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
 
-  def trigger_version_ingestion(self, tag, sha, url=None):
+  def trigger_version_ingestion(self, tag, sha, url=None, preview=False):
     version_object = Version.get_by_id(tag, parent=self.library.key)
     if version_object is not None and version_object.status == Status.ready:
       # Version object is already up to date
       return
 
-    Version(id=tag, parent=self.library.key, sha=sha, url=url).put()
+    Version(id=tag, parent=self.library.key, sha=sha, url=url, preview=preview).put()
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
@@ -426,7 +426,7 @@ class UpdateLibrary(LibraryTask):
     self.update_versions()
     self.set_ready()
 
-class IngestLibraryCommit(LibraryTask):
+class IngestPreview(LibraryTask):
   def is_transactional(self):
     return True
   def handle_get(self, owner, repo):
@@ -443,7 +443,7 @@ class IngestLibraryCommit(LibraryTask):
       self.set_ready()
 
     if self.library.kind == 'element':
-      self.trigger_version_ingestion(commit, commit, url=url)
+      self.trigger_version_ingestion(commit, commit, url=url, preview=True)
 
 class IngestWebhookLibrary(LibraryTask):
   def is_transactional(self):
@@ -839,7 +839,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/ingest/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/<owner>/<repo>', handler=IngestLibrary),
     webapp2.Route(r'/task/ingest/<owner>/<repo>/<version>', handler=IngestVersion),
-    webapp2.Route(r'/task/ingest-commit/<owner>/<repo>', handler=IngestLibraryCommit),
+    webapp2.Route(r'/task/ingest-commit/<owner>/<repo>', handler=IngestPreview),
     webapp2.Route(r'/task/ingest-webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
     webapp2.Route(r'/_ah/push-handlers/analysis', handler=IngestAnalysis),
 ], debug=True)

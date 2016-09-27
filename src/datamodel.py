@@ -124,6 +124,7 @@ class Version(ndb.Model):
   sha = ndb.StringProperty(required=True, indexed=False)
   url = ndb.StringProperty(indexed=False)
 
+  preview = ndb.BooleanProperty(default=False)
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
