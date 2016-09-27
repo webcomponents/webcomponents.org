@@ -242,6 +242,10 @@ class GetDependencies(webapp2.RequestHandler):
     version_key = ndb.Key(Library, library_key.id(), Version, version)
 
     bower = yield Content.get_by_id_async('bower', parent=version_key)
+    if bower is None:
+      self.response.set_status(404)
+      return
+
     bower_json = json.loads(bower.content)
     bower_dependencies = bower_json.get('dependencies', {})
 
