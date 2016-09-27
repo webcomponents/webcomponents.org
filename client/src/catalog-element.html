@@ -531,6 +531,10 @@
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
               <a href="/element/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+
+              <template is="dom-repeat" items=[[behavior.demos]] as="demo">
+                <a class="demo-link" href="/element/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              </template>
             </template>
           </div>
 
@@ -635,23 +639,6 @@
         return Object.keys(this.docs.content.behaviorsByName).map(function(elem) {
           return this.docs.content.behaviorsByName[elem];
         }.bind(this));
-      },
-
-      _demos: function() {
-        if (!this.docs || !this.bundledElements)
-          return [];
-
-        // Dedupe demos since elements can point to the same demo.
-        var demosByPath = {};
-        this.bundledElements.forEach(function(elem) {
-          elem.demos.forEach(function(demo) {
-            demosByPath[demo.path] = demo;
-          });
-        });
-
-        return Object.keys(demosByPath).map(function(demoPath) {
-          return demosByPath[demoPath];
-        });
       },
 
       onload: function(metaLoading) {
@@ -805,7 +792,6 @@
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
-        this.bundledDemos = this._demos();
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 
