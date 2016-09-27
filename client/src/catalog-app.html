@@ -169,23 +169,24 @@
         }
       },
 
-      isStaging: function() {
-        return window.location.hostname.indexOf('custom-elements-staging') != -1 ||
-            window.location.hostname.indexOf('australischertreibhund.com') != -1;
+      isProduction: function() {
+        return window.location.hostname.indexOf('webcomponents.org') != -1;
       },
 
       analyticsKey: function() {
-        var useStagingKey = window.location.hostname == 'localhost' || this.isStaging();
-        return useStagingKey ? 'UA-82326223-1' : 'UA-82313441-1';
+        return this.isProduction() ? 'UA-82313441-1' : 'UA-82326223-1';
       },
 
       baseUrls: function(queryParams) {
         var isLocalhost = window.location.hostname == 'localhost';
-        var result = {api: '', userContent: 'https://user-content-dot-' + window.location.hostname};
-        if (isLocalhost) {
-          result.api = 'https://custom-elements.appspot.com';
+        var result = {api: ''};
+
+        if (isLocalhost)
+          result.api = 'https://beta.webcomponents.org';
+
+        if (isLocalhost || this.isProduction()) {
           result.userContent = 'https://user-content-dot-custom-elements.appspot.com';
-        } else if (this.isStaging()) {
+        } else {
           result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
         }
         if (queryParams.instance) {
