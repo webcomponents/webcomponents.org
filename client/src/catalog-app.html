@@ -145,7 +145,7 @@
         this.removeAttribute('unresolved');
       },
 
-      _ensureLazilyLoaded: function() {
+      _ensureLazyLoaded: function() {
         if (this._lazyResourcesLoaded)
           return;
         this._lazyResourcesLoaded = true;
@@ -164,7 +164,7 @@
       _pageChanged: function(page) {
         if (page) {
           this.importHref(
-            this.resolveUrl('catalog-' + page + '.html'), this._ensureLazilyLoaded, null, true);
+            this.resolveUrl('catalog-' + page + '.html'), this._ensureLazyLoaded, null, true);
         }
       },
 
