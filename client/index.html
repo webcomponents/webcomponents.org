@@ -62,9 +62,6 @@
           e.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
           document.body.appendChild(e);
         }
-        if ('serviceWorker' in navigator && window.location.hostname != 'localhost') {
-          navigator.serviceWorker.register('/service-worker.js');
-        }
       })();
     </script>
   </body>

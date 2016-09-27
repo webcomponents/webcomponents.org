@@ -8,6 +8,8 @@
 
 <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro" rel="stylesheet">
 
+<link rel="import" href="lazy-block.html">
+
 <dom-module id="catalog-app">
   <template>
     <style>
@@ -92,6 +94,8 @@
       tail="{{subroute}}"
       query-params="{{queryParams}}"></app-route>
 
+    <lazy-block id="block"></lazy-block>
+
     <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
 
     <app-header role="navigation" reveals>
@@ -142,6 +146,13 @@
         this.removeAttribute('unresolved');
       },
 
+      _ensureLazyLoaded: function() {
+        if (this._lazyResourcesLoaded)
+          return;
+        this._lazyResourcesLoaded = true;
+        this.$.block.unblock();
+      },
+
       _routePageChanged: function(page) {
         if (page != this.page)
           Polymer.AppLayout.scroll({top: 0, behavior: 'silent'});
@@ -154,7 +165,7 @@
       _pageChanged: function(page) {
         if (page) {
           this.importHref(
-            this.resolveUrl('catalog-' + page + '.html'), null, null, true);
+            this.resolveUrl('catalog-' + page + '.html'), this._ensureLazyLoaded, null, true);
         }
       },
 

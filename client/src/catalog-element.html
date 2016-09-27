@@ -428,8 +428,7 @@
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
-    <lazy-block condition="[[!_metaLoading]]"></lazy-block>
-    <lazy-block condition="[[docs]]"></lazy-block>
+    <lazy-block id="block"></lazy-block>
 
     <paper-progress id="progress" hidden$="[[!_metaPending(_metaLoading, data)]]" indeterminate></paper-progress>
     <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
@@ -786,6 +785,11 @@
       },
 
       _docsResponse: function() {
+        if (!this._lazyUnblocked) {
+          this.$.block.unblock();
+          this._lazyUnblocked = true;
+        }
+
         if (this.docs.status == 'error') {
           console.error("Failed to fetch API docs: " + this.data.error);
           return;
