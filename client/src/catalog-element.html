@@ -5,13 +5,13 @@
 <link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-viewer.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
+<link rel="import" href="catalog-dialog.html">
 <link rel="import" href="contributors-list.html">
 <link rel="import" href="lazy-block.html">
 
@@ -598,15 +598,14 @@
     </div>
 
     <paper-spinner-lite id="demo-spinner"></paper-spinner-lite>
-    <paper-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
+    <catalog-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>
       </div>
       <iframe id="demo-frame" on-load="_demoLoaded"></iframe>
-    </paper-dialog>
-
+    </catalog-dialog>
 
   </template>
 

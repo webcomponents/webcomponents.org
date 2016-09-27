@@ -1,13 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="catalog-dialog.html">
 
 <dom-module id="search-focus">
   <template>
     <style>
-      paper-dialog {
+      catalog-dialog {
         border-radius: 4px;
         position: fixed;
         margin: 0;
@@ -73,7 +73,7 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        paper-dialog {
+        catalog-dialog {
           width: 100%;
           border-radius: 0;
           height: 100%;
@@ -105,7 +105,7 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
-    <paper-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened" on-iron-overlay-closed="_dialogClosed">
+    <catalog-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened" on-iron-overlay-closed="_dialogClosed">
       <input type="search" id="search-box" on-keyup="_onSearchKeyUp" placeholder="Search webcomponents.org"></input>
 
       <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
@@ -130,7 +130,7 @@
           </template>
         </iron-list>
       </iron-scroll-threshold>
-    </paper-dialog>
+    </catalog-dialog>
 
   </template>
 
