@@ -316,6 +316,7 @@ class IngestLibraryTest(ManageTestBase):
     version = Version.get_by_id('v1.0.0', parent=library_key)
     self.assertIsNone(version.error)
     self.assertEqual(version.status, Status.ready)
+    self.assertFalse(version.preview)
 
     versions = Library.versions_for_key_async(library_key).get_result()
     self.assertEqual(['v1.0.0'], versions)
@@ -344,6 +345,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEquals(version.status, Status.pending)
     self.assertEquals(version.sha, 'commit-sha')
     self.assertEquals(version.url, 'url')
+    self.assertTrue(version.preview)
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 2)
