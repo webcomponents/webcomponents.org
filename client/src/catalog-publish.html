@@ -9,29 +9,15 @@
     <style include="catalog-styles"></style>
 
     <style>
-      .main-content h1 {
-        margin: 32px 0 16px;
-      }
-
       .g-recaptcha {
         margin: 16px 0;
       }
-
-      @media (max-width: 500px), (max-height: 500px) {
-        #container {
-          padding: 16px;
-        }
-      }
-
     </style>
 
     <iron-ajax
       id="ajax"
       method="POST"
-      url="[[baseUrls.api]]/api/ondemand"
-      handle-as="text"
-      on-response="_taskTriggered"
-      on-error="_error"></iron-ajax>
+      url="[[baseUrls.api]]/api/TODO"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -71,9 +57,9 @@
         <h2>Ready to publish?</h2>
         <p>You can preview how it’ll look when it’s published without actually publishing it.</p>
 
-        <input type="text" name="url" value="{{url::input}}" placeholder="Any Github URL">
+        <input type="text" name="repo" value="{{repo::input}}" placeholder="user/repo">
         <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
-        <button on-tap="onSubmit">Preview</button>
+        <button on-tap="onSubmit">Publish</button>
       </div>
     </div>
 
@@ -86,8 +72,6 @@
 
       properties: {
         baseUrls: Object,
-
-        _sha: String,
       },
 
       onSubmit: function() {
@@ -95,18 +79,10 @@
           return;
 
         this.$.ajax.params = {
-          url: this.url,
+          todo: this.repo,
           recaptcha: grecaptcha.getResponse()
         };
         this.$.ajax.generateRequest();
-      },
-
-      _taskTriggered: function(event) {
-        window.location = 'preview/' + event.detail.response;
-      },
-
-      _error: function() {
-        console.log('An error occured. Please try again.');
       },
 
     });
