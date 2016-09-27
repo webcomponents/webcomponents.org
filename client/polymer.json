@@ -9,7 +9,6 @@
     "src/catalog-preview-integration.html",
     "src/catalog-preview.html",
     "src/catalog-publish.html",
-    "src/catalog-search.html",
     "src/lazy-resources.html",
     "src/search-focus.html"
   ],
