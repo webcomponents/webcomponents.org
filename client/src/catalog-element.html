@@ -6,27 +6,19 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
-<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
 <link rel="import" href="contributors-list.html">
+<link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
   <template>
     <style include="catalog-styles"></style>
     <style>
-      #progress {
-        position: absolute;
-        top: 64px;
-        left: 0px;
-        width: 100vw;
-        --paper-progress-active-color: var(--theme-blue);
-        --paper-progress-indeterminate-cycle-duration: 3s;
-      }
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
@@ -430,8 +422,7 @@
 
     <lazy-block id="block"></lazy-block>
 
-    <paper-progress id="progress" hidden$="[[!_metaPending(_metaLoading, data)]]" indeterminate></paper-progress>
-    <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
+    <div id="container">
 
       <!-- Header -->
       <h1 class="page-title">[[repo]]</h1>
@@ -613,6 +604,8 @@
 
       is: 'catalog-element',
 
+      behaviors: [window.PageLoadingBehavior],
+
       properties: {
         visible: Boolean,
 
@@ -623,7 +616,8 @@
 
       observers: [
         '_routeChanged(route.path, route.prefix, visible)',
-        'onload(_metaLoading)'
+        '_updateLoading(_metaLoading, data)',
+        'onload(_metaLoading)',
       ],
 
       ready: function() {
@@ -743,8 +737,8 @@
         this.set('route.path', path);
       },
 
-      _metaPending: function(loading, data) {
-        return loading || !data || data.status == 'pending';
+      _updateLoading: function(metaLoading, data) {
+        this.loading = metaLoading || !data || data.status == 'pending';
       },
 
       _metaResponse: function() {

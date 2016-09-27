@@ -7,6 +7,7 @@
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="page-loading-behavior.html">
 
 <dom-module id="catalog-collection">
   <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
@@ -59,7 +60,7 @@
 
     <iron-ajax
       id="metaAjax"
-      loading="{{metaLoading}}"
+      loading="{{loading}}"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
       handle-as="json"
       last-response="{{data}}"
@@ -90,7 +91,7 @@
     <div>
       <h3>Collection</h3>
       <h1 class="page-title">[[_routeMatch.repo]]</h1>
-      <h2 class="page-subtitle" class="loader" loading$="[[metaLoading]]">[[data.description]]</h2>
+      <h2 class="page-subtitle">[[data.description]]</h2>
 
       <div class="body">
         <div class="sidebar">
@@ -104,7 +105,7 @@
           </div>
         </div>
 
-        <div class="main-content" loading$="[[metaLoading]]">
+        <div class="main-content">
           <catalog-element-readme readme="[[data.readme]]" data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
 
           <div class="loader" loading$="[[dependenciesLoading]]">
@@ -132,6 +133,8 @@
     Polymer({
 
       is: 'catalog-collection',
+
+      behaviors: [window.PageLoadingBehavior],
 
       properties: {
         visible: Boolean,

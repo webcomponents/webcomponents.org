@@ -6,6 +6,7 @@
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="collection-card.html">
+<link rel="import" href="page-loading-behavior.html">
 
 <dom-module id="catalog-author">
   <template>
@@ -34,24 +35,26 @@
 
     <iron-ajax
       id="metaAjax"
-      loading="{{metaLoading}}"
+      loading="{{loading}}"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
       handle-as="json"
       last-response="{{author}}"></iron-ajax>
 
     <iron-ajax
       id="collectionsAjax"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:collection?noscore"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:collection?noscore&count"
+      loading="{{collectionsLoading}}"
       handle-as="json"
       last-response="{{_collections}}"></iron-ajax>
 
     <iron-ajax
       id="elementsAjax"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:element?noscore&limit=100"
+      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:element?noscore&limit=100&count"
+      loading="{{elementsLoading}}"
       handle-as="json"
       last-response="{{_elements}}"></iron-ajax>
 
-    <div class="loader" loading$="[[metaLoading]]">
+    <div>
       <h3>Author</h3>
       <h1 class="page-title">[[author.login]]</h1>
       <h2 class="page-subtitle">[[search.count]] elements</h2>
@@ -61,7 +64,7 @@
           <author-profile author="[[author]]"></author-profile>
         </div>
 
-        <div class="main-content">
+        <div class="main-content loader" loading$="[[or(collectionsLoading, elementsLoading)]]">
           <template is="dom-if" if="[[_collections]]"><h1 class="section-header">[[_collections.count]] Collections</h1></template>
           <div id="collections">
             <template is="dom-repeat" items="[[_collections.results]]">
@@ -82,6 +85,8 @@
 
       is: 'catalog-author',
 
+      behaviors: [window.PageLoadingBehavior],
+
       properties: {
         visible: Boolean,
 
@@ -93,6 +98,10 @@
       observers: [
         '_routeChanged(route, visible)'
       ],
+
+      or: function(x, y) {
+        return x || y;
+      },
 
       ready: function() {
         this._loaded = true;
