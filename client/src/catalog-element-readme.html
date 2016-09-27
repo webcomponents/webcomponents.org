@@ -108,7 +108,7 @@
       ],
 
       readmeChanged: function(data, readme) {
-        if (!readme)
+        if (!readme || !data)
           return;
 
         this.$.contents.innerHTML = readme;
