@@ -186,7 +186,7 @@
         this.debounce('searchAPI', function() {
           this.$.elementAjax.generateRequest();
           this.$.collectionAjax.generateRequest();
-          ga && ga('send', 'pageview', '/_internal/search?q=' + this._query);
+          window.ga && window.ga('send', 'pageview', '/_internal/search?q=' + this._query);
         }.bind(this), 300);
       },
 
