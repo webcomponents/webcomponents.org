@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
 
@@ -17,7 +18,7 @@
     <iron-ajax
       id="ajax"
       method="POST"
-      url="[[baseUrls.api]]/api/TODO"></iron-ajax>
+      url="[[baseUrls.api]]/api/publish/[[repo]]"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -79,7 +80,6 @@
           return;
 
         this.$.ajax.params = {
-          todo: this.repo,
           recaptcha: grecaptcha.getResponse()
         };
         this.$.ajax.generateRequest();

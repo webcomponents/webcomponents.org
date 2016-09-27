@@ -405,7 +405,7 @@ class RegisterPreview(webapp2.RequestHandler):
     parsed_url = urlparse(self.request.url)
     params = {'name': 'web', 'events': ['pull_request']}
     params['config'] = {
-        'url': '%s://%s/api/preview/event' % (parsed_url.scheme, parsed_url.netloc),
+        'url': '%s://%s/api/preview-event' % (parsed_url.scheme, parsed_url.netloc),
         'content_type': 'json',
     }
 
@@ -434,7 +434,7 @@ class RegisterPreview(webapp2.RequestHandler):
     util.new_task(util.ingest_webhook_task(owner, repo), params={'access_token': access_token}, target='manage')
     self.response.write('Created webhook')
 
-class PreviewEventHandler(webapp2.RequestHandler):
+class PreviewEvent(webapp2.RequestHandler):
   def post(self):
     if self.request.headers.get('X-Github-Event') != 'pull_request':
       self.response.set_status(202) # Accepted
@@ -477,7 +477,7 @@ class PreviewEventHandler(webapp2.RequestHandler):
       return
 
     pull_request_url = payload['pull_request']['url']
-    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
+    util.new_task(util.ingest_preview_task(owner, repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
 
 def validate_captcha(handler):
   recaptcha = handler.request.get('recaptcha')
@@ -492,7 +492,7 @@ def validate_captcha(handler):
     return False
   return True
 
-class OnDemand(webapp2.RequestHandler):
+class PreviewCommit(webapp2.RequestHandler):
   def post(self):
     if not validate_captcha(self):
       return
@@ -513,7 +513,7 @@ class OnDemand(webapp2.RequestHandler):
       self.response.headers['Access-Control-Allow-Origin'] = '*'
       self.response.headers['Content-Type'] = 'application/json'
       self.response.write('%s/%s/%s' % (owner, repo, match.group(1)))
-      util.new_task(util.ingest_commit_task(owner, repo), params={'commit': match.group(1), 'url': url}, target='manage')
+      util.new_task(util.ingest_preview_task(owner, repo), params={'commit': match.group(1), 'url': url}, target='manage')
       return
 
     # Resolve SHA using these patterns and Github API
@@ -532,16 +532,24 @@ class OnDemand(webapp2.RequestHandler):
       self.response.write('Error resolving url (%s)', url)
 
     sha = json.loads(response.content)['object']['sha']
-    util.new_task(util.ingest_commit_task(owner, repo), params={'commit': sha, 'url': url}, target='manage')
+    util.new_task(util.ingest_preview_task(owner, repo), params={'commit': sha, 'url': url}, target='manage')
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write('%s/%s/%s' % (owner, repo, sha))
 
+class PublishLibrary(webapp2.RequestHandler):
+  def post(self, owner, repo):
+    if not validate_captcha(self):
+      return
+    task_url = util.ingest_library_task(owner, repo)
+    util.new_task(task_url, target='manage')
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
+    webapp2.Route(r'/api/publish/<owner>/<repo>', handler=PublishLibrary),
     webapp2.Route(r'/api/preview', handler=RegisterPreview),
-    webapp2.Route(r'/api/preview/event', handler=PreviewEventHandler),
+    webapp2.Route(r'/api/preview-event', handler=PreviewEvent),
+    webapp2.Route(r'/api/preview-commit', handler=PreviewCommit),
     webapp2.Route(r'/api/meta/<author>', handler=GetAuthor),
     webapp2.Route(r'/api/meta/<owner>/<repo>', handler=GetMetadata),
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetMetadata),
@@ -552,5 +560,4 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/collections/<owner>/<repo>', handler=GetCollections),
     webapp2.Route(r'/api/collections/<owner>/<repo>/<version>', handler=GetCollections),
     webapp2.Route(r'/api/search/<terms>', handler=SearchContents),
-    webapp2.Route(r'/api/ondemand', handler=OnDemand),
 ], debug=True)

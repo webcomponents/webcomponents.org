@@ -32,7 +32,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/ingest/owner', status=403)
     self.app.get('/task/ingest/owner/repo', status=403)
     self.app.get('/task/ingest/owner/repo/version', status=403)
-    self.app.get('/task/ingest-commit/owner/repo', status=403)
+    self.app.get('/task/ingest-preview/owner/repo', status=403)
     self.app.get('/task/ingest-webhook/owner/repo', status=403)
     self.app.get('/task/update-indexes/owner/repo', status=403)
 
@@ -328,12 +328,12 @@ class IngestLibraryTest(ManageTestBase):
     bower = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'bower').get()
     self.assertEqual(bower.content, '{}')
 
-  def test_ingest_commit(self):
+  def test_ingest_preview(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
-    response = self.app.get(util.ingest_commit_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_preview_task('org', 'repo'), params={'commit': 'commit-sha', 'url': 'url'}, headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     library = Library.get_by_id('org/repo')
