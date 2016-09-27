@@ -54,8 +54,8 @@ def ingest_library_task(owner, repo):
 def ingest_version_task(owner, repo, version):
   return '/task/ingest/%s/%s/%s' % (owner, repo, version)
 
-def ingest_commit_task(owner, repo):
-  return '/task/ingest-commit/%s/%s' % (owner, repo)
+def ingest_preview_task(owner, repo):
+  return '/task/ingest-preview/%s/%s' % (owner, repo)
 
 def ingest_webhook_task(owner, repo):
   return '/task/ingest-webhook/%s/%s' % (owner, repo)
