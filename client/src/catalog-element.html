@@ -572,7 +572,7 @@
             <h3>Dependencies</h3>
             <template is="dom-repeat" items="[[_dependencies(data)]]">
               <div class="dependency">
-                <a href="[[route.prefix]]/[[item.owner]]/[[item.repo]]">
+                <a href="/element/[[item.owner]]/[[item.repo]]">
                   <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
                 </a>
                 <span>[[item.version]]</span>
