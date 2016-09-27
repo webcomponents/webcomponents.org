@@ -3,12 +3,12 @@
   "shell": "src/catalog-app.html",
   "fragments": [
     "src/catalog-author.html",
-    "src/catalog-add.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
     "src/catalog-error.html",
     "src/catalog-preview-integration.html",
     "src/catalog-preview.html",
+    "src/catalog-publish.html",
     "src/catalog-search.html",
     "src/lazy-resources.html",
     "src/search-focus.html"
