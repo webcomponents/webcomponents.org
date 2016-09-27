@@ -495,6 +495,10 @@ class OnDemand(webapp2.RequestHandler):
 
     url = self.request.get('url')
     match = re.match(r'https://github.com/(.*?)/([^/]*)(.*)', url)
+    if match is None:
+      self.response.set_status(400)
+      self.response.write('Unable to understand url (%s)', url)
+
     owner = match.group(1)
     repo = match.group(2)
     tail = match.group(3)
