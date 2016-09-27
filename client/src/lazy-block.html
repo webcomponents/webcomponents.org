@@ -5,32 +5,52 @@
     (function() {
       var blockers = new Map();
       var loaded = false;
+      var asyncLoader = null;
 
       Polymer({
 
         is: 'lazy-block',
 
         properties: {
-          condition: Boolean
+          resolved: Boolean
         },
 
         observers: [
-          '_conditionSet(condition)'
+          '_resolvedChanged(resolved)'
         ],
 
-        ready: function() {
+        created: function() {
           blockers.set(this, false);
         },
 
-        _conditionSet: function(condition) {
-          if (!condition)
+        ready: function() {
+          if (loaded) {
+            this._remove();
             return;
+          }
+          if (!asyncLoader)
+            asyncLoader = this.async(this._forceLoad, 4000);
+        },
 
+        unblock: function() {
           blockers.delete(this);
           if (!blockers.size)
             this._loadResources();
           else if (this.parentElement)
             this._remove();
+        },
+
+        _forceLoad: function() {
+          if (loaded)
+            return;
+          console.error('Lazy resources were not unblocked, forcing load of lazy resources');
+          this._loadResources();
+        },
+
+        _resolvedChanged: function(resolved) {
+          if (!resolved)
+            return;
+          this.unblock();
         },
 
         _remove: function() {
@@ -42,6 +62,7 @@
           if (loaded)
             return;
           loaded = true;
+          this.cancelAsync(asyncLoader);
 
           Polymer.RenderStatus.afterNextRender(this, function() {
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
