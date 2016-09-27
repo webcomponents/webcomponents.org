@@ -14,7 +14,8 @@
     "codemirror": "codemirror/codemirror#^5.17.0",
     "iron-scroll-threshold": "PolymerElements/iron-scroll-threshold#^1.0.2",
     "paper-dialog": "PolymerElements/paper-dialog#^1.1.0",
-    "paper-spinner": "PolymerElements/paper-spinner#^1.2.0"
+    "paper-spinner": "PolymerElements/paper-spinner#^1.2.0",
+    "paper-progress": "PolymerElements/paper-progress#^1.0.10"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

@@ -3,7 +3,7 @@
 
 <link rel="import" href="catalog-styles.html">
 
-<script src='https://www.google.com/recaptcha/api.js'></script>
+<script src="https://www.google.com/recaptcha/api.js"></script>
 
 <dom-module id="catalog-preview">
   <template>
@@ -72,7 +72,7 @@
       },
 
       _taskTriggered: function(event) {
-        window.location = 'element/' + event.detail.response;
+        window.location = 'preview/' + event.detail.response;
       },
 
       _error: function() {

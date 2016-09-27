@@ -34,7 +34,8 @@
         },
 
         _remove: function() {
-          this.parentElement.removeChild(this);
+          var parent = Polymer.dom(this).parentNode;
+          Polymer.dom(parent).removeChild(this);
         },
 
         _loadResources: function() {
