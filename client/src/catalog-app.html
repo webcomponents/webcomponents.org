@@ -134,6 +134,7 @@
     <paper-progress id="progress" indeterminate></paper-progress>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading">
+      <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
       <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-author>
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
@@ -204,6 +205,9 @@
       _routePageChanged: function(page) {
         if (page != this.page)
           Polymer.AppLayout.scroll({top: 0, behavior: 'silent'});
+        if (page == '') {
+          page = 'home';
+        }
         if (page == 'preview' && this.subroute.path) {
           page = 'element';
         }
