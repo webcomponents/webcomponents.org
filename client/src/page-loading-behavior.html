@@ -1,0 +1,18 @@
+<script>
+window.PageLoadingBehavior = {
+  properties: {
+    loading: {
+      type: Boolean,
+      value: true,
+      observer: '_loadingChanged',
+    }
+  },
+
+  _loadingChanged: function() {
+    if (this.loading)
+      this.fire('loading');
+    else
+      this.fire('loaded');
+  },
+};
+</script>
