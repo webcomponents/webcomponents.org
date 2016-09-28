@@ -1,12 +1,20 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 
 <dom-module id="catalog-analytics">
+  <template>
+    <app-location route="{{route}}"></app-location>
+  </template>
   <script>
     Polymer({
       is: 'catalog-analytics',
       properties: {
         key: String
       },
+
+      observers: [
+        '_pathChanged(route.path)'
+      ],
 
       attached: function() {
         // track metrics with google analytics...
@@ -15,8 +23,11 @@
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
         })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
         ga('create', this.key, 'auto');
-        ga('send', 'pageview');
-      }
+      },
+
+      _pathChanged: function(path) {
+        ga('send', 'pageview', path);
+      },
     });
   </script>
 </dom-module>
