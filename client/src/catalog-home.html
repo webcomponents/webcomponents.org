@@ -1,0 +1,30 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="catalog-home">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <div id="container">
+      <h3>Home</h3>
+      <h1 class="page-title">Hey, you found us!</h1>
+
+      <div class="main-content">
+        This site is still a work in progress, but feel free to poke around.
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-home',
+
+      properties: {
+        baseUrls: Object,
+      },
+    });
+  </script>
+</dom-module>
