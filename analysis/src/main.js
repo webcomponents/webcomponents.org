@@ -9,13 +9,14 @@ const Ana = require('./ana_log');
 const Analysis = require('./analysis');
 const Bower = require('./bower');
 const Catalog = require('./catalog');
+const DebugCatalog = require('./debug_catalog');
 const Hydrolysis = require('./hydrolysis');
 
-const pubsub = require('@google-cloud/pubsub');
-
-const express = require('express');
 const bodyParser = require('body-parser');
+const express = require('express');
 const lockfile = require('lockfile');
+const parseCommandLine = require('command-line-args')
+const pubsub = require('@google-cloud/pubsub');
 
 const app = express();
 
@@ -25,20 +26,26 @@ const app = express();
  */
 function processTasks() {
 
-  var project = process.env.GAE_LONG_APP_ID;
+  const args = parseCommandLine([
+    { name: 'responseTopic', type: String, multiple: false },
+  ]);
 
-  // node main.js <responseTopic> <?project? - only used outside of GAE>
-  var responseTopic = process.argv[2];
-
-  // If NODE_ENV isn't set, we're not running in GAE,
-  // so override the project with whatever the command line says.
-  if (!process.env.NODE_ENV && process.argv.length == 4) {
-    project = process.argv[3];
-    Ana.enableDebug();
+  // Exit if the response topic wasn't set in a production environment.
+  if (process.env.NODE_ENV && !args.responseTopic) {
+    Ana.error("main/processTasks", "--responseTopic must be specified when running in a deployed GAE environment.");
+    return;
   }
 
-  Ana.log("main/processTasks", "Using project [", project, "] and response topic [", responseTopic, "]");
-  var catalog = new Catalog(pubsub({projectId: project}), responseTopic);
+  var catalog;
+  if (!process.env.NODE_ENV) {
+    Ana.enableDebug();
+    Ana.log("main/processTasks", "Debug mode - logging catalog responses to console.");
+    catalog = new DebugCatalog();
+  } else {
+    Ana.log("main/processTasks", "Using project [", process.env.GAE_LONG_APP_ID, "] and response topic [", args.responseTopic, "]");
+    catalog = new Catalog(pubsub({projectId: process.env.GAE_LONG_APP_ID}), args.responseTopic);
+  }
+
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),

@@ -29,10 +29,6 @@ class Catalog {
     return new Promise((resolve, reject) => {
       Ana.log("catalog/postResponse");
 
-      if (Ana.isDebug()) {
-        Ana.log("catalog/postResponse/debug attributes ", JSON.stringify(attributes));
-        Ana.log("catalog/postResponse/debug data ", JSON.stringify(data, null, '\t'));
-      }
       this.pubsub.topic(this.responseTopic).publish({
         data: data,
         attributes: attributes
