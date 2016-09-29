@@ -29,7 +29,11 @@ handlers:
   static_files: third_party/octicons/sprite.octicons.svg
   upload: third_party/octicons/sprite.octicons.svg
   secure: always
-- url: /((author|collection|element|search|preview|preview-integration|index|publish)(/.*)?)?
+- url: /(index.html)?
+  upload: index.html
+  static_files: index.html
+  secure: always
+- url: /(author|collection|element|search|preview|preview-integration|publish)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
