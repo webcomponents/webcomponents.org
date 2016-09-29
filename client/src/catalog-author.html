@@ -121,7 +121,7 @@
       },
 
       _metaError: function(event, error) {
-        this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner})
+        this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner});
       },
 
     });
