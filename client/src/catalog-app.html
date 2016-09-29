@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro" rel="stylesheet">
 
@@ -59,6 +60,17 @@
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
+      #progress {
+        position: absolute;
+        top: 64px;
+        left: 0px;
+        width: 100vw;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 3s;
+        --paper-progress-transition-transition-delay: 250ms;
+        height: 5px;
+      }
+
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
@@ -80,6 +92,21 @@
         padding: 12px;
         border: 1px solid #ededed;
         border-radius: 4px;
+      }
+
+      iron-pages.loading > *.iron-selected {
+        display: block;
+        opacity: 0;
+      }
+
+      iron-pages:not(.loading) > *.iron-selected {
+        display: block;
+        animation: fade-in 250ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      @keyframes fade-in {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
       }
 
     </style>
@@ -104,7 +131,10 @@
       </app-toolbar>
     </app-header>
 
-    <iron-pages selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+    <paper-progress id="progress" indeterminate></paper-progress>
+
+    <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading">
+      <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
       <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-author>
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
@@ -113,7 +143,6 @@
       <catalog-publish name="publish" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
-
 
   </template>
 
@@ -129,7 +158,6 @@
           reflectToAttribute: true,
           observer: '_pageChanged'
         }
-
       },
 
       listeners: {
@@ -146,7 +174,28 @@
         this.removeAttribute('unresolved');
       },
 
-      _ensureLazyLoaded: function() {
+      _setLoading: function() {
+        this.$.pages.classList.add('loading');
+        this.$.progress.removeAttribute('hidden');
+      },
+
+      _clearLoading: function() {
+        this.$.pages.classList.remove('loading');
+        this.$.progress.setAttribute('hidden', '');
+      },
+
+      _updateLoading: function() {
+        if (!this.$.pages.selectedItem)
+          return;
+        if (this.$.pages.selectedItem.loading === true)
+          this._setLoading();
+        if (this.$.pages.selectedItem.loading === false)
+          this._clearLoading();
+      },
+
+      _pageReady: function() {
+        if (this.$.pages.selectedItem && this.$.pages.selectedItem.loading !== true)
+          this._clearLoading();
         if (this._lazyResourcesLoaded)
           return;
         this._lazyResourcesLoaded = true;
@@ -156,6 +205,9 @@
       _routePageChanged: function(page) {
         if (page != this.page)
           Polymer.AppLayout.scroll({top: 0, behavior: 'silent'});
+        if (page == '') {
+          page = 'home';
+        }
         if (page == 'preview' && this.subroute.path) {
           page = 'element';
         }
@@ -164,28 +216,30 @@
 
       _pageChanged: function(page) {
         if (page) {
+          this._setLoading();
           this.importHref(
-            this.resolveUrl('catalog-' + page + '.html'), this._ensureLazyLoaded, null, true);
+            this.resolveUrl('catalog-' + page + '.html'), this._pageReady, null, true);
         }
       },
 
-      isStaging: function() {
-        return window.location.hostname.indexOf('custom-elements-staging') != -1 ||
-            window.location.hostname.indexOf('australischertreibhund.com') != -1;
+      isProduction: function() {
+        return window.location.hostname.indexOf('webcomponents.org') != -1;
       },
 
       analyticsKey: function() {
-        var useStagingKey = window.location.hostname == 'localhost' || this.isStaging();
-        return useStagingKey ? 'UA-82326223-1' : 'UA-82313441-1';
+        return this.isProduction() ? 'UA-82313441-1' : 'UA-82326223-1';
       },
 
       baseUrls: function(queryParams) {
         var isLocalhost = window.location.hostname == 'localhost';
-        var result = {api: '', userContent: 'https://user-content-dot-' + window.location.hostname};
-        if (isLocalhost) {
-          result.api = 'https://custom-elements.appspot.com';
+        var result = {api: ''};
+
+        if (isLocalhost)
+          result.api = 'https://beta.webcomponents.org';
+
+        if (isLocalhost || this.isProduction()) {
           result.userContent = 'https://user-content-dot-custom-elements.appspot.com';
-        } else if (this.isStaging()) {
+        } else {
           result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
         }
         if (queryParams.instance) {
@@ -196,15 +250,8 @@
       },
 
       _handleError: function(event) {
-        var status;
-        var message;
-        if (event.detail) {
-          status = event.detail.status;
-          message = event.detail.message;
-        }
         this.page = 'error';
-        this.$.error.status = status;
-        this.$.error.message = message;
+        this.$.error.error = event.detail;
       },
 
       _loadSearch: function() {

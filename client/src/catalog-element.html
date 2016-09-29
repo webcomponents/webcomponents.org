@@ -6,27 +6,19 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
-<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
 <link rel="import" href="contributors-list.html">
+<link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-element">
   <template>
     <style include="catalog-styles"></style>
     <style>
-      #progress {
-        position: absolute;
-        top: 64px;
-        left: 0px;
-        width: 100vw;
-        --paper-progress-active-color: var(--theme-blue);
-        --paper-progress-indeterminate-cycle-duration: 3s;
-      }
       #repo-version {
         margin-left: 6px;
         font-size: 24px;
@@ -384,21 +376,40 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        #container {
-          padding: 16px;
+        h1, h2, h3 {
+          padding-left: 16px;
+        }
+
+        #header-main {
+          border-radius: 0;
         }
 
         #info-header {
           flex-wrap: wrap;
         }
 
-        #info-body, #info-download, #info-view-github, #info-footer, #info-header h3 {
+        #info-stats {
+          margin-top: 8px;
+        }
+
+        #info-body, #info-download, #info-view-github,
+        #info-footer, #info-header h3, #info-dependencies {
           display: none;
         }
 
         #demo-dialog {
           width: calc(100vw - 50px);
           height: calc(100vh - 50px);
+        }
+
+        #sidebar-nav a {
+          border: 0;
+          background: inherit;
+        }
+
+        catalog-element-readme, iron-doc-viewer {
+          margin: 0 16px;
+          display: block;
         }
       }
     </style>
@@ -430,8 +441,7 @@
 
     <lazy-block id="block"></lazy-block>
 
-    <paper-progress id="progress" hidden$="[[!_metaPending(_metaLoading, data)]]" indeterminate></paper-progress>
-    <div id="container" class="loader" loading$="[[_metaPending(_metaLoading, data)]]">
+    <div id="container">
 
       <!-- Header -->
       <h1 class="page-title">[[repo]]</h1>
@@ -613,6 +623,8 @@
 
       is: 'catalog-element',
 
+      behaviors: [window.PageLoadingBehavior],
+
       properties: {
         visible: Boolean,
 
@@ -623,7 +635,8 @@
 
       observers: [
         '_routeChanged(route.path, route.prefix, visible)',
-        'onload(_metaLoading)'
+        '_updateLoading(_metaLoading, data)',
+        'onload(_metaLoading)',
       ],
 
       ready: function() {
@@ -743,13 +756,13 @@
         this.set('route.path', path);
       },
 
-      _metaPending: function(loading, data) {
-        return loading || !data || data.status == 'pending';
+      _updateLoading: function(metaLoading, data) {
+        this.loading = metaLoading || !data || data.status == 'pending';
       },
 
       _metaResponse: function() {
         if (this.data.status == 'error') {
-          this.fire('error', {message: this.data.error});
+          this.fire('error', {title: 'Unable to process element', message: this.data.error});
           return;
         }
 
@@ -759,7 +772,7 @@
         }
 
         if (this.data.kind != 'element') {
-          this.fire('error', {message: 'Not an element, appears to be a ' + this.data.kind});
+          this.fire('error', {title: 'Invalid request', message: 'Not an element, appears to be a ' + this.data.kind});
           return;
         }
 
@@ -768,7 +781,7 @@
 
       _metaError: function(event, error) {
         if (error.request.status != 404) {
-          this.fire('error', {status: error.request.status, message: 'Unable to load element'});
+          this.fire('error', {status: error.request.status, title: 'Unable to load element'});
           return;
         }
 
@@ -777,7 +790,7 @@
           return;
         }
 
-        this.fire('error', {status: 404, message: 'Could not find element'});
+        this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
       },
 
       _docsPending: function(loading, docs) {
