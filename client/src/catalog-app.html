@@ -194,6 +194,8 @@
       },
 
       _pageReady: function() {
+        Polymer.AppLayout.scroll(0);
+
         if (this.$.pages.selectedItem && this.$.pages.selectedItem.loading !== true)
           this._clearLoading();
         if (this._lazyResourcesLoaded)
