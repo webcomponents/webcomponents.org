@@ -1,16 +1,33 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
+<link rel="import" href="catalog-styles.html">
+
 <dom-module id="catalog-preview-integration">
   <template>
-    Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your Github repository to publish status updates.
+    <style include="catalog-styles"></style>
+
+    <style>
+      input {
+        margin: 16px 0;
+      }
+    </style>
+
+    <div id="container">
+      <h3>Preview integration</h3>
+      <h1 class="page-title">Add Github integration</h1>
+      <h2 class="page-subtitle">
+        Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your Github repository to publish status updates.
+      </h2>
     <template is="dom-if" if="[[!queryParams.code]]">
-      <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status">Sign in with Github</a>
+      <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status">
+        <button>Sign in with Github</button>
+      </a>
     </template>
     <template is="dom-if" if="[[queryParams.code]]">
       <form action="[[baseUrls.api]]/api/preview" method="post">
         <input type="hidden" name="code" value="[[queryParams.code]]">
-        Enter the repo you want to use preview with: <input type="text" name="repo">
-        <input type="submit" value="test">
+        Enter the Github repository to enable webcomponents preview for: <input type="text" name="repo" placeholder="user/repo">
+        <button type="submit">Enable preview</button>
       </form>
     </template>
   </template>
