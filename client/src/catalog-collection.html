@@ -1,5 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
@@ -157,8 +156,6 @@
       _routeChanged: function(route, visible) {
         if (!visible || !this._loaded || route.prefix != '/collection')
           return;
-
-        Polymer.AppLayout.scroll(0);
 
         document.title = this._routeMatch.repo;
 
