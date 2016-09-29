@@ -162,6 +162,7 @@
 
       listeners: {
         error: '_handleError',
+        search: '_handleSearch'
       },
 
       observers: [
@@ -252,6 +253,11 @@
       _handleError: function(event) {
         this.page = 'error';
         this.$.error.error = event.detail;
+      },
+
+      _handleSearch: function(event) {
+        this._loadSearch();
+        this.$['search-focus'].query = event.detail.query;
       },
 
       _loadSearch: function() {
