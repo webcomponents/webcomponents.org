@@ -490,7 +490,7 @@
               <contributors-list contributors="[[data.contributors]]"></contributors-list>
             </div>
             <div id="info-graph">
-              <h3>Latest commit [[_timeSinceString(data.updated_at)]] ago</h3>
+              <h3>[[_lastUpdated(data.activity)]]</h3>
               <activity-graph activity="[[data.activity]]"></activity-graph>
             </div>
           </div>
@@ -852,17 +852,20 @@
         return results;
       },
 
-      _timeSinceString: function(time) {
-        var ms = Date.now() - Date.parse(time);
-        if (ms < 1000 * 60)
-          return "less than a minute";
-        if (ms < 1000 * 60 * 60)
-          return "less than an hour";
-        if (ms < 1000 * 60 * 60 * 24)
-          return Math.round(ms / 1000 / 60 / 60) + " hours";
-        if (ms < 1000 * 60 * 60 * 24 * 30)
-          return Math.round(ms / 1000 / 60 / 60 / 24) + " days";
-        return Math.round(ms / 1000 / 60 / 60 / 24 / 365 * 12) + " months";
+      _lastUpdated: function(activity) {
+        if (!activity)
+          return;
+        var i = 0;
+        for (i = 0; i < activity.length; i++) {
+          if (activity[activity.length - 1 - i])
+            break;
+        }
+        if (i == 0)
+          return 'Last updated recently';
+        if (i < 8)
+          return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
+        var months = Math.round(i / 4);
+        return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
       },
 
       _docLabel: function(element) {
