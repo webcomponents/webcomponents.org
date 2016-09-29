@@ -16,6 +16,7 @@
   "includeDependencies": [
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-    "third_party/octicons/sprite.octicons.svg"
+    "third_party/octicons/sprite.octicons.svg",
+    "robots.txt"
   ]
 }
