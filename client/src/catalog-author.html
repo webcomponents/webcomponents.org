@@ -38,7 +38,8 @@
       loading="{{loading}}"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
       handle-as="json"
-      last-response="{{author}}"></iron-ajax>
+      last-response="{{author}}"
+      on-error="_metaError"></iron-ajax>
 
     <iron-ajax
       id="collectionsAjax"
@@ -117,6 +118,10 @@
         this.$.metaAjax.generateRequest();
         this.$.collectionsAjax.generateRequest();
         this.$.elementsAjax.generateRequest();
+      },
+
+      _metaError: function(event, error) {
+        this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner})
       },
 
     });

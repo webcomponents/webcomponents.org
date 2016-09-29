@@ -183,12 +183,12 @@
 
       _metaError: function(event, error) {
         if (error.request.status == 404)
-          this.fire('error', {status: 404, message: 'Could not find collection'});
+          this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this._routeMatch.owner + '/' + this._routeMatch.repo});
       },
 
       _metaLoaded: function() {
         if (this.data.kind != 'collection') {
-          this.fire('error', {message: 'Not an collection, appears to be a ' + this.data.kind});
+          this.fire('error', {title: 'Invalid request', message: 'Not an collection, appears to be a ' + this.data.kind});
           return;
         }
       },

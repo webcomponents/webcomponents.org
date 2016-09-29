@@ -6,9 +6,13 @@
   <template>
     <style include="catalog-styles"></style>
 
-    <h3>Error [[status]]</h3>
-    <h1 class="page-title">[[message]]</h1>
+    <h3>Error [[error.status]]</h3>
+    <h1 class="page-title">[[error.title]]</h1>
+    <h2 class="page-subtitle">[[error.message]]</h2>
 
+    <template is="dom-if" if="[[error.githubPath]]">
+      <div>Would you like to view <a href="https://github.com/[[error.githubPath]]">[[error.githubPath]]</a> on Github instead?</div>
+    </template>
   </template>
   <script>
     Polymer({
@@ -16,9 +20,7 @@
       is: 'catalog-error',
 
       properties: {
-        status: Number,
-
-        message: String
+        error: Object,
       },
 
     });

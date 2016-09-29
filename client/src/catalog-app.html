@@ -250,15 +250,8 @@
       },
 
       _handleError: function(event) {
-        var status;
-        var message;
-        if (event.detail) {
-          status = event.detail.status;
-          message = event.detail.message;
-        }
         this.page = 'error';
-        this.$.error.status = status;
-        this.$.error.message = message;
+        this.$.error.error = event.detail;
       },
 
       _loadSearch: function() {
