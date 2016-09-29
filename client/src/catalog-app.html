@@ -176,6 +176,7 @@
       },
 
       _setLoading: function() {
+        Polymer.AppLayout.scroll(0);
         this.$.pages.classList.add('loading');
         this.$.progress.removeAttribute('hidden');
       },
