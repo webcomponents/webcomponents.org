@@ -209,6 +209,10 @@
 
       #info-tags {
         padding: 10px 16px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: calc(100% - 55px);
+        overflow: hidden;
       }
 
       #expand-collapse {
@@ -498,7 +502,7 @@
           <div id="info-footer">
             <div id="info-tags">
               <template is="dom-repeat" items="[[data.bower.keywords]]">
-                <a href="/search/bower_keywords:[[item]]">[[item]]</a>
+                <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
               </template>
             </div>
             <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
@@ -871,6 +875,10 @@
 
       _toggleExpand: function() {
         this._infoBodyCollapsed = !this._infoBodyCollapsed;
+      },
+
+      _searchTag: function(event) {
+        this.fire('search', { query: 'bower_keywords:' + event.target.tag});
       },
 
       _or: function(a, b) {

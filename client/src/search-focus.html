@@ -105,7 +105,7 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
-    <catalog-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened" on-iron-overlay-closed="_dialogClosed">
+    <catalog-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened">
       <input type="search" id="search-box" on-keyup="_onSearchKeyUp" placeholder="Search webcomponents.org"></input>
 
       <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
@@ -142,8 +142,14 @@
       properties: {
         baseUrls: Object,
 
+        query: String,
+
         _requestParams: Object
       },
+
+      observers: [
+        '_queryChanged(query)'
+      ],
 
       open: function(left, top) {
         var dialog = this.$.dialog;
@@ -165,7 +171,9 @@
         this.$['search-box'].focus();
       },
 
-      _dialogClosed: function() {
+      _queryChanged: function(query) {
+        this.$['search-box'].value = query;
+        this._onSearchKeyUp();
       },
 
       _onSearchKeyUp: function() {
