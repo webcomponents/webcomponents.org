@@ -22,6 +22,7 @@
 
       #header {
         flex: 1 0;
+        margin-right: 8px;
       }
 
       #description, #author {
@@ -52,6 +53,14 @@
         width: 16px;
         height: 16px;
         margin-right: 8px;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        .box {
+          margin: 0;
+          border-bottom: none;
+          height: 100px;
+        }
       }
     </style>
 

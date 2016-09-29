@@ -27,6 +27,17 @@
       #collections:last-child:nth-child(2n) {
         display: hidden;
       }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        collection-card {
+          margin: 8px 0;
+          max-width: 100%;
+        }
+
+        #spacer {
+          display: none;
+        }
+      }
     </style>
     <app-route
       route="[[route]]"
