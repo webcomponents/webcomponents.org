@@ -2,21 +2,6 @@
 
 const Ana = require('./ana_log');
 
-/**
- * @param {Object} obj - The object to strip properties from.
- * @param {Array.<string>} properties - An array of property names to remove.
- */
-function removeProperties(obj, properties) {
-  if (!properties || !obj) return;
-  if (typeof obj === 'object') {
-    for (var prop of properties) {
-      delete obj[prop];
-    }
-    Object.keys(obj).forEach(x => removeProperties(obj[x], properties));
-  } else if (Array.isArray(obj)) {
-    obj.forEach(val => removeProperties(val, properties));
-  }
-}
 
 /**
  * Service for communicating with the catalog servers.
@@ -43,8 +28,7 @@ class Catalog {
   postResponse(data, attributes) {
     return new Promise((resolve, reject) => {
       Ana.log("catalog/postResponse");
-      // omit ridiculously huge (or circular) fields from JSON stringify
-      removeProperties(data, ["scriptElement", "javascriptNode"]);
+
       if (Ana.isDebug()) {
         Ana.log("catalog/postResponse/debug attributes ", JSON.stringify(attributes));
         Ana.log("catalog/postResponse/debug data ", JSON.stringify(data, null, '\t'));

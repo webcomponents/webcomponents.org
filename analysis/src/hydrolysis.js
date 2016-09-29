@@ -5,6 +5,22 @@ const hyd = require('hydrolysis');
 const path = require('path');
 
 /**
+ * @param {Object} obj - The object to strip properties from.
+ * @param {Array.<string>} properties - An array of property names to remove.
+ */
+function removeProperties(obj, properties) {
+  if (!properties || !obj) return;
+  if (typeof obj === 'object') {
+    for (var prop of properties) {
+      delete obj[prop];
+    }
+    Object.keys(obj).forEach(x => removeProperties(obj[x], properties));
+  } else if (Array.isArray(obj)) {
+    obj.forEach(val => removeProperties(val, properties));
+  }
+}
+
+/**
  * Service for running Hydrolysis on the local machine.
  */
 class Hydrolysis {
@@ -45,13 +61,8 @@ class Hydrolysis {
 
               Ana.debug("Got elements and behaviors");
 
-              // Strip useless (bloated) parts from the elements.
-              elements.forEach(element => {
-                element.scriptElement = undefined;
-                element.properties && element.properties.forEach(property => {
-                  property.javascriptNode = undefined;
-                });
-              });
+              // Strip ridiculously huge (or circular) fields from elements.
+              removeProperties(elements, ["scriptElement", "javascriptNode"]);
               Ana.debug("Filtered elements");
 
               // Get the element names that were in the folder.

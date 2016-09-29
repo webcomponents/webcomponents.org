@@ -61,7 +61,7 @@ function processTasks() {
     // By definition, this is internal.
     if (!req.get('x-appengine-queuename')) {
       Ana.fail("main/processTasks/originator-not-appengine", JSON.stringify(attributes));
-      res.status(403).send();
+      res.sendStatus(403);
       return;
     }
 
@@ -69,31 +69,32 @@ function processTasks() {
     lockfile.lock(locky, {stale: 120000}, err => {
       if (err) {
         Ana.success("main/processTasks/busy/willRetry", JSON.stringify(attributes));
-        res.status(503).send();
+        res.sendStatus(503);
         return;
       }
 
       analysis.processNextTask(attributes).then(function() {
         Ana.success("main/processTasks");
         lockfile.unlockSync(locky, {});
-        res.status(200).send();
+        res.sendStatus(200);
       }, function(error) {
         lockfile.unlockSync(locky, {});
         if (error.retry) {
           Ana.fail("main/processTasks/willRetry");
-          res.status(500).send();
+          res.sendStatus(500);
         } else {
           Ana.fail("main/processTasks");
-          res.status(200).send();
           attributes.error = "true";
-          catalog.postResponse(error, attributes);
+          catalog.postResponse(error, attributes)
+              .then(() => res.sendStatus(200))
+              .catch(() => res.sendStatus(500));
         }
       });
     });
   });
 
   app.get('/_ah/health', (req, res) => {
-    res.status(200).send();
+    res.sendStatus(200);
   });
 
   app.listen(process.env.PORT || '8080', function() {
