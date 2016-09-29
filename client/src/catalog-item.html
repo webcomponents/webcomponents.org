@@ -56,7 +56,7 @@
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" on-click="_onClick">
+      <a href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]">
         <div class="box">
           <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]"   title="[[data.owner]]">
           <div id="header">
@@ -93,13 +93,6 @@
 
       _versionPath: function(version, latestVersion) {
         return version == latestVersion ? '' : '/' + version;
-      },
-
-      _onClick: function() {
-        if (!window.matchMedia("(max-width: 500px), (max-height: 500px)").matches)
-          return;
-        if (this.webkitRequestFullScreen)
-          this.webkitRequestFullScreen();
       },
 
       _dpr: function(value) {
