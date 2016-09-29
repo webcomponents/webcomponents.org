@@ -762,7 +762,7 @@
 
       _metaResponse: function() {
         if (this.data.status == 'error') {
-          this.fire('error', {message: this.data.error});
+          this.fire('error', {title: 'Unable to process element', message: this.data.error});
           return;
         }
 
@@ -772,7 +772,7 @@
         }
 
         if (this.data.kind != 'element') {
-          this.fire('error', {message: 'Not an element, appears to be a ' + this.data.kind});
+          this.fire('error', {title: 'Invalid request', message: 'Not an element, appears to be a ' + this.data.kind});
           return;
         }
 
@@ -781,7 +781,7 @@
 
       _metaError: function(event, error) {
         if (error.request.status != 404) {
-          this.fire('error', {status: error.request.status, message: 'Unable to load element'});
+          this.fire('error', {status: error.request.status, title: 'Unable to load element'});
           return;
         }
 
@@ -790,7 +790,7 @@
           return;
         }
 
-        this.fire('error', {status: 404, message: 'Could not find element'});
+        this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
       },
 
       _docsPending: function(loading, docs) {
