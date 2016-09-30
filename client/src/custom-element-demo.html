@@ -177,14 +177,11 @@
         }
 
         var snippet = parts[0].trim()
-            .split(/\n/g)
-            .map(function(line) {
-              return '    ' + line;
-            }).join('\n');
+            .replace(/^/mg, '    ');
         var code = parts[1].trim();
 
         var source = [
-          '<!--',
+          '<!---',
           '```',
           '<custom-element-demo>',
           '  <template>',
@@ -194,7 +191,7 @@
           '</custom-element-demo>',
           '```',
           '-->',
-          '```',
+          '```html',
           code,
           '```',
         ].join('\n');
