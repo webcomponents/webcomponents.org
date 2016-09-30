@@ -54,6 +54,7 @@ function processTasks() {
   var locky = new Date().toString() + ".lock";
 
   app.get('/task/analyze/:owner/:repo/:version/:sha*?', (req, res) => {
+    Ana.newBuffer();
     var attributes = {
       owner: req.params.owner,
       repo: req.params.repo,
@@ -92,6 +93,7 @@ function processTasks() {
         } else {
           Ana.fail("main/processTasks");
           attributes.error = "true";
+          error.consoleOutput = Ana.readBuffer();
           catalog.postResponse(error, attributes)
               .then(() => res.sendStatus(200))
               .catch(() => res.sendStatus(500));
