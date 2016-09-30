@@ -603,7 +603,7 @@
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -636,9 +636,11 @@
       properties: {
         visible: Boolean,
 
-        route: String,
+        route: Object,
 
-        baseUrls: Object
+        baseUrls: Object,
+
+        queryParams: Object,
       },
 
       observers: [
@@ -652,6 +654,10 @@
         this._infoBodyCollapsed = false;
         if (this.route)
           this._routeChanged(this.route.path, this.route.prefix, this.visible);
+      },
+
+      _shouldShowEditor: function(queryParams, prefix) {
+        return 'editing' in queryParams || prefix == '/preview';
       },
 
       _elements: function() {

@@ -52,10 +52,14 @@
     loadingFrame.contentDocument.write(event.data);
     loadingFrame.contentDocument.close();
 
-    loadingFrame.onload = iframeLoaded.bind(null);
+    if (loadingFrame.contentDocument.readyState == 'loading') {
+      loadingFrame.onload = iframeLoaded;
+    } else {
+      iframeLoaded();
+    }
   }
 
-  function iframeLoaded(source) {
+  function iframeLoaded() {
     var oldFrame = currentFrame;
     currentFrame = loadingFrame;
     loadingFrame = null;
