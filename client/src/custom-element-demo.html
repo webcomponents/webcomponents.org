@@ -169,7 +169,7 @@
       },
 
       _exportSource: function() {
-        var parts = this.code
+        var parts = this._fullSource()
             .replace(/.*START-HIDDEN-SECTION.*/, '')
             .split(/.*END-HIDDEN-SECTION.*/);
         if (parts.length == 1) {
