@@ -384,18 +384,14 @@ class RegisterPreview(webapp2.RequestHandler):
     access_token = access_token_response['access_token']
 
     # Validate access token against repo
-    repos_response = util.github_get('user/repos', access_token=access_token)
+    repos_response = util.github_get('repos/%s' % full_name, access_token=access_token)
     if repos_response.status_code != 200:
       self.response.set_status(401)
-      self.response.write('Cannot access user\'s repos')
+      self.response.write('Cannot access repo')
       return
 
-    repos = json.loads(repos_response.content)
-    has_access = False
-    for entry in repos:
-      if entry['full_name'] == full_name:
-        has_access = True
-        break
+    info = json.loads(repos_response.content)
+    has_access = info['permissions']['admin']
 
     if not has_access:
       self.response.set_status(401)
