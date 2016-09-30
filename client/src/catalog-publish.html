@@ -60,7 +60,7 @@
 
         <input type="text" name="repo" value="{{repo::input}}" placeholder="user/repo">
         <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
-        <button on-tap="onSubmit">Publish</button>
+        <button on-click="onSubmit">Publish</button>
       </div>
     </div>
 
@@ -83,6 +83,9 @@
           recaptcha: grecaptcha.getResponse()
         };
         this.$.ajax.generateRequest();
+
+        window.history.pushState({}, null, '/preview/' + this.repo);
+        this.fire('location-changed');
       },
 
     });
