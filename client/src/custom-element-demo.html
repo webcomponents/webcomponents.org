@@ -99,10 +99,15 @@
         <iframe id="frame"></iframe>
       </div>
       <div id="editorBar">
+        <button id="exportSource"title="Export Markdown" on-tap="_exportSource">
+          <svg viewBox="0 0 100 100">
+            <use xlink:href="/sprite.octicons.svg#markdown"></use>
+          </svg>
+        </button>
         <button id="expandSource" title="Expand source" on-tap="_expandSource">
-         <svg viewBox="0 0 100 100">
-           <use xlink:href="/sprite.octicons.svg#gist"></use>
-         </svg> 
+          <svg viewBox="0 0 100 100">
+            <use xlink:href="/sprite.octicons.svg#gist"></use>
+          </svg>
         </button>
         <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
           <input type="hidden" id="html" name="html">
@@ -133,16 +138,64 @@
         snippet: String,
 
         baseUrl: String,
+
+        example: Boolean,
       },
 
       observers: [
+        '_initExample(example, data)',
         '_setDemo(data, code)',
         '_setFrame(baseUrl, data)',
         '_sourceChanged(snippet, code)',
       ],
 
+      _initExample: function(example, data) {
+        if (!example)
+          return;
+        var endScript = '/script>';
+        var source = [
+          '<!-- START-HIDDEN-SECTION: Add imports and styling here. -->',
+          '<script src="../webcomponentsjs/webcomponents-lite.js"><' + endScript,
+          '<link rel="import" href="' + data.repo + '.html">',
+          '<!-- END-HIDDEN-SECTION: Add the visible part of the demo below. -->',
+          '<' + data.repo + '>...</' + data.repo + '>',
+        ].join('\n');
+        this.snippet = '';
+        this.code = source;
+      },
+
       _openAsFiddle: function() {
         this.$.html.value = '<base href="' + this.$.frame.src + '">\n' + this._fullSource();
+      },
+
+      _exportSource: function() {
+        var parts = this.code
+            .replace(/.*START-HIDDEN-SECTION.*/, '')
+            .split(/.*END-HIDDEN-SECTION.*/);
+        if (parts.length == 1) {
+          parts = ['', parts[0]];
+        }
+
+        var snippet = parts[0].trim()
+            .replace(/^/mg, '    ');
+        var code = parts[1].trim();
+
+        var source = [
+          '<!---',
+          '```',
+          '<custom-element-demo>',
+          '  <template>',
+          snippet,
+          '    <next-code-block></next-code-block>',
+          '  </template>',
+          '</custom-element-demo>',
+          '```',
+          '-->',
+          '```html',
+          code,
+          '```',
+        ].join('\n');
+        window.open('data:text/plain;base64,' + btoa(source));
       },
 
       _expandSource: function() {

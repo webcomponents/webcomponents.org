@@ -79,6 +79,13 @@
         color: var(--hue-6);
       }
 
+      #inline-demo-editor {
+        display: block;
+        padding-left: 8px;
+        border-left: 4px solid var(--theme-accent-1);
+        margin-bottom: 16px;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         article.markdown-body .highlight pre {
           margin-left: -16px;
@@ -87,7 +94,15 @@
         }
       }
     </style>
-    <article id="contents" class="markdown-body"></article>
+    <template is="dom-if" if="[[editing]]">
+      <div id="inline-demo-editor">
+        <h3>Inline demo editor</h3>
+        <p>Tip! Build an inline demo and export Markdown to include in README.md</p>
+        <custom-element-demo example data="[[data]]" base-url="[[baseUrls.userContent]]"></custom-element-demo>
+      </div>
+    </template>
+    <article id="contents" class="markdown-body">
+    </article>
 
   </template>
 
@@ -101,7 +116,9 @@
 
         readme: String,
 
-        baseUrls: Object
+        baseUrls: Object,
+
+        editing: Boolean,
       },
 
       observers: [
