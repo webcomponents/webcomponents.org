@@ -447,15 +447,19 @@ class PreviewEvent(webapp2.RequestHandler):
       self.response.write('Payload was not opened or synchronize, aborting.')
       return
 
-    owner = payload['repository']['owner']['login']
-    repo = payload['repository']['name']
-    full_name = payload['repository']['full_name']
+    # Original repo
+    origin_owner = payload['repository']['owner']['login']
+    origin_repo = payload['repository']['name']
+    origin_full_name = payload['repository']['full_name']
+    # Repo where the pull request came from.
+    pull_owner = payload['pull_request']['head']['repo']['owner']['login']
+    pull_repo = payload['pull_request']['head']['repo']['name']
 
-    key = ndb.Key(Library, Library.id(owner, repo))
+    key = ndb.Key(Library, Library.id(origin_owner, origin_repo))
     library = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
 
     if library is None:
-      logging.error('No library object found for %s', full_name)
+      logging.error('No library object found for %s', origin_full_name)
       self.response.set_status(400) # Bad request
       self.response.write('It does not seem like this repository was registered')
       return
@@ -464,12 +468,12 @@ class PreviewEvent(webapp2.RequestHandler):
     parsed_url = urlparse(self.request.url)
     params = {
         'state': 'success',
-        'target_url': '%s://%s/element/%s/%s/%s' % (parsed_url.scheme, parsed_url.netloc, owner, repo, sha),
+        'target_url': '%s://%s/preview/%s/%s/%s' % (parsed_url.scheme, parsed_url.netloc, pull_owner, pull_repo, sha),
         'description': 'Preview is ready!', # TODO: Don't lie
-        'context': 'custom-elements/preview'
+        'context': 'webcomponents/preview'
     }
 
-    response = util.github_post('repos', owner, repo, 'statuses/%s' % sha, params, library.github_access_token)
+    response = util.github_post('repos', origin_owner, origin_repo, 'statuses/%s' % sha, params, library.github_access_token)
     if response.status_code != 201:
       logging.error('Failed to set status on Github PR. Github returned %s:%s', response.status_code, response.content)
       self.response.set_status(500)
@@ -477,7 +481,7 @@ class PreviewEvent(webapp2.RequestHandler):
       return
 
     pull_request_url = payload['pull_request']['url']
-    util.new_task(util.ingest_preview_task(owner, repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
+    util.new_task(util.ingest_preview_task(pull_owner, pull_repo), params={'commit': sha, 'url': pull_request_url}, target='manage')
 
 def validate_captcha(handler):
   recaptcha = handler.request.get('recaptcha')

@@ -102,7 +102,14 @@ class PreviewEventHandler(ApiTestBase):
             'full_name': 'owner/repo'
         },
         'pull_request': {
-            'head': {'sha': 'sha'},
+            'head': {
+                'sha': 'sha',
+                'repo': {
+                    'owner': {'login': 'pull_owner'},
+                    'name': 'pull_repo',
+                    'full_name': 'pull_owner/pull_repo'
+                }
+            },
             'url': 'github_pr_url'
         }
     }
