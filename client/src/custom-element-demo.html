@@ -70,7 +70,8 @@
       #lazyEditor {
         display: none;
         padding: 20px;
-        background: #f7f7f7;
+        color: var(--syntax-fg);
+        background: var(--syntax-bg);
         font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
         line-height: 1.45;
         margin: 0;
@@ -98,14 +99,14 @@
         <iframe id="frame"></iframe>
       </div>
       <div id="editorBar">
-        <button id="expandSource" on-tap="_expandSource">
+        <button id="expandSource" title="Expand source" on-tap="_expandSource">
          <svg viewBox="0 0 100 100">
            <use xlink:href="/sprite.octicons.svg#gist"></use>
          </svg> 
         </button>
         <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
           <input type="hidden" id="html" name="html">
-          <button on-tap="_openAsFiddle">
+          <button title="Export to JSFiddle" on-tap="_openAsFiddle">
             <svg viewBox="0 0 100 100">
               <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
             </svg>
