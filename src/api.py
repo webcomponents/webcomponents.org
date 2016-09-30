@@ -363,7 +363,7 @@ class RegisterPreview(webapp2.RequestHandler):
     code = self.request.get('code')
     full_name = self.request.get('repo').lower()
     split = full_name.split('/')
-    if split.length != 2:
+    if len(split) != 2:
       self.response.set_status(400)
       self.response.write('Bad request, not repo')
       return
@@ -455,7 +455,7 @@ class PreviewEvent(webapp2.RequestHandler):
     repo = payload['repository']['name']
     full_name = payload['repository']['full_name']
 
-    key = ndb.Key(Library, Libary.id(owner, repo))
+    key = ndb.Key(Library, Library.id(owner, repo))
     library = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
 
     if library is None:
