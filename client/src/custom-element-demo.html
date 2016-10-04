@@ -152,6 +152,9 @@
   </template>
 
   <script>
+  (function() {
+    var lastId = 0;
+
     Polymer({
 
       is: 'custom-element-demo',
@@ -177,8 +180,12 @@
         '_sourceChanged(snippet, code)',
       ],
 
+      created: function() {
+        this._id = lastId++;
+      },
+
       _initExample: function(example, data) {
-        if (!example)
+        if (!example || !data)
           return;
         var endScript = '/script>';
         var source = [
@@ -267,6 +274,8 @@
       },
 
       _setFrame: function() {
+        if (!this.data)
+          return;
         this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
         this.$.frame.style.minHeight = (this.height + 'px') || 0;
         this.$.demoContainer.style.minHeight = (this.height + 'px') || 0;
@@ -283,12 +292,20 @@
 
       _setDemoInFrame: function() {
         this._frameReady = true;
-        this.$.frame.contentWindow.postMessage(this._fullSource(), '*');
+        var message = {
+          id: this._id,
+          source: this._fullSource()
+        };
+        this.$.frame.contentWindow.postMessage(message, '*');
       },
 
       _onDemoLoad: function(event) {
+        if (event.data.id != this._id)
+          return;
+
         this.$['demo-spinner'].removeAttribute('active');
         this.$['demo-spinner'].setAttribute('hidden', '');
+
         if (this._lastHeight && event.data.height <= this._lastHeight)
           return;
         this._lastHeight = event.data.height;
@@ -298,5 +315,6 @@
       }
 
     });
+  })();
   </script>
 </dom-module>

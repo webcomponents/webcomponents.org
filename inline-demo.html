@@ -29,11 +29,13 @@
   var currentFrame;
   var loadingFrame;
   var sourceWindow;
+  var demoId;
   window.addEventListener('resize', postHeight);
 
   function receiveMessage(event) {
     // Allow messaging back to original window.
     sourceWindow = event.source;
+    demoId = event.data.id;
 
     var container = document.getElementById('container');
     if (currentFrame)
@@ -49,7 +51,7 @@
 
     loadingFrame.contentDocument.open();
     loadingFrame.contentDocument.write('<!doctype html>');
-    loadingFrame.contentDocument.write(event.data);
+    loadingFrame.contentDocument.write(event.data.source);
     loadingFrame.contentDocument.close();
 
     if (loadingFrame.contentDocument.readyState == 'loading') {
@@ -79,6 +81,6 @@
 
   function postHeight() {
     if (sourceWindow && currentFrame && currentFrame.contentDocument)
-      sourceWindow.postMessage({height: currentFrame.contentDocument.documentElement.offsetHeight}, '*');
+      sourceWindow.postMessage({id: demoId, height: currentFrame.contentDocument.documentElement.offsetHeight}, '*');
   }
 </script>
