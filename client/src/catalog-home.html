@@ -1,17 +1,56 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="collection-card.html">
 
 <dom-module id="catalog-home">
   <template>
     <style include="catalog-styles"></style>
+    <style>
+      .featured-row {
+        display: flex;
+        height: 200px;
+      }
+
+      collection-card {
+        flex: 1 0 200px;
+      }
+
+      collection-card:not(:first-of-type) {
+        margin-left: 32px;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        .featured-row {
+          width: 100%;
+          overflow: scroll;
+        }
+
+        collection-card {
+          flex-basis: 300px;
+          margin-left: 8px !important;
+        }
+      }
+    </style>
+
+    <iron-ajax
+      id="_featuredCollections"
+      loading="{{_collectionsLoading}}"
+      url="[[baseUrls.api]]/api/search/kind:collection?limit=3&noscore"
+      handle-as="json"
+      last-response="{{_collections}}"></iron-ajax>
 
     <div id="container">
-      <h3>Home</h3>
-      <h1 class="page-title">Hey, you found us!</h1>
-
       <div class="main-content">
         This site is still a work in progress, but feel free to poke around.
+      </div>
+
+      <h1>Featured collections</h1>
+      <div class="featured-row loader sidescrim" loading="[[_collectionsLoading]]">
+        <template is="dom-repeat" items="[[_collections.results]]">
+          <collection-card data="[[item]]"></collection-card>
+        </template>
       </div>
     </div>
 
@@ -25,6 +64,11 @@
       properties: {
         baseUrls: Object,
       },
+
+      ready: function() {
+        this.$._featuredCollections.generateRequest();
+      },
+
     });
   </script>
 </dom-module>
