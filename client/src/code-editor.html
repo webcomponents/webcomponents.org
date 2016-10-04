@@ -31,6 +31,12 @@
         padding: 16px 0;
       }
 
+      @media (max-width: 500px), (max-height: 500px) {
+        .CodeMirror {
+          border-radius: 0;
+        }
+      }
+
       .CodeMirror-selected { background: var(--syntax-selection); }
       .CodeMirror-focused .CodeMirror-selected { background: var(--syntax-selection); }
       .CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: var(--syntax-corrected-selection); }
