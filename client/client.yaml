@@ -13,6 +13,12 @@ handlers:
 - url: /manifest.json
   upload: manifest.json
   static_files: manifest.json
+- url: /assets
+  static_dir: assets
+  secure: always
+- url: /favicon.ico
+  upload: assets/favicon.ico
+  static_files: assets/favicon.ico
   secure: always
 - url: /service-worker.js
   upload: service-worker.js
