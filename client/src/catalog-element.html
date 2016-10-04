@@ -280,17 +280,26 @@
         max-width: 185px;
       }
 
-      #sidebar-nav a:first-child {
+      #sidebar-nav > a:first-child {
         font-size: 18px;
         line-height: 21px;
         border-top: none;
       }
 
-      .sidebar a.demo-link {
+      #sidebar-nav[collapse] .element-demos {
+        overflow: hidden;
+        display: none;
+      }
+
+      #sidebar-nav[collapse] a[active] + .element-demos {
+        display: block;
+      }
+
+      #sidebar-nav a.demo-link {
         background: hsl(0, 0%, 98%);
       }
 
-      .sidebar a.demo-link:after {
+      #sidebar-nav a.demo-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -541,23 +550,27 @@
 
           <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" loading$="[[_docsPending(_docsLoading, docs)]]">
+          <div id="sidebar-nav" class="box loader" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
               <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
 
-              <template is="dom-repeat" items=[[element.demos]] as="demo">
-                <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
-              </template>
+              <div class="element-demos">
+                <template is="dom-repeat" items=[[element.demos]] as="demo">
+                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                </template>
+              </div>
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
               <a href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
 
-              <template is="dom-repeat" items=[[behavior.demos]] as="demo">
-                <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
-              </template>
+              <div class="element-demos">
+                <template is="dom-repeat" items=[[behavior.demos]] as="demo">
+                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                </template>
+              </div>
             </template>
           </div>
 
@@ -915,6 +928,10 @@
 
       _s: function(n) {
         return n == 1 ? '' : 's';
+      },
+
+      _shouldCollapseNav: function(elements) {
+        return elements && elements.length > 5;
       },
 
     });
