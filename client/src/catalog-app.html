@@ -9,10 +9,12 @@
 
 <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro" rel="stylesheet">
 
+<link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
 
 <dom-module id="catalog-app">
   <template>
+    <style include="catalog-styles"></style>
     <style>
       :host {
         display: block;
@@ -21,7 +23,7 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
-        padding-top: 80px;
+        padding-top: 100px;
         --theme-accent-1: #6dc38f;
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
@@ -62,7 +64,7 @@
 
       #progress {
         position: absolute;
-        top: 64px;
+        top: 0px;
         left: 0px;
         width: 100vw;
         --paper-progress-active-color: var(--theme-blue);
@@ -74,13 +76,34 @@
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
-        background-color: var(--theme-accent-1);
-        color: white;
+        /*background-color: var(--theme-accent-1);*/
+        /*color: white;*/
+        height: 100px;
+      }
+
+      #toolbar-header {
+        color: inherit;
+        margin: 0 16px;
+      }
+
+      #toolbar-header h3 {
+        margin: 0;
+      }
+
+      #toolbar-header h2 {
+        font-size: 18px;
+        margin: 0;
       }
 
       app-toolbar {
+        height: 100px;
         max-width: 980px;
         margin: 0 auto;
+      }
+
+      app-toolbar img {
+        width: 64px;
+        height: 64px;
       }
 
       #search-box {
@@ -125,8 +148,13 @@
 
     <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
 
-    <app-header role="navigation" reveals>
+    <app-header role="navigation">
       <app-toolbar id="toolbar">
+        <a href="/"><img src="/assets/logo.svg"></a>
+        <a href="/" id="toolbar-header">
+          <h3>webcomponents.org</h3>
+          <h2>A place to discuss & evolve web components</h2>
+        </a>
         <input id="search-box" placeholder="Search webcomponents.org" on-click="_loadSearch"></input>
       </app-toolbar>
     </app-header>
