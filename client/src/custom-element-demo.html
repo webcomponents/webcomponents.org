@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
 <dom-module id="custom-element-demo">
   <!-- TODO: Support for external stylesheets is deprecated in favor of style modules. -->
@@ -7,34 +8,52 @@
     <style>
       #demoContainer {
         width: 100%;
-        height: 0px;
         overflow: hidden;
         border: 1px solid #ededed;
         border-radius: 4px 4px 0 0;
         border-bottom: none;
-        opacity: 0;
         box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-height: 550px;
       }
 
-      #demoContainer.reveal {
-        animation: reveal 300ms cubic-bezier(0, 0, 0.2, 1);
-        opacity: 1;
-        transition: opacity 300ms 100ms cubic-bezier(0, 0, 0.2, 1);
-      }
-
-      @keyframes reveal {
-        from {
-          height: 0px;
-        }
+      #demo-spinner {
+        margin: 16px;
       }
 
       #frame {
         border: none;
         width: 100%;
         height: 0px;
+        opacity: 0;
+        display: none;
+        max-height: 550px;
+      }
+
+      #demoContainer.reveal {
+        display: block;
+        animation: reveal 300ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      #demoContainer.reveal #frame {
+        display: block;
+        opacity: 1;
+        transition: opacity 300ms 100ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      @keyframes reveal {
+        from {
+          height: 61px; /*Size with just spinner*/
+        }
       }
 
       #container {
+        position: relative;
+      }
+
+      #editorSection {
         position: relative;
       }
 
@@ -48,7 +67,7 @@
         justify-content: flex-end;
         position: absolute;
         right: 2px;
-        z-index: 1;
+        top: 0;
       }
 
       #editorBar button {
@@ -97,29 +116,34 @@
     <div id="container">
       <div id="demoContainer">
         <iframe id="frame"></iframe>
+        <paper-spinner-lite id="demo-spinner" active></paper-spinner-lite>
       </div>
-      <div id="editorBar">
-        <button id="exportSource"title="Export Markdown" on-tap="_exportSource">
-          <svg viewBox="0 0 100 100">
-            <use xlink:href="/sprite.octicons.svg#markdown"></use>
-          </svg>
-        </button>
-        <button id="expandSource" title="Expand source" on-tap="_expandSource">
-          <svg viewBox="0 0 100 100">
-            <use xlink:href="/sprite.octicons.svg#gist"></use>
-          </svg>
-        </button>
-        <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
-          <input type="hidden" id="html" name="html">
-          <button title="Export to JSFiddle" on-tap="_openAsFiddle">
+      <div id="editorSection">
+        <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
+        <pre id="lazyEditor"></pre>
+        <div id="editorBar">
+          <button id="exportSource" title="Export Markdown" on-tap="_exportSource">
+            <template is="dom-if" if="[[example]]">
+              <svg viewBox="0 0 100 100">
+                <use xlink:href="/sprite.octicons.svg#markdown"></use>
+              </svg>
+            </template>
+          </button>
+          <button id="expandSource" title="Expand source" on-tap="_expandSource">
             <svg viewBox="0 0 100 100">
-              <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
+              <use xlink:href="/sprite.octicons.svg#gist"></use>
             </svg>
           </button>
-        </form>
+          <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
+            <input type="hidden" id="html" name="html">
+            <button title="Export to JSFiddle" on-tap="_openAsFiddle">
+              <svg viewBox="0 0 100 100">
+                <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
+              </svg>
+            </button>
+          </form>
+        </div>
       </div>
-      <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
-      <pre id="lazyEditor"></pre>
     </div>
   </template>
 
@@ -259,6 +283,8 @@
       },
 
       _onDemoLoad: function(event) {
+        this.$['demo-spinner'].removeAttribute('active');
+        this.$['demo-spinner'].setAttribute('hidden', '');
         if (this._lastHeight && event.data.height <= this._lastHeight)
           return;
         this._lastHeight = event.data.height;
