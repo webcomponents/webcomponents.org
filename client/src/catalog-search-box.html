@@ -2,24 +2,10 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
-<link rel="import" href="catalog-dialog.html">
 
-<dom-module id="search-focus">
+<dom-module id="catalog-search-box">
   <template>
     <style>
-      catalog-dialog {
-        border-radius: 4px;
-        position: fixed;
-        margin: 0;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        font-family: var(--theme-font);
-        font-size: 16px;
-        line-height: 24px;
-        overflow: overlay;
-      }
-
       a {
         color: inherit;
         text-decoration: none;
@@ -72,13 +58,15 @@
         border-top: 1px solid #ededed;
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
-        catalog-dialog {
-          width: 100%;
-          border-radius: 0;
-          height: 100%;
-        }
+      :host.expanded {
+        box-shadow: 0px 0px 25px #333333;
+      }
 
+      :host:not(.expanded) > iron-scroll-threshold {
+        display: none;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
         #search-box, #collections {
           width: 100%;
         }
@@ -105,78 +93,103 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
-    <catalog-dialog id="dialog" with-backdrop on-iron-overlay-opened="_dialogOpened">
-      <input type="search" id="search-box" on-keyup="_onSearchKeyUp" placeholder="Search webcomponents.org"></input>
+    <input type="search" id="search-box" on-input="_triggerSearch" placeholder="Search webcomponents.org"></input>
 
-      <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
-        <div id="collections">
-          <template is="dom-repeat" items="[[_collections.results]]">
-            <a href="/collection/[[item.owner]]/[[item.repo]]" on-click="close">
-              <div class="collection">
-                <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
-                <div class="description">[[item.description]]</div>
-              </div>
-            </a>
-          </template>
-        </div>
-        <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
-          <template>
-            <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]" on-click="close">
-              <div class="element">
-                <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
-                <div class="description">[[item.description]]</div>
-              </div>
-            </a>
-          </template>
-        </iron-list>
-      </iron-scroll-threshold>
-    </catalog-dialog>
+    <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
+      <div id="collections">
+        <template is="dom-repeat" items="[[_collections.results]]">
+          <a href="/collection/[[item.owner]]/[[item.repo]]" on-click="_close">
+            <div class="collection">
+              <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
+              <div class="description">[[item.description]]</div>
+            </div>
+          </a>
+        </template>
+      </div>
+      <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold">
+        <template>
+          <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]" on-click="_close">
+            <div class="element">
+              <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
+              <div class="description">[[item.description]]</div>
+            </div>
+          </a>
+        </template>
+      </iron-list>
+    </iron-scroll-threshold>
 
   </template>
 
   <script>
     Polymer({
 
-      is: 'search-focus',
+      is: 'catalog-search-box',
 
       properties: {
         baseUrls: Object,
 
         query: String,
 
-        _requestParams: Object
+        _requestParams: Object,
       },
 
       observers: [
         '_queryChanged(query)'
       ],
 
-      open: function(left, top) {
-        var dialog = this.$.dialog;
-        dialog.open();
+      ready: function() {
+        var focused = false;
+        var focusListener = function(e) {
+          if (focused) {
+            return;
+          }
+          focused = true;
+          this._onFocus();
+        }.bind(this)
+        var blurListener = function(e) {
+          var target = e.target;
+          focused = false;
+          this.async(function() {
+            if (!focused)
+              this._onBlur();
+          }, 1);
+        }.bind(this);
 
-        this.$['search-box'].select();
-
-        if (window.matchMedia("(max-width: 500px), (max-height: 500px)").matches)
-          return;
-        dialog.style.top = top + 'px';
-        dialog.style.left = left + 'px';
+        this.addEventListener('focus', focusListener, true);
+        this.addEventListener('blur', blurListener, true);
       },
 
-      close: function() {
-        this.$.dialog.close();
+      _close: function() {
+        this._onBlur();
       },
 
-      _dialogOpened: function() {
-        this.$['search-box'].focus();
+      _onFocus: function() {
+        this._focused = true;
+        this.classList.add('active');
+        this._updateExpandedState();
+      },
+
+      _onBlur: function() {
+        this._focused = false;
+        this.classList.remove('active');
+        this._updateExpandedState();
+      },
+
+      _updateExpandedState: function() {
+        if (this._focused && this._results && this._results.length > 0) {
+          this.classList.add('expanded');
+        } else {
+          this.classList.remove('expanded');
+        }
       },
 
       _queryChanged: function(query) {
+        this.$['search-box'].focus();
         this.$['search-box'].value = query;
-        this._onSearchKeyUp();
+        this._triggerSearch();
       },
 
-      _onSearchKeyUp: function() {
+      _triggerSearch: function() {
         var query = this.$['search-box'].value;
         if (query == this._query)
           return;
@@ -187,10 +200,7 @@
         }
         this._query = query;
         this._results = [];
-        this._generateSearch();
-      },
-
-      _generateSearch: function() {
+        this._updateExpandedState();
         this.debounce('searchAPI', function() {
           this.$.elementAjax.generateRequest();
           this.$.collectionAjax.generateRequest();
@@ -217,6 +227,7 @@
 
         var scrollTop = this.$.threshold.scrollTop;
         this._results = this._results.concat(response.results);
+        this._updateExpandedState();
         Polymer.dom.flush();
         this.$.threshold.scroll(0, scrollTop);
         this.$.threshold.clearTriggers();
@@ -232,3 +243,4 @@
     });
   </script>
 </dom-module>
+

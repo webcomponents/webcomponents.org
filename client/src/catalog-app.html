@@ -11,6 +11,7 @@
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
+<link rel="import" href="catalog-search-box.html">
 
 <dom-module id="catalog-app">
   <template>
@@ -106,14 +107,18 @@
         height: 64px;
       }
 
-      #search-box {
-        box-sizing: border-box;
+      #search-container {
         width: 500px;
         height: 40px;
+        display: block;
+        position: relative;
+      }
+
+      #search-box {
         font-family: var(--theme-font);
         font-size: 16px;
-        padding: 12px;
-        border: 1px solid #ededed;
+        position: absolute;
+        background: white;
         border-radius: 4px;
       }
 
@@ -132,6 +137,18 @@
         100% { opacity: 1; }
       }
 
+      @media (max-width: 500px), (max-height: 500px) {
+        #search-box.active {
+          position: fixed;
+          width: 100%;
+          left: 0;
+          top: 0;
+          border-radius: 0;
+          height: 100vh;
+          background: white;
+        }
+      }
+
     </style>
 
     <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
@@ -146,7 +163,6 @@
 
     <lazy-block id="block"></lazy-block>
 
-    <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
 
     <app-header role="navigation">
       <app-toolbar id="toolbar">
@@ -155,7 +171,9 @@
           <h3>webcomponents.org</h3>
           <h2>A place to discuss & evolve web components</h2>
         </a>
-        <input id="search-box" placeholder="Search webcomponents.org" on-click="_loadSearch"></input>
+        <div id="search-container">
+          <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
+        </div>
       </app-toolbar>
     </app-header>
 
@@ -190,7 +208,7 @@
 
       listeners: {
         error: '_handleError',
-        search: '_handleSearch'
+        triggerSearch: '_handleSearch'
       },
 
       observers: [
@@ -285,15 +303,8 @@
       },
 
       _handleSearch: function(event) {
-        this._loadSearch();
-        this.$['search-focus'].query = event.detail.query;
-      },
-
-      _loadSearch: function() {
-        this.importHref(this.resolveUrl('search-focus.html'), function() {
-          var offsetLeft = this.$['search-box'].offsetLeft + this.$.toolbar.offsetLeft;
-          this.$['search-focus'].open(offsetLeft, this.$['search-box'].offsetTop);
-        });
+    console.log(event);
+        this.$['search-box'].query = event.detail.query;
       },
 
     });
