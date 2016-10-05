@@ -10,8 +10,7 @@
     "src/catalog-preview.html",
     "src/catalog-publish.html",
     "src/catalog-home.html",
-    "src/lazy-resources.html",
-    "src/search-focus.html"
+    "src/lazy-resources.html"
   ],
   "includeDependencies": [
     "assets/**/*",
