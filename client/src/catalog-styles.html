@@ -20,6 +20,12 @@
         color: hsl(0, 0%, 18%);
       }
 
+      h2 {
+        font-size: 18px;
+        margin-top: 0;
+        color: black;
+      }
+
       h1.page-title {
         display: inline-block;
         font-size: 38px;
@@ -51,6 +57,14 @@
       .body {
         width: 100%;
         display: flex;
+      }
+
+      pre {
+        font-family: var(--monospace-font);
+        background: var(--syntax-bg);
+        color: var(--syntax-fg);
+        padding: 16px;
+        border-radius: 3px;
       }
 
       code {
@@ -88,6 +102,7 @@
         width: 100%;
         border-radius: 4px;
         overflow: hidden;
+        background: white;
       }
 
       .avatar {
@@ -142,6 +157,7 @@
         color: white;
         font-size: 14px;
         font-weight: bold;
+        cursor: pointer;
       }
 
       input[type=text] {

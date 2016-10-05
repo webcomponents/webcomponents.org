@@ -22,7 +22,8 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
-        padding-top: 100px;
+        padding-top: 80px;
+
         --theme-accent-1: #6dc38f;
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
@@ -61,35 +62,44 @@
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
+      :host[page=home] {
+        background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
+      }
+
       #pages, #footer-content {
         max-width: 980px;
         margin: 0 auto;
       }
 
       #pages {
-        min-height: calc(100vh - 100px);
+        margin-top: 16px;
+        min-height: calc(100vh - 80px - 16px);
       }
 
       #progress {
         position: absolute;
-        top: 0px;
+        top: 80px;
         left: 0px;
         width: 100vw;
         --paper-progress-active-color: var(--theme-blue);
         --paper-progress-indeterminate-cycle-duration: 3s;
         --paper-progress-transition-transition-delay: 250ms;
-        height: 5px;
+        height: 2px;
       }
 
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
-        height: 100px;
+        height: 80px;
+        background: white;
+        /*--app-header-background-front-layer: red;*/
       }
 
       #toolbar-header {
         color: inherit;
         margin: 0 16px;
+        display: flex;
+        align-items: center;
       }
 
       #toolbar-header h3 {
@@ -102,14 +112,16 @@
       }
 
       app-toolbar {
-        height: 100px;
-        max-width: 980px;
-        margin: 0 auto;
+        height: 80px;
+        padding: 0 32px;
+        justify-content: space-between;
+        border-bottom: 1px solid #ededed;
       }
 
-      app-toolbar img {
+      #toolbar-header img {
         width: 64px;
         height: 64px;
+        margin-right: 16px;
       }
 
       #search-container {
@@ -186,7 +198,7 @@
       }
 
       #footer-content a:not([href]) {
-        color: hsl(0, 0%, 60%);
+        color: hsl(0, 0%, 70%);
       }
     </style>
 
@@ -205,9 +217,8 @@
 
     <app-header role="navigation">
       <app-toolbar id="toolbar">
-        <a href="/"><img src="/assets/logo.svg"></a>
         <a href="/" id="toolbar-header">
-          <h3>webcomponents.org</h3>
+          <img src="/assets/logo.svg">
           <h2>A place to discuss & evolve web components</h2>
         </a>
         <div id="search-container">
@@ -249,6 +260,7 @@
         <section>
           <h2>Element catalog</h2>
           <a href="/publish">Publish an element</a>
+          <a href="/publish-collection">Publish a collection</a>
           <a href="/preview">Preview an element</a>
           <a href="/preview-integration">Setup Github integration</a>
         </section>
