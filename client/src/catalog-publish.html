@@ -29,7 +29,7 @@
         <h2>Requirement</h2>
         <p>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</p>
 				
-				<h2>Tag a GitHub release version</h2>
+        <h2>Tag a GitHub release version</h2>
         <p>Push your work to a GitHub repo and tag it with a release number so we can find it.</p>
 
         <h2>Add an inline demo</h2>
@@ -37,28 +37,26 @@
 				
         <p>To create an inline demo, you need to modify your README.md. Wrapping your code in <code>&lt;custom-element-demo&gt;</code> and a <code>&lt;template&gt;</code> tag will render this demo. You can hide this extra code, including any setup code, like importing dependencies in a comment. This keeps your demo snippet concise.<p>
 
-				<p>For the following raw markdown:</p>
+        <p>For the following raw markdown:</p>
+   
+<pre>&lt;!--
+```
+&lt;custom-element-demo&gt;
+  &lt;template&gt;
+      &lt;link&nbsp;rel=&rdquo;import&rdquo;&nbsp;href=&rdquo;my-element.html&rdquo;&gt;
+    &lt;next-code-block&gt;&lt;/next-code-block&gt;
+  &lt;/template&gt;    
+&lt;/custom-element-demo&gt;
+```
+--&gt;
+```
+&lt;my-element&gt;&lt;/my-element&gt;
+```</pre>
 
-				<code>
-					&lt;!--
-					<br>```
-					<br>&lt;custom-element-demo&gt;
-					<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;template&gt;
-					<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;link&nbsp;rel=&rdquo;import&rdquo;&nbsp;href=&rdquo;my-element.html&rdquo;&gt;
-					<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;next-code-block&gt;&lt;/next-code-block&gt;
-					<br>&lt;/custom-element-demo&gt;
-					<br>```
-					<br>--&gt;
-					<br>```
-					<br>&lt;my-element&gt;&lt;/my-element&gt;
-					<br>```
-				</code>
-				
-				<p>The Github rendered markdown is:</p>	
-				
-				<code>
-					&lt;my-element&gt;&lt;/my-element&gt;
-				</code>
+        <p>The Github rendered markdown is:</p>	
+        <pre>
+          &lt;my-element&gt;&lt;/my-element&gt;
+        </pre>
 	
         <p>Best practices:</p>
         <ul>
