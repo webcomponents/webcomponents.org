@@ -1,0 +1,75 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<script src="https://www.google.com/recaptcha/api.js"></script>
+
+<dom-module id="catalog-publish-collection">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <style>
+      .g-recaptcha {
+        margin: 16px 0;
+      }
+    </style>
+
+    <iron-ajax
+      id="ajax"
+      method="POST"
+      url="[[baseUrls.api]]/api/publish/[[repo]]"></iron-ajax>
+
+    <div id="container">
+      <h3>Publish</h3>
+      <h1 class="page-title">Publish your collection</h1>
+
+      <div class="main-content">
+        <p>Collections allow you to curate or organize elements for any grouping you can imagine. They could be elements you have reviewed, organised by function or organised by style.</p>
+
+        <p>Creating a collection is easy. Simple create an empty GitHub repository with bower dependencies to all the elements or collections you want to include.</p>
+        <ol>
+          <li>Add the keyword “element-collection” to your bower.json</li>
+          <li>Include some brief information about your collection in your README.md</li>
+          <li>Ensure you have an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
+          <li>(optional) Add an inline demo!</li>
+        </ol>
+
+        <h2>How do I update my collection?</h2>
+        <p>Every commit to the <code>master</code> branch on your collection will automatically update within 10-15 minutes.</p>
+
+        <h2>Ready to publish?</h2>
+
+        <input type="text" name="repo" value="{{repo::input}}" placeholder="user/repo">
+        <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+        <button on-click="onSubmit">Publish</button>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-publish-collection',
+
+      properties: {
+        baseUrls: Object,
+      },
+
+      onSubmit: function() {
+        if (!grecaptcha || !grecaptcha.getResponse())
+          return;
+
+        this.$.ajax.params = {
+          recaptcha: grecaptcha.getResponse()
+        };
+        this.$.ajax.generateRequest();
+
+        window.history.pushState({}, null, '/preview/' + this.repo);
+        this.fire('location-changed');
+      },
+
+    });
+  </script>
+</dom-module>
