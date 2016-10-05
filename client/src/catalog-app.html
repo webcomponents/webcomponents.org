@@ -19,8 +19,6 @@
     <style>
       :host {
         display: block;
-        max-width: 980px;
-        margin: 0 auto;
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
@@ -63,6 +61,15 @@
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
+      #pages, #footer-content {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      #pages {
+        min-height: calc(100vh - 100px);
+      }
+
       #progress {
         position: absolute;
         top: 0px;
@@ -77,8 +84,6 @@
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
-        /*background-color: var(--theme-accent-1);*/
-        /*color: white;*/
         height: 100px;
       }
 
@@ -149,6 +154,40 @@
         }
       }
 
+      /* Footer */
+      footer {
+        background: #394550;
+        min-height: 400px;
+        padding: 0 32px;
+      }
+
+      #footer-content {
+        display: flex;
+        color: white;
+        font-weight: bold;
+        padding: 32px 0;
+        flex-wrap: wrap;
+      }
+
+      #footer-content section {
+        display: flex;
+        flex: 1 1 220px;
+        flex-direction: column;
+      }
+
+      #footer-content h2 {
+        color: #a7adb2;
+        font-weight: normal;
+      }
+
+      #footer-content a {
+        color: inherit;
+        margin: 4px 0;
+      }
+
+      #footer-content a:not([href]) {
+        color: hsl(0, 0%, 60%);
+      }
     </style>
 
     <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
@@ -189,6 +228,35 @@
       <catalog-publish name="publish" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
+
+    <footer>
+      <div id="footer-content">
+        <section>
+          <h2>Resources</h2>
+          <a>Introduction</a>
+          <a>Polyfills</a>
+          <a>Tools</a>
+          <a>Specifications</a>
+          <a>Browser compatability</a>
+          <a>Libraries</a>
+        </section>
+        <section>
+          <h2>Community</h2>
+          <a>News & articles</a>
+          <a href="https://gitter.im/webcomponents/community" target="_blank">Chat on Gitter</a>
+        </section>
+        <section>
+          <h2>Element catalog</h2>
+          <a href="/publish">Publish an element</a>
+          <a href="/preview">Preview an element</a>
+          <a href="/preview-integration">Setup Github integration</a>
+        </section>
+        <section>
+          <h2>About</h2>
+          <a>About webcomponents.org</a>
+        </section>
+      </div>
+    </footer>
 
   </template>
 
