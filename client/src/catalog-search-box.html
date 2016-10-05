@@ -11,7 +11,7 @@
         text-decoration: none;
       }
 
-      #search-box {
+      #search-input {
         box-sizing: border-box;
         width: 500px;
         height: 40px;
@@ -69,7 +69,7 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        #search-box, #collections {
+        #search-input, #collections {
           width: 100%;
         }
 
@@ -95,7 +95,7 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
-    <input type="search" id="search-box" on-input="_triggerSearch" placeholder="Search webcomponents.org"></input>
+    <input type="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org"></input>
 
     <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
       <div id="collections">
@@ -185,13 +185,13 @@
       },
 
       _queryChanged: function(query) {
-        this.$['search-box'].focus();
-        this.$['search-box'].value = query;
+        this.$['search-input'].focus();
+        this.$['search-input'].value = query;
         this._triggerSearch();
       },
 
       _triggerSearch: function() {
-        var query = this.$['search-box'].value;
+        var query = this.$['search-input'].value;
         if (query == this._query)
           return;
 
@@ -211,7 +211,7 @@
       },
 
       _handleRequest: function(event) {
-        var query = this.$['search-box'].value;
+        var query = this.$['search-input'].value;
         if (!query)
           event.detail.request.abort();
       },

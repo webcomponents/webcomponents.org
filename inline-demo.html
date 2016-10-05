@@ -47,6 +47,7 @@
     }
 
     loadingFrame = document.createElement('iframe');
+    loadingFrame.setAttribute('role', 'none');
     container.appendChild(loadingFrame);
 
     loadingFrame.contentDocument.open();
