@@ -12,6 +12,7 @@
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
 <link rel="import" href="contributors-list.html">
+<link rel="import" href="collection-card.html">
 <link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
 
@@ -307,30 +308,12 @@
         color: #c2c2c2;
       }
 
-      .collection .header {
-        padding: 16px;
-        height: 160px;
+      collection-card {
+        display: block;
       }
 
-      .collection .header h1 {
-        margin: 0 0 16px;
-      }
-
-      .collection .header div {
-        color: hsl(0, 0%, 50%);
-        overflow: hidden;
-        max-height: 90px;
-      }
-
-      .collection .footer {
-        border-top: 1px solid #ededed;
-        padding: 16px;
-        display: flex;
-        align-items: center;
-      }
-
-      .collection .footer .avatar {
-        margin-right: 10px;
+      collection-card:not(first-of-type) {
+        margin-top: 16px;
       }
 
       /* Demo frame */
@@ -471,25 +454,29 @@
             </div>
             <div id="info-stats">
               <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                <svg viewBox="0 0 100 100" class="octicon octicon-star" role="img">
+                 <title>Github stars</title>
                  <use xlink:href="/sprite.octicons.svg#star"></use>
                 </svg>
-                [[data.stars]]
+                <span>[[data.stars]]</span>
               </div>
               <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked" role="img">
+                 <title>Github forks</title>
                  <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
                 </svg>
                 [[data.forks]]
               </div>
               <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+                <svg viewBox="0 0 100 100" class="octicon octicon-eye" role="img">
+                 <title>Github followers</title>
                  <use xlink:href="/sprite.octicons.svg#eye"></use>
                 </svg>
                 [[data.subscribers]]
               </div>
               <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened" role="img">
+                 <title>Github issues open</title>
                  <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
                 </svg>
                 [[data.open_issues]]
@@ -537,7 +524,7 @@
           <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">
             <div id="info-view-github" class="box">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-              <div>View on Github</div>
+              <div>View on GitHub</div>
             </div>
           </a>
         </div>
@@ -579,18 +566,7 @@
               <h3>[[collections.length]] collection[[_s(collections.length)]]</h3>
 
               <template is="dom-repeat" items="[[collections]]">
-                <div class="box collection">
-                  <a href="/collection/[[item.owner]]/[[item.repo]]">
-                    <div class="header">
-                      <h1>[[item.repo]]</h1>
-                      <div>[[item.description]]</div>
-                    </div>
-                  </a>
-                  <div class="footer">
-                    <img class="avatar" src="[[item.avatar_url]]&s=[[_dpr(30)]]" role="presentation">
-                    <span>by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
-                  </div>
-                </div>
+                <collection-card data="[[item]]"></collection-card>
               </template>
             </template>
           </div>
