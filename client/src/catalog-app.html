@@ -267,7 +267,7 @@
         <section>
           <h2>About</h2>
           <a>About webcomponents.org</a>
-          <a href="/feedback" on-tap="_onFeedback">Feedback</a>
+          <a href="#feedback" on-tap="_onFeedback">Feedback</a>
         </section>
       </div>
     </footer>
@@ -390,7 +390,7 @@
 
       _onFeedback: function(event) {
         var origin = escape(window.location.href);
-        event.target.href="https://github.com/webcomponents/beta/issues/new?body=[Origin page](" + origin + ")&labels=Feedback";
+        event.target.href = "https://github.com/webcomponents/beta/issues/new?body=[Origin page](" + origin + ")&labels=Feedback";
       },
 
     });
