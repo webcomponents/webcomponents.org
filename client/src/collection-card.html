@@ -66,7 +66,7 @@
     <template is="dom-if" if="[[data]]">
       <div class="box">
         <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]">
-          <h1>[[data.repo]]</h1>
+          <h2>[[data.repo]]</h2>
           <div id="description">[[data.description]]</div>
         </a>
         <a id="footer" href="/author/[[data.owner]]">
