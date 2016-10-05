@@ -453,30 +453,26 @@
               <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
             </div>
             <div id="info-stats">
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-star" role="img">
-                 <title>Github stars</title>
+              <div aria-label$="[[data.stars]] users starred this repository">
+                <svg viewBox="0 0 100 100" class="octicon octicon-star">
                  <use xlink:href="/sprite.octicons.svg#star"></use>
                 </svg>
-                <span>[[data.stars]]</span>
+                [[data.stars]]
               </div>
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked" role="img">
-                 <title>Github forks</title>
+              <div aria-label$="[[data.forks]] users forked this repository">
+                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
                  <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
                 </svg>
                 [[data.forks]]
               </div>
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-eye" role="img">
-                 <title>Github followers</title>
+              <div aria-label$="[[data.subscribers]] users are watching this repository">
+                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
                  <use xlink:href="/sprite.octicons.svg#eye"></use>
                 </svg>
                 [[data.subscribers]]
               </div>
-              <div>
-                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened" role="img">
-                 <title>Github issues open</title>
+              <div aria-label$="[[data.open_issues]] open issues in this repository">
+                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
                  <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
                 </svg>
                 [[data.open_issues]]
