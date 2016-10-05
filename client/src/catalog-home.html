@@ -90,7 +90,7 @@
 
       <section>
         <h1>Featured collections</h1>
-        <div class="featured-row loader" loading="[[_collectionsLoading]]">
+        <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
           <template is="dom-repeat" items="[[_collections.results]]">
             <collection-card data="[[item]]"></collection-card>
           </template>
@@ -99,7 +99,7 @@
 
       <section>
         <h1>Getting started with web components</h1>
-        <div id="getting-started">
+        <div id="getting-started" role="navigation">
           <div>
             <h2>Introduction</h2>
             <div>What are web components? Why are they awesome? All the answers in this article.</div>
