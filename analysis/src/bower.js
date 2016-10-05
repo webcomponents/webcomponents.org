@@ -6,6 +6,11 @@ const url = require('url');
 
 const Ana = require('./ana_log');
 
+// Don't retry ECONFLICT ("Unable to find suitable version for...").
+// Don't retry ENORESTARGET ("Tag/branch x does not exist").
+// Don't retry ECMDERR ("Fatal: reference is not a tree:...")
+const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET'];
+
 /**
  * Service for communicating with Bower on the local machine.
  * Provides support for installing packages, enumerating their dependencies etc...
@@ -75,9 +80,7 @@ class Bower {
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
         var retry = true;
-        // Don't retry ECONFLICT errors ("Unable to find suitable version for...").
-        // Don't retry ENORESTARGET errors ("Tag/branch x does not exist").
-        if (error.code && (error.code == 'ECONFLICT' || error.code == 'ENORESTARGET')) {
+        if (error.code && fatalErrorCodes.includes(error.code)) {
           retry = false;
         }
         reject({retry: retry, error: error});
