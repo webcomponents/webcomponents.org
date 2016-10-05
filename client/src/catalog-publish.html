@@ -28,16 +28,36 @@
         <p>You need to publish your elements before they will appear on the site. It’s quick and easy to do! First, there’s a few tips on how to make your element stand out.</p>
         <h2>Requirement</h2>
         <p>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</p>
+				
+        <h2>Tag a GitHub release version</h2>
+        <p>Push your work to a GitHub repo and tag it with a release number so we can find it.</p>
 
         <h2>Add an inline demo</h2>
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
-
-        <!-- TODO: Add an inline demo here -->
-
+				
         <p>To create an inline demo, you need to modify your README.md. Wrapping your code in <code>&lt;custom-element-demo&gt;</code> and a <code>&lt;template&gt;</code> tag will render this demo. You can hide this extra code, including any setup code, like importing dependencies in a comment. This keeps your demo snippet concise.<p>
 
-        <!-- TODO: Sample code -->
+        <p>For the following raw markdown:</p>
+   
+<pre>&lt;!--
+```
+&lt;custom-element-demo&gt;
+  &lt;template&gt;
+      &lt;link&nbsp;rel=&rdquo;import&rdquo;&nbsp;href=&rdquo;my-element.html&rdquo;&gt;
+    &lt;next-code-block&gt;&lt;/next-code-block&gt;
+  &lt;/template&gt;    
+&lt;/custom-element-demo&gt;
+```
+--&gt;
+```
+&lt;my-element&gt;&lt;/my-element&gt;
+```</pre>
 
+        <p>The Github rendered markdown is:</p>	
+        <pre>
+          &lt;my-element&gt;&lt;/my-element&gt;
+        </pre>
+	
         <p>Best practices:</p>
         <ul>
           <li>Keep number of dependencies down - inline demos need to be fast!</li>
