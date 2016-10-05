@@ -23,7 +23,6 @@
         font-size: 16px;
         line-height: 24px;
         padding-top: 80px;
-        background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
 
         --theme-accent-1: #6dc38f;
         --theme-font: 'Source Sans Pro', sans-serif;
@@ -61,6 +60,10 @@
         --syntax-accent: hsl(var(--syntax-hue), 100%, 66% );
         --syntax-gutter: hsl(var(--syntax-hue), 14%, 45%);
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
+      }
+
+      :host[page=home] {
+        background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
       }
 
       #pages, #footer-content {
