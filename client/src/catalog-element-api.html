@@ -1,0 +1,45 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/marked-element/marked-element.html">
+
+<link rel="import" href="catalog-styles.html">
+
+<dom-module id="catalog-element-api">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      
+    </style>
+    <section hidden$="[[!data.desc]]">
+      <marked-element markdown="{{data.desc}}">
+        <div class="markdown-html"></div>
+      </marked-element>
+    </section>
+
+
+  </template>
+  <script>
+    Polymer({
+      is: 'catalog-element-api',
+      properties: {
+        data: {
+          type: Object,
+          observer: '_dataChanged',
+        }
+      },
+
+      _dataChanged: function() {
+        if (!this.data) return;
+
+        var properties = [];
+        var methods    = [];
+        for (var i = 0, property; property = this.descriptor.properties[i]; i++) {
+          (property.type === 'Function' ? methods : properties).push(property);
+        }
+        this._properties = properties;
+        this._methods = methods;
+        this._events = this.data.events || [];
+        this._behaviors = this.data.behaviors || [];
+      }
+    });
+  </script>
+</dom-module>

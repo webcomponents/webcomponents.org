@@ -9,6 +9,7 @@
 
 <link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-element-api.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
 <link rel="import" href="contributors-list.html">
@@ -621,6 +622,7 @@
 
           <div hidden="[[!subElement]]">
             <h2 title>[[subElement]]</h2>
+            <catalog-element-api data="[[descriptor]]"></catalog-element-api>
             <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
           </div>
         </div>

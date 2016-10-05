@@ -15,7 +15,8 @@
     "iron-scroll-threshold": "PolymerElements/iron-scroll-threshold#^1.0.2",
     "paper-spinner": "PolymerElements/paper-spinner#^1.2.0",
     "paper-progress": "PolymerElements/paper-progress#^1.0.10",
-    "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.8.6"
+    "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.8.6",
+    "marked-element": "polymerelements/marked-element#^1.2.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
