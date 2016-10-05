@@ -707,7 +707,9 @@
         this.demo = null;
 
         var split = this.route.path.split('/');
-        split.shift(); // Skip first /
+        // Bug in app-route doesn't always have a leading /
+        if (!split[0])
+          split.shift(); // Skip first /
         this.owner = split.shift();
         this.repo = split.shift();
 
