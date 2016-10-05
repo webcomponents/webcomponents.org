@@ -616,7 +616,7 @@
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[_docsPending(_docsLoading, docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">

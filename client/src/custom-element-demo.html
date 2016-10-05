@@ -162,6 +162,8 @@
       properties: {
         data: Object,
 
+        docsPending: Boolean,
+
         height: Number,
 
         code: String,
@@ -178,6 +180,7 @@
         '_setDemo(data, code)',
         '_setFrame(baseUrl, data)',
         '_sourceChanged(snippet, code)',
+        '_setFrame(docsPending)',
       ],
 
       created: function() {
@@ -274,7 +277,7 @@
       },
 
       _setFrame: function() {
-        if (!this.data)
+        if (!this.data || this.docsPending)
           return;
         this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
         this.$.frame.style.minHeight = (this.height + 'px') || 0;
