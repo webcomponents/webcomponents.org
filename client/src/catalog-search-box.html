@@ -95,7 +95,7 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
-    <input type="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org"></input>
+    <input type="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org"></input>
 
     <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
       <div id="collections">
