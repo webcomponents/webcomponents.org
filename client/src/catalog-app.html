@@ -249,7 +249,7 @@
           <a>Polyfills</a>
           <a>Tools</a>
           <a>Specifications</a>
-          <a>Browser compatability</a>
+          <a>Browser compatibility</a>
           <a>Libraries</a>
         </section>
         <section>
@@ -267,6 +267,7 @@
         <section>
           <h2>About</h2>
           <a>About webcomponents.org</a>
+          <a href="/feedback" on-tap="_onFeedback">Feedback</a>
         </section>
       </div>
     </footer>
@@ -385,6 +386,11 @@
 
       _handleSearch: function(event) {
         this.$['search-box'].query = event.detail.query;
+      },
+
+      _onFeedback: function(event) {
+        var origin = escape(window.location.href);
+        event.target.href="https://github.com/webcomponents/beta/issues/new?body=[Origin page](" + origin + ")&labels=Feedback";
       },
 
     });
