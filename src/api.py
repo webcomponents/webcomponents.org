@@ -505,7 +505,7 @@ class PreviewCommit(webapp2.RequestHandler):
     match = re.match(r'https://github.com/(.*?)/([^/]*)(.*)', url)
     if match is None:
       self.response.set_status(400)
-      self.response.write('Unable to understand url (%s)', url)
+      self.response.write('Unable to understand url (%s)' % url)
 
     owner = match.group(1)
     repo = match.group(2)
@@ -527,13 +527,13 @@ class PreviewCommit(webapp2.RequestHandler):
 
     if not tail:
       self.response.set_status(400)
-      self.response.write('Unable to understand url (%s)', url)
+      self.response.write('Unable to understand url (%s)' % url)
 
     response = util.github_get('repos', owner, repo, 'git/refs/' + tail)
 
     if response.status_code == 404:
       self.response.set_status(400)
-      self.response.write('Error resolving url (%s)', url)
+      self.response.write('Error resolving url (%s)' % url)
 
     sha = json.loads(response.content)['object']['sha']
     util.new_task(util.ingest_preview_task(owner, repo), params={'commit': sha, 'url': url}, target='manage')
