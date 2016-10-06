@@ -47,6 +47,14 @@
         margin: 0 16px 16px 0;
       }
 
+      #parents {
+        margin-top: 40px;
+      }
+
+      #parents collection-card {
+        margin-right: 0;
+      }
+
       #collections:last-child:nth-child(2n) {
         display: hidden;
       }
@@ -98,7 +106,8 @@
           <a href="/author/[[_routeMatch.owner]]">
             <author-profile condensed author="[[author]]"></author-profile>
           </a>
-          <div class="loader" loading$="[[_parentsLoading]]">
+          <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$=[[!_parents.length]]>
+            <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>
             <template is="dom-repeat" items="[[_parents]]">
               <collection-card data="[[item]]"></collection-card>
             </template>
@@ -184,6 +193,10 @@
       _metaError: function(event, error) {
         if (error.request.status == 404)
           this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this._routeMatch.owner + '/' + this._routeMatch.repo});
+      },
+
+      _s: function(n) {
+        return n == 1 ? '' : 's';
       },
 
       _metaLoaded: function() {
