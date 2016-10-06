@@ -239,7 +239,9 @@ class LibraryTask(RequestHandler):
       return self.retry('could not update stats/participation (%d)' % response.status_code)
 
   def update_license_and_kind(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, 'master', 'bower.json'), validate_certificate=True)
+    metadata = json.loads(self.library.metadata)
+    default_branch = metadata.get('default_branch', 'master')
+    response = urlfetch.fetch(util.content_url(self.owner, self.repo, default_branch, 'bower.json'), validate_certificate=True)
     bower_json = None
     if response.status_code == 200:
       try:
@@ -260,7 +262,6 @@ class LibraryTask(RequestHandler):
       self.library_dirty = True
 
     spdx_identifier = None
-    metadata = json.loads(self.library.metadata)
     github_license = metadata.get('license')
     if github_license is not None:
       spdx_identifier = licenses.validate_spdx(github_license.get('key', 'MISSING'))
@@ -275,7 +276,7 @@ class LibraryTask(RequestHandler):
       self.library_dirty = True
 
     if self.library.spdx_identifier is None:
-      return self.error('Could not find an OSI approved license in master/bower.json or via GitHub API')
+      return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch)
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
@@ -438,6 +439,10 @@ class IngestPreview(LibraryTask):
     if self.is_new:
       self.library.shallow_ingestion = True
       self.library_dirty = True
+      self.update_metadata()
+      self.update_license_and_kind()
+      self.set_ready()
+    elif self.library.status != Status.ready:
       self.update_metadata()
       self.update_license_and_kind()
       self.set_ready()
