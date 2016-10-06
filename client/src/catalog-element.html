@@ -298,13 +298,17 @@
         text-transform: capitalize;
       }
 
-      #sidebar-nav a.demo-link:after {
+      #sidebar-nav a.demo-link:after, #sidebar-nav a.api-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
         float: right;
         color: var(--theme-blue-grey);
         font-size: 12px;
+      }
+
+      #sidebar-nav a.api-link:after {
+        content: 'api';
       }
 
       collection-card {
@@ -555,10 +559,10 @@
           <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
 
           <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
-            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
+            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[_readmeLabel(bundledElements)]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[element.is]]</a>
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items=[[element.demos]] as="demo">
@@ -568,7 +572,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items=[[behavior.demos]] as="demo">
@@ -613,7 +617,7 @@
           </template>
 
           <div hidden="[[!subElement]]">
-            <h2 title>[[subElement]]</h2>
+            <h1>[[subElement]]</h1>
             <iron-doc-viewer descriptor="[[descriptor]]"></iron-doc-viewer>
           </div>
         </div>
@@ -886,10 +890,6 @@
         return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
       },
 
-      _docLabel: function(element) {
-        return this.bundledElements.length == 1 ? 'Element API' : element;
-      },
-
       _toggleExpand: function() {
         this._infoBodyCollapsed = !this._infoBodyCollapsed;
       },
@@ -923,6 +923,15 @@
 
       _shouldCollapseNav: function(elements) {
         return elements && elements.length > 5;
+      },
+
+      _readmeLabel: function(bundledElements) {
+        var found = false;
+        for (var i = 0; i < bundledElements.length; i++) {
+          if (bundledElements[i].is == this.repo)
+            found = true;
+        }
+        return found ? 'Overview' : this.repo;
       },
 
     });
