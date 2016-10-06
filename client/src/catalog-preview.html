@@ -41,7 +41,8 @@
 
       <div class="main-content">
         <h1>Enter a Github URL</h1>
-        <input type="text" name="url" value="{{url::input}}" placeholder="Any Github URL">
+        <input type="text" name="url" value="{{url::input}}" placeholder="Any GitHub URL">
+        <div id="error" class="error-message" hidden>Invalid input - enter a GitHub URL</div>
         <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
         <button on-tap="onSubmit">Preview</button>
       </div>
@@ -64,11 +65,20 @@
         if (!grecaptcha || !grecaptcha.getResponse())
           return;
 
+        var url = this.url;
+        url = url.replace(/\/$/, '');
+
+        if (url.match(/https:\/\/github.com\/.*/) == null) {
+          this.$.error.removeAttribute('hidden');
+          return;
+        }
+
         this.$.ajax.params = {
-          url: this.url,
+          url: url,
           recaptcha: grecaptcha.getResponse()
         };
         this.$.ajax.generateRequest();
+        grecaptcha.reset();
       },
 
       _taskTriggered: function(event) {
