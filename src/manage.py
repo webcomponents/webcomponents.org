@@ -668,7 +668,7 @@ class UpdateIndexes(RequestHandler):
       elements = analysis.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
-      behaviors = analysis.get('behaviorsByTagName', {}).keys()
+      behaviors = analysis.get('behaviorsByName', {}).keys()
       if behaviors != []:
         fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
 
