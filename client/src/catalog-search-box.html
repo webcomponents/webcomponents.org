@@ -6,6 +6,14 @@
 <dom-module id="catalog-search-box">
   <template>
     <style>
+      :host {
+        font-family: var(--theme-font);
+        font-size: 16px;
+        position: absolute;
+        background: white;
+        border-radius: 4px;
+      }
+
       a {
         color: inherit;
         text-decoration: none;
@@ -13,20 +21,48 @@
 
       #search-input {
         box-sizing: border-box;
-        width: 500px;
+        width: 100%;
         height: 40px;
-        font-family: var(--theme-font);
-        font-size: 16px;
-        padding: 12px;
-        border: 1px solid #ededed;
+        padding: 25px 25px 25px 50px;
+        border: none;
         border-radius: 4px;
         margin: 0;
+        background: hsl(0, 0%, 95%);
+        font-family: var(--theme-font);
+        font-size: 16px;
+        color: var(--theme-blue-grey);
+      }
+
+      #search-input::-webkit-input-placeholder {
+        font-family: var(--theme-font);
+        font-size: 16px;
+        color: var(--theme-blue-grey);
+      }
+
+      #search-input::-moz-placeholder {
+        font-family: var(--theme-font);
+        font-size: 16px;
+        color: var(--theme-blue-grey);
+      }
+
+      #search-input:-ms-input-placeholder {
+        font-family: var(--theme-font);
+        font-size: 16px;
+        color: var(--theme-blue-grey);
+      }
+
+      #search-symbol {
+        position: absolute;
+        width: 20px;
+        margin: 15px;
+        fill: var(--theme-blue-grey);
       }
 
       iron-scroll-threshold {
         margin: 0;
         max-height: 600px;
         padding: 0;
+        background: white;
       }
 
       #collections {
@@ -95,6 +131,7 @@
       on-request="_handleRequest"
       debounce-duration="300"></iron-ajax>
 
+    <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
     <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org"></input>
 
     <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">

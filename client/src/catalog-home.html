@@ -64,6 +64,14 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        h1 {
+          margin-left: 16px;
+        }
+
+        #getting-started > div {
+          margin: 16px !important;
+        }
+
         .featured-row {
           width: 100%;
           overflow: scroll;
@@ -72,6 +80,11 @@
         collection-card {
           flex-basis: 300px;
           margin-left: 8px !important;
+        }
+
+        #gitter {
+          margin: 0;
+          flex-direction: column;
         }
       }
     </style>
@@ -84,10 +97,6 @@
       last-response="{{_collections}}"></iron-ajax>
 
     <div id="container">
-      <div class="main-content">
-        This site is still a work in progress, but feel free to poke around.
-      </div>
-
       <section>
         <h1>Featured collections</h1>
         <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
