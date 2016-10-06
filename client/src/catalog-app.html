@@ -22,13 +22,18 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
-        padding-top: 80px;
+        padding-top: 160px;
+        color: var(--theme-font-color);
+        background: linear-gradient(to bottom, #F3F4F5, transparent 100vh);
 
-        --theme-accent-1: #6dc38f;
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
-        --theme-blue: #18b4d9;
+
+        --theme-font-color: #383F46;
+        --theme-accent-1: #6dc38f;
+        --theme-blue: #37A0CE;
         --theme-blue-dark: #1f9bb9;
+        --theme-blue-grey: #697785;
 
         /* Based on Atom/one-dark-syntax theme https://github.com/atom/one-dark-syntax */
         --syntax-hue:          220;
@@ -72,13 +77,13 @@
       }
 
       #pages {
-        margin-top: 16px;
-        min-height: calc(100vh - 80px - 16px);
+        margin: 32px auto;
+        min-height: calc(100vh - 160px - 16px);
       }
 
       #progress {
         position: absolute;
-        top: 80px;
+        top: 160px;
         left: 0px;
         width: 100vw;
         --paper-progress-active-color: var(--theme-blue);
@@ -90,14 +95,15 @@
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
-        height: 80px;
-        background: white;
-        /*--app-header-background-front-layer: red;*/
+        height: calc(2 * 80px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
       }
 
       #toolbar-header {
         color: inherit;
-        margin: 0 16px;
         display: flex;
         align-items: center;
       }
@@ -115,41 +121,61 @@
         text-transform: uppercase;
       }
 
-      #toolbar-header h3 {
-        margin: 0;
-      }
-
-      #toolbar-header h2 {
-        font-size: 18px;
-        margin: 0;
-      }
-
       app-toolbar {
         height: 80px;
         padding: 0 32px;
-        justify-content: space-between;
-        border-bottom: 1px solid #ededed;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* Top toolbar */
+
+      #toolbar-nav {
+        background: white;
+      }
+
+      #domain-title {
+        margin: 0;
+        font-size: 15px;
+        text-transform: uppercase;
+        font-weight: normal;
+      }
+
+      #tag-line {
+        font-size: 20px;
+        color: var(--theme-blue-grey);
+        font-weight: normal;
+        margin-left: 20px;
+        margin-top: -3px;
       }
 
       #toolbar-header img {
         width: 64px;
         height: 64px;
-        margin-right: 16px;
+        margin-right: 20px;
+      }
+
+      /* Search toolbar */
+
+      #toolbar-search {
+        background: green;
+        background: #FBFBFB;
+        border-top: 1px solid #ededed;
+        border-bottom: 1px solid #ededed;
+        box-shadow: 0 1px 0 0 #ededed;
       }
 
       #search-container {
-        width: 500px;
-        height: 40px;
+        width: 630px;
+        max-width: 100%;
+        height: 50px;
         display: block;
         position: relative;
       }
 
       #search-box {
-        font-family: var(--theme-font);
-        font-size: 16px;
-        position: absolute;
-        background: white;
-        border-radius: 4px;
+        width: 630px;
+        max-width: 100%;
       }
 
       iron-pages.loading > *.iron-selected {
@@ -168,6 +194,10 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        #tag-line {
+          display: none;
+        }
+
         #search-box.active {
           position: fixed;
           width: 100%;
@@ -176,6 +206,10 @@
           border-radius: 0;
           height: 100vh;
           background: white;
+        }
+
+        #footer-content section {
+          margin: 16px 0;
         }
       }
 
@@ -189,7 +223,6 @@
       #footer-content {
         display: flex;
         color: white;
-        font-weight: bold;
         padding: 32px 0;
         flex-wrap: wrap;
       }
@@ -207,7 +240,7 @@
 
       #footer-content h2 {
         color: #a7adb2;
-        font-weight: normal;
+        font-size: 22px;
       }
 
       #footer-content a {
@@ -233,12 +266,15 @@
     <lazy-block id="block"></lazy-block>
 
 
-    <app-header role="banner">
-      <app-toolbar id="toolbar">
+    <app-header role="banner" condenses reveals>
+      <app-toolbar id="toolbar-nav">
         <a href="/" id="toolbar-header" beta>
           <img src="/assets/logo.svg" role="none">
-          <h2 aria-label="web components .org">A place to discuss & evolve web components</h2>
+          <h2 id="domain-title">webcomponents.org</h2>
+          <div id="tag-line" aria-label="web components .org">A place to discuss & evolve web components</div>
         </a>
+      </app-toolbar>
+      <app-toolbar sticky id="toolbar-search">
         <div id="search-container">
           <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
         </div>

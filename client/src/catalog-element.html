@@ -7,11 +7,9 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
-<link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
-<link rel="import" href="contributors-list.html">
 <link rel="import" href="collection-card.html">
 <link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
@@ -38,8 +36,11 @@
 
       /* Header */
       #header {
-        color: hsl(0, 0%, 50%);
-        margin-bottom: 32px;
+        margin-bottom: 40px;
+      }
+
+      #header-main {
+        color: var(--theme-blue-grey);
       }
 
       #header-main > div {
@@ -80,17 +81,18 @@
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        background: var(--syntax-bg);
+        background: white;
+        border: 1px solid #ededed;
         border-radius: 4px 4px 0 0;
       }
 
       #info-download h3 {
         margin-top: 0;
         margin-bottom: 4px;
+        color: var(--theme-blue-grey);
       }
 
       #info-download-command {
-        color: white;
         font-family: var(--monospace-font);
         font-size: 12px;
       }
@@ -158,11 +160,7 @@
       }
 
       #info-dependencies .owner {
-        color: hsl(0, 0%, 50%);
-      }
-
-      #info-dependencies .repo {
-        font-weight: bold;
+        display: none;
       }
 
       #info-body {
@@ -230,6 +228,14 @@
       }
 
       /* Sidebar */
+      .body > .sidebar > div {
+        margin-top: 40px;
+      }
+
+      .body > .sidebar > div:first-of-type {
+        margin-top: 0;
+      }
+
       #sidebar-nav {
         overflow: visible;
       }
@@ -242,36 +248,33 @@
 
       #sidebar-nav a {
         padding: 16px 20px;
-        font-weight: bold;
         font-size: 14px;
         line-height: 14px;
-        border-top: 1px solid #ededed;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
       }
 
       #sidebar-nav a[active] {
-        background: var(--theme-blue);
-        color: white;
-        margin-right: -1px;
+        color: inherit;
         position: relative;
-        -webkit-filter: drop-shadow(0px 2px 0.5px var(--theme-blue-dark));
-        filter: drop-shadow(0px 2px 0px var(--theme-blue-dark));
+        -webkit-filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        background: white;
       }
 
       #sidebar-nav a[active]::before {
         content: '';
-        width: 11px;
+        width: 10px;
         position: absolute;
         top: 0px;
-        left: -10px;
+        right: -10px;
         height: 100%;
-        background: inherit;
-        -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
-        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
+        background: white;
+        -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
       }
 
       #sidebar-nav a span {
@@ -279,12 +282,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 185px;
-      }
-
-      #sidebar-nav > a:first-child {
-        font-size: 18px;
-        line-height: 21px;
-        border-top: none;
       }
 
       #sidebar-nav[collapse] .element-demos {
@@ -298,6 +295,7 @@
 
       #sidebar-nav a.demo-link {
         background: hsl(0, 0%, 98%);
+        text-transform: capitalize;
       }
 
       #sidebar-nav a.demo-link:after {
@@ -305,7 +303,8 @@
         text-transform: uppercase;
         font-weight: normal;
         float: right;
-        color: #c2c2c2;
+        color: var(--theme-blue-grey);
+        font-size: 12px;
       }
 
       collection-card {
@@ -314,6 +313,28 @@
 
       collection-card:not(first-of-type) {
         margin-top: 16px;
+      }
+
+      #report-link {
+        display: block;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+        width: 100%;
+        display: flex;
+        padding: 12px 0;
+        color: inherit;
+        justify-content: center;
+        margin-top: 60px;
+        position: relative;
+      }
+
+      #report-link:before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        border-top: 1px solid #ededed;
+        height: 1px;
+        width: 100%;
       }
 
       /* Demo frame */
@@ -500,7 +521,7 @@
             <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
               <template is="dom-if" if="[[_infoBodyCollapsed]]">
                 <svg viewBox="0 0 100 100" class="octicon octicon-plus">
-                 <use xlink:href="/sprite.octicons.svg#plus"></use>
+                  <use xlink:href="/sprite.octicons.svg#plus"></use>
                 </svg>
               </template>
               <template is="dom-if" if="[[!_infoBodyCollapsed]]">
@@ -559,7 +580,7 @@
 
           <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
             <template is="dom-if" if="[[collections.length]]">
-              <h3>[[collections.length]] collection[[_s(collections.length)]]</h3>
+              <h1>In [[collections.length]] collection[[_s(collections.length)]]</h1>
 
               <template is="dom-repeat" items="[[collections]]">
                 <collection-card data="[[item]]"></collection-card>
@@ -568,7 +589,7 @@
           </div>
 
           <div id="info-dependencies">
-            <h3>Dependencies</h3>
+            <h1>Dependencies</h1>
             <template is="dom-repeat" items="[[_dependencies(data)]]">
               <div class="dependency">
                 <a href="/element/[[item.owner]]/[[item.repo]]">
@@ -579,8 +600,8 @@
             </template>
           </div>
 
-          <a href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-            <h3>Report element</h3>
+          <a id="report-link" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+            Report
           </a>
         </div>
 
@@ -636,7 +657,7 @@
 
       ready: function() {
         this._loaded = true;
-        this._infoBodyCollapsed = false;
+        this._infoBodyCollapsed = true;
         if (this.route)
           this._routeChanged(this.route.path, this.route.prefix, this.visible);
       },

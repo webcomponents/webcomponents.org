@@ -9,12 +9,12 @@
 
       a {
         text-decoration: none;
-        color: #18B4D9;
+        color: var(--theme-blue);
       }
 
       h1 {
         font-size: 24px;
-        font-weight: bold;
+        font-weight: normal;
         margin: 0;
         margin-bottom: 16px;
         color: hsl(0, 0%, 18%);
@@ -24,6 +24,7 @@
         font-size: 18px;
         margin-top: 0;
         color: black;
+        font-weight: normal;
       }
 
       h1.page-title {
@@ -79,13 +80,11 @@
         max-width: calc(100% - 270px);
         min-width: 300px;
         margin-right: 40px;
-        margin-bottom: 40px;
       }
 
       .sidebar {
         flex: 0 0 270px;
         order: 2;
-        margin-bottom: 40px;
       }
 
       .sidebar h3 {
@@ -149,15 +148,14 @@
 
       /* Forms */
       button {
-        background: #18b4d9;
+        background: var(--theme-blue);
         border: none;
-        border-bottom: 3px solid #1f9bb9;
-        border-radius: 4px;
-        padding: 16px 32px 13px;
+        border-radius: 6px;
+        padding: 17px 40px;
         color: white;
         font-size: 14px;
-        font-weight: bold;
         cursor: pointer;
+        text-transform: uppercase;
       }
 
       input[type=text] {
