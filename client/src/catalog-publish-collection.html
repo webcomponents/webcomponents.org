@@ -18,7 +18,7 @@
     <iron-ajax
       id="ajax"
       method="POST"
-      url="[[baseUrls.api]]/api/publish/[[repo]]"></iron-ajax>
+      url="[[baseUrls.api]]/api/publish/[[_validatedRepo]]"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -40,7 +40,8 @@
 
         <h2>Ready to publish?</h2>
 
-        <input type="text" name="repo" value="{{repo::input}}" placeholder="user/repo">
+        <input type="text" name="repo" value="{{repo::input}}" placeholder="username/my-element-repo">
+        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
         <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
         <button on-click="onSubmit">Publish</button>
       </div>
@@ -64,10 +65,22 @@
         this.$.ajax.params = {
           recaptcha: grecaptcha.getResponse()
         };
-        this.$.ajax.generateRequest();
 
+        var repo = this.repo;
+        repo = repo.replace(/\/$/, '');
+        repo = repo.replace(/.*github.com\//, '');
+
+        if (repo.match(/[\w\d-]+\/[\w\d-]+/i) == null) {
+          this.$.error.removeAttribute('hidden');
+          return;
+        }
+
+        this._validatedRepo = repo;
+
+        this.$.ajax.generateRequest();
         window.history.pushState({}, null, '/preview/' + this.repo);
         this.fire('location-changed');
+        grecaptcha.reset();
       },
 
     });
