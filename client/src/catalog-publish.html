@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="custom-element-demo.html">
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
 
@@ -13,12 +14,30 @@
       .g-recaptcha {
         margin: 16px 0;
       }
+
+      .tip {
+        padding: 16px;
+        background: var(--syntax-bg);
+        color: var(--syntax-fg);
+        border-radius: 4px;
+        margin: 16px auto;
+        max-width: 600px;
+      }
+
+      .tip h2 {
+        color: white;
+      }
+
+      custom-element-demo {
+        display: block;
+        margin: 0 auto;
+        max-width: 600px;
+      }
     </style>
 
     <iron-ajax
       id="ajax"
-      method="POST"
-      url="[[baseUrls.api]]/api/publish/[[_validatedRepo]]"></iron-ajax>
+      method="POST"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -35,6 +54,13 @@
 
         <h2>Add an inline demo</h2>
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
+
+        <div class="tip">
+          <h2>Sample inline demo</h2>
+          Tip: You can also add <code>?editing</code> to an element page to get an inline demo editor.
+        </div>
+
+        <custom-element-demo id="sample-demo"></custom-element-demo>
 
         <p>To create an inline demo, you need to modify your README.md. Wrapping your code in <code>&lt;custom-element-demo&gt;</code> and a <code>&lt;template&gt;</code> tag will render this demo. You can hide this extra code, including any setup code, like importing dependencies in a comment. This keeps your demo snippet concise.<p>
 
@@ -94,6 +120,19 @@
         baseUrls: Object,
       },
 
+      ready: function() {
+        var sample = this.$['sample-demo'];
+        sample.data = {
+          repo: "paper-progress",
+          owner: "PolymerElements",
+          version: "v1.0.11",
+        };
+        sample.baseUrl = this.baseUrls.userContent;
+        sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0iLi4vcGFwZXItc3R5bGVzL2NvbG9yLmh0bWwiPgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQogIHBhcGVyLXByb2dyZXNzLnNsb3cgewogICAgLS1wYXBlci1wcm9ncmVzcy1pbmRldGVybWluYXRlLWN5Y2xlLWR1cmF0aW9uOiA1czsKICB9CiAgcGFwZXItcHJvZ3Jlc3MuYmx1ZSB7CiAgICAtLXBhcGVyLXByb2dyZXNzLWFjdGl2ZS1jb2xvcjogdmFyKC0tcGFwZXItbGlnaHQtYmx1ZS01MDApOwogICAgLS1wYXBlci1wcm9ncmVzcy1zZWNvbmRhcnktY29sb3I6IHZhcigtLXBhcGVyLWxpZ2h0LWJsdWUtMTAwKTsKICB9CiAgcGFwZXItcHJvZ3Jlc3MucmVkIHsKICAgIC0tcGFwZXItcHJvZ3Jlc3MtYWN0aXZlLWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtNTAwKTsKICAgIC0tcGFwZXItcHJvZ3Jlc3Mtc2Vjb25kYXJ5LWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtMTAwKTsKICB9Cjwvc3R5bGU+CjxuZXh0LWNvZGUtYmxvY2s+PC9uZXh0LWNvZGUtYmxvY2s+");
+        sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGUgY2xhc3M9ImJsdWUiPjwvcGFwZXItcHJvZ3Jlc3M+CjxwYXBlci1wcm9ncmVzcyBpbmRldGVybWluYXRlIGNsYXNzPSJzbG93IHJlZCI+PC9wYXBlci1wcm9ncmVzcz4KPHBhcGVyLXByb2dyZXNzIHZhbHVlPSI0MCIgc2Vjb25kYXJ5LXByb2dyZXNzPSI4MCI+PC9wYXBlci1wcm9ncmVzcz4=");
+        sample.docsPending = false;
+      },
+
       onSubmit: function() {
         if (!grecaptcha || !grecaptcha.getResponse())
           return;
@@ -111,10 +150,9 @@
           return;
         }
 
-        this._validatedRepo = repo;
-
+        this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
-        window.history.pushState({}, null, '/preview/' + this.repo);
+        window.history.pushState({}, null, '/preview/' + repo);
         this.fire('location-changed');
         grecaptcha.reset();
       },
