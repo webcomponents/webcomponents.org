@@ -293,6 +293,12 @@
         display: block;
       }
 
+      #sidebar-nav a span {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       #sidebar-nav a.demo-link {
         background: hsl(0, 0%, 98%);
         text-transform: capitalize;
@@ -562,7 +568,7 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[_readmeLabel(bundledElements)]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[element.is]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]"><span>[[element.is]]</span></a>
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items=[[element.demos]] as="demo">
@@ -572,7 +578,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items=[[behavior.demos]] as="demo">
