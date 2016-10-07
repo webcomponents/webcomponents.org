@@ -387,7 +387,12 @@
       },
 
       _pageReady: function() {
-        if (this.$.pages.selectedItem && this.$.pages.selectedItem.loading !== true)
+        var selectedItem = this.$.pages.selectedItem;
+        // Work around for https://github.com/PolymerElements/iron-pages/issues/52
+        if (!selectedItem)
+          selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + this.page + ']');
+
+        if (selectedItem && selectedItem.loading !== true)
           this._clearLoading();
         if (this._lazyResourcesLoaded)
           return;
