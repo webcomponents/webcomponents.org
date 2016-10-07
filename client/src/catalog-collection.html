@@ -58,6 +58,12 @@
       #collections:last-child:nth-child(2n) {
         display: hidden;
       }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        catalog-element-readme {
+          margin: 0 16px 40px;
+        }
+      }
     </style>
 
     <app-route
@@ -96,15 +102,17 @@
       handle-as="json"
       last-response="{{_parents}}"></iron-ajax>
 
-    <div>
-      <h3>Collection</h3>
-      <h1 class="page-title">[[_routeMatch.repo]]</h1>
-      <h2 class="page-subtitle">[[data.description]]</h2>
+    <div class="mobile-scroll-overlay">
+      <div class="mobile-fixed">
+        <h3>Collection</h3>
+        <h1 class="page-title">[[_routeMatch.repo]]</h1>
+        <h2 class="page-subtitle">[[data.description]]</h2>
+      </div>
 
       <div class="body">
         <div class="sidebar">
           <a href="/author/[[_routeMatch.owner]]">
-            <author-profile condensed author="[[author]]"></author-profile>
+            <author-profile overlay condensed author="[[author]]"></author-profile>
           </a>
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$=[[!_parents.length]]>
             <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>

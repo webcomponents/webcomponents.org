@@ -66,14 +66,16 @@
       handle-as="json"
       last-response="{{_elements}}"></iron-ajax>
 
-    <div>
-      <h3>Author</h3>
-      <h1 class="page-title">[[author.login]]</h1>
-      <h2 class="page-subtitle">[[search.count]] elements</h2>
+    <div class="mobile-scroll-overlay">
+      <div class="mobile-fixed">
+        <h3>Author</h3>
+        <h1 class="page-title">[[author.login]]</h1>
+        <h2 class="page-subtitle">[[_elements.count]] elements</h2>
+      </div>
 
       <div class="body">
         <div class="sidebar">
-          <author-profile author="[[author]]"></author-profile>
+          <author-profile overlay author="[[author]]"></author-profile>
         </div>
 
         <div class="main-content loader" loading$="[[or(collectionsLoading, elementsLoading)]]">
