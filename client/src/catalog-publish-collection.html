@@ -19,6 +19,13 @@
       id="ajax"
       method="POST"></iron-ajax>
 
+    <iron-ajax
+      id="metaAjax"
+      method="GET"
+      handle-as="json"
+      on-response="onMetaResponse"
+      on-error="onMetaError"></iron-ajax>
+
     <div id="container">
       <h3>Publish</h3>
       <h1 class="page-title">Publish your collection</h1>
@@ -76,9 +83,18 @@
 
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
-        window.history.pushState({}, null, '/preview/' + repo);
-        this.fire('location-changed');
+        this._validatedRepo = repo;
         grecaptcha.reset();
+        this.pollMeta();
+      },
+
+      success: function() {
+        window.history.pushState({}, null, '/collection/' + this._validatedRepo);
+        this.fire('location-changed');
+      },
+
+      _error: function() {
+        this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
       },
 
     });
