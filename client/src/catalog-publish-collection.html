@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="polling-meta-behavior.html">
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
 
@@ -18,6 +19,13 @@
     <iron-ajax
       id="ajax"
       method="POST"></iron-ajax>
+
+    <iron-ajax
+      id="metaAjax"
+      method="GET"
+      handle-as="json"
+      on-response="onMetaResponse"
+      on-error="onMetaError"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -57,6 +65,10 @@
         baseUrls: Object,
       },
 
+      behaviors: [
+        Polymer.PollingMetaBehavior,
+      ],
+
       onSubmit: function() {
         if (!grecaptcha || !grecaptcha.getResponse())
           return;
@@ -76,9 +88,19 @@
 
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
-        window.history.pushState({}, null, '/preview/' + repo);
-        this.fire('location-changed');
+        this._validatedRepo = repo;
         grecaptcha.reset();
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
+        this.startPolling(this.$.metaAjax);
+      },
+
+      success: function() {
+        window.history.pushState({}, null, '/collection/' + this._validatedRepo);
+        this.fire('location-changed');
+      },
+
+      _error: function() {
+        this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
       },
 
     });

@@ -729,6 +729,9 @@
         if (!visible || !this._loaded || !(prefix == '/element' || prefix == '/preview'))
           return;
 
+        if (prefix == '/preview' && path == '')
+          return;
+
         this._splitRoute();
         this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
@@ -808,11 +811,6 @@
       _metaError: function(event, error) {
         if (error.request.status != 404) {
           this.fire('error', {status: error.request.status, title: 'Unable to load element'});
-          return;
-        }
-
-        if (this.route.prefix == '/preview') {
-          this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 1000);
           return;
         }
 
