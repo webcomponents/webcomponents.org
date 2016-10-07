@@ -126,6 +126,8 @@
         if (!visible || !this._loaded || route.prefix != '/author')
           return;
 
+        this.author = {};
+
         document.title = this._routeMatch.owner;
 
         this.$.metaAjax.generateRequest();
