@@ -45,24 +45,25 @@
 
         render: function() {
           this._id = grecaptcha.render(this.$.container, {sitekey: this.sitekey});
+          return this._id;
         },
 
         reset: function() {
-          if (!this._id)
+          if (this._id == undefined)
             return;
-          grecaptcha.reset(this._id);
+          return grecaptcha.reset(this._id);
         },
 
         getResponse: function() {
-          if (!this._id)
+          if (this._id == undefined)
             return;
-          grecaptcha.getResponse(this._id);
+          return grecaptcha.getResponse(this._id);
         },
 
       });
-
     })();
 
+    // eslint-disable-next-line no-unused-vars
     var onRecaptchaElementLoad = function() {
       var elements = document.querySelectorAll('recaptcha-element');
       for (var i = 0; i < elements.length; i++)
