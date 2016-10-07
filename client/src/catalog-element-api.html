@@ -1,18 +1,126 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/marked-element/marked-element.html">
 
+<link rel="import" href="catalog-element-api-property.html">
 <link rel="import" href="catalog-styles.html">
 
 <dom-module id="catalog-element-api">
   <template>
-    <style include="catalog-styles"></style>
     <style>
-      
+
+      .markdown-html table {
+        background-color: #eeeeee;
+        border-collapse: collapse;
+        margin: 12px 0;
+        width: 100%;
+      }
+
+      .markdown-html tr {
+        background-color: #eeeeee;
+        border-collapse: collapse;
+        margin: 12px 0;
+        width: 100%;
+      }
+
+      .markdown-html code {
+        font-family: 'Roboto Mono', 'Consolas', 'Menlo', monospace;
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        background: #eeeeee;
+        padding: 3px;
+        border-radius: 3px;
+      }
+
+      .markdown-html tr td:first-child code {
+        color: black;
+        font-weight: bold;
+      }
+
+      .markdown-html td, .markdown-html th {
+        padding: 6px 12px
+      }
+
+      /** Rearrange the layout of the HTML table */
+      .markdown-html tr th:first-child {
+        width: 60%;
+        float: left;
+        text-align: left;
+        padding-left: 15px;
+      }
+      .markdown-html tr th:nth-child(2) {
+        display:none;
+        float: left;
+      }
+      .markdown-html tr th:nth-child(3) {
+        width: 40%;
+        float: left;
+        text-align: left;
+        padding-right: 15px;
+      }
+      .markdown-html tr td:first-child {
+        width: 100%;
+        float: left;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      .markdown-html tr td:nth-child(2) {
+        width: 60%;
+        float: left;
+        padding-bottom: 15px;
+      }
+      .markdown-html tr td:nth-child(3) {
+        width: 40%;
+        float: left;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
     </style>
+    <style include="catalog-styles"></style>
+    <section hidden$="[[!_includedBehaviors.length]]">
+      includes <template is="dom-repeat" items=[[_includedBehaviors]]><a> [[item]]</a></template>
+    </section>
+
     <section hidden$="[[!data.desc]]">
       <marked-element markdown="{{data.desc}}">
         <div class="markdown-html"></div>
       </marked-element>
+    </section>
+
+    <section hidden$="[[!_myProperties.length]]">
+      <h3>Properties</h3>
+      <template is="dom-repeat" items="[[_myProperties]]">
+        <catalog-element-api-property descriptor="[[item]]"></catalog-element-api-property>
+      </template>
+    </section>
+
+    <section hidden$="[[!_sortedPropertyKeys.length]]">
+      <h3>Inherited properties</h3>
+      <template is="dom-repeat" items="[[_sortedPropertyKeys]]">
+        <h4>from [[item]]</h4>
+        <template is="dom-repeat" items="[[_valuesFor(_inheritedProperties, item)]]">
+           <catalog-element-api-property descriptor="[[item]]"></catalog-element-api-property>
+        </template>
+      </template>
+    </section>
+
+    <section hidden$="[[!_myMethods.length]]">
+      <h3>Functions</h3>
+      <template is="dom-repeat" items="[[_myMethods]]">
+        <catalog-element-api-property descriptor="[[item]]"></catalog-element-api-property>
+      </template>
+    </section>
+
+    <section hidden$="[[!_sortedMethodKeys.length]]">
+      <h3>Inherited functions</h3>
+      <template is="dom-repeat" items="[[_sortedMethodKeys]]">
+        <h4>from [[item]]</h4>
+        <template is="dom-repeat" items="[[_valuesFor(_inheritedMethods, item)]]">
+           <catalog-element-api-property descriptor="[[item]]"></catalog-element-api-property>
+        </template>
+      </template>
     </section>
 
 
@@ -27,16 +135,54 @@
         }
       },
 
+      _toggle: function(event) {
+        document.getElementById(event.target.ariaControls).toggle();
+      },
+
+      _valuesFor: function(map, key) {
+        return map[key];
+      },
+
       _dataChanged: function() {
         if (!this.data) return;
 
-        var properties = [];
-        var methods    = [];
-        for (var i = 0, property; property = this.descriptor.properties[i]; i++) {
-          (property.type === 'Function' ? methods : properties).push(property);
+        var myMethods = [];
+        var myProperties = [];
+        var inheritedMethods = {};
+        var inheritedProperties = {};
+        var includedBehaviors = [];
+
+        for (var index in this.data.properties) {
+          var property = this.data.properties[index];
+          if (property.private) {
+            continue;
+          }
+
+          var isMethod = property.type === 'Function';
+          var isInherited = property.__fromBehavior != undefined;
+          if (!isInherited) {
+            (isMethod ? myMethods : myProperties).push(property);
+          } else {
+            var key = property.__fromBehavior;
+            var container = isMethod ? inheritedMethods : inheritedProperties;
+            var behaviorContainer = container[key] || [];
+            behaviorContainer.push(property);
+            container[key] = behaviorContainer;
+            if (!includedBehaviors.includes(key)) {
+              includedBehaviors.push(key);
+            }
+          }
         }
-        this._properties = properties;
-        this._methods = methods;
+
+        this._myProperties = myProperties;
+        this._myMethods = myMethods;
+        this._inheritedProperties = inheritedProperties;
+        this._inheritedMethods = inheritedMethods;
+        this._includedBehaviors = includedBehaviors.sort();
+
+        this._sortedPropertyKeys = Object.keys(inheritedProperties).sort();
+        this._sortedMethodKeys = Object.keys(inheritedMethods).sort();
+
         this._events = this.data.events || [];
         this._behaviors = this.data.behaviors || [];
       }
