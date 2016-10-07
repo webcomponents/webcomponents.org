@@ -420,7 +420,8 @@
       },
 
       analyticsKey: function() {
-        return this.isProduction() ? 'UA-82313441-1' : 'UA-82326223-1';
+        var isLocalhost = window.location.hostname == 'localhost';
+        return this.isProduction() && !isLocalhost ? 'UA-82313441-1' : 'UA-82326223-1';
       },
 
       baseUrls: function(queryParams) {
