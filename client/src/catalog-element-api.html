@@ -8,19 +8,47 @@
 <dom-module id="catalog-element-api">
   <template>
     <style>
-
       .markdown-html table {
         background-color: #eeeeee;
         border-collapse: collapse;
         margin: 12px 0;
         width: 100%;
+        display: block;
       }
 
       .markdown-html tr {
         background-color: #eeeeee;
         border-collapse: collapse;
-        margin: 12px 0;
+        margin: 5px 0;
         width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        padding-top: 5px;
+      }
+      .markdown-html th {
+        text-align: left;
+      }
+      .markdown-html td, .markdown-html th {
+        padding: 0 12px
+      }
+      .markdown-html td:first-child, .markdown-html th:first-child {
+        order: 1;
+        flex: 1 0;
+      }
+      .markdown-html td:nth-child(3), .markdown-html th:nth-child(3) {
+        order: 2;
+        flex: 0 0 250px;
+      }
+      .markdown-html td:nth-child(2), .markdown-html th:nth-child(2) {
+        order: 3;
+        flex: 0 0 100%;
+        padding-top: 0;
+        padding-bottom: 0;
+        color: #666;
+      }
+
+      .markdown-html tr th:nth-child(2) {
+        display:none;
       }
 
       .markdown-html code {
@@ -37,45 +65,6 @@
       .markdown-html tr td:first-child code {
         color: black;
         font-weight: bold;
-      }
-
-      .markdown-html td, .markdown-html th {
-        padding: 6px 12px
-      }
-
-      /** Rearrange the layout of the HTML table */
-      .markdown-html tr th:first-child {
-        width: 60%;
-        float: left;
-        text-align: left;
-        padding-left: 15px;
-      }
-      .markdown-html tr th:nth-child(2) {
-        display:none;
-        float: left;
-      }
-      .markdown-html tr th:nth-child(3) {
-        width: 40%;
-        float: left;
-        text-align: left;
-        padding-right: 15px;
-      }
-      .markdown-html tr td:first-child {
-        width: 100%;
-        float: left;
-        padding-left: 15px;
-        padding-right: 15px;
-      }
-      .markdown-html tr td:nth-child(2) {
-        width: 60%;
-        float: left;
-        padding-bottom: 15px;
-      }
-      .markdown-html tr td:nth-child(3) {
-        width: 40%;
-        float: left;
-        padding-left: 15px;
-        padding-right: 15px;
       }
     </style>
     <style include="catalog-styles"></style>
