@@ -1,0 +1,49 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<script>
+  Polymer.PollingMetaBehavior = {
+
+    properties: {
+      /**
+       * Reference to iron-ajax to poll.
+       */
+      metaAjax: Object,
+
+      /**
+       * Used to backoff the requests
+       */
+      numPolls: Number,
+    },
+
+    pollMeta: function() {
+      if (!this.metaAjax || !this.metaAjax.url) {
+        console.error('Not configured correctly');
+        return;
+      }
+
+      if (!this._navigated) {
+        this.metaAjax.generateRequest();
+        this.numPolls++;
+      }
+    },
+
+    onMetaResponse: function(event) {
+      var response = event.detail.response;
+      if (response.status == 'error')
+        this.fire('error', {title: 'Unable to process element', message: response.error});
+      else if (response.status == 'pending')
+        this.async(this.pollMeta, 250 * this.numPolls);
+      else
+        this.success();
+    },
+
+    onMetaError: function(event, error) {
+      if (error.request.status == 404 || error.request.status == 0)
+        this.async(this.pollMeta, 250 * this.numPolls);
+      else
+        this.fire('error', {status: error.request.status, title: 'error'});
+    },
+
+  };
+
+</script>
