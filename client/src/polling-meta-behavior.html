@@ -30,7 +30,7 @@
         this.fire('error', {title: 'error', message: 'Timed out waiting for server to process'});
         return;
       }
-      this.metaAjax.generateRequest();
+      this._metaAjax.generateRequest();
       this._numPolls++;
     },
 

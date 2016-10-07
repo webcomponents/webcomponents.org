@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="polling-meta-behavior.html">
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
 
@@ -64,6 +65,10 @@
         baseUrls: Object,
       },
 
+      behaviors: [
+        Polymer.PollingMetaBehavior,
+      ],
+
       onSubmit: function() {
         if (!grecaptcha || !grecaptcha.getResponse())
           return;
@@ -85,6 +90,7 @@
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
         grecaptcha.reset();
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
         this.startPolling(this.$.metaAjax);
       },
 
