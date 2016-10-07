@@ -106,7 +106,7 @@
           <a href="/author/[[_routeMatch.owner]]">
             <author-profile condensed author="[[author]]"></author-profile>
           </a>
-          <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$=[[!_parents.length]]>
+          <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.length]]">
             <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>
             <template is="dom-repeat" items="[[_parents]]">
               <collection-card data="[[item]]"></collection-card>

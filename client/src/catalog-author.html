@@ -28,6 +28,10 @@
         display: hidden;
       }
 
+      h1.section-header[count="0"] {
+        display: none;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         collection-card {
           margin: 8px 0;
@@ -77,14 +81,18 @@
         </div>
 
         <div class="main-content loader" loading$="[[or(collectionsLoading, elementsLoading)]]">
-          <template is="dom-if" if="[[_collections]]"><h1 class="section-header">[[_collections.count]] Collections</h1></template>
+          <template is="dom-if" if="[[_collections]]">
+            <h1 class="section-header" count$="[[_collections.count]]">[[_collections.count]] Collections</h1>
+          </template>
           <div id="collections">
             <template is="dom-repeat" items="[[_collections.results]]">
                 <collection-card data="[[item]]"></collection-card>
             </template>
             <div id="spacer"></div>
           </div>
-          <template is="dom-if" if="[[_elements]]"><h1 class="section-header">[[_elements.count]] Elements</h1></template>
+          <template is="dom-if" if="[[_elements]]">
+            <h1 class="section-header" count$="[[_elements.count]]">[[_elements.count]] Elements</h1>
+          </template>
           <template is="dom-repeat" items="[[_elements.results]]">
             <catalog-item data="[[item]]"></catalog-item>
           </template>
