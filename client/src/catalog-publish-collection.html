@@ -85,7 +85,7 @@
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
         grecaptcha.reset();
-        this.pollMeta();
+        this.startPolling(this.$.metaAjax);
       },
 
       success: function() {

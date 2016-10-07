@@ -85,9 +85,6 @@
           return;
         }
 
-        this._navigated = false;
-        this.numPolls = 0;
-
         this.$.ajax.params = {
           url: url,
           recaptcha: grecaptcha.getResponse()
@@ -98,17 +95,11 @@
 
       _taskTriggered: function(event) {
         this._ownerRepoSha = event.detail.response;
-        this.metaAjax = this.$.metaAjax;
         this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + this._ownerRepoSha;
-        this.pollMeta();
-        // Max timeout of 10 seconds.
-        this.async(this.success, 10000);
+        this.startPolling(this.$.metaAjax);
       },
 
       success: function() {
-        if (this._navigated)
-          return;
-        this._navigated = true;
         window.history.pushState({}, null, '/preview/' + this._ownerRepoSha);
         this.fire('location-changed');
       },

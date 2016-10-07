@@ -7,24 +7,31 @@
       /**
        * Reference to iron-ajax to poll.
        */
-      metaAjax: Object,
+      _metaAjax: Object,
 
       /**
        * Used to backoff the requests
        */
-      numPolls: Number,
+      _numPolls: Number,
     },
 
-    pollMeta: function() {
-      if (!this.metaAjax || !this.metaAjax.url) {
+    startPolling: function(metaAjax) {
+      if (!metaAjax || !metaAjax.url) {
         console.error('Not configured correctly');
         return;
       }
+      this._metaAjax = metaAjax;
+      this._numPolls = 0;
+      this._pollMeta();
+    },
 
-      if (!this._navigated) {
-        this.metaAjax.generateRequest();
-        this.numPolls++;
+    _pollMeta: function() {
+      if (this._numPolls > 10) {
+        this.fire('error', {title: 'error', message: 'Timed out waiting for server to process'});
+        return;
       }
+      this.metaAjax.generateRequest();
+      this._numPolls++;
     },
 
     onMetaResponse: function(event) {
@@ -32,14 +39,14 @@
       if (response.status == 'error')
         this.fire('error', {title: 'Unable to process element', message: response.error});
       else if (response.status == 'pending')
-        this.async(this.pollMeta, 250 * this.numPolls);
+        this.async(this._pollMeta, 250 * this._numPolls);
       else
         this.success();
     },
 
     onMetaError: function(event, error) {
       if (error.request.status == 404 || error.request.status == 0)
-        this.async(this.pollMeta, 250 * this.numPolls);
+        this.async(this._pollMeta, 250 * this._numPolls);
       else
         this.fire('error', {status: error.request.status, title: 'error'});
     },
