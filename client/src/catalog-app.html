@@ -330,7 +330,7 @@
       <catalog-element name="element" route="{{subroute}}" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
-      <catalog-publish name="publish" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
+      <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>

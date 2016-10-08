@@ -110,7 +110,7 @@
         <h2>Ready to publish?</h2>
         <p>You can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
 
-        <input type="text" name="repo" value="{{repo::input}}" placeholder="username/my-element-repo">
+        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
         <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
         <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
         <button on-click="onSubmit">Publish</button>
@@ -126,6 +126,8 @@
 
       properties: {
         baseUrls: Object,
+
+        path: String,
       },
 
       behaviors: [
@@ -153,7 +155,7 @@
           recaptcha: grecaptcha.getResponse()
         };
 
-        var repo = this.repo;
+        var repo = this.$['repo-input'].value;
         repo = repo.replace(/\/$/, '');
         repo = repo.replace(/.*github.com\//, '');
 
@@ -177,6 +179,10 @@
 
       _error: function() {
         this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
+      },
+
+      _trim: function(path) {
+        return path.replace(/^\//, '');
       },
 
     });

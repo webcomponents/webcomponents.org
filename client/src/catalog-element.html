@@ -327,14 +327,6 @@
       }
 
       #report-link {
-        display: block;
-        border: 1px solid #ededed;
-        border-radius: 4px;
-        width: 100%;
-        display: flex;
-        padding: 12px 0;
-        color: inherit;
-        justify-content: center;
         margin-top: 60px;
         position: relative;
       }
@@ -555,6 +547,8 @@
               <div>View on GitHub</div>
             </div>
           </a>
+
+          <a href="/publish/[[owner]]/[[repo]]" class="soft-button" hidden$="[[!_isPreview(route.prefix)]]">Publish</a>
         </div>
       </div>
 
@@ -611,7 +605,7 @@
             </template>
           </div>
 
-          <a id="report-link" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+          <a id="report-link" class="soft-button" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
             Report
           </a>
         </div>
@@ -937,6 +931,10 @@
             found = true;
         }
         return found ? 'Overview' : this.repo;
+      },
+
+      _isPreview: function(prefix) {
+        return prefix == '/preview';
       },
 
     });
