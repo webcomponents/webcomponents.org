@@ -3,18 +3,11 @@
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="polling-meta-behavior.html">
-
-<script src="https://www.google.com/recaptcha/api.js"></script>
+<link rel="import" href="re-captcha.html">
 
 <dom-module id="catalog-publish-collection">
   <template>
     <style include="catalog-styles"></style>
-
-    <style>
-      .g-recaptcha {
-        margin: 16px 0;
-      }
-    </style>
 
     <iron-ajax
       id="ajax"
@@ -49,7 +42,7 @@
 
         <input type="text" name="repo" value="{{repo::input}}" placeholder="username/my-element-repo">
         <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
-        <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button on-click="onSubmit">Publish</button>
       </div>
     </div>
@@ -70,11 +63,11 @@
       ],
 
       onSubmit: function() {
-        if (!grecaptcha || !grecaptcha.getResponse())
+        if (!this.$.recaptcha.getResponse())
           return;
 
         this.$.ajax.params = {
-          recaptcha: grecaptcha.getResponse()
+          recaptcha: this.$.recaptcha.getResponse()
         };
 
         var repo = this.repo;
@@ -89,7 +82,7 @@
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
-        grecaptcha.reset();
+        this.$.recaptcha.reset();
         this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
         this.startPolling(this.$.metaAjax);
       },

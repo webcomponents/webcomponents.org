@@ -3,8 +3,7 @@
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="polling-meta-behavior.html">
-
-<script src="https://www.google.com/recaptcha/api.js"></script>
+<link rel="import" href="re-captcha.html">
 
 <dom-module id="catalog-preview">
   <template>
@@ -13,10 +12,6 @@
     <style>
       .main-content h1 {
         margin: 32px 0 16px;
-      }
-
-      .g-recaptcha {
-        margin: 16px 0;
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -51,7 +46,7 @@
         <h1>Enter a Github URL</h1>
         <input type="text" name="url" value="{{url::input}}" placeholder="Any GitHub URL">
         <div id="error" class="error-message" hidden>Invalid input - enter a GitHub URL</div>
-        <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button on-tap="onSubmit">Preview</button>
       </div>
     </div>
@@ -74,7 +69,7 @@
       ],
 
       onSubmit: function() {
-        if (!grecaptcha || !grecaptcha.getResponse())
+        if (!this.$.recaptcha.getResponse())
           return;
 
         var url = this.url;
@@ -87,10 +82,10 @@
 
         this.$.ajax.params = {
           url: url,
-          recaptcha: grecaptcha.getResponse()
+          recaptcha: this.$.recaptcha.getResponse()
         };
         this.$.ajax.generateRequest();
-        grecaptcha.reset();
+        this.$.recaptcha.reset();
       },
 
       _taskTriggered: function(event) {
