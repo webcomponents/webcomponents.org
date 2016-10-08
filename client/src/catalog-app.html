@@ -30,8 +30,13 @@
         --monospace-font: 'Source Code Pro', monospace;
 
         --theme-font-color: #383F46;
-        --theme-accent-1: #6dc38f;
+        --theme-yellow: #E6F616;
+        --theme-green: #8EDB69;
+        --theme-navy: #226392;
         --theme-blue: #37A0CE;
+
+        /* Deprecated colors */
+        --theme-accent-1: #6dc38f;
         --theme-blue-dark: #1f9bb9;
         --theme-blue-grey: #697785;
 
@@ -71,9 +76,10 @@
         background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
       }
 
-      #pages, #footer-content {
-        max-width: 980px;
+      #pages, #footer-content, #toolbar-search-container, #toolbar-nav-container {
+        max-width: 1080px;
         margin: 0 auto;
+        width: 100%;
       }
 
       #pages {
@@ -166,7 +172,31 @@
         box-shadow: 0 1px 0 0 #ededed;
       }
 
+      #toolbar-search-container {
+        display: flex;
+        align-items: center;
+      }
+
+      #tag-list {
+        flex: 1 1 40%;
+        overflow: hidden;
+        height: 50px;
+        line-height: 50px;
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 20px;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      #tag-list a {
+        margin: 0 14px;
+      }
+
       #search-container {
+        flex: 1 1 60%;
         width: 630px;
         max-width: 100%;
         height: 50px;
@@ -266,18 +296,27 @@
 
     <lazy-block id="block"></lazy-block>
 
-
     <app-header role="banner" condenses reveals>
       <app-toolbar id="toolbar-nav">
-        <a href="/" id="toolbar-header" beta>
-          <img src="/assets/logo.svg" role="none">
-          <h2 id="domain-title">webcomponents.org</h2>
-          <div id="tag-line" aria-label="web components .org">A place to discuss & evolve web components</div>
-        </a>
+        <div id="toolbar-nav-container">
+          <a href="/" id="toolbar-header" beta>
+            <img src="/assets/logo.svg" role="none">
+            <h2 id="domain-title">webcomponents.org</h2>
+            <div id="tag-line" aria-label="web components .org">A place to discuss & evolve web components</div>
+          </a>
+        </div>
       </app-toolbar>
       <app-toolbar sticky id="toolbar-search">
-        <div id="search-container">
-          <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
+        <div id="toolbar-search-container">
+          <div id="search-container">
+            <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
+          </div>
+
+          <div id="tag-list">
+            <template is="dom-repeat" items="[[_tagList(7)]]">
+              <a href="#" on-click="_searchTag">[[item]]</a>
+            </template>
+          </div>
         </div>
       </app-toolbar>
     </app-header>
@@ -460,6 +499,37 @@
       _onFeedback: function(event) {
         var origin = escape(window.location.href);
         event.target.href = "https://github.com/webcomponents/beta/issues/new?body=[Origin page](" + origin + ")&labels=Feedback";
+      },
+
+      _tagList: function(numTags) {
+        var tagList = [
+          "emoji",
+          "form",
+          "button",
+          "image",
+          "layout",
+          "media",
+          "toolbar",
+          "routing",
+          "calendar",
+          "notification",
+        ];
+
+        // Tags 'change' every day
+        var daysSinceEpoch = Math.floor(Date.now() / 8.64e7);
+        var result = [];
+        var index;
+
+        for (var i = 0; i < numTags; i++) {
+          index = Math.round(daysSinceEpoch % tagList.length);
+          result = result.concat(tagList.splice(index, 1));
+        }
+
+        return result;
+      },
+
+      _searchTag: function(event) {
+        this.fire('triggerSearch', {query: 'bower_keywords:' + event.target.textContent});
       },
 
     });
