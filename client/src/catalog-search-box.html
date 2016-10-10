@@ -197,7 +197,7 @@
       debounce-duration="300"></iron-ajax>
 
     <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
-    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org"></input>
+    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
 
     <paper-progress id="progress" indeterminate hidden></paper-progress>
     <div id="results" on-click="_close">
@@ -244,7 +244,10 @@
         query: String,
 
         _requestParams: Object,
-        _elementsLoading: {value: false},
+        _elementsLoading: {
+          type: Boolean,
+          value: false
+        },
       },
 
       observers: [
