@@ -76,6 +76,14 @@
         background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
       }
 
+      :host[page=author], :host[page=collection] {
+        background: none;
+      }
+
+      :host[page=author] #pages, :host[page=collection] #pages {
+        margin-bottom: 0;
+      }
+
       #pages, #footer-content, #toolbar-search-container, #toolbar-nav-container {
         max-width: 1080px;
         margin: 0 auto;
