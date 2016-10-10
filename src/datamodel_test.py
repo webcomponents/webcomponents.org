@@ -33,13 +33,13 @@ class VersionCacheTests(TestBase):
     latest_changed = VersionCache.update(library_key)
     self.assertTrue(latest_changed)
     versions = yield Library.versions_for_key_async(library_key)
-    self.assertEqual(versions, ['v1.0.0', 'v2.0.0', 'v3.0.0'])
+    self.assertEqual(versions, ['v1.0.0', 'v2.0.0', 'v3.0.0', 'v4.0.0'])
 
     Version(id='v6.0.0', sha='x', status=Status.ready, parent=library_key).put()
     latest_changed = VersionCache.update(library_key)
     self.assertTrue(latest_changed)
     versions = yield Library.versions_for_key_async(library_key)
-    self.assertEqual(versions, ['v1.0.0', 'v2.0.0', 'v3.0.0', 'v6.0.0'])
+    self.assertEqual(versions, ['v1.0.0', 'v2.0.0', 'v3.0.0', 'v4.0.0', 'v6.0.0'])
 
 class CollectionReferenceTests(TestBase):
   @ndb.toplevel

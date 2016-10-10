@@ -630,7 +630,8 @@ class UpdateIndexes(RequestHandler):
       return self.error('no versions for %s' % Library.id(owner, repo))
 
     bower_key = ndb.Key(Library, Library.id(owner, repo), Version, version, Content, 'bower')
-    bower = json.loads(bower_key.get().content)
+    bower_object = bower_key.get()
+    bower = {} if bower_object is None else json.loads(bower_object.content)
     version_key = bower_key.parent()
     library = version_key.parent().get()
 

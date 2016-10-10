@@ -95,7 +95,7 @@ class Library(ndb.Model):
 
   @staticmethod
   def uncached_versions_for_key(key):
-    versions = Version.query(Version.status == Status.ready, ancestor=key).fetch(keys_only=True)
+    versions = Version.query(Version.status != Status.pending, ancestor=key).fetch(keys_only=True)
     versions = [key.id() for key in versions if versiontag.is_valid(key.id())]
     versions.sort(versiontag.compare)
     return versions
