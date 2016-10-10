@@ -231,7 +231,7 @@
            * @type {hydrolysis.PropertyDescriptor}
            */
           descriptor: {
-            type:     Object,
+            type: Object,
             observer: '_descriptorChanged',
           },
 
@@ -256,6 +256,7 @@
          * We are careful to reset our explicit heights after a transition
          * completes, so that the property doesn't clip values if the user resizes
          * their viewport.
+         * @param event
          */
         _onTransitionEnd: function(event) {
           if (event.path[0] !== this.$.transitionMask) return;
@@ -264,7 +265,7 @@
 
         _descriptorChanged: function() {
           this.toggleAttribute('configuration', this.descriptor.configuration);
-          this.toggleAttribute('function',      this.descriptor.function);
+          this.toggleAttribute('function', this.descriptor.function);
           this._paramText = (this.descriptor.params || []).map(function(param) {
             return param.name;
           }).join(', ');
@@ -272,11 +273,11 @@
 
         // hidden if no type and no defaults
         _computeHideMeta: function(descriptor) {
-          return descriptor.type === undefined &&  descriptor.default === undefined;
+          return descriptor.type === undefined && descriptor.default === undefined;
         },
 
         // hidden if no params, and no return value
-        _computeHideParams: function(descriptor,ret) {
+        _computeHideParams: function(descriptor, ret) {
           return (!descriptor.params || descriptor.params.length === 0) && !ret;
         },
 
@@ -293,8 +294,8 @@
         _getAnnotation: function(descriptor) {
           var annotations = [];
 
-          if (descriptor['default'] !== undefined) {
-            annotations.push('Default: ' + descriptor['default']);
+          if (descriptor.default !== undefined) {
+            annotations.push('Default: ' + descriptor.default);
           }
           if (descriptor.readOnly) {
             annotations.push('readOnly');

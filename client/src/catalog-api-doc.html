@@ -238,7 +238,7 @@
 
           // Split the documented properties between functions and other types.
           var properties = [];
-          var methods    = [];
+          var methods = [];
 
           for (var i = 0, property; property = this.descriptor.properties[i]; i++) {
             if (!property.private) {
@@ -246,9 +246,9 @@
             }
           }
           this._properties = properties;
-          this._methods    = methods;
-          this._events     = this.descriptor.events || [];
-          this._behaviors  = this.descriptor.behaviors || [];
+          this._methods = methods;
+          this._events = this.descriptor.events || [];
+          this._behaviors = this.descriptor.behaviors || [];
 
           this.toggleAttribute('abstract', this.descriptor.abstract);
         },
@@ -258,6 +258,7 @@
          * by the URL hash. Whichever element or script is in charge
          * of routing should call this method on initial page load and
          * on hashchange events.
+         * @param {string} hash
          */
         scrollToAnchor: function(hash) {
           // ToDo: handle linking to private members
