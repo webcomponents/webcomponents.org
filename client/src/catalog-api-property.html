@@ -256,7 +256,7 @@
          * We are careful to reset our explicit heights after a transition
          * completes, so that the property doesn't clip values if the user resizes
          * their viewport.
-         * @param event
+         * @param {object} event The event in question.
          */
         _onTransitionEnd: function(event) {
           if (event.path[0] !== this.$.transitionMask) return;
