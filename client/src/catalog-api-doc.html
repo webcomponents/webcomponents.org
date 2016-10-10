@@ -240,7 +240,8 @@
           var properties = [];
           var methods = [];
 
-          for (var i = 0, property; property = this.descriptor.properties[i]; i++) {
+          for (var i = 0; i < this.descriptor.properties.length; i++) {
+            var property = this.descriptor.properties[i];
             if (!property.private) {
               (property.type === 'Function' ? methods : properties).push(property);
             }
