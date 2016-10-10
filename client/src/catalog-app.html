@@ -7,7 +7,7 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
-<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:400,600" rel="stylesheet">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
@@ -34,11 +34,11 @@
         --theme-green: #8EDB69;
         --theme-navy: #226392;
         --theme-blue: #37A0CE;
+        --theme-blue-grey: #697785;
 
         /* Deprecated colors */
         --theme-accent-1: #6dc38f;
         --theme-blue-dark: #1f9bb9;
-        --theme-blue-grey: #697785;
 
         /* Based on Atom/one-dark-syntax theme https://github.com/atom/one-dark-syntax */
         --syntax-hue:          220;
@@ -117,25 +117,6 @@
         width: 100%;
       }
 
-      #toolbar-header {
-        color: inherit;
-        display: flex;
-        align-items: center;
-      }
-
-      #toolbar-header[beta] {
-        position: relative;
-      }
-
-      #toolbar-header[beta]:before {
-        content: 'beta';
-        font-size: 10px;
-        position: absolute;
-        top: 3px;
-        left: 59px;
-        text-transform: uppercase;
-      }
-
       app-toolbar {
         height: 80px;
         padding: 0 32px;
@@ -147,6 +128,12 @@
 
       #toolbar-nav {
         background: white;
+      }
+
+      #toolbar-nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       #domain-title {
@@ -168,6 +155,21 @@
         width: 64px;
         height: 64px;
         margin-right: 20px;
+      }
+
+      #toolbar-header, #toolbar-header > div {
+        color: inherit;
+        display: flex;
+        align-items: center;
+      }
+
+      #publish-cta {
+        background: var(--theme-blue);
+        color: white;
+        border-radius: 5px;
+        padding: 5px 16px;
+        font-size: 16px;
+        font-weight: 600;
       }
 
       /* Search toolbar */
@@ -196,6 +198,7 @@
         align-items: center;
         margin-left: 20px;
         font-size: 12px;
+        font-weight: 600;
         text-transform: uppercase;
       }
 
@@ -233,7 +236,55 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        :host {
+          padding-top: 70px;
+        }
+
+        #pages {
+          min-height: calc(100vh - 70px);
+        }
+
+        #progress {
+          top: 70px;
+        }
+
+        app-header {
+          height: 70px;
+        }
+
+        #toolbar-nav {
+          height: 70px;
+          padding: 16px;
+          box-shadow: 0 2px 6px 0 #ededed;
+        }
+
+        #publish-cta {
+          display: none;
+        }
+
+        #toolbar-header img {
+          width: 46px;
+          margin: 0;
+        }
+
+        #toolbar-header > #title-tag {
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
+          margin-left: 16px;
+          line-height: 16px;
+        }
+
+        #domain-title {
+          font-size: 12px;
+        }
+
         #tag-line {
+          margin: 0;
+          font-size: 14px;
+        }
+
+        #toolbar-search {
           display: none;
         }
 
@@ -285,6 +336,7 @@
       #footer-content a {
         color: inherit;
         margin: 4px 0;
+        font-weight: 600;
       }
 
       #footer-content a:not([href]) {
@@ -307,10 +359,13 @@
     <app-header role="banner" condenses reveals>
       <app-toolbar id="toolbar-nav">
         <div id="toolbar-nav-container">
-          <a href="/" id="toolbar-header" beta>
+          <a href="/" id="toolbar-header">
             <img src="/assets/logo.svg" role="none">
-            <h2 id="domain-title">webcomponents.org</h2>
-            <div id="tag-line" aria-label="web components .org">A place to discuss & evolve web components</div>
+            <div id="title-tag">
+              <h2 id="domain-title">webcomponents.org</h2>
+              <div id="tag-line" aria-label="web components .org">Discuss & share web components</div>
+            </div>
+            <a id="publish-cta" href="/publish">Publish an element</a>
           </a>
         </div>
       </app-toolbar>
@@ -365,7 +420,7 @@
           </div>
         </section>
         <section>
-          <h2>Element catalog</h2>
+          <h2>Elements</h2>
           <div role="navigation">
             <a href="/publish">Publish an element</a>
             <a href="/publish-collection">Publish a collection</a>

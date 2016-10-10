@@ -24,13 +24,13 @@
         font-size: 18px;
         margin-top: 0;
         color: black;
-        font-weight: normal;
+        font-weight: 600;
       }
 
       h1.page-title {
         display: inline-block;
         font-size: 38px;
-        font-weight: bold;
+        font-weight: 600;
         line-height: 45px;
         color: hsl(0, 0%, 18%);
         margin: 0;
@@ -42,14 +42,14 @@
         line-height: 30px;
         max-width: 800px;
         margin: 0 0 16px 0;
-        color: hsl(0, 0%, 50%);
+        color: var(--theme-blue-grey);
         font-weight: normal;
       }
 
       h3 {
         text-transform: uppercase;
-        font-weight: normal;
-        font-size: 14px;
+        font-weight: 600;
+        font-size: 13px;
         line-height: 16px;
         margin: 0;
         margin-bottom: 8px;
@@ -96,12 +96,11 @@
       }
 
       .box {
-        border: 1px solid #ededed;
-        border-bottom-width: 3px;
         width: 100%;
         border-radius: 4px;
         overflow: hidden;
         background: white;
+        box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1);
       }
 
       .avatar {
@@ -127,6 +126,14 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        h1.page-title {
+          font-size: 28px;
+        }
+
+        h2.page-subtitle {
+          font-size: 18px;
+        }
+
         h3, h1.page-title, h2.page-subtitle, h1.section-header {
           margin-left: 16px;
         }
@@ -152,7 +159,8 @@
           position: fixed;
           width: 100%;
           z-index: -1;
-          top: 200px;
+          top: 100px;
+          padding: 0 16px;
         }
 
         .mobile-fixed h1, .mobile-fixed h2, .mobile-fixed h3 {
@@ -160,7 +168,7 @@
         }
 
         .mobile-scroll-overlay > .body {
-          margin-top: 300px;
+          margin-top: 260px;
           z-index: 2;
           background: linear-gradient(to bottom, #F3F4F5, white 100vh);
           min-height: 100vh;

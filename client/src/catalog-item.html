@@ -35,16 +35,22 @@
       }
 
       #stats {
-        flex-basis: 70px;
+        flex-basis: 120px;
         display: flex;
-        flex-direction: column;
-        color: black !important;
-        border-left: 1px solid #ededed;
+        color: #9eadbb;
         padding-left: 16px;
       }
 
+      #stats > :first-child {
+        color: black;
+      }
+
+      .octicon-star {
+        color: #f3b70b;
+      }
+
       #stats div {
-        margin-bottom: 4px;
+        width: 60px;
         display: flex;
         align-items: center;
       }
@@ -97,7 +103,7 @@
       is: 'catalog-item',
 
       properties: {
-        data: Object
+        data: Object,
       },
 
       _versionPath: function(version, latestVersion) {
