@@ -30,6 +30,7 @@
 
       img {
         max-width: 100%;
+        width: 100%;
       }
 
       #header, #more {
@@ -91,10 +92,37 @@
         margin-right: 8px;
         color: hsl(0, 0%, 60%);
       }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        :host[overlay] .box {
+          overflow: visible;
+          background: transparent;
+          border-color: transparent;
+        }
+
+        :host[overlay] #avatar {
+          margin-top: -150px;
+          background: transparent;
+        }
+
+        :host[overlay] #avatar img {
+          max-width: calc(100% - 80px);
+          border-radius: 50%;
+          overflow: hidden;
+          background: white;
+          margin: 40px;
+          box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.1),
+                      0px 0px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        :host[overlay] #header {
+          display: none;
+        }
+      }
     </style>
 
     <div class="box">
-      <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]"></div>
+      <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]" role="presentation"></div>
       <div id="header">
         <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
         <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a></div>
@@ -156,6 +184,12 @@
         },
 
         author: Object,
+
+        overlay: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+        },
       },
 
       _nameOrLogin: function(name, login) {

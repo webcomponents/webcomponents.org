@@ -11,6 +11,7 @@
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
+<link rel="import" href="catalog-search-box.html">
 
 <dom-module id="catalog-app">
   <template>
@@ -18,17 +19,26 @@
     <style>
       :host {
         display: block;
-        max-width: 980px;
-        margin: 0 auto;
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
-        padding-top: 100px;
-        --theme-accent-1: #6dc38f;
+        padding-top: 160px;
+        color: var(--theme-font-color);
+        background: linear-gradient(to bottom, #F3F4F5, transparent 100vh);
+
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
-        --theme-blue: #18b4d9;
+
+        --theme-font-color: #383F46;
+        --theme-yellow: #E6F616;
+        --theme-green: #8EDB69;
+        --theme-navy: #226392;
+        --theme-blue: #37A0CE;
+
+        /* Deprecated colors */
+        --theme-accent-1: #6dc38f;
         --theme-blue-dark: #1f9bb9;
+        --theme-blue-grey: #697785;
 
         /* Based on Atom/one-dark-syntax theme https://github.com/atom/one-dark-syntax */
         --syntax-hue:          220;
@@ -62,59 +72,149 @@
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
+      :host[page=home] {
+        background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
+      }
+
+      :host[page=author], :host[page=collection] {
+        background: none;
+      }
+
+      :host[page=author] #pages, :host[page=collection] #pages {
+        margin-bottom: 0;
+      }
+
+      #pages, #footer-content, #toolbar-search-container, #toolbar-nav-container {
+        max-width: 1080px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      #pages {
+        margin: 32px auto;
+        min-height: calc(100vh - 160px - 16px);
+      }
+
       #progress {
         position: absolute;
-        top: 0px;
+        top: 160px;
         left: 0px;
         width: 100vw;
         --paper-progress-active-color: var(--theme-blue);
         --paper-progress-indeterminate-cycle-duration: 3s;
         --paper-progress-transition-transition-delay: 250ms;
-        height: 5px;
+        height: 2px;
+        margin-top: 1px;
       }
 
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
-        /*background-color: var(--theme-accent-1);*/
-        /*color: white;*/
-        height: 100px;
+        height: calc(2 * 80px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
       }
 
       #toolbar-header {
         color: inherit;
-        margin: 0 16px;
+        display: flex;
+        align-items: center;
       }
 
-      #toolbar-header h3 {
-        margin: 0;
+      #toolbar-header[beta] {
+        position: relative;
       }
 
-      #toolbar-header h2 {
-        font-size: 18px;
-        margin: 0;
+      #toolbar-header[beta]:before {
+        content: 'beta';
+        font-size: 10px;
+        position: absolute;
+        top: 3px;
+        left: 59px;
+        text-transform: uppercase;
       }
 
       app-toolbar {
-        height: 100px;
-        max-width: 980px;
-        margin: 0 auto;
+        height: 80px;
+        padding: 0 32px;
+        display: flex;
+        justify-content: center;
       }
 
-      app-toolbar img {
+      /* Top toolbar */
+
+      #toolbar-nav {
+        background: white;
+      }
+
+      #domain-title {
+        margin: 0;
+        font-size: 15px;
+        text-transform: uppercase;
+        font-weight: normal;
+      }
+
+      #tag-line {
+        font-size: 20px;
+        color: var(--theme-blue-grey);
+        font-weight: normal;
+        margin-left: 20px;
+        margin-top: -3px;
+      }
+
+      #toolbar-header img {
         width: 64px;
         height: 64px;
+        margin-right: 20px;
+      }
+
+      /* Search toolbar */
+
+      #toolbar-search {
+        background: green;
+        background: #FBFBFB;
+        border-top: 1px solid #ededed;
+        border-bottom: 1px solid #ededed;
+        box-shadow: 0 1px 0 0 #ededed;
+      }
+
+      #toolbar-search-container {
+        display: flex;
+        align-items: center;
+      }
+
+      #tag-list {
+        flex: 1 1 40%;
+        overflow: hidden;
+        height: 50px;
+        line-height: 50px;
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 20px;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      #tag-list a {
+        margin: 0 14px;
+      }
+
+      #search-container {
+        flex: 1 1 60%;
+        width: 630px;
+        max-width: 100%;
+        height: 50px;
+        display: block;
+        position: relative;
       }
 
       #search-box {
-        box-sizing: border-box;
-        width: 500px;
-        height: 40px;
-        font-family: var(--theme-font);
-        font-size: 16px;
-        padding: 12px;
-        border: 1px solid #ededed;
-        border-radius: 4px;
+        width: 630px;
+        max-width: 100%;
       }
 
       iron-pages.loading > *.iron-selected {
@@ -132,6 +232,64 @@
         100% { opacity: 1; }
       }
 
+      @media (max-width: 500px), (max-height: 500px) {
+        #tag-line {
+          display: none;
+        }
+
+        #search-box.active {
+          position: fixed;
+          width: 100%;
+          left: 0;
+          top: 0;
+          border-radius: 0;
+          height: 100vh;
+          background: white;
+        }
+
+        #footer-content section {
+          margin: 16px 0;
+        }
+      }
+
+      /* Footer */
+      footer {
+        background: #394550;
+        min-height: 400px;
+        padding: 0 32px;
+      }
+
+      #footer-content {
+        display: flex;
+        color: white;
+        padding: 32px 0;
+        flex-wrap: wrap;
+      }
+
+      #footer-content section {
+        display: flex;
+        flex: 1 1 220px;
+        flex-direction: column;
+      }
+
+      #footer-content section div {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #footer-content h2 {
+        color: #a7adb2;
+        font-size: 22px;
+      }
+
+      #footer-content a {
+        color: inherit;
+        margin: 4px 0;
+      }
+
+      #footer-content a:not([href]) {
+        color: hsl(0, 0%, 70%);
+      }
     </style>
 
     <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
@@ -146,31 +304,83 @@
 
     <lazy-block id="block"></lazy-block>
 
-    <search-focus id="search-focus" base-urls="[[baseUrls(queryParams)]]"></search-focus>
+    <app-header role="banner" condenses reveals>
+      <app-toolbar id="toolbar-nav">
+        <div id="toolbar-nav-container">
+          <a href="/" id="toolbar-header" beta>
+            <img src="/assets/logo.svg" role="none">
+            <h2 id="domain-title">webcomponents.org</h2>
+            <div id="tag-line" aria-label="web components .org">A place to discuss & evolve web components</div>
+          </a>
+        </div>
+      </app-toolbar>
+      <app-toolbar sticky id="toolbar-search">
+        <div id="toolbar-search-container">
+          <div id="search-container">
+            <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
+          </div>
 
-    <app-header role="navigation">
-      <app-toolbar id="toolbar">
-        <a href="/"><img src="/assets/logo.svg"></a>
-        <a href="/" id="toolbar-header">
-          <h3>webcomponents.org</h3>
-          <h2>A place to discuss & evolve web components</h2>
-        </a>
-        <input id="search-box" placeholder="Search webcomponents.org" on-click="_loadSearch"></input>
+          <div id="tag-list">
+            <template is="dom-repeat" items="[[_tagList(7)]]">
+              <a href="#" on-click="_searchTag">[[item]]</a>
+            </template>
+          </div>
+        </div>
       </app-toolbar>
     </app-header>
 
     <paper-progress id="progress" indeterminate></paper-progress>
 
-    <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading">
+    <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
       <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
       <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-author>
       <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[subroute]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
-      <catalog-publish name="publish" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
+      <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
+      <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
+
+    <footer role="contentinfo">
+      <div id="footer-content">
+        <section>
+          <h2>Resources</h2>
+          <div role="navigation">
+            <a>Introduction</a>
+            <a>Polyfills</a>
+            <a>Tools</a>
+            <a>Specifications</a>
+            <a>Browser compatability</a>
+            <a>Libraries</a>
+          </div>
+        </section>
+        <section>
+          <h2>Community</h2>
+          <div role="navigation">
+            <a>News & articles</a>
+            <a href="https://gitter.im/webcomponents/community" target="_blank">Chat on Gitter</a>
+          </div>
+        </section>
+        <section>
+          <h2>Element catalog</h2>
+          <div role="navigation">
+            <a href="/publish">Publish an element</a>
+            <a href="/publish-collection">Publish a collection</a>
+            <a href="/preview">Preview an element</a>
+            <a href="/preview-integration">Setup Github integration</a>
+          </div>
+        </section>
+        <section>
+          <h2>About</h2>
+          <div role="navigation">
+            <a>About webcomponents.org</a>
+            <a href="#feedback" on-tap="_onFeedback">Feedback</a>
+          </div>
+        </section>
+      </div>
+    </footer>
 
   </template>
 
@@ -190,7 +400,7 @@
 
       listeners: {
         error: '_handleError',
-        search: '_handleSearch'
+        triggerSearch: '_handleSearch'
       },
 
       observers: [
@@ -224,7 +434,12 @@
       },
 
       _pageReady: function() {
-        if (this.$.pages.selectedItem && this.$.pages.selectedItem.loading !== true)
+        var selectedItem = this.$.pages.selectedItem;
+        // Work around for https://github.com/PolymerElements/iron-pages/issues/52
+        if (!selectedItem)
+          selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + this.page + ']');
+
+        if (selectedItem && selectedItem.loading !== true)
           this._clearLoading();
         if (this._lazyResourcesLoaded)
           return;
@@ -257,7 +472,8 @@
       },
 
       analyticsKey: function() {
-        return this.isProduction() ? 'UA-82313441-1' : 'UA-82326223-1';
+        var isLocalhost = window.location.hostname == 'localhost';
+        return this.isProduction() && !isLocalhost ? 'UA-82313441-1' : 'UA-82326223-1';
       },
 
       baseUrls: function(queryParams) {
@@ -285,15 +501,43 @@
       },
 
       _handleSearch: function(event) {
-        this._loadSearch();
-        this.$['search-focus'].query = event.detail.query;
+        this.$['search-box'].query = event.detail.query;
       },
 
-      _loadSearch: function() {
-        this.importHref(this.resolveUrl('search-focus.html'), function() {
-          var offsetLeft = this.$['search-box'].offsetLeft + this.$.toolbar.offsetLeft;
-          this.$['search-focus'].open(offsetLeft, this.$['search-box'].offsetTop);
-        });
+      _onFeedback: function(event) {
+        var origin = escape(window.location.href);
+        event.target.href = "https://github.com/webcomponents/beta/issues/new?body=[Origin page](" + origin + ")&labels=Feedback";
+      },
+
+      _tagList: function(numTags) {
+        var tagList = [
+          "emoji",
+          "form",
+          "button",
+          "image",
+          "layout",
+          "media",
+          "toolbar",
+          "routing",
+          "calendar",
+          "notification",
+        ];
+
+        // Tags 'change' every day
+        var daysSinceEpoch = Math.floor(Date.now() / 8.64e7);
+        var result = [];
+        var index;
+
+        for (var i = 0; i < numTags; i++) {
+          index = Math.round(daysSinceEpoch % tagList.length);
+          result = result.concat(tagList.splice(index, 1));
+        }
+
+        return result;
+      },
+
+      _searchTag: function(event) {
+        this.fire('triggerSearch', {query: 'bower_keywords:' + event.target.textContent});
       },
 
     });

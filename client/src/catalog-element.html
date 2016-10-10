@@ -6,12 +6,11 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
-<link rel="import" href="activity-graph.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-api-doc.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="catalog-dialog.html">
-<link rel="import" href="contributors-list.html">
+<link rel="import" href="collection-card.html">
 <link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
 
@@ -24,7 +23,7 @@
         font-size: 24px;
         display: inline-block;
         max-width: 150px;
-        text-overflow: clip;
+        text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 50%);
       }
@@ -37,8 +36,12 @@
 
       /* Header */
       #header {
-        color: hsl(0, 0%, 50%);
-        margin-bottom: 32px;
+        margin-bottom: 40px;
+        align-items: flex-start;
+      }
+
+      #header-main {
+        color: var(--theme-blue-grey);
       }
 
       #header-main > div {
@@ -79,17 +82,18 @@
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        background: var(--syntax-bg);
+        background: white;
+        border: 1px solid #ededed;
         border-radius: 4px 4px 0 0;
       }
 
       #info-download h3 {
         margin-top: 0;
         margin-bottom: 4px;
+        color: var(--theme-blue-grey);
       }
 
       #info-download-command {
-        color: white;
         font-family: var(--monospace-font);
         font-size: 12px;
       }
@@ -157,11 +161,7 @@
       }
 
       #info-dependencies .owner {
-        color: hsl(0, 0%, 50%);
-      }
-
-      #info-dependencies .repo {
-        font-weight: bold;
+        display: none;
       }
 
       #info-body {
@@ -229,6 +229,14 @@
       }
 
       /* Sidebar */
+      .body > .sidebar > div {
+        margin-top: 40px;
+      }
+
+      .body > .sidebar > div:first-of-type {
+        margin-top: 0;
+      }
+
       #sidebar-nav {
         overflow: visible;
       }
@@ -241,36 +249,33 @@
 
       #sidebar-nav a {
         padding: 16px 20px;
-        font-weight: bold;
         font-size: 14px;
         line-height: 14px;
-        border-top: 1px solid #ededed;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
       }
 
       #sidebar-nav a[active] {
-        background: var(--theme-blue);
-        color: white;
-        margin-right: -1px;
+        color: inherit;
         position: relative;
-        -webkit-filter: drop-shadow(0px 2px 0.5px var(--theme-blue-dark));
-        filter: drop-shadow(0px 2px 0px var(--theme-blue-dark));
+        -webkit-filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        background: white;
       }
 
       #sidebar-nav a[active]::before {
         content: '';
-        width: 11px;
+        width: 10px;
         position: absolute;
         top: 0px;
-        left: -10px;
+        right: -10px;
         height: 100%;
-        background: inherit;
-        -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
-        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% calc(100% - 3px), 10px 50%, 0% 3px);
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
+        background: white;
+        -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
       }
 
       #sidebar-nav a span {
@@ -278,12 +283,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 185px;
-      }
-
-      #sidebar-nav > a:first-child {
-        font-size: 18px;
-        line-height: 21px;
-        border-top: none;
       }
 
       #sidebar-nav[collapse] .element-demos {
@@ -295,42 +294,50 @@
         display: block;
       }
 
-      #sidebar-nav a.demo-link {
-        background: hsl(0, 0%, 98%);
+      #sidebar-nav a span {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      #sidebar-nav a.demo-link:after {
+      #sidebar-nav a.demo-link {
+        background: hsl(0, 0%, 98%);
+        text-transform: capitalize;
+      }
+
+      #sidebar-nav a.demo-link:after, #sidebar-nav a.api-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
         float: right;
-        color: #c2c2c2;
+        color: var(--theme-blue-grey);
+        font-size: 12px;
       }
 
-      .collection .header {
-        padding: 16px;
-        height: 160px;
+      #sidebar-nav a.api-link:after {
+        content: 'api';
       }
 
-      .collection .header h1 {
-        margin: 0 0 16px;
+      collection-card {
+        display: block;
       }
 
-      .collection .header div {
-        color: hsl(0, 0%, 50%);
-        overflow: hidden;
-        max-height: 90px;
+      collection-card:not(first-of-type) {
+        margin-top: 16px;
       }
 
-      .collection .footer {
+      #report-link {
+        margin-top: 60px;
+        position: relative;
+      }
+
+      #report-link:before {
+        content: '';
+        position: absolute;
+        top: -20px;
         border-top: 1px solid #ededed;
-        padding: 16px;
-        display: flex;
-        align-items: center;
-      }
-
-      .collection .footer .avatar {
-        margin-right: 10px;
+        height: 1px;
+        width: 100%;
       }
 
       /* Demo frame */
@@ -457,38 +464,40 @@
     <div id="container">
 
       <!-- Header -->
-      <h1 class="page-title">[[repo]]</h1>
-      <span id="repo-version">[[data.version]]</span>
-      <h2 class="page-subtitle">[[data.description]]</h2>
+      <div class="mobile-fixed">
+        <h1 class="page-title">[[repo]]</h1>
+        <span id="repo-version">[[data.version]]</span>
+        <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
+      </div>
 
       <div id="header" class="body">
         <div id="header-main" class="main-content box">
           <!-- Repo info -->
           <div id="info-header">
             <div id="repo-author">
-              <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]">
+              <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]" role="presentation">
               <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
             </div>
             <div id="info-stats">
-              <div>
+              <div aria-label$="[[data.stars]] users starred this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-star">
                  <use xlink:href="/sprite.octicons.svg#star"></use>
                 </svg>
                 [[data.stars]]
               </div>
-              <div>
+              <div aria-label$="[[data.forks]] users forked this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
                  <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
                 </svg>
                 [[data.forks]]
               </div>
-              <div>
+              <div aria-label$="[[data.subscribers]] users are watching this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-eye">
                  <use xlink:href="/sprite.octicons.svg#eye"></use>
                 </svg>
                 [[data.subscribers]]
               </div>
-              <div>
+              <div aria-label$="[[data.open_issues]] open issues in this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
                  <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
                 </svg>
@@ -517,7 +526,7 @@
             <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
               <template is="dom-if" if="[[_infoBodyCollapsed]]">
                 <svg viewBox="0 0 100 100" class="octicon octicon-plus">
-                 <use xlink:href="/sprite.octicons.svg#plus"></use>
+                  <use xlink:href="/sprite.octicons.svg#plus"></use>
                 </svg>
               </template>
               <template is="dom-if" if="[[!_infoBodyCollapsed]]">
@@ -537,9 +546,11 @@
           <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">
             <div id="info-view-github" class="box">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-              <div>View on Github</div>
+              <div>View on GitHub</div>
             </div>
           </a>
+
+          <a href="/publish/[[owner]]/[[repo]]" class="soft-button" hidden$="[[!_isPreview(route.prefix)]]">Publish</a>
         </div>
       </div>
 
@@ -550,13 +561,13 @@
 
           <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
-            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[repo]]</a>
+          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
+            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[_readmeLabel(bundledElements)]]</a>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]">[[_docLabel(element.is)]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]"><span>[[element.is]]</span></a>
 
-              <div class="element-demos">
+              <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items=[[element.demos]] as="demo">
                   <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
@@ -564,7 +575,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]">[[behavior.is]]</a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items=[[behavior.demos]] as="demo">
@@ -576,27 +587,16 @@
 
           <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
             <template is="dom-if" if="[[collections.length]]">
-              <h3>[[collections.length]] collection[[_s(collections.length)]]</h3>
+              <h1>In [[collections.length]] collection[[_s(collections.length)]]</h1>
 
               <template is="dom-repeat" items="[[collections]]">
-                <div class="box collection">
-                  <a href="/collection/[[item.owner]]/[[item.repo]]">
-                    <div class="header">
-                      <h1>[[item.repo]]</h1>
-                      <div>[[item.description]]</div>
-                    </div>
-                  </a>
-                  <div class="footer">
-                    <img class="avatar" src="[[item.avatar_url]]&s=[[_dpr(30)]]" title="[[item.owner]]">
-                    <span>by <a href="/author/[[item.owner]]">[[item.owner]]</a></span>
-                  </div>
-                </div>
+                <collection-card data="[[item]]"></collection-card>
               </template>
             </template>
           </div>
 
           <div id="info-dependencies">
-            <h3>Dependencies</h3>
+            <h1>Dependencies</h1>
             <template is="dom-repeat" items="[[_dependencies(data)]]">
               <div class="dependency">
                 <a href="/element/[[item.owner]]/[[item.repo]]">
@@ -607,8 +607,8 @@
             </template>
           </div>
 
-          <a href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-            <h3>Report element</h3>
+          <a id="report-link" class="soft-button" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+            Report
           </a>
         </div>
 
@@ -616,11 +616,11 @@
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[_docsPending(_docsLoading, docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
-            <h2 title>[[subElement]]</h2>
+            <h1>[[subElement]]</h1>
             <catalog-api-doc descriptor="[[descriptor]]"></catalog-api-doc>
           </div>
         </div>
@@ -664,7 +664,7 @@
 
       ready: function() {
         this._loaded = true;
-        this._infoBodyCollapsed = false;
+        this._infoBodyCollapsed = true;
         if (this.route)
           this._routeChanged(this.route.path, this.route.prefix, this.visible);
       },
@@ -707,7 +707,9 @@
         this.demo = null;
 
         var split = this.route.path.split('/');
-        split.shift(); // Skip first /
+        // Bug in app-route doesn't always have a leading /
+        if (!split[0])
+          split.shift(); // Skip first /
         this.owner = split.shift();
         this.repo = split.shift();
 
@@ -728,6 +730,9 @@
 
       _routeChanged: function(path, prefix, visible) {
         if (!visible || !this._loaded || !(prefix == '/element' || prefix == '/preview'))
+          return;
+
+        if (prefix == '/preview' && path == '')
           return;
 
         this._splitRoute();
@@ -812,11 +817,6 @@
           return;
         }
 
-        if (this.route.prefix == '/preview') {
-          this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 1000);
-          return;
-        }
-
         this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
       },
 
@@ -857,10 +857,6 @@
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 
-      _navigateToSearch: function() {
-        this.set('routeLocation.path', '/search');
-      },
-
       _dependencies: function() {
         if (!this.data || !this.data.bower || !this.data.bower.dependencies)
           return [];
@@ -895,16 +891,12 @@
         return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
       },
 
-      _docLabel: function(element) {
-        return this.bundledElements.length == 1 ? 'Element API' : element;
-      },
-
       _toggleExpand: function() {
         this._infoBodyCollapsed = !this._infoBodyCollapsed;
       },
 
       _searchTag: function(event) {
-        this.fire('search', {query: 'bower_keywords:' + event.target.tag});
+        this.fire('triggerSearch', {query: 'bower_keywords:' + event.target.tag});
       },
 
       _or: function(a, b) {
@@ -932,6 +924,19 @@
 
       _shouldCollapseNav: function(elements) {
         return elements && elements.length > 5;
+      },
+
+      _readmeLabel: function(bundledElements) {
+        var found = false;
+        for (var i = 0; i < bundledElements.length; i++) {
+          if (bundledElements[i].is == this.repo)
+            found = true;
+        }
+        return found ? 'Overview' : this.repo;
+      },
+
+      _isPreview: function(prefix) {
+        return prefix == '/preview';
       },
 
     });

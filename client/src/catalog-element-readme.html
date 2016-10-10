@@ -17,6 +17,7 @@
         font-family: var(--theme-font);
         line-height: 24px;
         font-size: 16px;
+        color: inherit;
       }
 
       article.markdown-body > h2:first-of-type, article.markdown-body > h1:first-of-type {
@@ -135,6 +136,8 @@
       properties: {
         data: Object,
 
+        docsPending: Boolean,
+
         readme: String,
 
         baseUrls: Object,
@@ -143,7 +146,8 @@
       },
 
       observers: [
-        'readmeChanged(data, readme)'
+        'readmeChanged(data, readme)',
+        '_loadDemos(docsPending)',
       ],
 
       readmeChanged: function(data, readme) {
@@ -188,9 +192,20 @@
               nextBlock.parentNode.removeChild(nextBlock);
           }
 
+          demoElement.docsPending = this.docsPending;
           demoElement.data = this.data;
           demoElement.snippet = snippet;
           demoElement.code = code;
+        }
+      },
+
+      _loadDemos: function(docsPending) {
+        if (docsPending)
+          return;
+        var demos = [].slice.call(Polymer.dom(this.root).querySelectorAll('custom-element-demo'));
+        for (var i = 0; i < demos.length; i++) {
+          if (demos[i].docsPending)
+            demos[i].docsPending = false;
         }
       },
 

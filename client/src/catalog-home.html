@@ -8,9 +8,19 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      :host {
+        color: #88939e;
+      }
+
       .featured-row {
         display: flex;
         height: 200px;
+      }
+
+      h1 {
+        color: #778390;
+        font-weight: normal;
+        margin-bottom: 32px;
       }
 
       collection-card {
@@ -21,7 +31,47 @@
         margin-left: 32px;
       }
 
+      section {
+        margin-bottom: 80px;
+      }
+
+      #getting-started {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      #getting-started > div {
+        background: white;
+        border-radius: 3px;
+        flex: 1 0 260px;
+        padding: 32px;
+        margin-bottom: 32px;
+        margin-left: 32px;
+      }
+
+      #getting-started > div:nth-child(3n + 1) {
+        margin-left: 0;
+      }
+
+      #gitter {
+        background: #e8ebed;
+        border-radius: 3px;
+        padding: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
+        h1 {
+          margin-left: 16px;
+        }
+
+        #getting-started > div {
+          margin: 16px !important;
+        }
+
         .featured-row {
           width: 100%;
           overflow: scroll;
@@ -30,6 +80,11 @@
         collection-card {
           flex-basis: 300px;
           margin-left: 8px !important;
+        }
+
+        #gitter {
+          margin: 0;
+          flex-direction: column;
         }
       }
     </style>
@@ -42,16 +97,59 @@
       last-response="{{_collections}}"></iron-ajax>
 
     <div id="container">
-      <div class="main-content">
-        This site is still a work in progress, but feel free to poke around.
-      </div>
+      <section>
+        <h1>Featured collections</h1>
+        <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
+          <template is="dom-repeat" items="[[_collections.results]]">
+            <collection-card data="[[item]]"></collection-card>
+          </template>
+        </div>
+      </section>
 
-      <h1>Featured collections</h1>
-      <div class="featured-row loader sidescrim" loading="[[_collectionsLoading]]">
-        <template is="dom-repeat" items="[[_collections.results]]">
-          <collection-card data="[[item]]"></collection-card>
-        </template>
-      </div>
+      <section>
+        <h1>Getting started with web components</h1>
+        <div id="getting-started" role="navigation">
+          <div>
+            <h2>Introduction</h2>
+            <div>What are web components? Why are they awesome? All the answers in this article.</div>
+          </div>
+
+          <div>
+            <h2>Polyfills</h2>
+            <div>Use web components today and have them work in all major browsers.</div>
+          </div>
+
+          <div>
+            <h2>Tools</h2>
+            <div>Tools and boilerplates to help you build your own webcomponents.</div>
+          </div>
+
+          <div>
+            <h2>Specifications</h2>
+            <div>Web component specifications from the W3C.</div>
+          </div>
+
+          <div>
+            <h2>Compatibility</h2>
+            <div>Latest browser compatibility list. What works and where.</div>
+          </div>
+
+          <div>
+            <h2>Libraries</h2>
+            <div>Third party libraries to help you make the most of web components.</div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="gitter">
+        <div>
+          <h2>Join the community on Gitter</h2>
+          <p>Discuss, share and help with others</p>
+        </div>
+        <a href="https://gitter.im/webcomponents/community"><button>Discuss on Gitter</button></a>
+      </section>
+
     </div>
 
   </template>

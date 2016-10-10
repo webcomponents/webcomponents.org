@@ -2,23 +2,45 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
-
-<script src="https://www.google.com/recaptcha/api.js"></script>
+<link rel="import" href="custom-element-demo.html">
+<link rel="import" href="polling-meta-behavior.html">
+<link rel="import" href="re-captcha.html">
 
 <dom-module id="catalog-publish">
   <template>
     <style include="catalog-styles"></style>
 
     <style>
-      .g-recaptcha {
-        margin: 16px 0;
+      .tip {
+        padding: 16px;
+        background: var(--syntax-bg);
+        color: var(--syntax-fg);
+        border-radius: 4px;
+        margin: 16px auto;
+        max-width: 600px;
+      }
+
+      .tip h2 {
+        color: white;
+      }
+
+      custom-element-demo {
+        display: block;
+        margin: 0 auto;
+        max-width: 600px;
       }
     </style>
 
     <iron-ajax
       id="ajax"
-      method="POST"
-      url="[[baseUrls.api]]/api/publish/[[repo]]"></iron-ajax>
+      method="POST"></iron-ajax>
+
+    <iron-ajax
+      id="metaAjax"
+      method="GET"
+      handle-as="json"
+      on-response="onMetaResponse"
+      on-error="onMetaError"></iron-ajax>
 
     <div id="container">
       <h3>Publish</h3>
@@ -26,25 +48,50 @@
 
       <div class="main-content">
         <p>You need to publish your elements before they will appear on the site. It’s quick and easy to do! First, there’s a few tips on how to make your element stand out.</p>
-        <h2>Requirement</h2>
-        <p>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</p>
+        <h2>Requirements</h2>
+        <ul>
+          <li>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
+          <li>Tagged release - your repository must have a tagged release before it can be published.</li>
+          <li>README - please create a README.md for your repository. Here's a template you can use: <a href="https://gist.github.com/zenorocha/4526327">A template for Github READMEs (Markdown)</a>.</li>
+        </ul>
 
         <h2>Add an inline demo</h2>
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
 
-        <!-- TODO: Add an inline demo here -->
+        <div class="tip">
+          <h2>Sample inline demo</h2>
+          Tip: You can also add <code>?editing</code> to an element page to get an inline demo editor.
+        </div>
+
+        <custom-element-demo id="sample-demo"></custom-element-demo>
 
         <p>To create an inline demo, you need to modify your README.md. Wrapping your code in <code>&lt;custom-element-demo&gt;</code> and a <code>&lt;template&gt;</code> tag will render this demo. You can hide this extra code, including any setup code, like importing dependencies in a comment. This keeps your demo snippet concise.<p>
 
-        <!-- TODO: Sample code -->
+        <p>For the following raw markdown:</p>
+   
+<pre>&lt;!--
+```
+&lt;custom-element-demo&gt;
+  &lt;template&gt;
+      &lt;link&nbsp;rel=&rdquo;import&rdquo;&nbsp;href=&rdquo;my-element.html&rdquo;&gt;
+    &lt;next-code-block&gt;&lt;/next-code-block&gt;
+  &lt;/template&gt;    
+&lt;/custom-element-demo&gt;
+```
+--&gt;
+```
+&lt;my-element&gt;&lt;/my-element&gt;
+```</pre>
 
+        <p>The Github rendered markdown is:</p>	
+        <pre>&lt;my-element&gt;&lt;/my-element&gt;</pre>
+	
         <p>Best practices:</p>
         <ul>
           <li>Keep number of dependencies down - inline demos need to be fast!</li>
           <li>Make sure your demo is responsive. Height is automatically determined, but if you need to explicitly define a minimum height you can set <code>height="400"</code> on <code>&lt;custom-element-demo&gt;</code>.</li>
           <li>Don’t demo everything - inline demos are just a quick demo. Use demo files for complex demos.</li>
         </ul>
-
 
         <h2>How are resources loaded?</h2>
         <p>Your inline demo will be relative to the root of your repository, with bower dependencies as siblings to your repository.</p>
@@ -53,13 +100,14 @@
         <p>Once you tag a new release on GitHub, your element will automatically update within 10-15 minutes. You can add webcomponents to your <a href="/preview-integration">Github pull request checklist</a>.</p>
 
         <h2>How do I add API documentation?</h2>
-        <p>Currently, each repository is processed using Polymer/analyzer. Want to add an analyzer for your library? Chat to us on Gitter.</p>
+        <p>Currently, each repository is processed using <a href="https://github.com/Polymer/polymer-analyzer">Polymer/polymer-analyzer</a>. Want to add an analyzer for your library? Chat to us on Gitter.</p>
 
         <h2>Ready to publish?</h2>
-        <p>You can preview how it’ll look when it’s published without actually publishing it.</p>
+        <p>You can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
 
-        <input type="text" name="repo" value="{{repo::input}}" placeholder="user/repo">
-        <div class="g-recaptcha" data-sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></div>
+        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
+        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
+        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button on-click="onSubmit">Publish</button>
       </div>
     </div>
@@ -73,19 +121,63 @@
 
       properties: {
         baseUrls: Object,
+
+        path: String,
+      },
+
+      behaviors: [
+        Polymer.PollingMetaBehavior,
+      ],
+
+      ready: function() {
+        var sample = this.$['sample-demo'];
+        sample.data = {
+          repo: "paper-progress",
+          owner: "PolymerElements",
+          version: "v1.0.11",
+        };
+        sample.baseUrl = this.baseUrls.userContent;
+        sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0iLi4vcGFwZXItc3R5bGVzL2NvbG9yLmh0bWwiPgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQogIHBhcGVyLXByb2dyZXNzLnNsb3cgewogICAgLS1wYXBlci1wcm9ncmVzcy1pbmRldGVybWluYXRlLWN5Y2xlLWR1cmF0aW9uOiA1czsKICB9CiAgcGFwZXItcHJvZ3Jlc3MuYmx1ZSB7CiAgICAtLXBhcGVyLXByb2dyZXNzLWFjdGl2ZS1jb2xvcjogdmFyKC0tcGFwZXItbGlnaHQtYmx1ZS01MDApOwogICAgLS1wYXBlci1wcm9ncmVzcy1zZWNvbmRhcnktY29sb3I6IHZhcigtLXBhcGVyLWxpZ2h0LWJsdWUtMTAwKTsKICB9CiAgcGFwZXItcHJvZ3Jlc3MucmVkIHsKICAgIC0tcGFwZXItcHJvZ3Jlc3MtYWN0aXZlLWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtNTAwKTsKICAgIC0tcGFwZXItcHJvZ3Jlc3Mtc2Vjb25kYXJ5LWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtMTAwKTsKICB9Cjwvc3R5bGU+CjxuZXh0LWNvZGUtYmxvY2s+PC9uZXh0LWNvZGUtYmxvY2s+");
+        sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGUgY2xhc3M9ImJsdWUiPjwvcGFwZXItcHJvZ3Jlc3M+CjxwYXBlci1wcm9ncmVzcyBpbmRldGVybWluYXRlIGNsYXNzPSJzbG93IHJlZCI+PC9wYXBlci1wcm9ncmVzcz4KPHBhcGVyLXByb2dyZXNzIHZhbHVlPSI0MCIgc2Vjb25kYXJ5LXByb2dyZXNzPSI4MCI+PC9wYXBlci1wcm9ncmVzcz4=");
+        sample.docsPending = false;
       },
 
       onSubmit: function() {
-        if (!grecaptcha || !grecaptcha.getResponse())
+        if (!this.$.recaptcha.getResponse())
           return;
 
         this.$.ajax.params = {
-          recaptcha: grecaptcha.getResponse()
+          recaptcha: this.$.recaptcha.getResponse()
         };
-        this.$.ajax.generateRequest();
 
-        window.history.pushState({}, null, '/preview/' + this.repo);
+        var repo = this.$['repo-input'].value;
+        repo = repo.replace(/\/$/, '');
+        repo = repo.replace(/.*github.com\//, '');
+
+        if (repo.match(/[\w\d-]+\/[\w\d-]+/i) == null) {
+          this.$.error.removeAttribute('hidden');
+          return;
+        }
+
+        this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
+        this.$.ajax.generateRequest();
+        this._validatedRepo = repo;
+        this.$.recaptcha.reset();
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
+        this.startPolling(this.$.metaAjax);
+      },
+
+      success: function() {
+        window.history.pushState({}, null, '/element/' + this._validatedRepo);
         this.fire('location-changed');
+      },
+
+      _error: function() {
+        this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
+      },
+
+      _trim: function(path) {
+        return path.replace(/^\//, '');
       },
 
     });

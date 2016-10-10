@@ -1,0 +1,101 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="catalog-styles.html">
+<link rel="import" href="polling-meta-behavior.html">
+<link rel="import" href="re-captcha.html">
+
+<dom-module id="catalog-publish-collection">
+  <template>
+    <style include="catalog-styles"></style>
+
+    <iron-ajax
+      id="ajax"
+      method="POST"></iron-ajax>
+
+    <iron-ajax
+      id="metaAjax"
+      method="GET"
+      handle-as="json"
+      on-response="onMetaResponse"
+      on-error="onMetaError"></iron-ajax>
+
+    <div id="container">
+      <h3>Publish</h3>
+      <h1 class="page-title">Publish your collection</h1>
+
+      <div class="main-content">
+        <p>Collections allow you to curate or organize elements for any grouping you can imagine. They could be elements you have reviewed, <a href="https://custom-elements-staging.appspot.com/collection/PolymerElements/paper-overlay-elements">organised by function</a> or <a href="/collection/PolymerElements/paper-ui-elements">organised by style.</a></p>
+
+        <p>Creating a collection is easy. Simply create an empty GitHub repository with bower dependencies to all the elements or collections you want to include.</p>
+        <ol>
+          <li>Add the keyword “element-collection” to your bower.json.</li>
+          <li>Include some brief information about your collection in your README.md.</li>
+          <li>Ensure you have an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
+          <li>(optional) Add an inline demo!</li>
+        </ol>
+
+        <h2>How do I update my collection?</h2>
+        <p>Every commit to the <code>master</code> branch on your collection will automatically update within 10-15 minutes.</p>
+
+        <h2>Ready to publish?</h2>
+
+        <input type="text" name="repo" value="{{repo::input}}" placeholder="username/my-element-repo">
+        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
+        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
+        <button on-click="onSubmit">Publish</button>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-publish-collection',
+
+      properties: {
+        baseUrls: Object,
+      },
+
+      behaviors: [
+        Polymer.PollingMetaBehavior,
+      ],
+
+      onSubmit: function() {
+        if (!this.$.recaptcha.getResponse())
+          return;
+
+        this.$.ajax.params = {
+          recaptcha: this.$.recaptcha.getResponse()
+        };
+
+        var repo = this.repo;
+        repo = repo.replace(/\/$/, '');
+        repo = repo.replace(/.*github.com\//, '');
+
+        if (repo.match(/[\w\d-]+\/[\w\d-]+/i) == null) {
+          this.$.error.removeAttribute('hidden');
+          return;
+        }
+
+        this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
+        this.$.ajax.generateRequest();
+        this._validatedRepo = repo;
+        this.$.recaptcha.reset();
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
+        this.startPolling(this.$.metaAjax);
+      },
+
+      success: function() {
+        window.history.pushState({}, null, '/collection/' + this._validatedRepo);
+        this.fire('location-changed');
+      },
+
+      _error: function() {
+        this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
+      },
+
+    });
+  </script>
+</dom-module>
