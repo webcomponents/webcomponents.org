@@ -6,11 +6,21 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      :host {
+        display: block;
+        border: 1px solid #ededed;
+        border-bottom-width: 3px;
+        width: 100%;
+        border-radius: 4px;
+        overflow: hidden;
+        background: white;
+      }
+
       h1 {
         margin-bottom: 8px;
       }
 
-      .box {
+      .container {
         margin: 0;
         height: 200px;
         display: flex;
@@ -64,7 +74,7 @@
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <div class="box">
+      <div class="container">
         <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" aria-label$="[[data.owner]]/[[data.repo]] collection">
           <h2>[[data.repo]]</h2>
           <div id="description">[[data.description]]</div>
