@@ -225,9 +225,6 @@
            * The [Hydrolysis](https://github.com/PolymerLabs/hydrolysis)-generated
            * element descriptor to display details for.
            *
-           * Alternatively, the element descriptor can be provided as JSON via the text content
-           * of this element.
-           *
            * @type {hydrolysis.PropertyDescriptor}
            */
           descriptor: {
@@ -250,19 +247,6 @@
           this._isReady = true;
         },
 
-        /**
-         * Resets any state that was set up for transitions.
-         *
-         * We are careful to reset our explicit heights after a transition
-         * completes, so that the property doesn't clip values if the user resizes
-         * their viewport.
-         * @param {object} event The event in question.
-         */
-        _onTransitionEnd: function(event) {
-          if (event.path[0] !== this.$.transitionMask) return;
-          this.$.transitionMask.style.height = '';
-        },
-
         _descriptorChanged: function() {
           this.toggleAttribute('configuration', this.descriptor.configuration);
           this.toggleAttribute('function', this.descriptor.function);
@@ -279,16 +263,6 @@
         // hidden if no params, and no return value
         _computeHideParams: function(descriptor, ret) {
           return (!descriptor.params || descriptor.params.length === 0) && !ret;
-        },
-
-        _computeHideDefault: function(def) {
-          return def === undefined;
-        },
-
-        _computeDefaultDisplay: function(def) {
-          if (def === '')
-            return "''";
-          return def;
         },
 
         _getAnnotation: function(descriptor) {
