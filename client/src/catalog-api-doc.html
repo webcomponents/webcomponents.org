@@ -1,0 +1,291 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/marked-element/marked-element.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/paper-styles/typography.html">
+
+<link rel="import" href="catalog-api-property.html">
+
+<dom-module id="catalog-api-doc">
+  <template>
+    <style>
+      :host {
+        color: #212121;
+        display: block;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .deeplink {
+        color: currentcolor;
+        text-decoration: none;
+      }
+
+      .deeplink:hover {
+        color: var(--paper-pink-500);
+      }
+
+      #api {
+        display: flex;
+        align-items: center;
+      }
+
+      #api h2 {
+        flex: 1;
+        margin-bottom: 5px;
+      }
+
+      #api a {
+        color: var(--paper-grey-800);
+        cursor: pointer;
+        display: block;
+        padding: 4px 16px;
+      }
+
+      /* Common Formatting */
+
+      #summary {
+        padding: 4px 0;
+      }
+
+      #summary .markdown-html pre {
+        background-color: var(--paper-grey-200);
+        border-radius: 3px;
+        font-size: 15px;
+        overflow-x: auto;
+        padding: 12px 24px;
+        word-wrap: break-word;
+      }
+
+      #summary .markdown-html table {
+        font-size: 14px;
+        background-color: var(--paper-grey-200);
+        border-collapse: collapse;
+        margin: 12px 0;
+        width: 100%;
+      }
+
+      #summary .markdown-html tr {
+        padding: 0 18px;
+      }
+
+      #summary .markdown-html th {
+        font-weight: bold;
+      }
+
+      #summary .markdown-html td,
+      #summary .markdown-html th {
+        padding: 6px 12px;
+      }
+
+      #summary .markdown-html td:first-child,
+      #summary .markdown-html th:first-child {
+        padding-left: 24px;
+      }
+
+      #summary .markdown-html td:last-child,
+      #summary .markdown-html th:last-child {
+        padding-right: 24px;
+      }
+
+      #summary .markdown-html td:first-child > code {
+        color: black;
+        font-weight: bold;
+      }
+
+      #summary .markdown-html code {
+        background: var(--paper-grey-200);
+        padding: 3px;
+        border-radius: 3px;
+      }
+
+      #summary .markdown-html p {
+        padding: 0;
+      }
+
+      #summary .markdown-html a {
+        background: none;
+        color: var(--paper-indigo-a200);
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      /* Property Sections */
+
+      .card {
+        margin-bottom: 20px;
+      }
+
+      .card a {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 28px;
+      }
+
+      .card h2 {
+        margin-bottom: 5px;
+      }
+
+      nav {
+        border-bottom: 1px solid var(--paper-grey-200);
+      }
+
+      catalog-api-property {
+        background: var(--paper-grey-200);
+      }
+
+      catalog-api-property:first-of-type {
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+      }
+
+      catalog-api-property:last-of-type {
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
+      }
+
+      catalog-api-property[configuration] {
+        display: none !important; /* Never. */
+      }
+
+      #behaviors > p {
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        padding: 16px 24px;
+      }
+
+      #behaviors > p:last-of-type {
+        border-bottom: none;
+      }
+    </style>
+
+    <section id="summary" class="card" hidden$="[[!descriptor.desc]]">
+      <marked-element markdown="{{descriptor.desc}}">
+        <div class="markdown-html"></div>
+      </marked-element>
+    </section>
+
+    <nav id="api">
+      <h2>API Reference</h2>
+    </nav>
+
+    <section id$="[[_formatAnchor(prefix,'properties')]]" class="card" hidden$="{{_noneToShow(_properties)}}">
+      <h3><a href$="#[[_formatAnchor(prefix,'properties')]]" class="deeplink">Properties</a></h3>
+      <template is="dom-repeat" items="{{_properties}}" hidden$="{{!_properties.length}}">
+        <catalog-api-property anchor-id="[[_formatAnchor(prefix,'property',item.name)]]" descriptor="{{item}}"></catalog-api-property>
+      </template>
+    </section>
+
+    <section id$="[[_formatAnchor(prefix,'methods')]]" class="card"  hidden$="{{_noneToShow(_methods)}}">
+      <h3><a href$="#[[_formatAnchor(prefix,'methods')]]" class="deeplink">Methods</a></h3>
+      <template is="dom-repeat" items="{{_methods}}">
+        <catalog-api-property anchor-id="[[_formatAnchor(prefix,'method',item.name)]]" descriptor="{{item}}"></catalog-api-property>
+      </template>
+    </section>
+
+    <section id$="[[_formatAnchor(prefix,'events')]]" class="card" hidden$="{{_noneToShow(_events)}}">
+      <h3><a href$="#[[_formatAnchor(prefix,'events')]]" class="deeplink">Events</a></h3>
+      <template is="dom-repeat" items="{{_events}}">
+        <catalog-api-property anchor-id="[[_formatAnchor(prefix,'event',item.name)]]" descriptor="{{item}}"></catalog-api-property>
+      </template>
+    </section>
+
+    <section id$="[[_formatAnchor(prefix,'behaviors')]]" class="card" hidden$="{{_hideBehaviors(_behaviors)}}">
+      <h3><a href$="#[[_formatAnchor(prefix,'behaviors')]]" class="deeplink">Behaviors</a></h3>
+      <template is="dom-repeat" items="{{_behaviors}}">
+        <p>{{item}}</p>
+      </template>
+    </section>
+  </template>
+
+  <script>
+    (function() {
+      Polymer({
+        is: 'catalog-api-doc',
+
+        properties: {
+          /**
+           * The [Hydrolysis](https://github.com/PolymerLabs/hydrolysis)-generated
+           * element descriptor to display details for.
+           *
+           * Alternatively, the element descriptor can be provided as JSON via the text content
+           * of this element.
+           *
+           * @type {hydrolysis.ElementDescriptor}
+           */
+          descriptor: {
+            type: Object,
+            observer: '_descriptorChanged',
+          },
+
+          /**
+           * Prefix for fragment identifiers used in anchors.
+           * For static routing `iron-component-page` can
+           * set this to a string identifying the current component.
+           */
+          prefix: {
+            type: String,
+            value: ''
+          },
+
+        },
+
+        /** Converts `descriptor` into our template-friendly `_model`. */
+        _descriptorChanged: function() {
+          if (!this.descriptor) return;
+
+          // Split the documented properties between functions and other types.
+          var properties = [];
+          var methods    = [];
+
+          for (var i = 0, property; property = this.descriptor.properties[i]; i++) {
+            if (!property.private) {
+              (property.type === 'Function' ? methods : properties).push(property);
+            }
+          }
+          this._properties = properties;
+          this._methods    = methods;
+          this._events     = this.descriptor.events || [];
+          this._behaviors  = this.descriptor.behaviors || [];
+
+          this.toggleAttribute('abstract', this.descriptor.abstract);
+        },
+
+        /**
+         * Scrolls to the currently selected anchor, as identified
+         * by the URL hash. Whichever element or script is in charge
+         * of routing should call this method on initial page load and
+         * on hashchange events.
+         */
+        scrollToAnchor: function(hash) {
+          // ToDo: handle linking to private members
+          if (hash && hash.length > 1) {
+            // ensure all dom-repeats have rendered.
+            Polymer.dom.flush();
+            var anchorId = window.location.hash.slice(1);
+            var elementToFocus = this.$$('[anchor-id="' + anchorId + '"]');
+            if (elementToFocus) {
+              elementToFocus.scrollIntoView();
+            }
+          }
+        },
+
+        _noneToShow: function(items) {
+          return items.length == 0;
+        },
+
+        _formatAnchor: function(prefix, type, membername) {
+          var suffix = membername ? '-' + membername : '';
+          return prefix + type + suffix;
+        },
+
+        _hideBehaviors: function(behaviors) {
+          return behaviors === null || behaviors.length === 0;
+        }
+      });
+    })();
+  </script>
+</dom-module>
