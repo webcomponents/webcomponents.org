@@ -83,8 +83,7 @@
         overflow: hidden;
         white-space: nowrap;
         background: white;
-        border: 1px solid #ededed;
-        border-radius: 4px 4px 0 0;
+        border-bottom: 1px solid #ededed;
       }
 
       #info-download h3 {
@@ -103,6 +102,7 @@
         flex: 1 0;
         justify-content: space-between;
         padding-right: 16px;
+        color: #9eadbb;
       }
 
       #info-stats div {
@@ -117,19 +117,7 @@
       }
 
       .octicon-star {
-        color: #ffe200;
-      }
-
-      .octicon-repo-forked {
-        color: #8342bd;
-      }
-
-      .octicon-eye {
-        color: var(--theme-accent-1);
-      }
-
-      .octicon-issue-opened {
-        color: #939ca1;
+        color: #f3b70b;
       }
 
       #info-view-github {
@@ -138,7 +126,7 @@
         border-top-left-radius: 0;
         border-top-right-radius: 0;
         padding: 16px;
-        font-weight: bold;
+        font-weight: 600;
       }
 
       #info-view-github div {
@@ -195,7 +183,7 @@
 
       #info-footer {
         text-transform: uppercase;
-        font-weight: bold;
+        font-weight: 600;
         font-size: 14px;
         height: 44px;
         display: flex;
@@ -221,6 +209,7 @@
         border-left: 1px solid #ededed;
         text-align: center;
         cursor: pointer;
+        background: hsl(0, 0%, 99%);;
       }
 
       #expand-collapse svg {
@@ -239,6 +228,7 @@
 
       #sidebar-nav {
         overflow: visible;
+        font-weight: 600;
       }
 
       #sidebar-spinner {
@@ -539,16 +529,16 @@
         </div>
 
         <div id="header-sidebar" class="sidebar">
-          <div id="info-download">
-            <h3>Download</h3>
-            <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
-          </div>
-          <a href="https://github.com/[[owner]]/[[repo]]" target="_blank">
-            <div id="info-view-github" class="box">
+          <div class="box">
+            <div id="info-download">
+              <h3>Download</h3>
+              <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
+            </div>
+            <a id="info-view-github" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
               <div>View on GitHub</div>
-            </div>
-          </a>
+            </a>
+          </div>
 
           <a href="/publish/[[owner]]/[[repo]]" class="soft-button" hidden$="[[!_isPreview(route.prefix)]]">Publish</a>
         </div>
