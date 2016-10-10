@@ -1,22 +1,18 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/iron-list/iron-list.html">
-<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="collection-card.html">
+<link rel="import" href="catalog-styles.html">
 
 <dom-module id="catalog-search-box">
   <template>
+    <style include="catalog-styles"></style>
     <style>
       :host {
         font-family: var(--theme-font);
         font-size: 16px;
         position: absolute;
-        background: white;
-        border-radius: 4px;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
       }
 
       #search-input {
@@ -27,7 +23,8 @@
         border: none;
         border-radius: 4px;
         margin: 0;
-        background: hsl(0, 0%, 95%);
+        margin-bottom: 8px;
+        background: white;
         font-family: var(--theme-font);
         font-size: 16px;
         color: var(--theme-blue-grey);
@@ -58,49 +55,101 @@
         fill: var(--theme-blue-grey);
       }
 
-      iron-scroll-threshold {
-        margin: 0;
-        max-height: 600px;
-        padding: 0;
+      paper-progress {
+        position: absolute;
+        width: 100%;
+        margin-top: -10px;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 3s;
+        --paper-progress-transition-transition-delay: 250ms;
+        height: 2px;
+      }
+
+      #collections, #elements {
         background: white;
       }
 
       #collections {
         box-sizing: border-box;
-        width: 500px;
         display: flex;
         flex-wrap: nowrap;
         overflow: auto;
       }
 
-      .title {
-        font-weight: bold;
-        font-size: 20px;
+      #collections::-webkit-scrollbar {
+        display: none;
       }
 
-      .owner {
-        color: hsl(0, 0%, 50%);
-      }
-
-      #collections > a {
+      #collections > collection-card {
         flex: 0 0 250px;
-        height: 150px;
-        padding: 16px;
+        height: 200px;
+        border: none;
         border-right: 1px solid #ededed;
       }
 
       .element {
+        display: block;
         padding: 16px;
+        padding-right: 0px;
+      }
+
+      .element .title {
+        font-weight: bold;
+        font-size: 20px;
+      }
+
+      .element .description {
+        margin-top: 8px;
+        color: hsl(0, 0%, 50%);
+      }
+
+      #elements a {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+
+      #elements a :first-child {
+        flex-grow: 1;
+      }
+
+      .octicon {
+        width: 24px;
+      }
+
+      .octicon-star {
+        color: #ffe200;
+      }
+
+      .forks {
+        color: hsl(0, 0%, 70%);
+      }
+
+      .stars, .forks {
+        width: 70px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        flex-shrink: 0;
+      }
+
+      #elements .element:not(:first-of-type) {
         border-top: 1px solid #ededed;
       }
 
-      :host.expanded {
+      #results {
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      :host.expanded > input, :host.expanded > #results, input:focus {
         box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                     0 1px 10px 0 rgba(0, 0, 0, 0.12),
                     0 2px 4px -1px rgba(0, 0, 0, 0.4);
       }
 
-      :host:not(.expanded) > iron-scroll-threshold {
+      :host:not(.expanded) > #results {
         display: none;
       }
 
@@ -113,50 +162,75 @@
           max-height: calc(100% - 40px);
         }
       }
+
+      .header {
+        font-size: 18px;
+        display: flex;
+        justify-content: space-between;
+        padding: 16px;
+        background: #f3f4f5;
+        border-top: 1px solid #ededed;
+        border-bottom: 1px solid #ededed;
+      }
     </style>
 
     <iron-ajax
       id="elementAjax"
-      url="[[baseUrls.api]]/api/search/[[_query]] kind:element"
+      url="[[baseUrls.api]]/api/search/[[_query]] kind:element?limit=6&count"
       handle-as="json"
       on-request="_handleRequest"
-      on-response="_elementResponse"
+      on-response="_updateExpandedState"
+      on-error="_hideProgress"
+      loading="{{_elementsLoading}}"
+      last-response="{{_elements}}"
       params="[[_requestParams]]"></iron-ajax>
 
     <iron-ajax
       id="collectionAjax"
-      url="[[baseUrls.api]]/api/search/[[_query]] kind:collection"
+      url="[[baseUrls.api]]/api/search/[[_query]] kind:collection?limit=3&count"
       handle-as="json"
       last-response="{{_collections}}"
       on-request="_handleRequest"
+      on-response="_updateExpandedState"
+      on-error="_hideProgress"
+      loading="{{_collectionsLoading}}"
       debounce-duration="300"></iron-ajax>
 
     <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
-    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org"></input>
+    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
 
-    <iron-scroll-threshold on-lower-threshold="_loadMoreResults" id="threshold" lower-threshold="200">
+    <paper-progress id="progress" indeterminate hidden></paper-progress>
+    <div id="results" on-click="_close">
+      <div class="header" hidden="[[!_collections.count]]">Collections<a href="/search/[[_query]]">More collections ([[_collections.count]])</a></div>
       <div id="collections" role="navigation" aria-label="collections">
         <template is="dom-repeat" items="[[_collections.results]]">
-          <a href="/collection/[[item.owner]]/[[item.repo]]" tabindex$="[[index]]" on-click="_close">
-            <div class="collection">
-              <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
+          <collection-card tabindex$="[[index]]" data="[[item]]"></collection-card>
+        </template>
+      </div>
+      <div class="header" hidden="[[!_elements.count]]">Elements<a href="/search/[[_query]]">More elements ([[_elements.count]])</a></div>
+      <div id="elements" role="navigation" aria-label="elements">
+        <template is="dom-repeat" items="[[_elements.results]]">
+          <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]" class="element">
+            <div>
+              <div class="title">[[item.repo]]</div>
               <div class="description">[[item.description]]</div>
+            </div>
+            <div aria-label$="[[item.stars]] users starred this repository" class="stars">
+              <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                <use xlink:href="/sprite.octicons.svg#star"></use>
+              </svg>
+              [[item.stars]]
+            </div>
+            <div aria-label$="[[item.forks]] users forked this repository" class="forks">
+              <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+                <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+              </svg>
+              [[item.forks]]
             </div>
           </a>
         </template>
       </div>
-      <iron-list id="resultsList" items="[[_results]]" as="item" scroll-target="threshold" role="navigation" aria-label="elements">
-        <template>
-          <a href="/element/[[item.owner]]/[[item.repo]]" tabindex$="[[tabIndex]]" on-click="_close">
-            <div class="element">
-              <div class="title"><span class="owner">[[item.owner]]</span>/[[item.repo]]</div>
-              <div class="description">[[item.description]]</div>
-            </div>
-          </a>
-        </template>
-      </iron-list>
-    </iron-scroll-threshold>
-
+    </div>
   </template>
 
   <script>
@@ -170,6 +244,10 @@
         query: String,
 
         _requestParams: Object,
+        _elementsLoading: {
+          type: Boolean,
+          value: false
+        },
       },
 
       observers: [
@@ -213,8 +291,13 @@
         this._updateExpandedState();
       },
 
+      _hideProgress: function() {
+        this.$.progress.hidden = true;
+      },
+
       _updateExpandedState: function() {
-        if (this._focused && this._results && this._results.length > 0) {
+        if (this._focused && this._elements && this._collections) {
+          this._hideProgress();
           this.classList.add('expanded');
         } else {
           this.classList.remove('expanded');
@@ -228,16 +311,15 @@
       },
 
       _triggerSearch: function() {
-        var query = this.$['search-input'].value;
+        var query = encodeURIComponent(this.$['search-input'].value);
         if (query == this._query)
           return;
 
-        if (!this._query || this._query != query) {
-          this._requestParams = {offset: 0};
-          this._endOfResults = false;
-        }
+        if (query)
+          this.$.progress.hidden = false;
         this._query = query;
-        this._results = [];
+        this._elements = null;
+        this._collections = null;
         this._updateExpandedState();
         this.debounce('searchAPI', function() {
           this.$.elementAjax.generateRequest();
@@ -252,32 +334,6 @@
         if (!query)
           event.detail.request.abort();
       },
-
-      _elementResponse: function(event) {
-        var response = event.detail.response;
-        if (!response || !response.results)
-          return;
-
-        if (!response.results.length) {
-          this._endOfResults = true;
-          return;
-        }
-
-        var scrollTop = this.$.threshold.scrollTop;
-        this._results = this._results.concat(response.results);
-        this._updateExpandedState();
-        Polymer.dom.flush();
-        this.$.threshold.scroll(0, scrollTop);
-        this.$.threshold.clearTriggers();
-      },
-
-      _loadMoreResults: function() {
-        if (!this._results || this._endOfResults)
-          return;
-        this.set('_requestParams.offset', this._results.length);
-        this.$.elementAjax.generateRequest();
-      },
-
     });
   </script>
 </dom-module>
