@@ -2,14 +2,30 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/marked-element/marked-element.html">
 <link rel="import" href="../bower_components/paper-styles/color.html">
-<link rel="import" href="../bower_components/paper-styles/typography.html">
 
 <dom-module id="catalog-api-property">
   <template>
     <style>
-      :host {
-        @apply(--paper-font-body1);
 
+    :root {
+      --code1: {
+        font-family: var(--monospace-font);
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+      }
+
+      --code2: {
+        font-family: var(--monospace-font);
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 20px;
+      }
+    }
+
+      :host {
         box-sizing: border-box;
         display: block;
         padding: 16px 24px;
@@ -34,7 +50,7 @@
       }
 
       #signature {
-        @apply(--paper-font-code1);
+        @apply(--code1);
 
         float: left;
         overflow: hidden;
@@ -44,7 +60,7 @@
       }
 
       #signature .name {
-        @apply(--paper-font-code2);
+        @apply(--code2);
       }
 
       :host([function]) #signature {
@@ -62,14 +78,14 @@
 
       #details {
         flex: 1;
-        font-size: 12px;
+        font-size: 13px;
         margin-left: 260px;
       }
 
       /* Metadata */
 
       #type {
-        @apply(--paper-font-code1);
+        @apply(--code1);
 
         font-style: italic;
       }
@@ -101,7 +117,7 @@
       }
 
       #params .type {
-        @apply(--paper-font-code1);
+        @apply(--code1);
       }
 
       #params li {
@@ -140,7 +156,7 @@
       }
 
       #desc .markdown-html code {
-        @apply(--paper-font-code1);
+        @apply(--code1);
       }
 
       .return {
