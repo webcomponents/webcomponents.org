@@ -11,7 +11,7 @@
 <link rel="import" href="catalog-search-box.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
-<link rel="import" href="progress-loader.html">
+<link rel="import" href="progress-bar.html">
 
 <dom-module id="catalog-app">
   <template>
@@ -387,7 +387,7 @@
       </app-toolbar>
     </app-header>
 
-    <progress-loader id="progress" indeterminate></progress-loader>
+    <progress-bar id="progress" indeterminate></progress-bar>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
       <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
