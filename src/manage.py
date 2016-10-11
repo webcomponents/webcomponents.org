@@ -783,7 +783,8 @@ class BuildSitemaps(RequestHandler):
   def handle_get(self):
     keys = (Library.query()
             .filter(Library.kind == 'element')
-            .filter(not Library.shallow_ingestion)
+            # pylint: disable=singleton-comparison
+            .filter(Library.shallow_ingestion == False)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     elements = Sitemap(id='elements')
     elements.pages = [key.id() for key in keys]
@@ -792,7 +793,8 @@ class BuildSitemaps(RequestHandler):
 
     keys = (Library.query()
             .filter(Library.kind == 'collection')
-            .filter(not Library.shallow_ingestion)
+            # pylint: disable=singleton-comparison
+            .filter(Library.shallow_ingestion == False)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     collections = Sitemap(id='collections')
     collections.pages = [key.id() for key in keys]
