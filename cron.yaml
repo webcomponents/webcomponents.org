@@ -3,3 +3,9 @@ cron:
   url: /manage/update-all
   target: manage
   schedule: every 10 minutes
+
+cron:
+- description: periodic rebuild of sitemaps for search indexing
+  url: /manage/build-sitemaps
+  target: manage
+  schedule: every 24 hours
