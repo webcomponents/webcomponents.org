@@ -22,6 +22,11 @@
 
       #demo-spinner {
         margin: 16px;
+        display: none;
+      }
+
+      #demo-spinner[active] {
+        display: block;
       }
 
       #frame {
@@ -73,6 +78,7 @@
 
       #editorBar button {
         color: var(--syntax-accent);
+        cursor: pointer;
       }
 
       #editorBar button {
@@ -310,7 +316,6 @@
           return;
 
         this.$['demo-spinner'].removeAttribute('active');
-        this.$['demo-spinner'].setAttribute('hidden', '');
 
         if (this._lastHeight && event.data.height <= this._lastHeight)
           return;

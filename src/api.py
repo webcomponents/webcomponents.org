@@ -546,6 +546,7 @@ class PublishLibrary(webapp2.RequestHandler):
   def post(self, owner, repo):
     if not validate_captcha(self):
       return
+    # TODO: validate valid repo and return result
     task_url = util.ingest_library_task(owner, repo)
     util.new_task(task_url, target='manage')
 
