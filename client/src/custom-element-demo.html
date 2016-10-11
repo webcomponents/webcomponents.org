@@ -15,6 +15,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        min-height: 61px;
         max-height: 550px;
         background: white;
       }
@@ -88,13 +89,15 @@
 
       #lazyEditor {
         display: none;
-        padding: 20px;
+        padding: 16px 20px;
         color: var(--syntax-fg);
         background: var(--syntax-bg);
-        font: 13.6px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        font-size: 13.6px;
+        font-family: var(--monospace-font);
         line-height: 1.45;
         margin: 0;
         white-space: pre-wrap;
+        border-radius: 0 0 4px 4px;
       }
 
       code-editor[unresolved] + #lazyEditor {
@@ -120,7 +123,7 @@
     <div id="container">
       <div id="demoContainer">
         <iframe id="frame" title="Rendered inline-demo"></iframe>
-        <paper-spinner-lite id="demo-spinner" active></paper-spinner-lite>
+        <spinner-lite id="demo-spinner" active></paper>
       </div>
       <div id="editorSection">
         <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
