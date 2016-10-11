@@ -129,6 +129,7 @@ class UpdateLibraryTest(ManageTestBase):
     library = Library(id='org/repo', status=Status.suppressed, spdx_identifier='MIT')
     library.put()
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
