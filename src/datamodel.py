@@ -174,3 +174,5 @@ class Dependency(object):
     owner, repo = repo_bits
     return Dependency(owner, repo, bits[1])
 
+class Sitemap(ndb.Model):
+  pages = ndb.StringProperty(repeated=True, indexed=False)

@@ -14,7 +14,7 @@ import os
 import urllib
 import webapp2
 
-from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
+from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache, Sitemap
 import licenses
 import versiontag
 import util
@@ -779,6 +779,32 @@ class UpdateAll(RequestHandler):
 
     logging.info('triggered %d author updates', task_count)
 
+class BuildSitemaps(RequestHandler):
+  def handle_get(self):
+    keys = (Library.query()
+            .filter(Library.kind == 'element')
+            .filter(not Library.shallow_ingestion)
+            .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
+    elements = Sitemap(id='elements')
+    elements.pages = [key.id() for key in keys]
+    elements.put()
+    logging.info('%d elements', len(elements.pages))
+
+    keys = (Library.query()
+            .filter(Library.kind == 'collection')
+            .filter(not Library.shallow_ingestion)
+            .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
+    collections = Sitemap(id='collections')
+    collections.pages = [key.id() for key in keys]
+    collections.put()
+    logging.info('%d collections', len(elements.pages))
+
+    keys = Author.query().fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY)
+    authors = Sitemap(id='authors')
+    authors.pages = [key.id() for key in keys]
+    authors.put()
+    logging.info('%d authors', len(elements.pages))
+
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
   ndb.delete_multi(keys)
@@ -849,6 +875,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
+    webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
     webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
