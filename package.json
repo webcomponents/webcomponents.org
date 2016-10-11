@@ -6,7 +6,8 @@
     "type": "git"
   },
   "scripts": {
-    "install": "pip install -t lib -r requirements.txt"
+    "install": "pip install -t lib -r requirements.txt",
+    "client": "cd client && bower install && dev_appserver.py client.yaml"
   },
   "devDependencies": {
     "eslint": "^3.3.1",
