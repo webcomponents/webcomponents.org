@@ -6,19 +6,30 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      :host {
+        display: block;
+        border: 1px solid #ededed;
+        border-bottom-width: 3px;
+        width: 100%;
+        border-radius: 4px;
+        overflow: hidden;
+        background: white;
+      }
+
       h1 {
         margin-bottom: 8px;
       }
 
-      .box {
+      .container {
         margin: 0;
         height: 200px;
         display: flex;
         flex-direction: column;
+        padding: 0 24px;
       }
 
       #header {
-        padding: 24px;
+        padding: 24px 0;
         height: calc(100% - 55px);
         overflow: hidden;
         text-overflow: ellipsis;
@@ -36,7 +47,7 @@
         overflow: hidden;
         max-width: 100%;
         border-top: 1px solid #ededed;
-        padding: 12px 16px;
+        padding: 16px 0;
       }
 
       .avatar {
@@ -64,7 +75,7 @@
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <div class="box">
+      <div class="container">
         <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" aria-label$="[[data.owner]]/[[data.repo]] collection">
           <h2>[[data.repo]]</h2>
           <div id="description">[[data.description]]</div>

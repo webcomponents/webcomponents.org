@@ -1,5 +1,6 @@
 {
     "name": "Web Components",
+    "short_name": "wc.org",
     "icons": [
         {
             "src": "\/assets\/android-chrome-192x192.png",
@@ -13,6 +14,7 @@
         }
     ],
     "start_url": "/",
+    "background_color": "#ffffff",
     "theme_color": "#ffffff",
     "display": "standalone"
 }

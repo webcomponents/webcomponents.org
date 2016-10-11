@@ -15,6 +15,9 @@
     Polymer({
       is: 'catalog-dialog',
       behaviors: [Polymer.IronOverlayBehavior],
+      created: function() {
+        this.removeAttribute('unresolved');
+      },
     });
   </script>
 </dom-module>
