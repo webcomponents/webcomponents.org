@@ -3,13 +3,9 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-viewer.html">
-<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
-<link rel="import" href="catalog-dialog.html">
 <link rel="import" href="collection-card.html">
 <link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
@@ -618,7 +614,7 @@
     </div>
 
     <paper-spinner-lite id="demo-spinner"></paper-spinner-lite>
-    <catalog-dialog id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
+    <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
@@ -743,7 +739,10 @@
         if (this.demo) {
           this._showDemo();
         } else {
-          this.$['demo-dialog'].close();
+          if (this.$['demo-dialog'].hasAttribute('unresolved'))
+            this.$['demo-dialog'].opened = false;
+          else
+            this.$['demo-dialog'].close();
           this.$['demo-frame'].src = 'about:blank';
         }
       },
@@ -755,7 +754,10 @@
       _showDemo: function() {
         var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
-        this.$['demo-dialog'].open();
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          this.$['demo-dialog'].opened = true;
+        else
+          this.$['demo-dialog'].open();
         this.$['demo-spinner'].setAttribute('active', '');
       },
 
@@ -764,6 +766,8 @@
       },
 
       _cancelDemo: function() {
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          return;
         this.$['demo-dialog'].cancel();
       },
 

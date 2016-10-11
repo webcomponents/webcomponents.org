@@ -1,9 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="collection-card.html">
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="progress-bar.html">
 
 <dom-module id="catalog-search-box">
   <template>
@@ -55,7 +55,7 @@
         fill: var(--theme-blue-grey);
       }
 
-      paper-progress {
+      progress-bar {
         position: absolute;
         width: 100%;
         margin-top: -10px;
@@ -199,7 +199,7 @@
     <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
     <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
 
-    <paper-progress id="progress" indeterminate hidden></paper-progress>
+    <progress-bar id="progress" indeterminate hidden></progress-bar>
     <div id="results" on-click="_close">
       <div class="header" hidden="[[!_collections.count]]">Collections<a href="/search/[[_query]]">More collections ([[_collections.count]])</a></div>
       <div id="collections" role="navigation" aria-label="collections">
