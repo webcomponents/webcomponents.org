@@ -19,6 +19,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/token', status=200)
     self.respond_to('https://api.github.com/rate_limit', '')
     self.app.get('/manage/github', status=200)
+    self.app.get('/manage/index-all', status=403)
     self.app.get('/manage/update-all', status=403)
     self.app.get('/manage/add/org/repo', status=403)
     self.app.get('/manage/analyze/owner/repo', status=403)

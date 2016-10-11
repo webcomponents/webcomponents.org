@@ -730,6 +730,22 @@ class EnsureAuthor(RequestHandler):
       task_url = util.ingest_author_task(name)
       util.new_task(task_url, target='manage')
 
+class IndexAll(RequestHandler):
+  def handle_get(self):
+    query = Library.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        owner, repo = key.id().split('/', 1)
+        task_url = util.update_indexes_task(owner, repo)
+        util.new_task(task_url, target='manage')
+
+    logging.info('triggered %d index updates', task_count)
+
 class UpdateAll(RequestHandler):
   def handle_get(self):
     queue = taskqueue.Queue('update')
@@ -831,6 +847,7 @@ class DeleteEverything(RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
+    webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
