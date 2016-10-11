@@ -246,6 +246,7 @@ class AuthorTest(ManageTestBase):
     author = Author(id='test', status=Status.suppressed)
     author.put()
     response = self.app.get('/task/update/test', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
