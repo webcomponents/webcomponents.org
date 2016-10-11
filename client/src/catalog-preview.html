@@ -46,7 +46,10 @@
         <input type="text" name="url" value="{{url::input}}" placeholder="Any GitHub URL">
         <div id="error" class="error-message" hidden>Invalid input - enter a GitHub URL</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
-        <button on-tap="onSubmit">Preview</button>
+        <button id="submit" on-tap="onSubmit">
+          <spinner-lite></spinner-lite>
+          Preview
+        </button>
       </div>
     </div>
 
@@ -68,7 +71,7 @@
       ],
 
       onSubmit: function() {
-        if (!this.$.recaptcha.getResponse())
+        if (this.$.submit.hasAttribute('disabled') || !this.$.recaptcha.getResponse())
           return;
 
         var url = this.url;
@@ -79,6 +82,7 @@
           return;
         }
 
+        this.$.submit.setAttribute('disabled', '');
         this.$.ajax.params = {
           url: url,
           recaptcha: this.$.recaptcha.getResponse()
@@ -96,10 +100,12 @@
       success: function() {
         window.history.pushState({}, null, '/preview/' + this._ownerRepoSha);
         this.fire('location-changed');
+        this.$.submit.removeAttribute('disabled');
       },
 
       _error: function() {
         this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
+        this.$.submit.removeAttribute('disabled');
       },
 
     });

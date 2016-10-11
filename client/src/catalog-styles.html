@@ -100,7 +100,7 @@
         border-radius: 4px;
         overflow: hidden;
         background: white;
-        box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1);
+        box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1), 0 0px 4px 0 hsla(0, 0%, 0%, 0.1);
       }
 
       .avatar {
@@ -189,6 +189,24 @@
         font-size: 14px;
         cursor: pointer;
         text-transform: uppercase;
+        font-weight: 600;
+        position: relative;
+      }
+
+      button[disabled] {
+        color: hsla(0, 0%, 100%, 0.3);
+      }
+
+      button > spinner-lite {
+        display: none;
+        --paper-spinner-color: white;
+        position: absolute;
+        left: calc(50% - 14px);
+        top: calc(50% - 14px);
+      }
+
+      button[disabled] > spinner-lite {
+        display: block;
       }
 
       .soft-button {
