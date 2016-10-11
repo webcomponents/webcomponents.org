@@ -22,6 +22,7 @@ class Status(object):
   error = 'error'
   pending = 'pending'
   ready = 'ready'
+  suppressed = 'suppressed'
 
 class Author(ndb.Model):
   metadata = ndb.TextProperty(indexed=False)

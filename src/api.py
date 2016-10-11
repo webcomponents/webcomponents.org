@@ -120,7 +120,7 @@ class LibraryMetadata(object):
         readme_future = Content.get_by_id_async('readme.html', parent=version_key)
 
     library = yield library_future
-    if library is None:
+    if library is None or library.status == Status.suppressed:
       raise ndb.Return(None)
 
     result = {}

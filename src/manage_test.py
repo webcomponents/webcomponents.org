@@ -125,6 +125,17 @@ class EnsureAuthorTest(ManageTestBase):
     ], [task.url for task in tasks])
 
 class UpdateLibraryTest(ManageTestBase):
+  def test_update_suppressed_is_noop(self):
+    library = Library(id='org/repo', status=Status.suppressed, spdx_identifier='MIT')
+    library.put()
+    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
+
+    library = library.key.get()
+    self.assertEqual(library.status, Status.suppressed)
+
   def test_update_respects_304(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
     library.put()
@@ -230,6 +241,17 @@ class AuthorTest(ManageTestBase):
 
     author = Author.get_by_id('test')
     self.assertIsNone(author)
+
+  def test_update_suppressed_is_noop(self):
+    author = Author(id='test', status=Status.suppressed)
+    author.put()
+    response = self.app.get('/task/update/test', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
+
+    author = author.key.get()
+    self.assertEqual(author.status, Status.suppressed)
 
 class AddTest(ManageTestBase):
   def test_add(self):

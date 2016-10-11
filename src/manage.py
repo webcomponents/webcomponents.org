@@ -171,6 +171,8 @@ class LibraryTask(RequestHandler):
       self.is_new = self.library.metadata is None and self.library.error is None
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
+    if self.library.status == Status.suppressed:
+      raise RequestAborted('library is suppressed')
 
   def set_ready(self):
     assert self.library.spdx_identifier is not None
@@ -494,6 +496,8 @@ class AuthorTask(RequestHandler):
       self.author = Author.get_or_insert(name)
     else:
       self.author = Author.get_by_id(name)
+    if self.author.status == Status.suppressed:
+      raise RequestAborted('author is suppressed')
     self.author_dirty = False
 
   def commit(self):
@@ -785,6 +789,7 @@ class BuildSitemaps(RequestHandler):
             .filter(Library.kind == 'element')
             # pylint: disable=singleton-comparison
             .filter(Library.shallow_ingestion == False)
+            .filter(Library.status != Status.suppressed)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     elements = Sitemap(id='elements')
     elements.pages = [key.id() for key in keys]
@@ -795,6 +800,7 @@ class BuildSitemaps(RequestHandler):
             .filter(Library.kind == 'collection')
             # pylint: disable=singleton-comparison
             .filter(Library.shallow_ingestion == False)
+            .filter(Library.status != Status.suppressed)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     collections = Sitemap(id='collections')
     collections.pages = [key.id() for key in keys]
