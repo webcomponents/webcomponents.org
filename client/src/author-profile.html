@@ -7,15 +7,12 @@
     <style include="catalog-styles"></style>
 
     <style>
-      .box {
-        max-width: 270px;
-      }
-
       #avatar {
         font-size: 0;
         line-height: 0;
         background: hsl(204, 15%, 94%);
         height: 268px;
+        overflow: hidden;
       }
 
       #avatar[type=organization] img {
@@ -33,14 +30,19 @@
         width: 100%;
       }
 
-      #header, #more {
-        border-top: 1px solid #ededed;
-        padding: 16px 24px;
+      #header {
+        padding: 24px 24px 16px;
+        text-align: center;
+      }
+
+      #more {
+        padding: 0 24px 16px;
+        padding-top: 0;
+        padding-bottom: 16px;
       }
 
       h1 {
         margin: 0;
-        margin-top: 8px;
       }
 
       #subtitle {
@@ -51,17 +53,13 @@
       #more > div {
         display: flex;
         align-items: center;
-        margin: 16px 0;
+        line-height: 36px;
+        width: 100%;
       }
 
-      #more > div:last-of-type {
-        margin-bottom: 0;
-      }
-
-      #more #stats {
+      #stats {
         justify-content: space-between;
-        margin-top: 0;
-        margin-right: 40px;
+        margin: 0 24px 16px;
       }
 
       #followers:before {
@@ -90,7 +88,13 @@
         width: 20px;
         height: 20px;
         margin-right: 8px;
-        color: hsl(0, 0%, 60%);
+        color: var(--theme-font-color);
+        flex: 0 0 20px;
+      }
+
+      #more a {
+        text-overflow: ellipsis;
+        overflow: hidden
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -126,50 +130,45 @@
       <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]" role="presentation"></div>
       <div id="header">
         <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
-        <div id="subtitle"><a href="https://github.com/[[author.login]]">@[[author.login]]</a></div>
-        </template>
+        <div id="subtitle" hidden="[[!author.bio]]">[[author.bio]]</div>
       </div>
 
-      <template is="dom-if" if="[[_showMore(condensed, author.type)]]">
-        <div id="more">
-          <div id="stats">
-            <div id="followers">[[author.followers]]</div>
-            <div id="following">[[author.following]]</div>
-          </div>
-          <template is="dom-if" if="[[author.company]]">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-organization">
-                <use xlink:href="/sprite.octicons.svg#organization"></use>
-              </svg>
-              [[author.company]]
-            </div>
-          </template>
-          <template is="dom-if" if="[[author.location]]">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-location">
-                <use xlink:href="/sprite.octicons.svg#location"></use>
-              </svg>
-              [[author.location]]
-            </div>
-          </template>
-          <template is="dom-if" if="[[author.email]]">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-mail">
-                <use xlink:href="/sprite.octicons.svg#mail"></use>
-              </svg>
-              [[author.email]]
-            </div>
-          </template>
-          <template is="dom-if" if="[[author.blog]]">
-            <div>
-              <svg viewBox="0 0 100 100" class="octicon octicon-link">
-                <use xlink:href="/sprite.octicons.svg#link"></use>
-              </svg>
-              [[author.blog]]
-            </div>
-          </template>
+      <div id="stats" hidden="[[!author.followers]]">
+        <div id="followers">[[author.followers]]</div>
+      </div>
+
+      <div id="more">
+        <div>
+          <svg viewBox="0 0 100 100" class="octicon">
+            <use xlink:href="/sprite.octicons.svg#mark-github"></use>
+          </svg>
+          <a href="https://github.com/[[author.login]]">[[author.login]]</a>
         </div>
-      </template>
+        <div hidden="[[!author.company]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-organization">
+            <use xlink:href="/sprite.octicons.svg#organization"></use>
+          </svg>
+          [[author.company]]
+        </div>
+        <div hidden="[[!author.location]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-location">
+            <use xlink:href="/sprite.octicons.svg#location"></use>
+          </svg>
+          [[author.location]]
+        </div>
+        <div hidden="[[!author.email]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-mail">
+            <use xlink:href="/sprite.octicons.svg#mail"></use>
+          </svg>
+          [[author.email]]
+        </div>
+        <div hidden="[[!author.blog]]">
+          <svg viewBox="0 0 100 100" class="octicon octicon-link">
+            <use xlink:href="/sprite.octicons.svg#link"></use>
+          </svg>
+          <a href="[[_ensureURL(author.blog)]]">[[author.blog]]</a>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -185,12 +184,6 @@
         },
 
         author: Object,
-
-        overlay: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true,
-        },
       },
 
       _nameOrLogin: function(name, login) {
@@ -199,6 +192,12 @@
 
       _showMore: function(condensed, type) {
         return !condensed && type.toLowerCase() == 'user';
+      },
+
+      _ensureURL: function(url) {
+        if (url && url.match(/^https?/))
+          return url;
+        return 'http://' + url;
       },
     });
   </script>

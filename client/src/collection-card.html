@@ -12,10 +12,6 @@
         overflow: hidden;
       }
 
-      h1 {
-        margin-bottom: 8px;
-      }
-
       .container {
         margin: 0;
         height: 200px;
@@ -31,19 +27,23 @@
         text-overflow: ellipsis;
       }
 
+      #header h2 {
+        font-size: 22px;
+      }
+
       #description {
         color: hsl(0, 0%, 50%);
       }
 
       #footer {
-        line-height: 30px;
-        vertical-align: top;
+        font-size: 14px;
         display: flex;
+        align-items: center;
         text-overflow: ellipsis;
         overflow: hidden;
         max-width: 100%;
         border-top: 1px solid #ededed;
-        padding: 12px 0;
+        padding: 16px 0;
       }
 
       .avatar {
@@ -76,9 +76,9 @@
           <h2>[[data.repo]]</h2>
           <div id="description">[[data.description]]</div>
         </a>
-        <a id="footer" href="/author/[[data.owner]]" aria-label$="[[data.owner]] author">
+        <div id="footer">
           <img class="avatar" src="[[data.avatar_url]]&s=40" role="presentation">
-          <div>[[data.owner]]</div>
+          <div><a href="/author/[[data.owner]]" aria-label$="[[data.owner]] author">[[data.owner]]</a></div>
         </a>
       </div>
     </template>
