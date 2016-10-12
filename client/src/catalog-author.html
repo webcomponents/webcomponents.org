@@ -24,20 +24,6 @@
       last-response="{{author}}"
       on-error="_metaError"></iron-ajax>
 
-    <iron-ajax
-      id="collectionsAjax"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:collection?noscore&count"
-      loading="{{collectionsLoading}}"
-      handle-as="json"
-      last-response="{{_collections}}"></iron-ajax>
-
-    <iron-ajax
-      id="elementsAjax"
-      url="[[baseUrls.api]]/api/search/owner:[[_routeMatch.owner]] kind:element?noscore&limit=100&count"
-      loading="{{elementsLoading}}"
-      handle-as="json"
-      last-response="{{_elements}}"></iron-ajax>
-
     <div class="mobile-scroll-overlay">
       <div class="mobile-fixed">
         <h3>Author</h3>
@@ -49,12 +35,8 @@
           <author-profile overlay author="[[author]]"></author-profile>
         </div>
 
-        <div class="main-content loader" loading$="[[or(collectionsLoading, elementsLoading)]]">
-          <catalog-list
-            collections="[[_collections.results]]"
-            elements="[[_elements.results]]"
-            collection-count="[[_collections.count]]"
-            element-count="[[_elements.count]]"></catalog-list>
+        <div class="main-content">
+          <catalog-list id="list" base-urls="[[baseUrls]]" query="[[_ownerQuery(_routeMatch.owner)]]" noscore></catalog-list>
         </div>
       </div>
     </div>
@@ -82,13 +64,20 @@
         return x || y;
       },
 
+      _ownerQuery: function(owner) {
+        return 'owner:' + owner;
+      },
+
       ready: function() {
         this._loaded = true;
         this._routeChanged(this.route, this.visible);
       },
 
       _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded || route.prefix != '/author')
+        var disabled = !visible || !this._loaded || route.prefix != '/author';
+        this.$.list.disabled = disabled;
+
+        if (disabled)
           return;
 
         this.author = {};
@@ -96,8 +85,6 @@
         document.title = this._routeMatch.owner;
 
         this.$.metaAjax.generateRequest();
-        this.$.collectionsAjax.generateRequest();
-        this.$.elementsAjax.generateRequest();
       },
 
       _metaError: function(event, error) {

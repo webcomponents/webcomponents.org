@@ -401,7 +401,9 @@
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
       <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
-      <catalog-search name="search" id="search"></catalog-search>
+      <catalog-search name="search" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="elements" title="Browse elements" path="/kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="collections" title="Browse collections" path="/kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
 
@@ -525,8 +527,13 @@
       _pageChanged: function(page) {
         if (page) {
           this._setLoading();
+          // Work around for https://github.com/PolymerElements/iron-pages/issues/52
+          var selectedItem = this.$.pages.selectedItem;
+          if (!selectedItem)
+            selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + page + ']');
+          var element = selectedItem.tagName.toLowerCase();
           this.importHref(
-            this.resolveUrl('catalog-' + page + '.html'), this._pageReady, null, true);
+            this.resolveUrl(element + '.html'), this._pageReady, null, true);
         }
       },
 

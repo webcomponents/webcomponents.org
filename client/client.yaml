@@ -39,7 +39,7 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
-- url: /(author|collection|element|search|preview|preview-integration|publish|publish-collection)(/.*)?
+- url: /(author|collections?|elements?|search|preview|preview-integration|publish|publish-collection)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always

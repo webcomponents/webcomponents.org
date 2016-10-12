@@ -548,7 +548,7 @@
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
           <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
-            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[_readmeLabel(bundledElements)]]</a>
+            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
               <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
@@ -962,15 +962,6 @@
 
       _shouldCollapseNav: function(elements) {
         return elements && elements.length > 5;
-      },
-
-      _readmeLabel: function(bundledElements) {
-        var found = false;
-        for (var i = 0; i < bundledElements.length; i++) {
-          if (bundledElements[i].is == this.repo)
-            found = true;
-        }
-        return found ? 'Overview' : this.repo;
       },
 
       _isPreview: function(prefix) {
