@@ -56,19 +56,22 @@
       url="[[baseUrls.api]]/api/dependencies/[[collection]]"
       handle-as="json"
       loading="{{_showProgress}}"
-      on-response="_onDependenciesResponse"></iron-ajax>
+      on-response="_onDependenciesResponse"
+      on-error="_updateLoading"></iron-ajax>
     <iron-ajax
       id="elementsAjax"
       url="[[baseUrls.api]]/api/search/[[query]] kind:element[[_params(noscore)]]"
       handle-as="json"
       loading="{{_showProgress}}"
       on-response="_onElementsResponse"
+      on-error="_updateLoading"
       params="[[_elementRequestParams]]"></iron-ajax>
     <iron-ajax
       id="collectionsAjax"
       url="[[baseUrls.api]]/api/search/[[query]] kind:collection[[_params(noscore)]]"
       handle-as="json"
-      on-response="_onCollectionsResponse"></iron-ajax>
+      on-response="_onCollectionsResponse"
+      on-error="_updateLoading"></iron-ajax>
 
     <template is="dom-if" if="[[_collections.count]]">
       <h1 class="section-header">[[_collections.count]] Collections</h1>
@@ -108,6 +111,11 @@
           value: false,
           type: Boolean,
         },
+        loading: {
+          value: true,
+          type: Boolean,
+          notify: true,
+        },
         _collections: Object,
         _elements: Object,
       },
@@ -133,6 +141,10 @@
         this.$.elementsAjax.generateRequest();
       },
 
+      _updateLoading: function() {
+        this.loading = !!this.$.elementsAjax.loading || !!this.$.collectionsAjax.loading || !!this.$.dependenciesAjax.loading;
+      },
+
       _collectionChanged: function(collection) {
         if (this.disabled || !collection)
           return;
@@ -152,6 +164,7 @@
       },
 
       _onElementsResponse: function() {
+        this._updateLoading();
         if (this._elementRequestParams.offset == 0) {
           this._elements = this.$.elementsAjax.lastResponse;
         } else {
@@ -164,10 +177,12 @@
       },
 
       _onCollectionsResponse: function() {
+        this._updateLoading();
         this._collections = this.$.collectionsAjax.lastResponse;
       },
 
       _onDependenciesResponse: function() {
+        this._updateLoading();
         var response = this.$.dependenciesAjax.lastResponse;
         var elements = response.filter(function(item) {
           return item.kind == 'element';
