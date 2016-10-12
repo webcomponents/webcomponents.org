@@ -1,0 +1,83 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-item.html">
+<link rel="import" href="collection-card.html">
+
+<dom-module id="catalog-list">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+
+      h1.section-header {
+        margin-top: 16px;
+      }
+
+      #collections {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      collection-card, #spacer {
+        flex: 1 0 300px;
+        max-width: 400px;
+        margin: 0 16px 16px 0;
+      }
+
+      #collections:last-child:nth-child(2n) {
+        display: hidden;
+      }
+
+      #elements {
+        padding: 8px 0;
+      }
+
+      catalog-item {
+        margin: 0 8px;
+      }
+    </style>
+
+    <template is="dom-if" if="[[collections.length]]">
+      <h1 class="section-header">[[_count(collectionCount, collections)]] Collections</h1>
+      <div id="collections" class="loader" loading$="[[!collections]]">
+        <template is="dom-repeat" items="[[collections]]">
+            <collection-card class="box" data="[[item]]"></collection-card>
+        </template>
+        <div id="spacer"></div>
+      </div>
+    </template>
+    <template is="dom-if" if="[[elements.length]]"><h1 class="section-header">[[_count(elementCount, elements)]] Elements</h1></template>
+    <div id="elements" class="box loader" hidden="[[!_count(elementCount, elements)]]" loading$="[[!elements]]">
+      <template is="dom-repeat" items="[[elements]]">
+        <catalog-item data="[[item]]"></catalog-item>
+      </template>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-list',
+
+      properties: {
+        collections: Object,
+
+        elements: Object,
+
+        // Optional counts
+        collectionCount: Number,
+
+        elementCount: Number,
+      },
+
+      _count: function(count, elements) {
+        return count || elements.length;
+      },
+
+    });
+  </script>
+</dom-module>
