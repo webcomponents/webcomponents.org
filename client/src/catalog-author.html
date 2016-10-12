@@ -11,32 +11,28 @@
   <template>
     <style include="catalog-styles"></style>
 
-    <app-route
-      route="[[route]]"
-      pattern="/:owner"
-      data="{{_routeMatch}}"></app-route>
-
     <iron-ajax
       id="metaAjax"
       loading="{{loading}}"
-      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
+      url="[[baseUrls.api]]/api/meta/[[author]]"
       handle-as="json"
-      last-response="{{author}}"
+      last-response="{{_metadata}}"
+      on-response="_updateLoading"
       on-error="_metaError"></iron-ajax>
 
     <div class="mobile-scroll-overlay">
       <div class="mobile-fixed">
         <h3>Author</h3>
-        <h1 class="page-title">[[author.login]]</h1>
+        <h1 class="page-title">[[_metadata.login]]</h1>
       </div>
 
       <div class="body">
         <div class="sidebar">
-          <author-profile overlay author="[[author]]"></author-profile>
+          <author-profile overlay author="[[_metadata]]"></author-profile>
         </div>
 
         <div class="main-content">
-          <catalog-list id="list" base-urls="[[baseUrls]]" query="[[_ownerQuery(_routeMatch.owner)]]" noscore></catalog-list>
+          <catalog-list id="list" base-urls="[[baseUrls]]" query="[[_ownerQuery(author)]]" noscore disabled="[[!visible]]"></catalog-list>
         </div>
       </div>
     </div>
@@ -53,41 +49,39 @@
 
         baseUrls: Object,
 
-        route: Object,
+        author: String,
       },
 
       observers: [
-        '_routeChanged(route, visible)'
+        '_authorChanged(author, visible)'
       ],
 
       or: function(x, y) {
         return x || y;
       },
 
-      _ownerQuery: function(owner) {
-        return 'owner:' + owner;
+      _ownerQuery: function(author) {
+        return author && 'owner:' + author;
       },
 
-      ready: function() {
-        this._loaded = true;
-        this._routeChanged(this.route, this.visible);
-      },
-
-      _routeChanged: function(route, visible) {
-        var disabled = !visible || !this._loaded || route.prefix != '/author';
-        this.$.list.disabled = disabled;
-
-        if (disabled)
+      _authorChanged: function(author, visible) {
+        if (!visible || !author || author == this._currentAuthor)
           return;
 
-        this.author = {};
-
-        document.title = this._routeMatch.owner;
-
+        // TODO: Need to update from  metadata for correct casing.
+        document.title = author;
+        this._currentAuthor = author;
+        this._metadata = null;
         this.$.metaAjax.generateRequest();
+        this._updateLoading();
+      },
+
+      _updateLoading: function() {
+        this.loading = this.$.metaAjax.loading;
       },
 
       _metaError: function(event, error) {
+        this._updateLoading();
         this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner});
       },
 

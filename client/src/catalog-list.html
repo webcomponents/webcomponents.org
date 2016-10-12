@@ -145,22 +145,26 @@
         this.loading = Boolean(this.$.elementsAjax.loading) || Boolean(this.$.collectionsAjax.loading) || Boolean(this.$.dependenciesAjax.loading);
       },
 
-      _collectionChanged: function(collection) {
-        if (this.disabled || !collection)
+      _collectionChanged: function(collection, disabled) {
+        if (disabled || !collection || this._currentCollection == collection)
           return;
+        this._currentCollection = collection;
         this._elements = null;
         this._collections = null;
         this.$.dependenciesAjax.generateRequest();
+        this._updateLoading();
       },
 
-      _queryChanged: function(query) {
-        if (this.disabled || !query)
+      _queryChanged: function(query, disabled) {
+        if (disabled || !query || this._currentQuery == query)
           return;
+        this._currentQuery = query;
         this._elementRequestParams = {offset: 0};
         this._elements = null;
         this._collections = null;
         this.$.elementsAjax.generateRequest();
         this.$.collectionsAjax.generateRequest();
+        this._updateLoading();
       },
 
       _onElementsResponse: function() {
