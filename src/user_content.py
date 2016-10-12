@@ -25,7 +25,7 @@ class GetResource(webapp2.RequestHandler):
 
     analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
     if analysis is None or analysis.status != Status.ready:
-      self.response.write('could not find analysis for %s in %s/%s' % (tag, owner, repo, name, path))
+      self.response.write('could not find analysis for %s in %s/%s' % (tag, owner, repo))
       self.response.set_status(404)
       return
 
