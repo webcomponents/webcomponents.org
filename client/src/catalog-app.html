@@ -600,7 +600,7 @@
       },
 
       _searchTag: function(event) {
-        this.fire('triggerSearch', {query: 'bower_keywords:' + event.target.textContent});
+        this.fire('triggerSearch', {query: event.target.textContent});
       },
 
     });
