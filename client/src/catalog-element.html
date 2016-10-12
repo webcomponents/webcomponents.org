@@ -199,6 +199,11 @@
         overflow: hidden;
       }
 
+      #info-tags h3 {
+        display: inline;
+        margin-right: 12px;
+      }
+
       #expand-collapse {
         padding: 12px 16px;
         height: 100%;
@@ -505,6 +510,7 @@
 
           <div id="info-footer">
             <div id="info-tags">
+              <h3>Tags</h3>
               <template is="dom-repeat" items="[[data.bower.keywords]]">
                 <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
               </template>
@@ -934,7 +940,7 @@
       },
 
       _searchTag: function(event) {
-        this.fire('triggerSearch', {query: 'bower_keywords:' + event.target.tag});
+        this.fire('triggerSearch', {query: event.target.tag});
       },
 
       _or: function(a, b) {
