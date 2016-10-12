@@ -56,19 +56,22 @@
       url="[[baseUrls.api]]/api/dependencies/[[collection]]"
       handle-as="json"
       loading="{{_showProgress}}"
-      on-response="_onDependenciesResponse"></iron-ajax>
+      on-response="_onDependenciesResponse"
+      on-error="_updateLoading"></iron-ajax>
     <iron-ajax
       id="elementsAjax"
       url="[[baseUrls.api]]/api/search/[[query]] kind:element[[_params(noscore)]]"
       handle-as="json"
       loading="{{_showProgress}}"
       on-response="_onElementsResponse"
+      on-error="_updateLoading"
       params="[[_elementRequestParams]]"></iron-ajax>
     <iron-ajax
       id="collectionsAjax"
       url="[[baseUrls.api]]/api/search/[[query]] kind:collection[[_params(noscore)]]"
       handle-as="json"
-      on-response="_onCollectionsResponse"></iron-ajax>
+      on-response="_onCollectionsResponse"
+      on-error="_updateLoading"></iron-ajax>
 
     <template is="dom-if" if="[[_collections.count]]">
       <h1 class="section-header">[[_collections.count]] Collections</h1>
@@ -80,7 +83,7 @@
       </div>
     </template>
     <template is="dom-if" if="[[_elements.count]]"><h1 class="section-header">[[_elements.count]] Elements</h1></template>
-    <div id="elements" class="box loader" hidden="[[!_elements.count]]" loading$="[[!_elements]]">
+    <div id="elements" class="box loader" hidden="[[!_elements.count]]" loading$="[[!_and(_elements, _collections)]]">
       <iron-scroll-threshold on-lower-threshold="_loadMoreElements" id="threshold" scroll-target="document" lower-threshold="800">
       </iron-scroll-threshold>
         <template is="dom-repeat" items="[[_elements.results]]">
@@ -108,6 +111,11 @@
           value: false,
           type: Boolean,
         },
+        loading: {
+          value: true,
+          type: Boolean,
+          notify: true,
+        },
         _collections: Object,
         _elements: Object,
       },
@@ -122,6 +130,10 @@
         return noscore ? params + '&noscore' : params;
       },
 
+      _and: function(a, b) {
+        return a && b;
+      },
+
       _loadMoreElements: function() {
         if (!this._elements || this._elements.count <= this._elements.results.length)
           return;
@@ -129,12 +141,15 @@
         this.$.elementsAjax.generateRequest();
       },
 
+      _updateLoading: function() {
+        this.loading = Boolean(this.$.elementsAjax.loading) || Boolean(this.$.collectionsAjax.loading) || Boolean(this.$.dependenciesAjax.loading);
+      },
+
       _collectionChanged: function(collection) {
         if (this.disabled || !collection)
           return;
         this._elements = null;
         this._collections = null;
-        this.loading = true;
         this.$.dependenciesAjax.generateRequest();
       },
 
@@ -144,12 +159,12 @@
         this._elementRequestParams = {offset: 0};
         this._elements = null;
         this._collections = null;
-        this.loading = true;
         this.$.elementsAjax.generateRequest();
         this.$.collectionsAjax.generateRequest();
       },
 
       _onElementsResponse: function() {
+        this._updateLoading();
         if (this._elementRequestParams.offset == 0) {
           this._elements = this.$.elementsAjax.lastResponse;
         } else {
@@ -162,10 +177,12 @@
       },
 
       _onCollectionsResponse: function() {
+        this._updateLoading();
         this._collections = this.$.collectionsAjax.lastResponse;
       },
 
       _onDependenciesResponse: function() {
+        this._updateLoading();
         var response = this.$.dependenciesAjax.lastResponse;
         var elements = response.filter(function(item) {
           return item.kind == 'element';

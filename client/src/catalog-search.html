@@ -11,7 +11,7 @@
     <h1 class="page-title">[[_title(_query, title)]]</h1>
 
     <div id="header-main" class="main-content">
-      <catalog-list id="list" query="[[_query]]" base-urls="[[baseUrls]]"></catalog-list>
+      <catalog-list id="list" query="[[_query]]" base-urls="[[baseUrls]]" loading="{{loading}}"></catalog-list>
     </div>
 
   </template>
@@ -26,6 +26,7 @@
       ],
 
       properties: {
+        path: String,
         baseUrls: Object,
         route: Object,
         visible: Boolean,
@@ -45,7 +46,6 @@
       },
 
       pathChanged: function(path, visible) {
-        this.loading = false;
         var disabled = !visible || this._currentPath == path;
         this.$.list.disabled = disabled;
         if (disabled)
