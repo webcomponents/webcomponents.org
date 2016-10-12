@@ -124,9 +124,10 @@ def github_request(name, owner=None, repo=None, context=None, etag=None, access_
   logging.info('GitHub %s %s %d', method, url, response.status_code)
   return response
 
+caps_subber = re.compile('([A-Z][a-z])')
 def tokenise_more(string):
   # split "AndyMutton" into ["Andy", "Mutton"]
-  return re.sub('(.)([A-Z][a-z]+)', r'\1 \2', string).split()
+  return caps_subber.sub(r' \1', string).split()
 
 def generate_prefixes(string):
   # split "AndyMutton" into ["And", "Andy", "AndyM", "AndyMu", "AndyMut" ...]
@@ -146,7 +147,7 @@ def generate_prefixes(string):
 def generate_prefixes_from_list(list_of_strings):
   prefixes = []
   for string in list_of_strings:
-    tokens = tokenise_more(string)
+    tokens = tokenise_more(string) + [string]
     for token in tokens:
       prefixes = prefixes + generate_prefixes(token.lower())
   return list(set(prefixes))
