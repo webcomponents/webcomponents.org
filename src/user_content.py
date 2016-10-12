@@ -6,6 +6,11 @@ import webapp2
 
 from datamodel import Library, Version, Content, Status
 
+class RedirectResource(webapp2.RequestHandler):
+  def get(self, owner, repo, tag, path):
+    self.response.headers['cache-control'] = 'max-age=315569000'
+    self.redirect('/%s/%s/%s/%s' % (owner, repo, tag, path), permanent=True)
+
 class GetResource(webapp2.RequestHandler):
   def get(self, owner, repo, tag, name, path):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
@@ -20,7 +25,7 @@ class GetResource(webapp2.RequestHandler):
 
     analysis = Content.get_by_id('analysis', parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
     if analysis is None or analysis.status != Status.ready:
-      self.response.write('could not find analysis for %s in %s/%s' % (tag, owner, repo))
+      self.response.write('could not find analysis for %s in %s/%s' % (tag, owner, repo, name, path))
       self.response.set_status(404)
       return
 
@@ -75,6 +80,6 @@ class GetResource(webapp2.RequestHandler):
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/<owner>/<repo>/<tag>', handler=GetResource),
-    webapp2.Route(r'/<owner>/<repo>/<tag>/<:(bower_)?components>/<name><path:/.*>', handler=GetResource),
+    webapp2.Route(r'/<owner>/<repo>/<tag>/<:>/<:(bower_)?components>/<path:.*>', handler=RedirectResource),
     webapp2.Route(r'/<owner>/<repo>/<tag>/<name><path:/.*>', handler=GetResource),
 ], debug=True)
