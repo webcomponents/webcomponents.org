@@ -844,10 +844,8 @@
           this._lazyUnblocked = true;
         }
 
-        if (this.docs.status == 'error') {
-          console.error("Failed to fetch API docs: " + this.data.error);
+        if (this.docs.status == 'error')
           return;
-        }
 
         if (this.docs.status == 'pending') {
           this.$['sidebar-spinner'].setAttribute('active', '');
