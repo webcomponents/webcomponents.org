@@ -35,6 +35,12 @@
         margin-bottom: 80px;
       }
 
+      .sub-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
       #getting-started {
         display: flex;
         flex-wrap: wrap;
@@ -105,7 +111,10 @@
 
     <div id="container">
       <section>
-        <h1>Featured elements</h1>
+        <div class="sub-heading">
+          <h1>Featured elements</h1>
+          <a href="/elements">Browse elements</a>
+        </div>
         <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
           <template is="dom-repeat" items="[[_elements.results]]">
             <collection-card class="box" data="[[item]]"></collection-card>
@@ -117,7 +126,10 @@
       </section>
 
       <section>
-        <h1>Featured collections</h1>
+        <div class="sub-heading">
+          <h1>Featured collections</h1>
+          <a href="/collections">Browse collections</a>
+        </div>
         <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
           <template is="dom-repeat" items="[[_collections.results]]">
             <collection-card class="box" data="[[item]]"></collection-card>

@@ -8,6 +8,7 @@
     "src/catalog-error.html",
     "src/catalog-preview-integration.html",
     "src/catalog-preview.html",
+    "src/catalog-search.html",
     "src/catalog-publish.html",
     "src/catalog-publish-collection.html",
     "src/catalog-home.html",

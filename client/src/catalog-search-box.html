@@ -201,7 +201,7 @@
         </template>
       </div>
       <div class="header" hidden="[[!_elements.count]]">Elements<a href="/search/[[_query]]">More elements ([[_elements.count]])</a></div>
-      <div id="elements" role="navigation" aria-label="elements">
+      <div id="elements" hidden="[[!_elements.count]]" role="navigation" aria-label="elements">
         <template is="dom-repeat" items="[[_elements.results]]">
           <catalog-item data="[[item]]" tabindex$="[[tabIndex]]"></catalog-item>
         </template>

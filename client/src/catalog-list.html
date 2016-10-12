@@ -1,8 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="collection-card.html">
+<link rel="import" href="progress-bar.html">
 
 <dom-module id="catalog-list">
   <template>
@@ -19,6 +21,7 @@
       #collections {
         display: flex;
         flex-wrap: wrap;
+        margin-right: -16px;
       }
 
       collection-card, #spacer {
@@ -27,33 +30,63 @@
         margin: 0 16px 16px 0;
       }
 
-      #collections:last-child:nth-child(2n) {
-        display: hidden;
-      }
-
       #elements {
         padding: 8px 0;
+        position: relative;
       }
 
       catalog-item {
         margin: 0 8px;
       }
+
+      progress-bar {
+        position: absolute;
+        width: 100%;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 2s;
+        --paper-progress-transition-transition-delay: 250ms;
+        height: 2px;
+        margin-top: 6px;
+      }
     </style>
 
-    <template is="dom-if" if="[[collections.length]]">
-      <h1 class="section-header">[[_count(collectionCount, collections)]] Collections</h1>
-      <div id="collections" class="loader" loading$="[[!collections]]">
-        <template is="dom-repeat" items="[[collections]]">
+
+    <iron-ajax
+      id="dependenciesAjax"
+      url="[[baseUrls.api]]/api/dependencies/[[collection]]"
+      handle-as="json"
+      loading="{{_showProgress}}"
+      on-response="_onDependenciesResponse"></iron-ajax>
+    <iron-ajax
+      id="elementsAjax"
+      url="[[baseUrls.api]]/api/search/[[query]] kind:element[[_params(noscore)]]"
+      handle-as="json"
+      loading="{{_showProgress}}"
+      on-response="_onElementsResponse"
+      params="[[_elementRequestParams]]"></iron-ajax>
+    <iron-ajax
+      id="collectionsAjax"
+      url="[[baseUrls.api]]/api/search/[[query]] kind:collection[[_params(noscore)]]"
+      handle-as="json"
+      on-response="_onCollectionsResponse"></iron-ajax>
+
+    <template is="dom-if" if="[[_collections.count]]">
+      <h1 class="section-header">[[_collections.count]] Collections</h1>
+      <div id="collections" class="loader" loading$="[[!_collections]]">
+        <template is="dom-repeat" items="[[_collections.results]]">
             <collection-card class="box" data="[[item]]"></collection-card>
         </template>
         <div id="spacer"></div>
       </div>
     </template>
-    <template is="dom-if" if="[[elements.length]]"><h1 class="section-header">[[_count(elementCount, elements)]] Elements</h1></template>
-    <div id="elements" class="box loader" hidden="[[!_count(elementCount, elements)]]" loading$="[[!elements]]">
-      <template is="dom-repeat" items="[[elements]]">
-        <catalog-item data="[[item]]"></catalog-item>
-      </template>
+    <template is="dom-if" if="[[_elements.count]]"><h1 class="section-header">[[_elements.count]] Elements</h1></template>
+    <div id="elements" class="box loader" hidden="[[!_elements.count]]" loading$="[[!_elements]]">
+      <iron-scroll-threshold on-lower-threshold="_loadMoreElements" id="threshold" scroll-target="document" lower-threshold="800">
+      </iron-scroll-threshold>
+        <template is="dom-repeat" items="[[_elements.results]]">
+          <catalog-item data="[[item]]"></catalog-item>
+        </template>
+      <progress-bar indeterminate hidden$="[[!_showProgress]]"></progress-bar>
     </div>
 
   </template>
@@ -64,20 +97,92 @@
       is: 'catalog-list',
 
       properties: {
-        collections: Object,
-
-        elements: Object,
-
-        // Optional counts
-        collectionCount: Number,
-
-        elementCount: Number,
+        collection: String,
+        query: String,
+        baseUrls: Object,
+        noscore: {
+          value: false,
+          type: Boolean,
+        },
+        disabled: {
+          value: false,
+          type: Boolean,
+        },
+        _collections: Object,
+        _elements: Object,
       },
 
-      _count: function(count, elements) {
-        return count || elements.length;
+      observers: [
+        '_queryChanged(query, disabled)',
+        '_collectionChanged(collection, disabled)',
+      ],
+
+      _params: function(noscore) {
+        var params = '?limit=10&count';
+        return noscore ? params + '&noscore' : params;
       },
 
+      _loadMoreElements: function() {
+        if (!this._elements || this._elements.count <= this._elements.results.length)
+          return;
+        this._elementRequestParams.offset = this._elements.results.length;
+        this.$.elementsAjax.generateRequest();
+      },
+
+      _collectionChanged: function(collection) {
+        if (this.disabled || !collection)
+          return;
+        this._elements = null;
+        this._collections = null;
+        this.loading = true;
+        this.$.dependenciesAjax.generateRequest();
+      },
+
+      _queryChanged: function(query) {
+        if (this.disabled || !query)
+          return;
+        this._elementRequestParams = {offset: 0};
+        this._elements = null;
+        this._collections = null;
+        this.loading = true;
+        this.$.elementsAjax.generateRequest();
+        this.$.collectionsAjax.generateRequest();
+      },
+
+      _onElementsResponse: function() {
+        if (this._elementRequestParams.offset == 0) {
+          this._elements = this.$.elementsAjax.lastResponse;
+        } else {
+          var response = this.$.elementsAjax.lastResponse;
+          this._elements.count = response.count;
+          this._elements.results = this._elements.results.concat(response.results);
+          this.notifyPath('_elements.results');
+        }
+        this.$.threshold.clearTriggers();
+      },
+
+      _onCollectionsResponse: function() {
+        this._collections = this.$.collectionsAjax.lastResponse;
+      },
+
+      _onDependenciesResponse: function() {
+        var response = this.$.dependenciesAjax.lastResponse;
+        var elements = response.filter(function(item) {
+          return item.kind == 'element';
+        });
+        this._elements = {
+          results: elements,
+          count: elements.length
+        };
+        var collections = response.filter(function(item) {
+          return item.kind == 'collection';
+        });
+
+        this._collections = {
+          results: collections,
+          count: collections.length
+        };
+      },
     });
   </script>
 </dom-module>

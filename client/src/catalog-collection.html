@@ -66,14 +66,6 @@
       on-error="_metaError"></iron-ajax>
 
     <iron-ajax
-      id="dependenciesAjax"
-      loading="{{dependenciesLoading}}"
-      url="[[baseUrls.api]]/api/dependencies/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
-      handle-as="json"
-      last-response="{{_dependencies}}"
-      on-response="_dependenciesLoaded"></iron-ajax>
-
-    <iron-ajax
       id="authorsAjax"
       url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
       handle-as="json"
@@ -108,8 +100,7 @@
 
         <div class="main-content">
           <catalog-element-readme readme="[[data.readme]]" data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
-
-          <catalog-list collections="[[_collections]]" elements="[[_elements]]" class="loader" loading$="[[dependenciesLoading]]"></catalog-list>
+          <catalog-list id="list" collection="[[_fullName(_routeMatch.owner, _routeMatch.repo)]]" base-urls="[[baseUrls]]"></catalog-list>
         </div>
       </div>
     </div>
@@ -140,14 +131,20 @@
         this._routeChanged(this.route, this.visible);
       },
 
+      _fullName: function(owner, repo) {
+        return owner + '/' + repo;
+      },
+
       _routeChanged: function(route, visible) {
-        if (!visible || !this._loaded || route.prefix != '/collection')
+        var disabled = !visible || !this._loaded || route.prefix != '/collection';
+        this.$.list.disabled = disabled;
+
+        if (disabled)
           return;
 
         document.title = this._routeMatch.repo;
 
         this.$.metaAjax.generateRequest();
-        this.$.dependenciesAjax.generateRequest();
         this.$.authorsAjax.generateRequest();
         this.$.parentsAjax.generateRequest();
       },
