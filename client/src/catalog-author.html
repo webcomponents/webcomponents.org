@@ -3,46 +3,14 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="author-profile.html">
-<link rel="import" href="catalog-item.html">
+<link rel="import" href="catalog-list.html">
 <link rel="import" href="catalog-styles.html">
-<link rel="import" href="collection-card.html">
 <link rel="import" href="page-loading-behavior.html">
 
 <dom-module id="catalog-author">
   <template>
     <style include="catalog-styles"></style>
 
-    <style>
-      #collections {
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      collection-card, #spacer {
-        flex: 1 0 300px;
-        max-width: 400px;
-        margin: 0 16px 16px 0;
-      }
-
-      #collections:last-child:nth-child(2n) {
-        display: hidden;
-      }
-
-      h1.section-header[count="0"] {
-        display: none;
-      }
-
-      @media (max-width: 500px), (max-height: 500px) {
-        collection-card {
-          margin: 8px 0;
-          max-width: 100%;
-        }
-
-        #spacer {
-          display: none;
-        }
-      }
-    </style>
     <app-route
       route="[[route]]"
       pattern="/:owner"
@@ -74,7 +42,6 @@
       <div class="mobile-fixed">
         <h3>Author</h3>
         <h1 class="page-title">[[author.login]]</h1>
-        <h2 class="page-subtitle" hidden$="[[elementsLoading]]">[[_elements.count]] elements</h2>
       </div>
 
       <div class="body">
@@ -83,21 +50,11 @@
         </div>
 
         <div class="main-content loader" loading$="[[or(collectionsLoading, elementsLoading)]]">
-          <template is="dom-if" if="[[_collections]]">
-            <h1 class="section-header" count$="[[_collections.count]]">[[_collections.count]] Collections</h1>
-          </template>
-          <div id="collections">
-            <template is="dom-repeat" items="[[_collections.results]]">
-                <collection-card data="[[item]]"></collection-card>
-            </template>
-            <div id="spacer"></div>
-          </div>
-          <template is="dom-if" if="[[_elements]]">
-            <h1 class="section-header" count$="[[_elements.count]]">[[_elements.count]] Elements</h1>
-          </template>
-          <template is="dom-repeat" items="[[_elements.results]]">
-            <catalog-item class="box" data="[[item]]"></catalog-item>
-          </template>
+          <catalog-list
+            collections="[[_collections.results]]"
+            elements="[[_elements.results]]"
+            collection-count="[[_collections.count]]"
+            element-count="[[_elements.count]]"></catalog-list>
         </div>
       </div>
     </div>
