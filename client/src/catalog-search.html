@@ -22,7 +22,7 @@
       is: 'catalog-search',
 
       behaviors: [
-        PageLoadingBehavior,
+        window.PageLoadingBehavior,
       ],
 
       properties: {
@@ -46,7 +46,7 @@
 
       pathChanged: function(path, visible) {
         this.loading = false;
-        var disabled = !this.visible || this._currentPath == path;
+        var disabled = !visible || this._currentPath == path;
         this.$.list.disabled = disabled;
         if (disabled)
           return;

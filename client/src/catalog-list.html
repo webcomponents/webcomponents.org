@@ -130,7 +130,7 @@
       },
 
       _collectionChanged: function(collection) {
-        if (this.disabled)
+        if (this.disabled || !collection)
           return;
         this._elements = null;
         this._collections = null;
@@ -150,20 +150,19 @@
       },
 
       _onElementsResponse: function() {
-         if (this._elementRequestParams.offset == 0) {
-           this._elements = this.$.elementsAjax.lastResponse;
-         } else {
-           var scrollTop = this.$.threshold.scrollTop;
-           var response = this.$.elementsAjax.lastResponse;
-           this._elements.count = response.count;
-           this._elements.results = this._elements.results.concat(response.results);
-           this.notifyPath('_elements.results');
-         }
-         this.$.threshold.clearTriggers();
+        if (this._elementRequestParams.offset == 0) {
+          this._elements = this.$.elementsAjax.lastResponse;
+        } else {
+          var response = this.$.elementsAjax.lastResponse;
+          this._elements.count = response.count;
+          this._elements.results = this._elements.results.concat(response.results);
+          this.notifyPath('_elements.results');
+        }
+        this.$.threshold.clearTriggers();
       },
 
       _onCollectionsResponse: function() {
-         this._collections = this.$.collectionsAjax.lastResponse;
+        this._collections = this.$.collectionsAjax.lastResponse;
       },
 
       _onDependenciesResponse: function() {
