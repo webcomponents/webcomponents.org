@@ -78,7 +78,7 @@
         </a>
         <div id="footer">
           <img class="avatar" src="[[data.avatar_url]]&s=40" role="presentation">
-          <div>[[_authorPrefix(data.kind, data.owner)]]<a href="/author/[[data.owner]]" aria-label$="[[data.owner]] author">[[data.owner]]</a></div>
+          <div><a href="/author/[[data.owner]]" aria-label$="[[data.owner]] author">[[data.owner]]</a></div>
         </a>
       </div>
     </template>
@@ -95,10 +95,6 @@
 
       _versionPath: function(version, latestVersion) {
         return version == latestVersion ? '' : '/' + version;
-      },
-
-      _authorPrefix: function(kind, owner) {
-        return kind == 'element' ? '' : 'Collected by ';
       },
 
     });

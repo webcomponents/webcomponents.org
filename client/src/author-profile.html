@@ -197,8 +197,7 @@
       _ensureURL: function(url) {
         if (url && url.match(/^https?/))
           return url;
-        else
-          return 'http://' + url;
+        return 'http://' + url;
       },
     });
   </script>
