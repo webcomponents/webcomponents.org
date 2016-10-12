@@ -14,7 +14,7 @@
 
       .featured-row {
         display: flex;
-        height: 200px;
+        height: 204px;
       }
 
       h1 {
@@ -23,11 +23,11 @@
         margin-bottom: 32px;
       }
 
-      collection-card {
+      .featured-row > div, collection-card {
         flex: 1 0 200px;
       }
 
-      collection-card:not(:first-of-type) {
+      .featured-row > div:not(:first-of-type), collection-card:not(:first-of-type) {
         margin-left: 32px;
       }
 
@@ -90,6 +90,13 @@
     </style>
 
     <iron-ajax
+      id="_featuredElements"
+      loading="{{_elementsLoading}}"
+      url="[[baseUrls.api]]/api/search/kind:element%20AND%20NOT%20owner:polymerelements?limit=3&noscore"
+      handle-as="json"
+      last-response="{{_elements}}"></iron-ajax>
+
+    <iron-ajax
       id="_featuredCollections"
       loading="{{_collectionsLoading}}"
       url="[[baseUrls.api]]/api/search/kind:collection?limit=3&noscore"
@@ -98,10 +105,25 @@
 
     <div id="container">
       <section>
+        <h1>Featured elements</h1>
+        <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
+          <template is="dom-repeat" items="[[_elements.results]]">
+            <collection-card class="box" data="[[item]]"></collection-card>
+          </template>
+          <template is="dom-if" if="[[_elementsLoading]]">
+            <div class="box"></div><div class="box"></div><div class="box"></div>
+          </template>
+        </div>
+      </section>
+
+      <section>
         <h1>Featured collections</h1>
         <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
           <template is="dom-repeat" items="[[_collections.results]]">
-            <collection-card data="[[item]]"></collection-card>
+            <collection-card class="box" data="[[item]]"></collection-card>
+          </template>
+          <template is="dom-if" if="[[_collectionsLoading]]">
+            <div class="box"></div><div class="box"></div><div class="box"></div>
           </template>
         </div>
       </section>
@@ -164,6 +186,7 @@
       },
 
       ready: function() {
+        this.$._featuredElements.generateRequest();
         this.$._featuredCollections.generateRequest();
       },
 

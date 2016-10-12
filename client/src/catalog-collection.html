@@ -3,9 +3,8 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="author-profile.html">
-<link rel="import" href="collection-card.html">
 <link rel="import" href="catalog-element-readme.html">
-<link rel="import" href="catalog-item.html">
+<link rel="import" href="catalog-list.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="page-loading-behavior.html">
 
@@ -36,27 +35,12 @@
         margin-bottom: 32px;
       }
 
-      #collections {
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      collection-card, #spacer {
-        flex: 1 0 300px;
-        max-width: 400px;
-        margin: 0 16px 16px 0;
-      }
-
       #parents {
         margin-top: 40px;
       }
 
       #parents collection-card {
         margin-right: 0;
-      }
-
-      #collections:last-child:nth-child(2n) {
-        display: hidden;
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -117,7 +101,7 @@
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.length]]">
             <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>
             <template is="dom-repeat" items="[[_parents]]">
-              <collection-card data="[[item]]"></collection-card>
+              <collection-card class="box" data="[[item]]"></collection-card>
             </template>
           </div>
         </div>
@@ -125,21 +109,7 @@
         <div class="main-content">
           <catalog-element-readme readme="[[data.readme]]" data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
 
-          <div class="loader" loading$="[[dependenciesLoading]]">
-            <template is="dom-if" if="[[_collections.length]]">
-              <h1 class="section-header">[[_collections.length]] Collections</h1>
-              <div id="collections">
-                <template is="dom-repeat" items="[[_collections]]">
-                    <collection-card data="[[item]]"></collection-card>
-                </template>
-                <div id="spacer"></div>
-              </div>
-            </template>
-            <template is="dom-if" if="[[_elements.length]]"><h1 class="section-header">[[_elements.length]] Elements</h1></template>
-            <template is="dom-repeat" items="[[_elements]]">
-              <catalog-item class="box" data="[[item]]"></catalog-item>
-            </template>
-          </div>
+          <catalog-list collections="[[_collections]]" elements="[[_elements]]" class="loader" loading$="[[dependenciesLoading]]"></catalog-list>
         </div>
       </div>
     </div>
