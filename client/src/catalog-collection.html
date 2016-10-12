@@ -1,5 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="author-profile.html">
@@ -50,45 +49,39 @@
       }
     </style>
 
-    <app-route
-      route="[[route]]"
-      pattern="/:owner/:repo"
-      data="{{_routeMatch}}"
-      query-params="{{queryParams}}"></app-route>
-
     <iron-ajax
       id="metaAjax"
       loading="{{loading}}"
-      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
+      url="[[baseUrls.api]]/api/meta/[[_owner]]/[[_repo]]"
       handle-as="json"
-      last-response="{{data}}"
+      last-response="{{_metadata}}"
       on-response="_metaLoaded"
       on-error="_metaError"></iron-ajax>
 
     <iron-ajax
-      id="authorsAjax"
-      url="[[baseUrls.api]]/api/meta/[[_routeMatch.owner]]"
+      id="authorAjax"
+      url="[[baseUrls.api]]/api/meta/[[_owner]]"
       handle-as="json"
-      last-response="{{author}}"></iron-ajax>
+      last-response="{{_authorMetadata}}"></iron-ajax>
 
     <iron-ajax
       id="parentsAjax"
       loading="{{_parentsLoading}}"
-      url="[[baseUrls.api]]/api/collections/[[_routeMatch.owner]]/[[_routeMatch.repo]]"
+      url="[[baseUrls.api]]/api/collections/[[_owner]]/[[_repo]]"
       handle-as="json"
       last-response="{{_parents}}"></iron-ajax>
 
     <div class="mobile-scroll-overlay">
       <div class="mobile-fixed">
         <h3>Collection</h3>
-        <h1 class="page-title">[[_routeMatch.repo]]</h1>
-        <h2 class="page-subtitle">[[data.description]]</h2>
+        <h1 class="page-title">[[_repo]]</h1>
+        <h2 class="page-subtitle">[[_metadata.description]]</h2>
       </div>
 
       <div class="body">
         <div class="sidebar">
-          <a href="/author/[[_routeMatch.owner]]">
-            <author-profile overlay condensed author="[[author]]"></author-profile>
+          <a href="/author/[[_owner]]">
+            <author-profile overlay condensed author="[[_authorMetadata]]"></author-profile>
           </a>
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.length]]">
             <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>
@@ -99,8 +92,8 @@
         </div>
 
         <div class="main-content">
-          <catalog-element-readme readme="[[data.readme]]" data="[[data]]" base-urls="[[baseUrls]]"></catalog-element-readme>
-          <catalog-list id="list" collection="[[_fullName(_routeMatch.owner, _routeMatch.repo)]]" base-urls="[[baseUrls]]"></catalog-list>
+          <catalog-element-readme readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+          <catalog-list collection="[[collection]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
         </div>
       </div>
     </div>
@@ -119,50 +112,30 @@
 
         baseUrls: Object,
 
-        route: String
+        collection: String
       },
 
       observers: [
-        '_routeChanged(route, visible)'
+        '_collectionChanged(collection, visible)'
       ],
 
-      ready: function() {
-        this._loaded = true;
-        this._routeChanged(this.route, this.visible);
-      },
-
-      _fullName: function(owner, repo) {
-        return owner + '/' + repo;
-      },
-
-      _routeChanged: function(route, visible) {
-        var disabled = !visible || !this._loaded || route.prefix != '/collection';
-        this.$.list.disabled = disabled;
-
-        if (disabled)
+      _collectionChanged: function(collection, visible) {
+        if (!visible || !collection || collection == this._currentCollection)
           return;
 
-        document.title = this._routeMatch.repo;
+        document.title = this._repo;
+        this._currentFullName = collection;
 
+        var parts = collection.split('/');
+        this._owner = parts[0];
+        this._repo = parts[1];
+
+        this._metadata = null;
+        this._authorMetadata = null;
+        this._parents = null;
         this.$.metaAjax.generateRequest();
-        this.$.authorsAjax.generateRequest();
+        this.$.authorAjax.generateRequest();
         this.$.parentsAjax.generateRequest();
-      },
-
-      _dependenciesLoaded: function() {
-        function getName(a, b) {
-          return a.repo > b.repo;
-        }
-
-        var collections = this._dependencies.filter(function(d) {
-          return d.kind == 'collection';
-        });
-        var elements = this._dependencies.filter(function(d) {
-          return d.kind == 'element';
-        });
-
-        this._elements = elements.sort(getName);
-        this._collections = collections.sort(getName);
       },
 
       _metaError: function(event, error) {
@@ -175,8 +148,8 @@
       },
 
       _metaLoaded: function() {
-        if (this.data.kind != 'collection') {
-          this.fire('error', {title: 'Invalid request', message: 'Not an collection, appears to be a ' + this.data.kind});
+        if (this._metadata.kind != 'collection') {
+          this.fire('error', {title: 'Invalid request', message: 'Not an collection, appears to be a ' + this._metadata.kind});
           return;
         }
       },

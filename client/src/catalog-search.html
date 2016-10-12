@@ -8,10 +8,10 @@
   <template>
     <style include="catalog-styles"></style>
 
-    <h1 class="page-title">[[_title(_query, title)]]</h1>
+    <h1 class="page-title">[[_title(query, title)]]</h1>
 
     <div id="header-main" class="main-content">
-      <catalog-list id="list" query="[[_query]]" base-urls="[[baseUrls]]" loading="{{loading}}"></catalog-list>
+      <catalog-list id="list" query="[[query]]" base-urls="[[baseUrls]]" loading="{{loading}}" disabled="[[!visible]]"></catalog-list>
     </div>
 
   </template>
@@ -26,7 +26,7 @@
       ],
 
       properties: {
-        path: String,
+        query: String,
         baseUrls: Object,
         route: Object,
         visible: Boolean,
@@ -37,23 +37,9 @@
         },
       },
 
-      observers: [
-        'pathChanged(path, visible)',
-      ],
-
       _title: function(query, title) {
         return title ? title : 'Results for "' + query + '"';
       },
-
-      pathChanged: function(path, visible) {
-        var disabled = !visible || this._currentPath == path;
-        this.$.list.disabled = disabled;
-        if (disabled)
-          return;
-        this._currentPath = path;
-        this._query = path.substring(1);
-      },
-
     });
   </script>
 </dom-module>
