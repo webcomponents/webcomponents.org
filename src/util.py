@@ -125,9 +125,11 @@ def github_request(name, owner=None, repo=None, context=None, etag=None, access_
   return response
 
 def tokenise_more(string):
+  # split "AndyMutton" into ["Andy", "Mutton"]
   return re.sub('(.)([A-Z][a-z]+)', r'\1 \2', string).split()
 
 def generate_prefixes(string):
+  # split "AndyMutton" into ["And", "Andy", "AndyM", "AndyMu", "AndyMut" ...]
   prefixes = []
   # minimum prefix length is 3, so only words at least 4 chars long are valid here
   if len(string) < 4:
@@ -146,5 +148,5 @@ def generate_prefixes_from_list(list_of_strings):
   for string in list_of_strings:
     tokens = tokenise_more(string)
     for token in tokens:
-      prefixes = prefixes + generate_prefixes(token)
-  return prefixes
+      prefixes = prefixes + generate_prefixes(token.lower())
+  return list(set(prefixes))
