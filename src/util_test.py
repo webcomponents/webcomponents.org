@@ -20,7 +20,7 @@ class InlineDemoTransformTest(unittest.TestCase):
 
   def test_generate_prefixes(self):
     self.assertEqual(util.generate_prefixes('andygreat'),
-        ['and', 'andy', 'andyg', 'andygr', 'andygre', 'andygrea'])
+                     ['and', 'andy', 'andyg', 'andygr', 'andygre', 'andygrea'])
     self.assertEqual(util.generate_prefixes('andr'), ['and'])
     self.assertEqual(util.generate_prefixes('and'), [])
 
@@ -29,7 +29,7 @@ class InlineDemoTransformTest(unittest.TestCase):
 
   def test_generate_prefixes_from_list(self):
     self.assertEqual(util.generate_prefixes_from_list(['andygreat', 'AndyGreat']),
-        ['and', 'andygre', 'andygrea', 'andygr', 'andyg', 'gre', 'andy', 'grea'])
+                     ['and', 'andygre', 'andygrea', 'andygr', 'andyg', 'gre', 'andy', 'grea'])
 
 if __name__ == '__main__':
   unittest.main()
