@@ -236,7 +236,7 @@
       #sidebar-nav a {
         padding: 16px 20px;
         font-size: 14px;
-        line-height: 14px;
+        line-height: 16px;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
@@ -465,25 +465,25 @@
               <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
             </div>
             <div id="info-stats">
-              <div aria-label$="[[data.stars]] users starred this repository">
+              <div title="[[data.stars]] users starred this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-star">
                  <use xlink:href="/sprite.octicons.svg#star"></use>
                 </svg>
                 [[data.stars]]
               </div>
-              <div aria-label$="[[data.forks]] users forked this repository">
+              <div title="[[data.forks]] users forked this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
                  <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
                 </svg>
                 [[data.forks]]
               </div>
-              <div aria-label$="[[data.subscribers]] users are watching this repository">
+              <div title="[[data.subscribers]] users are watching this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-eye">
                  <use xlink:href="/sprite.octicons.svg#eye"></use>
                 </svg>
                 [[data.subscribers]]
               </div>
-              <div aria-label$="[[data.open_issues]] open issues in this repository">
+              <div title="[[data.open_issues]] open issues in this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
                  <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
                 </svg>
@@ -545,7 +545,7 @@
         <div class="sidebar">
           <h1>Repository contents</h1>
 
-          <paper-spinner-lite id="sidebar-spinner"></paper-spinner-lite>
+          <spinner-lite id="sidebar-spinner"></spinner-lite>
 
           <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">[[_readmeLabel(bundledElements)]]</a>
@@ -594,7 +594,7 @@
           </div>
 
           <a id="report-link" class="soft-button" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-            Report
+            Flag element
           </a>
         </div>
 
@@ -613,7 +613,7 @@
       </div>
     </div>
 
-    <paper-spinner-lite id="demo-spinner"></paper-spinner-lite>
+    <spinner-lite id="demo-spinner"></spinner-lite>
     <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">

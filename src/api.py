@@ -9,7 +9,7 @@ import urllib
 from urlparse import urlparse
 import webapp2
 
-from datamodel import Author, Library, Version, Content, Dependency, Status
+from datamodel import Author, Library, Version, Content, Dependency, Status, Sitemap
 import versiontag
 
 import util
@@ -120,7 +120,7 @@ class LibraryMetadata(object):
         readme_future = Content.get_by_id_async('readme.html', parent=version_key)
 
     library = yield library_future
-    if library is None:
+    if library is None or library.status == Status.suppressed:
       raise ndb.Return(None)
 
     result = {}
@@ -546,8 +546,32 @@ class PublishLibrary(webapp2.RequestHandler):
   def post(self, owner, repo):
     if not validate_captcha(self):
       return
+    # TODO: validate valid repo and return result
     task_url = util.ingest_library_task(owner, repo)
     util.new_task(task_url, target='manage')
+
+class GetSitemap(webapp2.RequestHandler):
+  def get(self, kind):
+    if kind not in ['elements', 'collections', 'authors']:
+      self.response.set_status(404)
+      return
+
+    sitemap = Sitemap.get_by_id(kind)
+    if sitemap is None:
+      self.response.set_status(404)
+      return
+
+    prefix = {
+        'elements': '/element/',
+        'collections': '/collection/',
+        'authors': '/author/',
+    }[kind]
+
+    parsed_url = urlparse(self.request.url)
+    host = '%s://%s' % (parsed_url.scheme, parsed_url.netloc)
+
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.write('\n'.join(['%s%s%s' % (host, prefix, page) for page in sitemap.pages]))
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
@@ -565,4 +589,5 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/collections/<owner>/<repo>', handler=GetCollections),
     webapp2.Route(r'/api/collections/<owner>/<repo>/<version>', handler=GetCollections),
     webapp2.Route(r'/api/search/<terms>', handler=SearchContents),
+    webapp2.Route(r'/api/sitemap/<kind>.txt', handler=GetSitemap),
 ], debug=True)

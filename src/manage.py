@@ -14,7 +14,7 @@ import os
 import urllib
 import webapp2
 
-from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache
+from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache, Sitemap
 import licenses
 import versiontag
 import util
@@ -171,6 +171,8 @@ class LibraryTask(RequestHandler):
       self.is_new = self.library.metadata is None and self.library.error is None
     else:
       self.library = Library.get_by_id(Library.id(owner, repo))
+    if self.library.status == Status.suppressed:
+      raise RequestAborted('library is suppressed')
 
   def set_ready(self):
     assert self.library.spdx_identifier is not None
@@ -494,6 +496,8 @@ class AuthorTask(RequestHandler):
       self.author = Author.get_or_insert(name)
     else:
       self.author = Author.get_by_id(name)
+    if self.author.status == Status.suppressed:
+      raise RequestAborted('author is suppressed')
     self.author_dirty = False
 
   def commit(self):
@@ -734,6 +738,22 @@ class EnsureAuthor(RequestHandler):
       task_url = util.ingest_author_task(name)
       util.new_task(task_url, target='manage')
 
+class IndexAll(RequestHandler):
+  def handle_get(self):
+    query = Library.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        owner, repo = key.id().split('/', 1)
+        task_url = util.update_indexes_task(owner, repo)
+        util.new_task(task_url, target='manage')
+
+    logging.info('triggered %d index updates', task_count)
+
 class UpdateAll(RequestHandler):
   def handle_get(self):
     queue = taskqueue.Queue('update')
@@ -766,6 +786,36 @@ class UpdateAll(RequestHandler):
         util.new_task(task_url, target='manage', queue_name='update')
 
     logging.info('triggered %d author updates', task_count)
+
+class BuildSitemaps(RequestHandler):
+  def handle_get(self):
+    keys = (Library.query()
+            .filter(Library.kind == 'element')
+            # pylint: disable=singleton-comparison
+            .filter(Library.shallow_ingestion == False)
+            .filter(Library.status != Status.suppressed)
+            .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
+    elements = Sitemap(id='elements')
+    elements.pages = [key.id() for key in keys]
+    elements.put()
+    logging.info('%d elements', len(elements.pages))
+
+    keys = (Library.query()
+            .filter(Library.kind == 'collection')
+            # pylint: disable=singleton-comparison
+            .filter(Library.shallow_ingestion == False)
+            .filter(Library.status != Status.suppressed)
+            .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
+    collections = Sitemap(id='collections')
+    collections.pages = [key.id() for key in keys]
+    collections.put()
+    logging.info('%d collections', len(elements.pages))
+
+    keys = Author.query().fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY)
+    authors = Sitemap(id='authors')
+    authors.pages = [key.id() for key in keys]
+    authors.put()
+    logging.info('%d authors', len(elements.pages))
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
@@ -835,7 +885,9 @@ class DeleteEverything(RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
+    webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
+    webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
     webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),

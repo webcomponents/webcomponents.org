@@ -19,7 +19,7 @@
       .CodeMirror {
         padding: 0 16px;
         background: var(--syntax-bg);
-        border-radius: 0 0 3px 3px;
+        border-radius: 0 0 4px 4px;
         font-size: 13.6px;
         font-family: var(--monospace-font);
         color: var(--mono-1);
@@ -96,6 +96,7 @@
 
       ready: function() {
         var isMobile = window.matchMedia("(max-width: 500px), (max-height: 500px)").matches;
+        this.removeAttribute('unresolved');
         this._isReady = true;
         this.scopeSubtree(this.$.container, true);
         /* global CodeMirror */
@@ -123,7 +124,6 @@
 
       _refresh: function() {
         this.codeMirror.refresh();
-        this.removeAttribute('unresolved');
       }
 
     });

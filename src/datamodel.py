@@ -22,6 +22,7 @@ class Status(object):
   error = 'error'
   pending = 'pending'
   ready = 'ready'
+  suppressed = 'suppressed'
 
 class Author(ndb.Model):
   metadata = ndb.TextProperty(indexed=False)
@@ -174,3 +175,5 @@ class Dependency(object):
     owner, repo = repo_bits
     return Dependency(owner, repo, bits[1])
 
+class Sitemap(ndb.Model):
+  pages = ndb.StringProperty(repeated=True, indexed=False)

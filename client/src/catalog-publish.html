@@ -2,9 +2,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
-<link rel="import" href="custom-element-demo.html">
 <link rel="import" href="polling-meta-behavior.html">
-<link rel="import" href="re-captcha.html">
 
 <dom-module id="catalog-publish">
   <template>
@@ -108,7 +106,10 @@
         <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
         <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
-        <button on-click="onSubmit">Publish</button>
+        <button id="submit" on-click="onSubmit">
+          <spinner-lite active></spinner-lite>
+          Publish
+        </button>
       </div>
     </div>
 
@@ -143,7 +144,7 @@
       },
 
       onSubmit: function() {
-        if (!this.$.recaptcha.getResponse())
+        if (this.$.submit.hasAttribute('disabled') || !this.$.recaptcha.getResponse())
           return;
 
         this.$.ajax.params = {
@@ -159,6 +160,7 @@
           return;
         }
 
+        this.$.submit.setAttribute('disabled', '');
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
@@ -170,10 +172,12 @@
       success: function() {
         window.history.pushState({}, null, '/element/' + this._validatedRepo);
         this.fire('location-changed');
+        this.$.submit.removeAttribute('disabled');
       },
 
       _error: function() {
         this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
+        this.$.submit.removeAttribute('disabled');
       },
 
       _trim: function(path) {
