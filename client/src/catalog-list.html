@@ -142,7 +142,7 @@
       },
 
       _updateLoading: function() {
-        this.loading = !!this.$.elementsAjax.loading || !!this.$.collectionsAjax.loading || !!this.$.dependenciesAjax.loading;
+        this.loading = Boolean(this.$.elementsAjax.loading) || Boolean(this.$.collectionsAjax.loading) || Boolean(this.$.dependenciesAjax.loading);
       },
 
       _collectionChanged: function(collection) {
