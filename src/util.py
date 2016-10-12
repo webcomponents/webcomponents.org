@@ -123,3 +123,28 @@ def github_request(name, owner=None, repo=None, context=None, etag=None, access_
     raise GitHubServerError(response.status_code)
   logging.info('GitHub %s %s %d', method, url, response.status_code)
   return response
+
+def tokenise_more(string):
+  return re.sub('(.)([A-Z][a-z]+)', r'\1 \2', string).split()
+
+def generate_prefixes(string):
+  prefixes = []
+  # minimum prefix length is 3, so only words at least 4 chars long are valid here
+  if len(string) < 4:
+    return []
+
+  for char in string:
+    if len(prefixes) > 0:
+      prefixes.append(prefixes[-1] + char)
+    else:
+      prefixes.append(char)
+  # skip the first two (too small) and the last (indexed elsewhere)
+  return prefixes[2:-1]
+
+def generate_prefixes_from_list(list_of_strings):
+  prefixes = []
+  for string in list_of_strings:
+    tokens = tokenise_more(string)
+    for token in tokens:
+      prefixes = prefixes + generate_prefixes(token)
+  return prefixes

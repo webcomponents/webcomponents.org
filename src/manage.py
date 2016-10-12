@@ -656,16 +656,19 @@ class UpdateIndexes(RequestHandler):
       task_url = util.ensure_library_task(dep.owner.lower(), dep.repo.lower())
       util.new_task(task_url, target='manage')
 
+
   def update_search_index(self, owner, repo, version_key, library, bower):
     metadata = json.loads(library.metadata)
     fields = [
-        search.TextField(name='owner', value=owner),
+        search.AtomField(name='owner', value=owner),
         search.TextField(name='repo', value=repo),
         search.AtomField(name='kind', value=library.kind),
         search.AtomField(name='version', value=version_key.id()),
         search.TextField(name='github_description', value=metadata.get('description', '')),
         search.TextField(name='bower_description', value=bower.get('description', '')),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
+        search.TextField(name='prefix_matches', value=' '.join(util.generate_prefixes_from_list(
+            [repo] + metadata.get('description', '').split() + bower.get('description', '').split()))),
     ]
 
     analysis = Content.get_by_id('analysis', parent=version_key)
