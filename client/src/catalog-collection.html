@@ -93,7 +93,7 @@
 
         <div class="main-content">
           <catalog-element-readme readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
-          <catalog-list collection="[[_fullName]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
+          <catalog-list collection="[[collection]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
         </div>
       </div>
     </div>
@@ -112,22 +112,21 @@
 
         baseUrls: Object,
 
-        route: String
+        collection: String
       },
 
       observers: [
-        '_pathChanged(route.path, visible)'
+        '_collectionChanged(collection, visible)'
       ],
 
-      _pathChanged: function(path, visible) {
-        if (!visible || !path || path == this._currentPath)
+      _collectionChanged: function(collection, visible) {
+        if (!visible || !collection || collection == this._currentCollection)
           return;
 
         document.title = this._repo;
-        this._currentPath = path;
+        this._currentFullName = collection;
 
-        this._fullName = path.substring(1);
-        var parts = this._fullName.split('/');
+        var parts = collection.split('/');
         this._owner = parts[0];
         this._repo = parts[1];
 

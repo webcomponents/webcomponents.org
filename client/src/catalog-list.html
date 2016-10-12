@@ -160,7 +160,6 @@
         this.$.threshold.toggleScrollListener(active);
         if (!active || this._currentQuery == query)
           return;
-        this.$.threshold.clearTriggers();
         this._currentQuery = query;
         this._elementRequestParams = {offset: 0};
         this._elements = null;
@@ -181,7 +180,7 @@
           this.notifyPath('_elements.results');
         }
         this.$.threshold.clearTriggers();
-        this.$.threshold.checkScrollThesholds()
+        this.$.threshold.checkScrollThesholds();
       },
 
       _onCollectionsResponse: function() {

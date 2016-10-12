@@ -395,15 +395,15 @@
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
       <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
       <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" author="[[_filter('/author', subroute.prefix, subroute.path, '^\/')]]"></catalog-author>
-      <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" route="[[_filter('/collection', subroute.prefix, subroute)]]"></catalog-collection>
+      <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" collection="[[_filter('/collection', subroute.prefix, subroute.path, '^\/')]]"></catalog-collection>
       <catalog-element name="element" route="{{subroute}}" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
       <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
       <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
       <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
-      <catalog-search name="search" path="[[_filter('/search', subroute.prefix, subroute.path)]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="elements" title="Browse elements" path="/kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="collections" title="Browse collections" path="/kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="search" query="[[_filter('/search', subroute.prefix, subroute.path, '^\/')]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="elements" title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="collections" title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
     </iron-pages>
 
