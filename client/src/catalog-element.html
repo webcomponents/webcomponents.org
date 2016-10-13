@@ -578,10 +578,10 @@
           </div>
 
           <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
-            <template is="dom-if" if="[[collections.length]]">
-              <h1>In [[collections.length]] collection[[_s(collections.length)]]</h1>
+            <template is="dom-if" if="[[collections.count]]">
+              <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
-              <template is="dom-repeat" items="[[collections]]">
+              <template is="dom-repeat" items="[[collections.results]]">
                 <collection-card class="box" data="[[item]]"></collection-card>
               </template>
             </template>

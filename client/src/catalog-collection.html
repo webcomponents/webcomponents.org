@@ -83,9 +83,9 @@
           <a href="/author/[[_owner]]">
             <author-profile overlay condensed author="[[_authorMetadata]]"></author-profile>
           </a>
-          <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.length]]">
-            <h1>In [[_parents.length]] collection[[_s(_parents.length)]]</h1>
-            <template is="dom-repeat" items="[[_parents]]">
+          <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.count]]">
+            <h1>In [[_parents.count]] collection[[_s(_parents.count)]]</h1>
+            <template is="dom-repeat" items="[[_parents.results]]">
               <collection-card class="box" data="[[item]]"></collection-card>
             </template>
           </div>
