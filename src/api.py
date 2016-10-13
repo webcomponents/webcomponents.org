@@ -21,22 +21,24 @@ class SearchContents(webapp2.RequestHandler):
     scoring = self.request.get('noscore', None) is None
     include_results = self.request.get('noresults', None) is None
     include_count = self.request.get('count', None) is not None
+    request_cursor = self.request.get('cursor', None)
+
     if not include_results:
       scoring = False
       include_count = True
-
     try:
-      limit = int(self.request.get('limit', 20))
-      offset = int(self.request.get('offset', 0))
+      limit = min(20, int(self.request.get('limit', 20)))
     except ValueError:
       self.response.set_status(400)
       return
     index = search.Index('repo')
+    cursor = search.Cursor(web_safe_string=request_cursor)
     try:
       accuracy = 100 if include_count else None
       sort_options = search.SortOptions(match_scorer=search.MatchScorer()) if scoring else None
-      query_options = search.QueryOptions(limit=limit, offset=offset, number_found_accuracy=accuracy, sort_options=sort_options)
+      query_options = search.QueryOptions(limit=limit, number_found_accuracy=accuracy, sort_options=sort_options, cursor=cursor)
       search_results = index.search(search.Query(query_string=terms, options=query_options))
+      cursor = search_results.cursor
     except search.QueryError:
       self.response.set_status(400)
       self.response.write('bad query')
@@ -63,7 +65,9 @@ class SearchContents(webapp2.RequestHandler):
         if result is not None:
           results.append(result)
 
-    result = {}
+    result = {
+        'cursor': cursor.web_safe_string if cursor else None,
+    }
     if include_count:
       result['count'] = count
     if include_results:

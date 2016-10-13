@@ -135,9 +135,9 @@
       },
 
       _loadMoreElements: function() {
-        if (this.disabled || !this.query || !this._elements || this._elements.count <= this._elements.results.length)
+        if (this.disabled || !this.query || !this._elements || !this._elements.cursor)
           return;
-        this._elementRequestParams.offset = this._elements.results.length;
+        this._elementRequestParams.cursor = this._elements.results.cursor;
         this.$.elementsAjax.generateRequest();
       },
 
@@ -161,7 +161,7 @@
         if (!active || this._currentQuery == query)
           return;
         this._currentQuery = query;
-        this._elementRequestParams = {offset: 0};
+        this._elementRequestParams = {};
         this._elements = null;
         this._collections = null;
         this.$.elementsAjax.generateRequest();
@@ -171,7 +171,7 @@
 
       _onElementsResponse: function() {
         this._updateLoading();
-        if (this._elementRequestParams.offset == 0) {
+        if (!this._elementRequestParams.cursor) {
           this._elements = this.$.elementsAjax.lastResponse;
         } else {
           var response = this.$.elementsAjax.lastResponse;
