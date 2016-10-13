@@ -8,7 +8,12 @@
     <style>
       :host {
         display: block;
-        margin: 8px 0;
+        padding: 0 8px;
+        background: white;
+      }
+
+      :host:hover:not(:active) {
+        background: hsla(0, 0%, 98%, 1);
       }
 
       h2 {
