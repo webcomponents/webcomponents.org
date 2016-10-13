@@ -12,6 +12,10 @@
         overflow: hidden;
       }
 
+      :host.box:hover:not(:active) {
+        box-shadow: 0 0 20px 0 hsla(0, 0%, 0%, 0.1) !important;
+      }
+
       .container {
         margin: 0;
         height: 200px;
@@ -33,10 +37,11 @@
 
       #description {
         color: hsl(0, 0%, 50%);
+        max-height: 54px;
+        overflow: hidden;
       }
 
       #footer {
-        font-size: 14px;
         display: flex;
         align-items: center;
         text-overflow: ellipsis;

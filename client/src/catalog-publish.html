@@ -41,11 +41,11 @@
       on-error="onMetaError"></iron-ajax>
 
     <div id="container">
-      <h3>Publish</h3>
       <h1 class="page-title">Publish your element</h1>
 
-      <div class="main-content">
+      <div class="main-content static-content">
         <p>You need to publish your elements before they will appear on the site. It’s quick and easy to do! First, there’s a few tips on how to make your element stand out.</p>
+        <h1>Before you publish</h1>
         <h2>Requirements</h2>
         <ul>
           <li>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
@@ -57,8 +57,8 @@
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
 
         <div class="tip">
-          <h2>Sample inline demo</h2>
-          Tip: You can also add <code>?editing</code> to an element page to get an inline demo editor.
+          <h2>Inline demo creator</h2>
+          Tip: You can also add <code>?editing</code> to an element page to get an inline demo creator.
         </div>
 
         <custom-element-demo id="sample-demo"></custom-element-demo>
@@ -91,6 +91,20 @@
           <li>Don’t demo everything - inline demos are just a quick demo. Use demo files for complex demos.</li>
         </ul>
 
+        <h1>Ready to publish?</h1>
+        <p>Enter the GitHub repository below:</p>
+
+        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
+        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
+        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
+        <button id="submit" on-click="onSubmit">
+          <spinner-lite active></spinner-lite>
+          Publish
+        </button>
+        <h1>FAQ</h1>
+        <h2>How will my published element render?</h2>
+        <p>You can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
+
         <h2>How are resources loaded?</h2>
         <p>Your inline demo will be relative to the root of your repository, with bower dependencies as siblings to your repository.</p>
 
@@ -108,16 +122,7 @@
         </ul>
         <p>In addition an inline demo is optional, but very helpful.</p>
         <p>Here's an example of a well-documented element: <a href="/element/wbinnssmith/emo-ji">wbinnssmith's emo-ji element</a>
-        <h2>Ready to publish?</h2>
-        <p>You can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
 
-        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
-        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
-        <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
-        <button id="submit" on-click="onSubmit">
-          <spinner-lite active></spinner-lite>
-          Publish
-        </button>
       </div>
     </div>
 
@@ -146,8 +151,8 @@
           version: "v1.0.11",
         };
         sample.baseUrl = this.baseUrls.userContent;
-        sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0iLi4vcGFwZXItc3R5bGVzL2NvbG9yLmh0bWwiPgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQogIHBhcGVyLXByb2dyZXNzLnNsb3cgewogICAgLS1wYXBlci1wcm9ncmVzcy1pbmRldGVybWluYXRlLWN5Y2xlLWR1cmF0aW9uOiA1czsKICB9CiAgcGFwZXItcHJvZ3Jlc3MuYmx1ZSB7CiAgICAtLXBhcGVyLXByb2dyZXNzLWFjdGl2ZS1jb2xvcjogdmFyKC0tcGFwZXItbGlnaHQtYmx1ZS01MDApOwogICAgLS1wYXBlci1wcm9ncmVzcy1zZWNvbmRhcnktY29sb3I6IHZhcigtLXBhcGVyLWxpZ2h0LWJsdWUtMTAwKTsKICB9CiAgcGFwZXItcHJvZ3Jlc3MucmVkIHsKICAgIC0tcGFwZXItcHJvZ3Jlc3MtYWN0aXZlLWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtNTAwKTsKICAgIC0tcGFwZXItcHJvZ3Jlc3Mtc2Vjb25kYXJ5LWNvbG9yOiB2YXIoLS1wYXBlci1yZWQtMTAwKTsKICB9Cjwvc3R5bGU+CjxuZXh0LWNvZGUtYmxvY2s+PC9uZXh0LWNvZGUtYmxvY2s+");
-        sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGUgY2xhc3M9ImJsdWUiPjwvcGFwZXItcHJvZ3Jlc3M+CjxwYXBlci1wcm9ncmVzcyBpbmRldGVybWluYXRlIGNsYXNzPSJzbG93IHJlZCI+PC9wYXBlci1wcm9ncmVzcz4KPHBhcGVyLXByb2dyZXNzIHZhbHVlPSI0MCIgc2Vjb25kYXJ5LXByb2dyZXNzPSI4MCI+PC9wYXBlci1wcm9ncmVzcz4=");
+        sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQo8L3N0eWxlPgo8cGFwZXItcHJvZ3Jlc3MgaW5kZXRlcm1pbmF0ZT48L3BhcGVyLXByb2dyZXNzPg==");
+        sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGU+PC9wYXBlci1wcm9ncmVzcz4=");
         sample.docsPending = false;
       },
 

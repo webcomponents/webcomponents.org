@@ -92,10 +92,6 @@
         border-right: 1px solid #ededed;
       }
 
-      catalog-item {
-        margin: 0 8px;
-      }
-
       #elements {
         padding: 8px 0;
       }
@@ -175,7 +171,7 @@
         }
       }
 
-      .header {
+      .header, .footer {
         font-size: 16px;
         display: flex;
         justify-content: space-between;
@@ -183,6 +179,11 @@
         background: #f3f4f5;
         border-top: 1px solid #ededed;
         border-bottom: 1px solid #ededed;
+      }
+
+      .footer {
+        text-align: center;
+        display: block;
       }
     </style>
 
@@ -209,7 +210,9 @@
       debounce-duration="300"></iron-ajax>
 
     <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
-    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
+    <form on-submit="_navigateSearch">
+      <input type="search" role="search" title="Search query" id="search-input" autocomplete="off" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
+    </form>
 
     <progress-bar id="progress" indeterminate hidden></progress-bar>
     <div id="results" on-click="_close">
@@ -225,6 +228,12 @@
           <catalog-item data="[[item]]" tabindex$="[[tabIndex]]"></catalog-item>
         </template>
       </div>
+      <template is="dom-if" if="[[!_hasResults(_elements.count, _collections.count)]]">
+        <div class="footer">No results</div>
+      </template>
+      <template is="dom-if" if="[[_hasResults(_elements.count, _collections.count)]]">
+        <a href="/search/[[_query]]" class="footer">View all results</a>
+      </template>
     </div>
   </template>
 
@@ -309,6 +318,14 @@
         this._triggerSearch();
       },
 
+      _navigateSearch: function(e) {
+        window.history.pushState({}, null, '/search/' + this.$['search-input'].value);
+        this.fire('location-changed');
+        e.preventDefault();
+        this.$['search-input'].blur();
+        this._hideProgress();
+      },
+
       _triggerSearch: function() {
         var query = encodeURIComponent(this.$['search-input'].value);
         if (query == this._query)
@@ -333,6 +350,11 @@
         if (!query)
           event.detail.request.abort();
       },
+
+      _hasResults: function(a, b) {
+        return a || b;
+      },
+
     });
   </script>
 </dom-module>

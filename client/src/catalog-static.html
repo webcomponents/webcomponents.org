@@ -9,7 +9,7 @@
     <template is="dom-if" if="[[_is(name, 'about')]]">
       <h1 class="page-title">About webcomponents.org</h1>
 
-      <div class="main-content">
+      <div class="main-content static-content">
         <p>WebComponents.org aims to make it easy to share and discover reusable web UI components. As well as a place to publish, browse and search for components, WebComponents.org provides articles, presentations, podcasts, tools and more to help web professionals build first-class DOM objects in the browsers. All the content on this site is totally free, and contributions are welcome.</p>
 
         <p>This site will be a long-term project committed to making the web better by sharing peer-reviewed custom elements that are usable across all browsers, and interoperable with existing libraries. The Web Component APIs are the result of broad collaboration between browser vendors. This site is intended to be a place for broad developer collaboration across libraries and frameworks to make the most of these powerful new APIs.</p>
@@ -21,7 +21,7 @@
     <template is="dom-if" if="[[_is(name, 'introduction')]]">
       <h1 class="page-title">Introduction</h1>
 
-      <div class="main-content">
+      <div class="main-content static-content">
         <h1>What are web components?</h1>
         <p>Web components are a set of web platform APIs that allow you to create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom components and widgets build on the Web Component standards, will work across modern browsers, and can be used with any JavaScript library or framework that works with HTML.</p>
 
@@ -31,13 +31,13 @@
         Web components are based on four main specifications:
 
         <h2>Custom Elements</h2>
-        <p>The <a href="http://w3c.github.io/webcomponents/spec/custom/">Custom Elements specification</a> lays the foundation for designing and using new types of DOM elements.</p>
+        <p>The <a href="https://w3c.github.io/webcomponents/spec/custom/">Custom Elements specification</a> lays the foundation for designing and using new types of DOM elements.</p>
 
         <h2>Shadow DOM</h2>
-        <p>The <a href="http://w3c.github.io/webcomponents/spec/shadow/">shadow DOM specification</a> defines how to use encapsulated style and markup in web components.</p>
+        <p>The <a href="https://w3c.github.io/webcomponents/spec/shadow/">shadow DOM specification</a> defines how to use encapsulated style and markup in web components.</p>
 
         <h2>HTML imports</h2>
-        <p>The <a href="http://w3c.github.io/webcomponents/spec/imports/">HTML imports specification</a> defines the inclusion and reuse of HTML documents in other HTML documents.</p>
+        <p>The <a href="https://w3c.github.io/webcomponents/spec/imports/">HTML imports specification</a> defines the inclusion and reuse of HTML documents in other HTML documents.</p>
 
         <h2>HTML Template</h2>
         <p>The <a href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element/">HTML template element specification</a> defines how to declare fragments of markup that go unused at page load, but can be instantiated later on at runtime.</p>
@@ -94,10 +94,10 @@ shadowRoot.innerHTML = '&lt;h1&gt;Hello Shadow DOM&lt;/h1&gt;'; // Could also us
         <p>Many libraries already exist that make it easier to build web components. To dive in and create your own components, here are some you can try out:</p>
 
         <ul>
-          <li><a href="http://bosonic.github.io/">Bosonic</a> is a collection of components designed to meet the everyday needs of web developers.</li>
-          <li><a href="https://www.polymer-project.org/1.0/">Polymer</a> provides a set of features for creating custom elements.</li>
-          <li><a href="http://skate.js.org/">SkateJS</a> is a JavaScript library for writing web components with a small footprint.</li>
-          <li><a href="http://x-tag.github.io/">X-Tag</a> is an open source JavaScript library that provides an interface for component development.</li>
+          <li><a href="https://bosonic.github.io/">Bosonic</a> is a collection of components designed to meet the everyday needs of web developers.</li>
+          <li><a href="https://www.polymer-project.org">Polymer</a> provides a set of features for creating custom elements.</li>
+          <li><a href="https://github.com/skatejs/skatejs">SkateJS</a> is a JavaScript library for writing web components with a small footprint.</li>
+          <li><a href="https://x-tag.github.io/">X-Tag</a> is an open source JavaScript library that provides an interface for component development.</li>
         </ul>
 
 

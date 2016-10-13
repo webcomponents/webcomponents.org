@@ -20,18 +20,16 @@
       on-response="_updateLoading"
       on-error="_metaError"></iron-ajax>
 
-    <div class="mobile-scroll-overlay">
-      <div class="mobile-fixed">
-        <h3>Author</h3>
-        <h1 class="page-title">[[_metadata.login]]</h1>
-      </div>
-
+    <div>
       <div class="body">
         <div class="sidebar">
-          <author-profile overlay author="[[_metadata]]"></author-profile>
+          <author-profile author="[[_metadata]]"></author-profile>
         </div>
 
         <div class="main-content">
+          <div class="desktop-only">
+            <h1 class="page-title">[[_metadata.login]]</h1>
+          </div>
           <catalog-list id="list" base-urls="[[baseUrls]]" query="[[_ownerQuery(author)]]" noscore disabled="[[!visible]]"></catalog-list>
         </div>
       </div>
@@ -82,7 +80,13 @@
 
       _metaError: function(event, error) {
         this._updateLoading();
-        this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner});
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process author', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find author', githubPath: this.author});
+        } else {
+          this.fire('error', {status: error.request.status, title: 'Unable to load author'});
+        }
       },
 
     });

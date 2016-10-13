@@ -94,34 +94,35 @@
 
       #more a {
         text-overflow: ellipsis;
-        overflow: hidden
+        overflow: hidden;
+        max-width: 190px;
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        :host[overlay] .box {
+        .box {
           overflow: visible;
-          background: transparent;
-          border-color: transparent;
-          box-shadow: none;
+          margin-top: 80px;
         }
 
-        :host[overlay] #avatar {
-          margin-top: -150px;
-          background: transparent;
+        #avatar {
+          width: 160px;
+          height: 80px;
+          margin: auto;
+          overflow: visible;
+          background: none;
         }
 
-        :host[overlay] #avatar img {
-          max-width: calc(100% - 80px);
-          border-radius: 50%;
+        #avatar img {
+          border-radius: 4px;
+        }
+
+        #avatar img, #avatar[type=organization] img {
+          margin: 0;
+          margin-top: -80px;
           overflow: hidden;
-          background: white;
-          margin: 40px;
-          box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.1),
-                      0px 0px 2px 0px rgba(0, 0, 0, 0.1);
-        }
+          box-shadow: 0px -1px 4px 1px hsla(0, 0%, 0%, 0.1);
+          max-width: none;
 
-        :host[overlay] #header {
-          display: none;
         }
       }
     </style>
@@ -197,7 +198,7 @@
       _ensureURL: function(url) {
         if (url && url.match(/^https?/))
           return url;
-        return 'http://' + url;
+        return 'https://' + url;
       },
     });
   </script>

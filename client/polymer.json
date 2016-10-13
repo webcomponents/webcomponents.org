@@ -18,9 +18,11 @@
   ],
   "includeDependencies": [
     "assets/**/*",
+    "service-worker-entry.js",
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
     "third_party/octicons/sprite.octicons.svg",
+    "client.yaml",
     "robots.txt"
   ]
 }

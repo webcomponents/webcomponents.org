@@ -24,7 +24,8 @@
         line-height: 24px;
         padding-top: 160px;
         color: var(--theme-font-color);
-        background: linear-gradient(to bottom, #F3F4F5, transparent 100vh);
+        --bg-gradient: linear-gradient(to bottom, #F3F4F5 160px, white 50vh);
+        background: var(--bg-gradient);
 
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
@@ -47,7 +48,7 @@
         --syntax-brightness:   18%;
 
         /* Monochrome */
-        --mono-1: hsl(var(--syntax-hue), 14%, 71%); /* default text */
+        --mono-1: hsl(var(--syntax-hue), 14%, 90%); /* default text; changed from 71% lightness */
         --mono-2: hsl(var(--syntax-hue),  9%, 55%);
         --mono-3: hsl(var(--syntax-hue), 10%, 40%);
 
@@ -74,7 +75,8 @@
       }
 
       :host[page=home] {
-        background: linear-gradient(168deg, transparent 50%, #e7ebed 50%, transparent 70%), #f3f4f5;
+        background: linear-gradient(168deg, transparent 80vh, #F3F4F5 80vh, transparent 100vh),
+                    var(--bg-gradient), white;
       }
 
       #pages, #footer-content, #toolbar-search-container, #toolbar-nav-container {
@@ -84,7 +86,7 @@
       }
 
       #pages {
-        margin: 32px auto;
+        margin: 32px auto 64px;
         min-height: calc(100vh - 160px - 16px);
       }
 
@@ -132,8 +134,9 @@
       #domain-title {
         margin: 0;
         font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1.88;
         text-transform: uppercase;
-        font-weight: normal;
       }
 
       #tag-line {
@@ -255,14 +258,6 @@
       @media (max-width: 500px), (max-height: 500px) {
         :host {
           padding-top: 70px;
-        }
-
-        :host[page=author], :host[page=collection] {
-          background: none;
-        }
-
-        :host[page=author] #pages, :host[page=collection] #pages {
-          margin-bottom: 0;
         }
 
         #pages {
@@ -476,9 +471,12 @@
           type: String,
           reflectToAttribute: true,
           observer: '_pageChanged',
-          computed: '_computePage(routeData.page, subroute)',
         }
       },
+
+      observers: [
+        '_updatePage(routeData.page, subroute)',
+      ],
 
       _filter: function(value, test, result, strip) {
         if (strip) {
@@ -533,14 +531,14 @@
         this.$.block.unblock();
       },
 
-      _computePage: function(page) {
+      _updatePage: function(page) {
         if (page == '') {
           page = 'home';
         }
         if (page == 'preview' && this.subroute.path) {
           page = 'element';
         }
-        return page;
+        this.page = page;
       },
 
       _pageChanged: function(page) {
@@ -586,7 +584,7 @@
       },
 
       _handleError: function(event) {
-        this.page = 'error';
+        this.set('page', 'error');
         this.$.error.error = event.detail;
       },
 

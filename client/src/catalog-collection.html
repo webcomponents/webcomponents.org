@@ -17,16 +17,8 @@
         display: block;
       }
 
-      #profile-image {
-        width: 100%;
-      }
-
-      #profile-info {
-        padding: 25px;
-      }
-
-      .section-header {
-        margin: 16px 0;
+      #author-link {
+        color: inherit;
       }
 
       catalog-element-readme {
@@ -71,16 +63,15 @@
       handle-as="json"
       last-response="{{_parents}}"></iron-ajax>
 
-    <div class="mobile-scroll-overlay">
-      <div class="mobile-fixed">
-        <h3>Collection</h3>
+    <div>
+      <div class="mobile-only">
         <h1 class="page-title">[[_repo]]</h1>
         <h2 class="page-subtitle">[[_metadata.description]]</h2>
       </div>
 
       <div class="body">
         <div class="sidebar">
-          <a href="/author/[[_owner]]">
+          <a id="author-link" href="/author/[[_owner]]">
             <author-profile overlay condensed author="[[_authorMetadata]]"></author-profile>
           </a>
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.count]]">
@@ -92,6 +83,10 @@
         </div>
 
         <div class="main-content">
+          <div class="desktop-only">
+            <h1 class="page-title">[[_repo]]</h1>
+            <h2 class="page-subtitle">[[_metadata.description]]</h2>
+          </div>
           <catalog-element-readme readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           <catalog-list collection="[[collection]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
         </div>
@@ -139,8 +134,13 @@
       },
 
       _metaError: function(event, error) {
-        if (error.request.status == 404)
-          this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this._routeMatch.owner + '/' + this._routeMatch.repo});
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process collection', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this.collection});
+        } else {
+          this.fire('error', {status: error.request.status, title: 'Unable to load collection'});
+        }
       },
 
       _s: function(n) {

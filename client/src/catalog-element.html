@@ -22,6 +22,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 50%);
+        vertical-align: text-bottom;
       }
 
       #repo-desc {
@@ -39,6 +40,16 @@
       #header-main {
         color: var(--theme-blue-grey);
       }
+
+      h3 {
+        text-transform: uppercase;
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 600;
+        margin: 0;
+        margin-bottom: 8px;
+      }
+
 
       #header-main > div {
         padding: 12px 16px;
@@ -125,15 +136,11 @@
         font-weight: 600;
       }
 
-      #info-view-github div {
-        flex-grow: 1;
-        text-align: center;
-      }
-
       #info-view-github svg {
         width: 24px;
         height: 24px;
         fill: var(--syntax-bg);
+        margin-right: 16px;
       }
 
       #info-contributors {
@@ -220,11 +227,7 @@
 
       /* Sidebar */
       .body > .sidebar > div {
-        margin-top: 40px;
-      }
-
-      .body > .sidebar > div:first-of-type {
-        margin-top: 0;
+        margin-bottom: 40px;
       }
 
       #sidebar-nav {
@@ -239,9 +242,9 @@
       }
 
       #sidebar-nav a {
-        padding: 16px 20px;
-        font-size: 14px;
-        line-height: 16px;
+        padding: 16px 20px 18px;
+        font-size: 16px;
+        line-height: 20px;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
@@ -358,11 +361,6 @@
         margin-left: -30px;
         margin-top: -30px;
         --paper-spinner-stroke-width: 4px;
-        display: none;
-      }
-
-      #demo-spinner[active] {
-        display: block;
       }
 
       #close-dialog {
@@ -438,6 +436,7 @@
       url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
+      on-error="_docsError"
       on-response="_docsResponse"></iron-ajax>
 
     <iron-ajax
@@ -451,7 +450,7 @@
     <div id="container">
 
       <!-- Header -->
-      <div class="mobile-fixed">
+      <div>
         <h1 class="page-title">[[repo]]</h1>
         <span id="repo-version">[[data.version]]</span>
         <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
@@ -526,7 +525,7 @@
           </div>
         </div>
 
-        <div id="header-sidebar" class="sidebar">
+        <div id="header-sidebar" class="sidebar desktop-only">
           <div class="box">
             <div id="info-download">
               <h3>Download</h3>
@@ -545,15 +544,15 @@
       <div class="body">
         <!-- Repository contents sidebar -->
         <div class="sidebar">
-          <h1>Repository contents</h1>
+          <h1 hidden$="[[!_hasRepoContents]]">Repository contents</h1>
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
+          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -577,7 +576,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
+          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]" hidden$="[[!collections.count]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -585,30 +584,30 @@
                 <collection-card class="box" data="[[item]]"></collection-card>
               </template>
             </template>
-          </div>
 
-          <div id="info-dependencies">
-            <h1>Dependencies</h1>
-            <template is="dom-repeat" items="[[_dependencies(data)]]">
-              <div class="dependency">
-                <a href="/element/[[item.owner]]/[[item.repo]]">
-                  <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
-                </a>
-                <span>[[item.version]]</span>
-              </div>
-            </template>
-          </div>
+            <div id="info-dependencies">
+              <h1>Dependencies</h1>
+              <template is="dom-repeat" items="[[_dependencies(data)]]">
+                <div class="dependency">
+                  <a href="/element/[[item.owner]]/[[item.repo]]">
+                    <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                  </a>
+                  <span>[[item.version]]</span>
+                </div>
+              </template>
+            </div>
 
-          <a id="report-link" class="soft-button" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-            Flag element
-          </a>
+            <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+              Flag element
+            </a>
+          </div>
         </div>
 
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[_docsPending(_docsLoading, docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -619,14 +618,14 @@
       </div>
     </div>
 
-    <spinner-lite id="demo-spinner"></spinner-lite>
+    <spinner-lite id="demo-spinner" active="[[_dialogDemoLoading]]"></spinner-lite>
     <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>
       </div>
-      <iframe id="demo-frame" on-load="_demoLoaded"></iframe>
+      <iframe id="demo-frame" on-load="_demoLoaded" hidden="[[_dialogDemoLoading]]"></iframe>
     </catalog-dialog>
 
   </template>
@@ -646,20 +645,19 @@
         baseUrls: Object,
 
         queryParams: Object,
+
+        _infoBodyCollapsed: {
+          type: Boolean,
+          value: true,
+        },
       },
 
       observers: [
+        '_demoChanged(demo, visible)',
         '_routeChanged(route.path, route.prefix, visible)',
         '_updateLoading(_metaLoading, data)',
         'onload(_metaLoading)',
       ],
-
-      ready: function() {
-        this._loaded = true;
-        this._infoBodyCollapsed = true;
-        if (this.route)
-          this._routeChanged(this.route.path, this.route.prefix, this.visible);
-      },
 
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
@@ -724,54 +722,75 @@
       },
 
       _routeChanged: function(path, prefix, visible) {
-        if (!visible || !this._loaded || !(prefix == '/element' || prefix == '/preview'))
+        if (!visible || !(prefix == '/element' || prefix == '/preview'))
           return;
 
         if (prefix == '/preview' && path == '')
           return;
+
+        if (path == this._currentPath)
+          return;
+
+        this._currentPath = path;
 
         this._splitRoute();
         this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
 
         // Generate requests
-        if (!this._cachedData || this._cachedData !== this.repo) {
+        if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+          this._currentOwner = this.owner;
+          this._currentRepo = this.repo;
+          this._currentVersionRoute = this.versionRoute;
+          this.docs = null;
           this.$.metaAjax.generateRequest();
           this.$.docsAjax.generateRequest();
           this.$.collectionsAjax.generateRequest();
-          this._cachedData = this.repo;
-        } else {
-          this._updateDescriptor();
         }
 
-        // Trigger / hide demo UI.
-        if (this.demo) {
+        this._updateDescriptor();
+      },
+
+      _demoChanged: function(demo, visible) {
+        if (demo && visible)
           this._showDemo();
-        } else {
-          if (this.$['demo-dialog'].hasAttribute('unresolved'))
-            this.$['demo-dialog'].opened = false;
-          else
-            this.$['demo-dialog'].close();
-          this.$['demo-frame'].src = 'about:blank';
-        }
+        else
+          this._closeDemo();
       },
 
       _demoClicked: function() {
-        this.pathBeforeDemo = this.route.path;
+        this._navigatedToDemo = true;
       },
 
       _showDemo: function() {
-        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
+        if (this.$['demo-dialog'].opened)
+          return;
+        // We can't start loading the demo until we have a version number.
+        // Either from the route, or from the metadata.
+        if (!(this.versionRoute || this.data))
+          return;
+        var demoVersionRoute = this.versionRoute || '/' + this.data.version;
+        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + demoVersionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
           this.$['demo-dialog'].opened = true;
         else
           this.$['demo-dialog'].open();
-        this.$['demo-spinner'].setAttribute('active', '');
+        this._dialogDemoLoading = true;
+      },
+
+      _closeDemo: function() {
+        this._navigatedToDemo = false;
+        if (!this.$['demo-dialog'].opened)
+          return;
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          this.$['demo-dialog'].opened = false;
+        else
+          this.$['demo-dialog'].close();
       },
 
       _demoLoaded: function() {
-        this.$['demo-spinner'].removeAttribute('active');
+        this._dialogDemoLoading = false;
       },
 
       _cancelDemo: function() {
@@ -781,14 +800,13 @@
       },
 
       _demoCanceled: function() {
-        this.$['demo-spinner'].removeAttribute('active');
-        this.$['demo-frame'].src = 'about:blank';
-        var path = this.pathBeforeDemo;
-        this.pathBeforeDemo = null;
-        if (!path) {
-          path = this.owner + '/' + this.repo + this.versionRoute;
+        if (this._navigatedToDemo) {
+          history.back();
+        } else {
+          history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
+          this.fire('location-changed');
         }
-        this.set('route.path', path);
+        this._dialogDemoLoading = false;
       },
 
       _updateLoading: function(metaLoading, data) {
@@ -796,11 +814,6 @@
       },
 
       _metaResponse: function() {
-        if (this.data.status == 'error') {
-          this.fire('error', {title: 'Unable to process element', message: this.data.error});
-          return;
-        }
-
         if (this.data.status == 'pending') {
           this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 500);
           return;
@@ -813,20 +826,20 @@
 
         if (this.data.homepage && this.data.homepage.indexOf('elements.polymer-project.org') != -1)
           this.set('data.homepage', '');
+
         document.title = this.data.owner + '/' + this.data.repo;
+        if (this.demo)
+          this._showDemo();
       },
 
       _metaError: function(event, error) {
-        if (error.request.status != 404) {
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process element', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
+        } else {
           this.fire('error', {status: error.request.status, title: 'Unable to load element'});
-          return;
         }
-
-        this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
-      },
-
-      _docsPending: function(loading, docs) {
-        return loading || (docs && docs.status == 'pending');
       },
 
       _docsResponse: function() {
@@ -835,21 +848,21 @@
           this._lazyUnblocked = true;
         }
 
-        if (this.docs.status == 'error')
-          return;
-
-        if (this.docs.status == 'pending') {
-          this.$['sidebar-spinner'].setAttribute('active', '');
-          this.async(function() {
-            this.$.docsAjax.generateRequest();
-            this.$.collectionsAjax.generateRequest();
-          }, 1000);
-          return;
-        }
-
         this.$['sidebar-spinner'].removeAttribute('active');
         this._updateDescriptor();
         this.async(this._updateActiveLinks);
+      },
+
+      _docsError: function(event, error) {
+        if (error.request.response && error.request.response.status == 'pending') {
+          this.$['sidebar-spinner'].setAttribute('active', '');
+          this.async(function() {
+            this.$.docsAjax.generateRequest();
+          }, 500);
+        } else {
+          this.docs = {};
+          this.$['sidebar-spinner'].removeAttribute('active');
+        }
       },
 
       _updateDescriptor: function() {
@@ -859,6 +872,7 @@
         this.bundledBehaviors = this._behaviors();
         if (!this.dupedDemos.length)
           this.dupedDemos = this._demos();
+        this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 

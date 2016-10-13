@@ -300,7 +300,6 @@ class GetMetadata(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, owner, repo, ver=None):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
-    self.response.headers['Content-Type'] = 'application/json'
 
     owner = owner.lower()
     repo = repo.lower()
@@ -309,12 +308,14 @@ class GetMetadata(webapp2.RequestHandler):
     if result is None:
       self.response.set_status(404)
     else:
+      self.response.headers['Content-Type'] = 'application/json'
+      if result['status'] != Status.ready:
+        self.response.set_status(400)
       self.response.write(json.dumps(result))
 
 class GetDocs(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, owner, repo, ver=None):
-    # TODO: Share all of this boilerplate between API handlers
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
@@ -331,12 +332,16 @@ class GetDocs(webapp2.RequestHandler):
       self.response.set_status(404)
       return
 
+    self.response.headers['Content-Type'] = 'application/json'
     result = {}
     result['status'] = analysis.status
     if analysis.status == Status.ready:
       result['content'] = json.loads(analysis.content)
     if analysis.status == Status.error:
       result['error'] = analysis.error
+
+    if result['status'] != Status.ready:
+      self.response.set_status(400)
 
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(result))

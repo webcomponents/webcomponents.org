@@ -21,6 +21,5 @@ Staging is automatically updated by travis on a successful build.
 ```bash
 cd client
 polymer build
-cp client.yaml build/bundled
 gcloud app deploy --no-promote build/bundled/client.yaml
 ```
