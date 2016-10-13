@@ -139,8 +139,13 @@
       },
 
       _metaError: function(event, error) {
-        if (error.request.status == 404)
-          this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this._routeMatch.owner + '/' + this._routeMatch.repo});
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process collection', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find collection', githubPath: this.collection});
+        } else {
+          this.fire('error', {status: error.request.status, title: 'Unable to load collection'});
+        }
       },
 
       _s: function(n) {

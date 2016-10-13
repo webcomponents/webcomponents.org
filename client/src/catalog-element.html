@@ -796,11 +796,6 @@
       },
 
       _metaResponse: function() {
-        if (this.data.status == 'error') {
-          this.fire('error', {title: 'Unable to process element', message: this.data.error});
-          return;
-        }
-
         if (this.data.status == 'pending') {
           this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 500);
           return;
@@ -817,12 +812,13 @@
       },
 
       _metaError: function(event, error) {
-        if (error.request.status != 404) {
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process element', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
+        } else {
           this.fire('error', {status: error.request.status, title: 'Unable to load element'});
-          return;
         }
-
-        this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
       },
 
       _docsPending: function(loading, docs) {
