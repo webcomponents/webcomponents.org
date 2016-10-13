@@ -228,7 +228,11 @@ class GetCollections(webapp2.RequestHandler):
       if collection_result is not None:
         collections.append(collection_result)
 
-    self.response.write(json.dumps(collections))
+    result = {
+      'results': collections,
+      'count': len(collections),
+    }
+    self.response.write(json.dumps(result))
 
 class GetDependencies(webapp2.RequestHandler):
   @ndb.toplevel
@@ -285,7 +289,12 @@ class GetDependencies(webapp2.RequestHandler):
       if dependency_result is not None:
         results.append(dependency_result)
 
-    self.response.write(json.dumps(results))
+    result = {
+      'results': results,
+      'count': len(results),
+    }
+
+    self.response.write(json.dumps(result))
 
 class GetMetadata(webapp2.RequestHandler):
   @ndb.toplevel

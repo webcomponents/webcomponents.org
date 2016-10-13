@@ -191,14 +191,14 @@
       _onDependenciesResponse: function() {
         this._updateLoading();
         var response = this.$.dependenciesAjax.lastResponse;
-        var elements = response.filter(function(item) {
+        var elements = response.results.filter(function(item) {
           return item.kind == 'element';
         });
         this._elements = {
           results: elements,
           count: elements.length
         };
-        var collections = response.filter(function(item) {
+        var collections = response.results.filter(function(item) {
           return item.kind == 'collection';
         });
 
