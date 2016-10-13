@@ -11,6 +11,7 @@
     "src/catalog-search.html",
     "src/catalog-publish.html",
     "src/catalog-publish-collection.html",
+    "src/catalog-static.html",
     "src/catalog-home.html",
     "src/code-editor.html",
     "src/lazy-resources.html"
