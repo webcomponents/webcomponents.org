@@ -17,6 +17,10 @@
         display: block;
       }
 
+      #author-link {
+        color: inherit;
+      }
+
       catalog-element-readme {
         display: block;
         margin-bottom: 32px;
@@ -59,15 +63,15 @@
       handle-as="json"
       last-response="{{_parents}}"></iron-ajax>
 
-    <div class="mobile-scroll-overlay">
-      <div class="mobile-fixed mobile-only">
+    <div>
+      <div class="mobile-only">
         <h1 class="page-title">[[_repo]]</h1>
         <h2 class="page-subtitle">[[_metadata.description]]</h2>
       </div>
 
       <div class="body">
         <div class="sidebar">
-          <a href="/author/[[_owner]]">
+          <a id="author-link" href="/author/[[_owner]]">
             <author-profile overlay condensed author="[[_authorMetadata]]"></author-profile>
           </a>
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.count]]">

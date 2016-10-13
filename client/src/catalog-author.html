@@ -20,14 +20,10 @@
       on-response="_updateLoading"
       on-error="_metaError"></iron-ajax>
 
-    <div class="mobile-scroll-overlay">
-      <div class="mobile-only mobile-fixed">
-        <h1 class="page-title">[[_metadata.login]]</h1>
-      </div>
-
+    <div>
       <div class="body">
         <div class="sidebar">
-          <author-profile overlay author="[[_metadata]]"></author-profile>
+          <author-profile author="[[_metadata]]"></author-profile>
         </div>
 
         <div class="main-content">

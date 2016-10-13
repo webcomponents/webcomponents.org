@@ -105,7 +105,7 @@
         color: var(--syntax-fg);
       }
 
-      #inline-demo-editor {
+      #inline-demo-creator {
         display: block;
         padding-left: 8px;
         border-left: 4px solid var(--theme-accent-1);
@@ -121,8 +121,8 @@
       }
     </style>
     <template is="dom-if" if="[[editing]]">
-      <div id="inline-demo-editor">
-        <h3>Inline demo editor</h3>
+      <div id="inline-demo-creator">
+        <h3>Inline demo creator</h3>
         <p>Tip! Build an inline demo and export Markdown to include in README.md</p>
         <custom-element-demo example data="[[data]]" base-url="[[baseUrls.userContent]]"></custom-element-demo>
       </div>
