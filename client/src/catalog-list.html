@@ -137,7 +137,7 @@
       _loadMoreElements: function() {
         if (this.disabled || !this.query || !this._elements || !this._elements.cursor)
           return;
-        this._elementRequestParams.cursor = this._elements.results.cursor;
+        this._elementRequestParams.cursor = this._elements.cursor;
         this.$.elementsAjax.generateRequest();
       },
 
