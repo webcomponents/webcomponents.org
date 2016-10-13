@@ -127,6 +127,10 @@
         transition: none;
       }
 
+      .mobile-only {
+        display: none;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         h1.page-title {
           font-size: 28px;
@@ -183,6 +187,14 @@
 
         .mobile-scroll-overlay > .body > .main-content {
           min-height: calc(100vh - 150px);
+        }
+
+        .desktop-only {
+          display: none;
+        }
+
+        .mobile-only {
+          display: block;
         }
       }
 
