@@ -1,11 +1,12 @@
-
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/marked-element/marked-element.html">
 
 <link rel="import" href="catalog-api-property.html">
+<link rel="import" href="catalog-styles.html">
 
 <dom-module id="catalog-api-doc">
   <template>
+    <style include="catalog-styles">
     <style>
       :host {
         color: inherit;
@@ -19,10 +20,6 @@
       .deeplink {
         color: currentcolor;
         text-decoration: none;
-      }
-
-      .deeplink:hover {
-        color: #e91e63; /*var(--paper-pink-500);*/
       }
 
       #api {
@@ -48,21 +45,9 @@
         padding: 4px 0;
       }
 
-      #summary .markdown-html pre {
-        font-family: var(--monospace-font);
-        background-color: var(--syntax-bg);
-        color: var(--syntax-fg);
-        border-radius: 4px;
-        font-size: 14px;
-        line-height: 24px;
-        overflow-x: auto;
-        padding: 16px;
-        word-wrap: break-word;
-      }
-
       #summary .markdown-html table {
         font-size: 14px;
-        background-color: #eeeeee; /*var(--paper-grey-200)*/
+        background-color: hsl(0, 0%, 95%);
         border-collapse: collapse;
         margin: 12px 0;
         width: 100%;
@@ -102,13 +87,13 @@
         padding: 0;
       }
 
-      #summary .markdown-html code {
+/*      #summary .markdown-html code {
         font-family: var(--monospace-font);
         background: hsl(0, 0%, 95%);
         padding: 3px 6px;
         color: hsl(0, 0%, 20%);
       }
-
+*/
       #summary .markdown-html p {
         padding: 0;
       }
@@ -177,32 +162,32 @@
     </section>
 
     <nav id="api">
-      <h2>API Reference</h2>
+      <h1>API Reference</h1>
     </nav>
 
     <section id$="[[_formatAnchor(prefix,'properties')]]" class="card" hidden$="{{_noneToShow(_properties)}}">
-      <h3><a href$="#[[_formatAnchor(prefix,'properties')]]" class="deeplink">Properties</a></h3>
+      <h1><a href$="#[[_formatAnchor(prefix,'properties')]]" class="deeplink">Properties</a></h1>
       <template is="dom-repeat" items="{{_properties}}" hidden$="{{!_properties.length}}">
         <catalog-api-property anchor-id="[[_formatAnchor(prefix,'property',item.name)]]" descriptor="{{item}}"></catalog-api-property>
       </template>
     </section>
 
     <section id$="[[_formatAnchor(prefix,'methods')]]" class="card"  hidden$="{{_noneToShow(_methods)}}">
-      <h3><a href$="#[[_formatAnchor(prefix,'methods')]]" class="deeplink">Methods</a></h3>
+      <h1><a href$="#[[_formatAnchor(prefix,'methods')]]" class="deeplink">Methods</a></h1>
       <template is="dom-repeat" items="{{_methods}}">
         <catalog-api-property anchor-id="[[_formatAnchor(prefix,'method',item.name)]]" descriptor="{{item}}"></catalog-api-property>
       </template>
     </section>
 
     <section id$="[[_formatAnchor(prefix,'events')]]" class="card" hidden$="{{_noneToShow(_events)}}">
-      <h3><a href$="#[[_formatAnchor(prefix,'events')]]" class="deeplink">Events</a></h3>
+      <h1><a href$="#[[_formatAnchor(prefix,'events')]]" class="deeplink">Events</a></h1>
       <template is="dom-repeat" items="{{_events}}">
         <catalog-api-property anchor-id="[[_formatAnchor(prefix,'event',item.name)]]" descriptor="{{item}}"></catalog-api-property>
       </template>
     </section>
 
     <section id$="[[_formatAnchor(prefix,'behaviors')]]" class="card" hidden$="{{_hideBehaviors(_behaviors)}}">
-      <h3><a href$="#[[_formatAnchor(prefix,'behaviors')]]" class="deeplink">Behaviors</a></h3>
+      <h1><a href$="#[[_formatAnchor(prefix,'behaviors')]]" class="deeplink">Behaviors</a></h1>
       <template is="dom-repeat" items="{{_behaviors}}">
         <p>{{item}}</p>
       </template>

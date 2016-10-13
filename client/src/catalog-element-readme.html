@@ -24,8 +24,14 @@
 
       .markdown-body .highlight pre, .markdown-body pre {
         font-family: var(--monospace-font);
+        font-size: 14px;
+        line-height: 24px;
         background: var(--syntax-bg);
         color: var(--syntax-fg);
+        padding: 16px;
+        border-radius: 3px;
+        overflow: auto;
+        max-width: 100vw;
       }
 
       .highlight pre::selection, .highlight pre > span::selection, .highlight pre > span > span::selection { background: var(--syntax-corrected-selection); }
@@ -107,7 +113,7 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        article.markdown-body .highlight pre {
+        article.markdown-body .highlight pre, .markdown-body pre {
           margin-left: -16px;
           margin-right: -16px;
           border-radius: 0;
