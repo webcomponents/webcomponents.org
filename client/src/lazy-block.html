@@ -75,7 +75,7 @@
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/code-editor.html', function() {
               if ('serviceWorker' in navigator && window.location.hostname != 'localhost')
-                navigator.serviceWorker.register('/service-worker.js');
+                navigator.serviceWorker.register('/service-worker-entry.js');
               this._remove();
             }.bind(this), null, true);
           });
