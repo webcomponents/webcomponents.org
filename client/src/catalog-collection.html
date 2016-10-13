@@ -17,18 +17,6 @@
         display: block;
       }
 
-      #profile-image {
-        width: 100%;
-      }
-
-      #profile-info {
-        padding: 25px;
-      }
-
-      .section-header {
-        margin: 16px 0;
-      }
-
       catalog-element-readme {
         display: block;
         margin-bottom: 32px;
@@ -72,8 +60,7 @@
       last-response="{{_parents}}"></iron-ajax>
 
     <div class="mobile-scroll-overlay">
-      <div class="mobile-fixed">
-        <h3>Collection</h3>
+      <div class="mobile-fixed mobile-only">
         <h1 class="page-title">[[_repo]]</h1>
         <h2 class="page-subtitle">[[_metadata.description]]</h2>
       </div>
@@ -92,6 +79,10 @@
         </div>
 
         <div class="main-content">
+          <div class="desktop-only">
+            <h1 class="page-title">[[_repo]]</h1>
+            <h2 class="page-subtitle">[[_metadata.description]]</h2>
+          </div>
           <catalog-element-readme readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           <catalog-list collection="[[collection]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
         </div>

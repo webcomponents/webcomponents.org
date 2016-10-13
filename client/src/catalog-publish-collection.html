@@ -20,10 +20,10 @@
       on-error="onMetaError"></iron-ajax>
 
     <div id="container">
-      <h3>Publish</h3>
       <h1 class="page-title">Publish your collection</h1>
 
-      <div class="main-content">
+      <div class="main-content static-content">
+        <h1>Before you publish</h1>
         <p>Collections allow you to curate or organize elements for any grouping you can imagine. They could be elements you have reviewed, <a href="https://custom-elements-staging.appspot.com/collection/PolymerElements/paper-overlay-elements">organised by function</a> or <a href="/collection/PolymerElements/paper-ui-elements">organised by style.</a></p>
 
         <p>Creating a collection is easy. Simply create an empty GitHub repository with bower dependencies to all the elements or collections you want to include.</p>
@@ -37,8 +37,8 @@
         <h2>How do I update my collection?</h2>
         <p>Every commit to the <code>master</code> branch on your collection will automatically update within 10-15 minutes.</p>
 
-        <h2>Ready to publish?</h2>
-
+        <h1>Ready to publish?</h1>
+        <p>Enter the GitHub repository below:</p>
         <input type="text" name="repo" value="{{repo::input}}" placeholder="username/my-element-repo">
         <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>

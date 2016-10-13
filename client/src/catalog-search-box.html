@@ -175,7 +175,7 @@
         }
       }
 
-      .header {
+      .header, .footer {
         font-size: 16px;
         display: flex;
         justify-content: space-between;
@@ -183,6 +183,11 @@
         background: #f3f4f5;
         border-top: 1px solid #ededed;
         border-bottom: 1px solid #ededed;
+      }
+
+      .footer {
+        text-align: center;
+        display: block;
       }
     </style>
 
@@ -225,6 +230,12 @@
           <catalog-item data="[[item]]" tabindex$="[[tabIndex]]"></catalog-item>
         </template>
       </div>
+      <template is="dom-if" if="[[!_hasResults(_elements.count, _collections.count)]]">
+        <div class="footer">No results</div>
+      </template>
+      <template is="dom-if" if="[[_hasResults(_elements.count, _collections.count)]]">
+        <a href="/search/[[_query]]" class="footer">View all results</a>
+      </template>
     </div>
   </template>
 
@@ -333,6 +344,11 @@
         if (!query)
           event.detail.request.abort();
       },
+
+      _hasResults: function(a, b) {
+        return a || b;
+      },
+
     });
   </script>
 </dom-module>

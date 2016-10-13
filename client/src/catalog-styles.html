@@ -17,7 +17,7 @@
         font-weight: normal;
         margin: 0;
         margin-bottom: 16px;
-        color: hsl(0, 0%, 18%);
+        color: var(--theme-black);
       }
 
       h2 {
@@ -41,23 +41,36 @@
         font-size: 24px;
         line-height: 30px;
         max-width: 800px;
-        margin: 0 0 16px 0;
+        margin: 10px 0 32px 0;
         color: var(--theme-blue-grey);
         font-weight: normal;
       }
 
       h3 {
-        text-transform: uppercase;
         font-weight: 600;
-        font-size: 13px;
+        font-size: 18px;
         line-height: 16px;
-        margin: 0;
-        margin-bottom: 8px;
       }
 
       .body {
         width: 100%;
         display: flex;
+      }
+
+      .static-content {
+        font-size: 18px;
+        line-height: 30px;
+      }
+
+      .static-content h1 {
+        margin-top: 32px;
+        width: 100%;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .static-content h2 {
+        margin-top: 8px;
       }
 
       pre {
@@ -68,6 +81,12 @@
         border-radius: 3px;
         overflow: auto;
         max-width: 100vw;
+      }
+
+      pre, code {
+        font-size: 14px;
+        font-family: var(--monospace-font);
+        line-height: 24px;
       }
 
       code {
@@ -131,6 +150,14 @@
         display: none;
       }
 
+      spinner-lite {
+        display: none;
+      }
+
+      spinner-lite[active] {
+        display: block;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         h1.page-title {
           font-size: 28px;
@@ -140,7 +167,7 @@
           font-size: 18px;
         }
 
-        h3, h1.page-title, h2.page-subtitle, h1.section-header {
+        h1.page-title, h2.page-subtitle {
           margin-left: 16px;
         }
 
@@ -181,7 +208,7 @@
         .mobile-scroll-overlay > .body {
           margin-top: 260px;
           z-index: 2;
-          background: linear-gradient(to bottom, #F3F4F5, white 100vh);
+          background: var(--bg-gradient);
           min-height: 100vh;
         }
 
@@ -190,7 +217,7 @@
         }
 
         .desktop-only {
-          display: none;
+          display: none !important;
         }
 
         .mobile-only {

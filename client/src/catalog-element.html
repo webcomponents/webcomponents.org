@@ -22,6 +22,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 50%);
+        vertical-align: text-bottom;
       }
 
       #repo-desc {
@@ -39,6 +40,16 @@
       #header-main {
         color: var(--theme-blue-grey);
       }
+
+      h3 {
+        text-transform: uppercase;
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 600;
+        margin: 0;
+        margin-bottom: 8px;
+      }
+
 
       #header-main > div {
         padding: 12px 16px;
@@ -125,15 +136,11 @@
         font-weight: 600;
       }
 
-      #info-view-github div {
-        flex-grow: 1;
-        text-align: center;
-      }
-
       #info-view-github svg {
         width: 24px;
         height: 24px;
         fill: var(--syntax-bg);
+        margin-right: 16px;
       }
 
       #info-contributors {
@@ -239,9 +246,9 @@
       }
 
       #sidebar-nav a {
-        padding: 16px 20px;
-        font-size: 14px;
-        line-height: 16px;
+        padding: 16px 20px 18px;
+        font-size: 16px;
+        line-height: 20px;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
@@ -358,11 +365,6 @@
         margin-left: -30px;
         margin-top: -30px;
         --paper-spinner-stroke-width: 4px;
-        display: none;
-      }
-
-      #demo-spinner[active] {
-        display: block;
       }
 
       #close-dialog {
@@ -451,7 +453,7 @@
     <div id="container">
 
       <!-- Header -->
-      <div class="mobile-fixed">
+      <div>
         <h1 class="page-title">[[repo]]</h1>
         <span id="repo-version">[[data.version]]</span>
         <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
@@ -526,7 +528,7 @@
           </div>
         </div>
 
-        <div id="header-sidebar" class="sidebar">
+        <div id="header-sidebar" class="sidebar desktop-only">
           <div class="box">
             <div id="info-download">
               <h3>Download</h3>
@@ -599,7 +601,7 @@
             </template>
           </div>
 
-          <a id="report-link" class="soft-button" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+          <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
             Flag element
           </a>
         </div>
