@@ -585,18 +585,19 @@
               </template>
             </template>
 
-            <div id="info-dependencies">
-              <h1>Dependencies</h1>
-              <template is="dom-repeat" items="[[_dependencies(data)]]">
-                <div class="dependency">
-                  <a href="/element/[[item.owner]]/[[item.repo]]">
-                    <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
-                  </a>
-                  <span>[[item.version]]</span>
-                </div>
-              </template>
-            </div>
-
+            <template is="dom-if" if="[[_dependencies(data).count]]">
+              <div id="info-dependencies">
+                <h1>Dependencies</h1>
+                <template is="dom-repeat" items="[[_dependencies(data)]]">
+                  <div class="dependency">
+                    <a href="/element/[[item.owner]]/[[item.repo]]">
+                      <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                    </a>
+                    <span>[[item.version]]</span>
+                  </div>
+                </template>
+              </div>
+            </template>
             <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
               Flag element
             </a>
