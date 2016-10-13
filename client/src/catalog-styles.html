@@ -66,7 +66,7 @@
         color: var(--syntax-fg);
         padding: 16px;
         border-radius: 3px;
-        overflow: scroll;
+        overflow: auto;
         max-width: 100vw;
       }
 
@@ -146,13 +146,18 @@
 
         .main-content {
           max-width: 100%;
-          padding-right: 0;
+          padding: 0 16px;
           margin-right: 0;
         }
 
         .sidebar {
           order: 0;
           margin: 16px auto;
+        }
+
+        pre {
+          border-radius: 0;
+          margin: 0 -16px 0 -16px;
         }
 
         /* Scroll overlay hide */

@@ -405,6 +405,8 @@
       <catalog-search name="elements" title="Browse elements" path="/kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-search name="collections" title="Browse collections" path="/kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
+      <catalog-static name="about"></catalog-static>
+      <catalog-static name="introduction"></catalog-static>
     </iron-pages>
 
     <footer role="contentinfo">
@@ -412,7 +414,7 @@
         <section>
           <h2>Resources</h2>
           <div role="navigation">
-            <a>Introduction</a>
+            <a href="/introduction">Introduction</a>
             <a>Polyfills</a>
             <a>Tools</a>
             <a>Specifications</a>
@@ -439,7 +441,7 @@
         <section>
           <h2>About</h2>
           <div role="navigation">
-            <a>About webcomponents.org</a>
+            <a href="/about">About webcomponents.org</a>
             <a href="#feedback" on-tap="_onFeedback">Feedback</a>
           </div>
         </section>

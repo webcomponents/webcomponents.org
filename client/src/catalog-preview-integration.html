@@ -15,21 +15,24 @@
     <div id="container">
       <h3>Preview integration</h3>
       <h1 class="page-title">Add Github integration</h1>
-      <h2 class="page-subtitle">
-        Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your Github repository to publish status updates.
-      </h2>
-    <template is="dom-if" if="[[!queryParams.code]]">
-      <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status">
-        <button>Sign in with Github</button>
-      </a>
-    </template>
-    <template is="dom-if" if="[[queryParams.code]]">
-      <form action="[[baseUrls.api]]/api/preview" method="post">
-        <input type="hidden" name="code" value="[[queryParams.code]]">
-        Enter the Github repository to enable webcomponents preview for: <input type="text" name="repo" placeholder="user/repo">
-        <button type="submit">Enable preview</button>
-      </form>
-    </template>
+      <div class="main-content">
+        <p>
+          Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your GitHub repository to publish status updates.
+        </p>
+        <template is="dom-if" if="[[!queryParams.code]]">
+          <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status">
+            <button>Sign in with Github</button>
+          </a>
+        </template>
+        <template is="dom-if" if="[[queryParams.code]]">
+          <form action="[[baseUrls.api]]/api/preview" method="post">
+            <input type="hidden" name="code" value="[[queryParams.code]]">
+            Enter the GitHub repository to enable webcomponents preview for: <input type="text" name="repo" placeholder="user/repo">
+            <button type="submit">Enable preview</button>
+          </form>
+        </template>
+      </div>
+    </div>
   </template>
 
   <script>
