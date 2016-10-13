@@ -171,13 +171,13 @@
 
       _onElementsResponse: function() {
         this._updateLoading();
-        if (!this._elementRequestParams.cursor) {
-          this._elements = this.$.elementsAjax.lastResponse;
-        } else {
+        if (this._elementRequestParams.cursor) {
           var response = this.$.elementsAjax.lastResponse;
           this._elements.count = response.count;
           this._elements.results = this._elements.results.concat(response.results);
           this.notifyPath('_elements.results');
+        } else {
+          this._elements = this.$.elementsAjax.lastResponse;
         }
         this.$.threshold.clearTriggers();
         this.$.threshold.checkScrollThesholds();

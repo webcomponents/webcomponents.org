@@ -229,8 +229,8 @@ class GetCollections(webapp2.RequestHandler):
         collections.append(collection_result)
 
     result = {
-      'results': collections,
-      'count': len(collections),
+        'results': collections,
+        'count': len(collections),
     }
     self.response.write(json.dumps(result))
 
@@ -290,8 +290,8 @@ class GetDependencies(webapp2.RequestHandler):
         results.append(dependency_result)
 
     result = {
-      'results': results,
-      'count': len(results),
+        'results': results,
+        'count': len(results),
     }
 
     self.response.write(json.dumps(result))
