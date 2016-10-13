@@ -21,8 +21,7 @@
       on-error="_metaError"></iron-ajax>
 
     <div class="mobile-scroll-overlay">
-      <div class="mobile-fixed">
-        <h3>Author</h3>
+      <div class="mobile-only mobile-fixed">
         <h1 class="page-title">[[_metadata.login]]</h1>
       </div>
 
@@ -32,6 +31,9 @@
         </div>
 
         <div class="main-content">
+          <div class="desktop-only">
+            <h1 class="page-title">[[_metadata.login]]</h1>
+          </div>
           <catalog-list id="list" base-urls="[[baseUrls]]" query="[[_ownerQuery(author)]]" noscore disabled="[[!visible]]"></catalog-list>
         </div>
       </div>

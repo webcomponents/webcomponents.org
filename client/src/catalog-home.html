@@ -45,23 +45,48 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
+        margin-left: -32px;
       }
 
-      #getting-started > div {
-        background: white;
-        border-radius: 3px;
-        flex: 1 0 260px;
-        padding: 32px;
+      #getting-started a.box {
+        display: block;
+        color: inherit;
+        padding: 24px;
+        flex: 1 1 250px;
+        border-radius: 0 0 4px 4px;
+        border-top: 3px solid #bcc2c8;
+        margin-left: 32px;
         margin-bottom: 32px;
+        box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1);
+      }
+
+      #getting-started a.box:not([href]), #getting-started a.box:not([href]) h2 {
+        opacity: 0.6;
+      }
+
+      #getting-started > a.box:first-child {
+        border-top-color: var(--theme-blue);
+      }
+
+      #vertical-box {
+        flex: 2 2 calc(2 * 250px + 32px);
         margin-left: 32px;
       }
 
-      #getting-started > div:nth-child(3n + 1) {
+      #vertical-box > a.box {
         margin-left: 0;
       }
 
+      #vertical-box > a.box:first-child {
+        border-top-color: var(--theme-green);
+      }
+
+      #vertical-box > a.box:nth-child(2) {
+        border-top-color: var(--theme-yellow);
+      }
+
       #gitter {
-        background: #e8ebed;
+        background: #f3f4f5;
         border-radius: 3px;
         padding: 32px;
         display: flex;
@@ -69,13 +94,21 @@
         justify-content: space-between;
       }
 
+      #gitter h1 {
+        font-weight: 600;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         .sub-heading, section > h1 {
           margin: 0 16px;
         }
 
-        #getting-started > div {
-          margin: 16px !important;
+        #getting-started {
+          margin-left: 0;
+        }
+
+        #getting-started div.box, #getting-started a.box, #vertical-box {
+          margin: 16px 0;
         }
 
         .featured-row {
@@ -143,42 +176,44 @@
       <section>
         <h1>Getting started with web components</h1>
         <div id="getting-started" role="navigation">
-          <div>
+          <a href="/introduction" class="box">
             <h2>Introduction</h2>
             <div>What are web components? Why are they awesome? All the answers in this article.</div>
+          </a>
+
+          <div id="vertical-box">
+            <a class="box">
+              <h2>Polyfills</h2>
+              <div>Use web components today and have them work in all major browsers.</div>
+            </a>
+
+            <a class="box">
+              <h2>Tools</h2>
+              <div>Tools and boilerplates to help you build your own webcomponents.</div>
+            </a>
           </div>
 
-          <div>
-            <h2>Polyfills</h2>
-            <div>Use web components today and have them work in all major browsers.</div>
-          </div>
-
-          <div>
-            <h2>Tools</h2>
-            <div>Tools and boilerplates to help you build your own webcomponents.</div>
-          </div>
-
-          <div>
+          <a class="box">
             <h2>Specifications</h2>
             <div>Web component specifications from the W3C.</div>
-          </div>
+          </a>
 
-          <div>
+          <a class="box">
             <h2>Compatibility</h2>
             <div>Latest browser compatibility list. What works and where.</div>
-          </div>
+          </a>
 
-          <div>
+          <a class="box">
             <h2>Libraries</h2>
             <div>Third party libraries to help you make the most of web components.</div>
-          </div>
+          </a>
         </div>
 
       </section>
 
       <section id="gitter">
         <div>
-          <h2>Join the community on Gitter</h2>
+          <h1>Join the community on Gitter</h1>
           <p>Discuss, share and help with others</p>
         </div>
         <a href="https://gitter.im/webcomponents/community" target="_blank"><button>Discuss on Gitter</button></a>

@@ -22,6 +22,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 50%);
+        vertical-align: text-bottom;
       }
 
       #repo-desc {
@@ -125,15 +126,11 @@
         font-weight: 600;
       }
 
-      #info-view-github div {
-        flex-grow: 1;
-        text-align: center;
-      }
-
       #info-view-github svg {
         width: 24px;
         height: 24px;
         fill: var(--syntax-bg);
+        margin-right: 16px;
       }
 
       #info-contributors {
@@ -239,9 +236,9 @@
       }
 
       #sidebar-nav a {
-        padding: 16px 20px;
-        font-size: 14px;
-        line-height: 16px;
+        padding: 16px 20px 18px;
+        font-size: 16px;
+        line-height: 20px;
         display: flex;
         justify-content: space-between;
         box-sizing: border-box;
@@ -358,11 +355,6 @@
         margin-left: -30px;
         margin-top: -30px;
         --paper-spinner-stroke-width: 4px;
-        display: none;
-      }
-
-      #demo-spinner[active] {
-        display: block;
       }
 
       #close-dialog {

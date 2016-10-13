@@ -49,11 +49,14 @@
       }
 
       #summary .markdown-html pre {
-        background-color: #eeeeee; /*var(--paper-grey-200)*/
-        border-radius: 3px;
-        font-size: 15px;
+        font-family: var(--monospace-font);
+        background-color: var(--syntax-bg);
+        color: var(--syntax-fg);
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 24px;
         overflow-x: auto;
-        padding: 12px 24px;
+        padding: 16px;
         word-wrap: break-word;
       }
 
@@ -93,11 +96,17 @@
         font-weight: bold;
       }
 
+      #summary .markdown-html pre code {
+        background: inherit;
+        color: inherit;
+        padding: 0;
+      }
+
       #summary .markdown-html code {
-        background: #eeeeee; /*var(--paper-grey-200)*/
-        padding: 3px;
-        border-radius: 3px;
-        font-size: 85%;
+        font-family: var(--monospace-font);
+        background: hsl(0, 0%, 95%);
+        padding: 3px 6px;
+        color: hsl(0, 0%, 20%);
       }
 
       #summary .markdown-html p {
