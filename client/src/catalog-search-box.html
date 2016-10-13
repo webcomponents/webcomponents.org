@@ -210,7 +210,9 @@
       debounce-duration="300"></iron-ajax>
 
     <svg viewBox="0 0 100 100" id="search-symbol"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
-    <input type="search" role="search" title="Search query" id="search-input" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
+    <form on-submit="_navigateSearch">
+      <input type="search" role="search" title="Search query" id="search-input" autocomplete="off" on-input="_triggerSearch" placeholder="Search webcomponents.org" aria-label="Search web components .org">
+    </form>
 
     <progress-bar id="progress" indeterminate hidden></progress-bar>
     <div id="results" on-click="_close">
@@ -314,6 +316,14 @@
         this.$['search-input'].focus();
         this.$['search-input'].value = query;
         this._triggerSearch();
+      },
+
+      _navigateSearch: function(e) {
+        window.history.pushState({}, null, '/search/' + this.$['search-input'].value);
+        this.fire('location-changed');
+        e.preventDefault();
+        this.$['search-input'].blur();
+        this._hideProgress();
       },
 
       _triggerSearch: function() {
