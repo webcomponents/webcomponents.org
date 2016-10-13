@@ -227,11 +227,7 @@
 
       /* Sidebar */
       .body > .sidebar > div {
-        margin-top: 40px;
-      }
-
-      .body > .sidebar > div:first-of-type {
-        margin-top: 0;
+        margin-bottom: 40px;
       }
 
       #sidebar-nav {
@@ -548,11 +544,11 @@
       <div class="body">
         <!-- Repository contents sidebar -->
         <div class="sidebar">
-          <h1>Repository contents</h1>
+          <h1 hidden$="[[!_hasRepoContents]]">Repository contents</h1>
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
+          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
@@ -580,7 +576,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]">
+          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]" hidden$="[[!collections.count]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -854,6 +850,7 @@
         this.bundledBehaviors = this._behaviors();
         if (!this.dupedDemos.length)
           this.dupedDemos = this._demos();
+        this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
 
