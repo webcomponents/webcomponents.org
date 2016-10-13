@@ -182,38 +182,15 @@
         }
 
         .sidebar {
+          flex-grow: 1;
           order: 0;
-          margin: 16px auto;
+          margin: 32px;
+          margin-top: 0;
         }
 
         pre {
           border-radius: 0;
           margin: 0 -16px 0 -16px;
-        }
-
-        /* Scroll overlay hide */
-        .mobile-scroll-overlay > .mobile-fixed {
-          text-align: center;
-          position: fixed;
-          width: 100%;
-          z-index: -1;
-          top: 100px;
-          padding: 0 16px;
-        }
-
-        .mobile-fixed h1, .mobile-fixed h2, .mobile-fixed h3 {
-          margin-left: 0;
-        }
-
-        .mobile-scroll-overlay > .body {
-          margin-top: 260px;
-          z-index: 2;
-          background: var(--bg-gradient);
-          min-height: 100vh;
-        }
-
-        .mobile-scroll-overlay > .body > .main-content {
-          min-height: calc(100vh - 150px);
         }
 
         .desktop-only {
