@@ -3,6 +3,24 @@
 [![Travis](https://img.shields.io/travis/webcomponents/beta.svg?maxAge=2592000&style=flat-square)](https://travis-ci.org/webcomponents/beta)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000&style=flat-square)]()
 
+The beta (in-development) site for webcomponents.org.
+
+It consists of multiple Appengine services and requires gcloud for most development.
+
+At a high-level, the services are
+- Manage, a Python service dealing with ingestion and management of ingested data from Bower, Github and Analysis.
+- Api, a Python service providing a REST api used by Client to access data from Manage.
+- Client, a Polymer web app that provides the user interface and consumes data from Api.
+- Analysis, a node.js service that performs slower analysis on ingested elements, using Bower and Hydrolysis.
+
+# System-level dependencies
+The following dependencies are required to develop, test and/or deploy beta.webcomponents.org
+- gcloud SDK (https://cloud.google.com/sdk/downloads#versioned) - needed for ALL services
+- node.js (and npm) (https://nodejs.org/en/download/) - needed for ALL services
+- pip (Linux: https://packaging.python.org/install_requirements_linux/, Mac: "sudo easy_install pip" or https://pip.pypa.io/en/stable/installing/) - needed for Manage and Api
+- bower ("npm install -g bower") - needed for Client
+- grunt ("npm install -g grunt") - needed for running lint
+
 # Dependencies
 ```bash
 npm install
