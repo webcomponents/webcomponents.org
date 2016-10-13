@@ -440,6 +440,7 @@
       url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
       handle-as="json"
       last-response="{{docs}}"
+      on-error="_docsError"
       on-response="_docsResponse"></iron-ajax>
 
     <iron-ajax
@@ -551,7 +552,7 @@
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[_docsPending(_docsLoading, docs)]]">
+          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
@@ -579,7 +580,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(_docsPending(_docsLoading, docs), collectionsLoading)]]">
+          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -587,30 +588,30 @@
                 <collection-card class="box" data="[[item]]"></collection-card>
               </template>
             </template>
-          </div>
 
-          <div id="info-dependencies">
-            <h1>Dependencies</h1>
-            <template is="dom-repeat" items="[[_dependencies(data)]]">
-              <div class="dependency">
-                <a href="/element/[[item.owner]]/[[item.repo]]">
-                  <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
-                </a>
-                <span>[[item.version]]</span>
-              </div>
-            </template>
-          </div>
+            <div id="info-dependencies">
+              <h1>Dependencies</h1>
+              <template is="dom-repeat" items="[[_dependencies(data)]]">
+                <div class="dependency">
+                  <a href="/element/[[item.owner]]/[[item.repo]]">
+                    <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                  </a>
+                  <span>[[item.version]]</span>
+                </div>
+              </template>
+            </div>
 
-          <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-            Flag element
-          </a>
+            <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+              Flag element
+            </a>
+          </div>
         </div>
 
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[_docsPending(_docsLoading, docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -823,31 +824,27 @@
         }
       },
 
-      _docsPending: function(loading, docs) {
-        return loading || (docs && docs.status == 'pending');
-      },
-
       _docsResponse: function() {
         if (!this._lazyUnblocked) {
           this.$.block.unblock();
           this._lazyUnblocked = true;
         }
 
-        if (this.docs.status == 'error')
-          return;
-
-        if (this.docs.status == 'pending') {
-          this.$['sidebar-spinner'].setAttribute('active', '');
-          this.async(function() {
-            this.$.docsAjax.generateRequest();
-            this.$.collectionsAjax.generateRequest();
-          }, 1000);
-          return;
-        }
-
         this.$['sidebar-spinner'].removeAttribute('active');
         this._updateDescriptor();
         this.async(this._updateActiveLinks);
+      },
+
+      _docsError: function(event, error) {
+        if (error.request.response && error.request.response.status == 'pending') {
+          this.$['sidebar-spinner'].setAttribute('active', '');
+          this.async(function() {
+            this.$.docsAjax.generateRequest();
+          }, 500);
+        } else {
+          this.docs = {};
+          this.$['sidebar-spinner'].removeAttribute('active');
+        }
       },
 
       _updateDescriptor: function() {
