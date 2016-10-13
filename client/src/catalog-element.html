@@ -552,7 +552,7 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -618,14 +618,14 @@
       </div>
     </div>
 
-    <spinner-lite id="demo-spinner"></spinner-lite>
+    <spinner-lite id="demo-spinner" active="[[_dialogDemoLoading]]"></spinner-lite>
     <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
       <div id="close-dialog" on-tap="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>
       </div>
-      <iframe id="demo-frame" on-load="_demoLoaded"></iframe>
+      <iframe id="demo-frame" on-load="_demoLoaded" hidden="[[_dialogDemoLoading]]"></iframe>
     </catalog-dialog>
 
   </template>
@@ -645,20 +645,19 @@
         baseUrls: Object,
 
         queryParams: Object,
+
+        _infoBodyCollapsed: {
+          type: Boolean,
+          value: true,
+        },
       },
 
       observers: [
+        '_demoChanged(demo, visible)',
         '_routeChanged(route.path, route.prefix, visible)',
         '_updateLoading(_metaLoading, data)',
         'onload(_metaLoading)',
       ],
-
-      ready: function() {
-        this._loaded = true;
-        this._infoBodyCollapsed = true;
-        if (this.route)
-          this._routeChanged(this.route.path, this.route.prefix, this.visible);
-      },
 
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
@@ -723,54 +722,75 @@
       },
 
       _routeChanged: function(path, prefix, visible) {
-        if (!visible || !this._loaded || !(prefix == '/element' || prefix == '/preview'))
+        if (!visible || !(prefix == '/element' || prefix == '/preview'))
           return;
 
         if (prefix == '/preview' && path == '')
           return;
+
+        if (path == this._currentPath)
+          return;
+
+        this._currentPath = path;
 
         this._splitRoute();
         this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
 
         // Generate requests
-        if (!this._cachedData || this._cachedData !== this.repo) {
+        if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+          this._currentOwner = this.owner;
+          this._currentRepo = this.repo;
+          this._currentVersionRoute = this.versionRoute;
+          this.docs = null;
           this.$.metaAjax.generateRequest();
           this.$.docsAjax.generateRequest();
           this.$.collectionsAjax.generateRequest();
-          this._cachedData = this.repo;
-        } else {
-          this._updateDescriptor();
         }
 
-        // Trigger / hide demo UI.
-        if (this.demo) {
+        this._updateDescriptor();
+      },
+
+      _demoChanged: function(demo, visible) {
+        if (demo && visible)
           this._showDemo();
-        } else {
-          if (this.$['demo-dialog'].hasAttribute('unresolved'))
-            this.$['demo-dialog'].opened = false;
-          else
-            this.$['demo-dialog'].close();
-          this.$['demo-frame'].src = 'about:blank';
-        }
+        else
+          this._closeDemo();
       },
 
       _demoClicked: function() {
-        this.pathBeforeDemo = this.route.path;
+        this._navigatedToDemo = true;
       },
 
       _showDemo: function() {
-        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + this.versionRoute + '/' + this.repo + '/' + this.demo;
+        if (this.$['demo-dialog'].opened)
+          return;
+        // We can't start loading the demo until we have a version number.
+        // Either from the route, or from the metadata.
+        if (!(this.versionRoute || this.data))
+          return;
+        var demoVersionRoute = this.versionRoute || '/' + this.data.version;
+        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + demoVersionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
           this.$['demo-dialog'].opened = true;
         else
           this.$['demo-dialog'].open();
-        this.$['demo-spinner'].setAttribute('active', '');
+        this._dialogDemoLoading = true;
+      },
+
+      _closeDemo: function() {
+        this._navigatedToDemo = false;
+        if (!this.$['demo-dialog'].opened)
+          return;
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          this.$['demo-dialog'].opened = false;
+        else
+          this.$['demo-dialog'].close();
       },
 
       _demoLoaded: function() {
-        this.$['demo-spinner'].removeAttribute('active');
+        this._dialogDemoLoading = false;
       },
 
       _cancelDemo: function() {
@@ -780,14 +800,13 @@
       },
 
       _demoCanceled: function() {
-        this.$['demo-spinner'].removeAttribute('active');
-        this.$['demo-frame'].src = 'about:blank';
-        var path = this.pathBeforeDemo;
-        this.pathBeforeDemo = null;
-        if (!path) {
-          path = this.owner + '/' + this.repo + this.versionRoute;
+        if (this._navigatedToDemo) {
+          history.back();
+        } else {
+          history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
+          this.fire('location-changed');
         }
-        this.set('route.path', path);
+        this._dialogDemoLoading = false;
       },
 
       _updateLoading: function(metaLoading, data) {
@@ -807,7 +826,10 @@
 
         if (this.data.homepage && this.data.homepage.indexOf('elements.polymer-project.org') != -1)
           this.set('data.homepage', '');
+
         document.title = this.data.owner + '/' + this.data.repo;
+        if (this.demo)
+          this._showDemo();
       },
 
       _metaError: function(event, error) {
