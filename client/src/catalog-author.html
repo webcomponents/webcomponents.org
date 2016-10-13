@@ -82,7 +82,13 @@
 
       _metaError: function(event, error) {
         this._updateLoading();
-        this.fire('error', {status: error.request.status, title: 'Couldn\'t find author', githubPath: this._routeMatch.owner});
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process author', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find author', githubPath: this.author});
+        } else {
+          this.fire('error', {status: error.request.status, title: 'Unable to load author'});
+        }
       },
 
     });

@@ -476,9 +476,12 @@
           type: String,
           reflectToAttribute: true,
           observer: '_pageChanged',
-          computed: '_computePage(routeData.page, subroute)',
         }
       },
+
+      observers: [
+        '_updatePage(routeData.page, subroute)',
+      ],
 
       _filter: function(value, test, result, strip) {
         if (strip) {
@@ -533,14 +536,14 @@
         this.$.block.unblock();
       },
 
-      _computePage: function(page) {
+      _updatePage: function(page) {
         if (page == '') {
           page = 'home';
         }
         if (page == 'preview' && this.subroute.path) {
           page = 'element';
         }
-        return page;
+        this.page = page;
       },
 
       _pageChanged: function(page) {
@@ -586,7 +589,7 @@
       },
 
       _handleError: function(event) {
-        this.page = 'error';
+        this.set('page', 'error');
         this.$.error.error = event.detail;
       },
 

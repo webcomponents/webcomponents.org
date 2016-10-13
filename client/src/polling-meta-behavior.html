@@ -45,7 +45,7 @@
     },
 
     onMetaError: function(event, error) {
-      if (error.request.status == 404 || error.request.status == 0)
+      if (error.request.status == 400 || error.request.status == 404 || error.request.status == 0)
         this.async(this._pollMeta, 250 * this._numPolls);
       else
         this.fire('error', {status: error.request.status, title: 'error'});
