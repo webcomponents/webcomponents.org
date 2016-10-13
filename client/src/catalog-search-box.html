@@ -151,6 +151,21 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        #search-input {
+          height: 100%;
+          border-radius: 0;
+          margin: 0;
+        }
+
+        #progress {
+          margin-top: -2px;
+        }
+
+        #search-symbol {
+          height: 100%;
+          margin: 0 15px;
+        }
+
         #search-input, #collections {
           width: 100%;
         }
@@ -253,6 +268,10 @@
 
         this.addEventListener('focus', focusListener, true);
         this.addEventListener('blur', blurListener, true);
+      },
+
+      open: function() {
+        this.$['search-input'].focus();
       },
 
       _close: function() {

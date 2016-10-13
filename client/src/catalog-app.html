@@ -35,6 +35,7 @@
         --theme-navy: #226392;
         --theme-blue: #37A0CE;
         --theme-blue-grey: #697785;
+        --theme-black: #2D2F31;
 
         /* Deprecated colors */
         --theme-accent-1: #6dc38f;
@@ -168,6 +169,26 @@
         font-weight: 600;
       }
 
+      #mobile-search-trigger {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        fill: var(--theme-black);
+      }
+
+      #mobile-search-box {
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
+
+      #mobile-search-box.active {
+        display: block;
+      }
+
       /* Search toolbar */
 
       #toolbar-search {
@@ -262,10 +283,6 @@
           box-shadow: 0 2px 6px 0 #ededed;
         }
 
-        #publish-cta {
-          display: none;
-        }
-
         #toolbar-header #logo {
           width: 46px;
           height: 46px;
@@ -288,10 +305,6 @@
         #tag-line {
           margin: 0;
           font-size: 14px;
-        }
-
-        #toolbar-search {
-          display: none;
         }
 
         #search-box.active {
@@ -371,11 +384,13 @@
               <h2 id="domain-title">webcomponents.org</h2>
               <div id="tag-line" aria-label="web components .org">Discuss & share web components</div>
             </div>
-            <a id="publish-cta" href="/publish">Publish an element</a>
+            <a id="publish-cta" class="desktop-only" href="/publish">Publish an element</a>
+            <svg id="mobile-search-trigger" class="mobile-only" viewBox="0 0 100 100" id="search-symbol" on-click="_openSearch"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
+            <catalog-search-box id="mobile-search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
           </a>
         </div>
       </app-toolbar>
-      <app-toolbar sticky id="toolbar-search">
+      <app-toolbar sticky id="toolbar-search" class="desktop-only">
         <div id="toolbar-search-container">
           <div id="search-container">
             <catalog-search-box id="search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
@@ -608,6 +623,11 @@
 
       _searchTag: function(event) {
         this.fire('triggerSearch', {query: event.target.textContent});
+      },
+
+      _openSearch: function() {
+        this.$['mobile-search-box'].classList.add('active');
+        this.$['mobile-search-box'].open();
       },
 
     });
