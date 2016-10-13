@@ -41,6 +41,10 @@
         align-items: flex-start;
       }
 
+      .sub-heading a {
+        font-weight: 600;
+      }
+
       #getting-started {
         display: flex;
         flex-wrap: wrap;
@@ -99,7 +103,17 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
-        .sub-heading, section > h1 {
+        .sub-heading {
+          display: block;
+          text-align: center;
+          margin: 30px;
+        }
+
+        .sub-heading h1 {
+          margin: 16px;
+        }
+
+        section > h1 {
           margin: 0 16px;
         }
 
