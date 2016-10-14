@@ -2,6 +2,7 @@
   "name": "catalog",
   "main": "index.html",
   "dependencies": {
+    "marked": "~0.3.3",
     "polymer": "Polymer/polymer#^1.4.0",
     "app-route": "PolymerElements/app-route#^0.9.0",
     "app-layout": "PolymerElements/app-layout#^0.0.17",
@@ -11,7 +12,6 @@
     "codemirror": "codemirror/codemirror#^5.17.0",
     "iron-scroll-threshold": "PolymerElements/iron-scroll-threshold#^1.0.2",
     "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.8.6",
-    "marked-element": "polymerelements/marked-element#^1.2.0",
     "paper-spinner": "PolymerElements/paper-spinner#^1.2.0"
   },
   "devDependencies": {
