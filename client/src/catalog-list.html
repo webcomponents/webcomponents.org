@@ -72,20 +72,18 @@
       on-error="_updateLoading"
       params="[[_collectionRequestParams]]"></iron-ajax>
 
-    <template is="dom-if" if="[[_collections.count]]">
-      <h1 class="section-header">[[_collections.count]] Collection[[_s(_collections.count)]]</h1>
-      <div id="collections" class="loader" loading$="[[!_collections]]">
-        <template is="dom-repeat" items="[[_collections.results]]">
-          <collection-card class="box" data="[[item]]"></collection-card>
-        </template>
-        <div id="spacer"></div>
-      </div>
-    </template>
+    <template is="dom-if" if="[[_collections.count]]"><h1 class="section-header">[[_collections.count]] Collection[[_s(_collections.count)]]</h1></template>
+    <div id="collections" class="loader" loading$="[[!_collections]]">
+      <template is="dom-repeat" items="[[_collections.results]]">
+        <collection-card class="box" data="[[item]]"></collection-card>
+      </template>
+      <div id="spacer"></div>
+    </div>
     <template is="dom-if" if="[[_elements.count]]"><h1 class="section-header">[[_elements.count]] Element[[_s(_elements.count)]]</h1></template>
     <div id="elements" class="box loader" hidden="[[!_elements.count]]" loading$="[[!_and(_elements, _collections)]]">
-        <template is="dom-repeat" items="[[_elements.results]]">
-          <catalog-item data="[[item]]"></catalog-item>
-        </template>
+      <template is="dom-repeat" items="[[_elements.results]]">
+        <catalog-item data="[[item]]"></catalog-item>
+      </template>
     </div>
     <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
     <progress-bar indeterminate hidden$="[[!_showProgress]]"></progress-bar>
@@ -135,7 +133,7 @@
         if (this.disabled || !this.query) {
           return;
         }
-        if (this._collections && this._collections.cursor && (!this._elements || !this._elements.count)) {
+        if (this._collections && this._collections.cursor && (this._elements && !this._elements.count)) {
           // Only keep adding collections if there's no elements.
           this._collectionRequestParams.cursor = this._collections.cursor;
           this.$.collectionsAjax.generateRequest();
