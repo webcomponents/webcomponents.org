@@ -12,6 +12,7 @@
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
 <link rel="import" href="progress-bar.html">
+<link rel="import" href="syntax-highlighter.html">
 
 <dom-module id="catalog-app">
   <template>
@@ -369,6 +370,8 @@
       query-params="{{queryParams}}"></app-route>
 
     <lazy-block id="block"></lazy-block>
+    <syntax-highlighter id="highlighter"></syntax-highlighter>
+    <code-editor hidden="true"></code-editor>
 
     <app-header role="banner" condenses reveals>
       <app-toolbar id="toolbar-nav">
@@ -486,8 +489,10 @@
       },
 
       listeners: {
-        error: '_handleError',
-        triggerSearch: '_handleSearch'
+        'error': '_handleError',
+        'triggerSearch': '_handleSearch',
+        'code-mirror-loaded': '_onCodeMirror',
+        'syntax-highlight': '_onHighlight',
       },
 
       created: function() {
@@ -631,6 +636,14 @@
       _openSearch: function() {
         this.$['mobile-search-box'].classList.add('active');
         this.$['mobile-search-box'].open();
+      },
+
+      _onCodeMirror: function() {
+        this.$.highlighter.init();
+      },
+
+      _onHighlight: function(event) {
+        this.$.highlighter.highlightAll(event.detail.codeBlocks);
       },
 
     });

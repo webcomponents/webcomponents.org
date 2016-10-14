@@ -1,0 +1,85 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<script>
+  'use strict';
+
+  Polymer({
+
+    is: 'syntax-highlighter',
+
+    ready: function() {
+      this._queue = [];
+    },
+
+    /**
+     * Invoke once CodeMirror is ready
+     */
+    init: function() {
+      if (this._init)
+        return;
+      this._init = true;
+      this._queue.forEach(this._highlightElement.bind(this));
+      delete this._queue;
+    },
+
+    /**
+     * Async highlighter for pre element
+     * @param {!Element} element - DOM element to highlight
+     */
+    highlight: function(element) {
+      if (this._init)
+        this._highlightElement(element);
+      else
+        this._queue.push(element);
+    },
+
+    highlightAll: function(elements) {
+      if (this._init)
+        elements.forEach(this._highlightElement.bind(this));
+      else
+        this._queue = this._queue.concat(elements);
+    },
+
+    /**
+     * Detect language of the element. Elements can set a 'lang' attribute.
+     * Auto-detects markdown-render language.
+     * @param {!Element} element - DOM element to highlight
+     * @return {String} - language
+     */
+    _detectLang: function(element) {
+      var lang = element.getAttribute('lang');
+      if (!lang && element.firstElementChild && element.firstElementChild.tagName.toLowerCase() == 'code') {
+        var match = element.firstElementChild.className.match(/lang-(\w+)\b/);
+        if (match && match.length)
+          lang = match[1];
+      }
+
+      var map = {
+        js: 'javascript',
+        html: 'htmlmixed',
+      };
+
+      if (map[lang])
+        lang = map[lang];
+
+      return lang || 'htmlmixed';
+    },
+
+    _highlightElement: function(element) {
+      if (element.__syntaxHighlighted)
+        return;
+      element.__syntaxHighlighted = true;
+      element.classList.add('syntax-highlighted');
+
+      var lang = this._detectLang(element);
+      var text = element.textContent;
+      element.innerHTML = '';
+
+      /* global CodeMirror */
+      CodeMirror.runMode(text, lang, element);
+      element.classList.add('cm-s-default');
+    },
+
+  });
+
+</script>

@@ -1,10 +1,12 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-syntax-styles.html">
 
 <dom-module id="catalog-static">
   <template>
     <style include="catalog-styles"></style>
+    <style include="catalog-syntax-styles"></style>
 
     <template is="dom-if" if="[[_is(name, 'about')]]">
       <h1 class="page-title">About webcomponents.org</h1>
@@ -47,7 +49,7 @@
 
         <p>Using a custom element is as simple as importing it, and using the new tags in an HTML document. For example, to use the <a href="/element/notwaldorf/emoji-rain">Emoji Rain element</a>:</p>
 
-        <pre>
+        <pre lang="html">
 &lt;link rel="import" href="../emoji-rain/emoji-rain.html"&gt;
 ...
 &lt;emoji-rain active&gt;&lt;/emoji-rain&gt;</pre>
@@ -63,15 +65,15 @@ bower install emoji-rain</pre>
         <p>Use JavaScript to define a new HTML element and its tag with the customElements global. Call customElements.define() with the tag name you want to create and a JavaScript class that extends the base HTMLElement.</p>
 
         <p>For example, to define a mobile drawer panel, <code>&lt;app-drawer&gt;</code>:</p>
-<pre>
+<pre lang="javascript">
 class AppDrawer extends HTMLElement {...}
 window.customElements.define('app-drawer', AppDrawer);</pre>
         <p>To use the new tag:</p>
-        <pre>&lt;app-drawer&gt;&lt;/app-drawer&gt;</pre>
+        <pre lang="html">&lt;app-drawer&gt;&lt;/app-drawer&gt;</pre>
 
         <p>Using a custom element is no different to using a <code>&lt;div&gt;</code> or any other element. Instances can be declared on the page, created dynamically in JavaScript, event listeners can be attached, etc.</p>
 
-<pre>&lt;script&gt;
+<pre lang="html">&lt;script&gt;
   // Create with javascript
   var newDrawer = document.createElement(‘app-drawer’);
   // Add it to the page
@@ -84,7 +86,7 @@ window.customElements.define('app-drawer', AppDrawer);</pre>
         <p>Shadow DOM is a new DOM feature that helps you build components. You can think of shadow DOM as a scoped subtree inside your element.</p>
 
         <p>A shadow root is a document fragment that gets attached to a “host” element. The act of attaching a shadow root is how the element gains its shadow DOM. To create shadow DOM for an element, call element.attachShadow():</p>
-<pre>const header = document.createElement('header');
+<pre lang="js">const header = document.createElement('header');
 const shadowRoot = header.attachShadow({mode: 'open'});
 shadowRoot.innerHTML = '&lt;h1&gt;Hello Shadow DOM&lt;/h1&gt;'; // Could also use appendChild().
 // header.shadowRoot === shadowRoot
@@ -114,10 +116,26 @@ shadowRoot.innerHTML = '&lt;h1&gt;Hello Shadow DOM&lt;/h1&gt;'; // Could also us
 
       properties: {
         name: String,
+
+        visible: {
+          type: Boolean,
+          observer: '_visibilityChanged',
+        },
       },
 
       _is: function(name, match) {
         return name == match;
+      },
+
+      _visibilityChanged: function(visible) {
+        if (!visible)
+          return;
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          var codeBlocks = Polymer.dom(this.root).querySelectorAll('pre[lang]');
+          for (var i = 0; i < codeBlocks.length; i++)
+            this.scopeSubtree(codeBlocks[i], true);
+          this.fire('syntax-highlight', {codeBlocks: codeBlocks});
+        });
       },
 
     });
