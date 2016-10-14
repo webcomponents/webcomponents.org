@@ -35,6 +35,17 @@
         font-size: 22px;
       }
 
+      #header svg {
+        fill: black;
+        width: 24px;
+        height: 24px;
+        float: right;
+      }
+
+      #header svg[type=element] {
+        display: none;
+      }
+
       #description {
         color: hsl(0, 0%, 50%);
         max-height: 54px;
@@ -72,12 +83,14 @@
         height: 16px;
         margin-right: 5px;
       }
-
     </style>
 
     <template is="dom-if" if="[[data]]">
       <div class="container">
         <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" aria-label$="[[data.owner]]/[[data.repo]] collection">
+          <svg viewBox="0 0 100 100" type$="[[data.kind]]">
+           <use xlink:href="/sprite.octicons.svg#collection"></use>
+          </svg>
           <h2>[[data.repo]]</h2>
           <div id="description">[[data.description]]</div>
         </a>
