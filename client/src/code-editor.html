@@ -6,16 +6,6 @@
 <dom-module id="code-editor">
   <template>
     <style include="catalog-syntax-styles"></style>
-    <style>
-      :host[unresolved] #container .CodeMirror {
-        -webkit-filter: grayscale(100%);
-      }
-
-      #container {
-        -webkit-filter: grayscale(0%);
-        transition: -webkit-filter 1s;
-      }
-    </style>
 
     <div id="container"></div>
   </template>

@@ -5,13 +5,17 @@
   <link rel="import" type="css" href="../bower_components/codemirror/lib/codemirror.css">
   <template>
     <style>
-      pre {
-        filter: grayscale(100%);
-        transition: filter 500ms;
+      pre.syntax-highlighted, .CodeMirror {
+        animation: colorize 1s cubic-bezier(0, 0, 0.2, 1);
       }
 
-      pre.syntax-highlighted {
-        filter: none;
+      @keyframes colorize {
+        from {
+          filter: grayscale(100%);
+        }
+        to {
+          filter: none;
+        }
       }
 
       .CodeMirror {
