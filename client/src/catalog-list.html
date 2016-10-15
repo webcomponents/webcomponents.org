@@ -218,6 +218,8 @@
         var response = this.$.dependenciesAjax.lastResponse;
         var elements = response.results.filter(function(item) {
           return item.kind == 'element';
+        }).sort(function(a, b) {
+          return a.repo < b.repo ? -1 : 1;
         });
         this._elements = {
           results: elements,
@@ -225,6 +227,8 @@
         };
         var collections = response.results.filter(function(item) {
           return item.kind == 'collection';
+        }).sort(function(a, b) {
+          return a.repo < b.repo ? -1 : 1;
         });
 
         this._collections = {
