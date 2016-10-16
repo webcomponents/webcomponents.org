@@ -727,7 +727,7 @@ class IngestAnalysis(RequestHandler):
 class EnsureLibrary(RequestHandler):
   def handle_get(self, owner, repo):
     library = Library.get_by_id(Library.id(owner, repo))
-    if library is None:
+    if library is None or library.shallow_ingestion:
       task_url = util.ingest_library_task(owner, repo)
       util.new_task(task_url, target='manage')
 
