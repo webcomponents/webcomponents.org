@@ -14,7 +14,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-syntax-styles.html">
 
-<dom-module id="markdown-render">
+<dom-module id="mark-down">
   <template>
     <style include="catalog-styles"></style>
     <style include="catalog-syntax-styles"></style>
@@ -23,6 +23,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background: inherit;
         color: inherit;
         padding: 0;
+      }
+
+
+      table {
+        font-size: 14px;
+        background-color: hsl(0, 0%, 95%);
+        border-collapse: collapse;
+        margin: 12px 0;
+        width: 100%;
+      }
+
+      tr {
+        padding: 0 18px;
+      }
+
+      th {
+        font-weight: bold;
+      }
+
+      td,
+      th {
+        padding: 6px 12px;
+      }
+
+      td:first-child,
+      th:first-child {
+        padding-left: 24px;
+      }
+
+      td:last-child,
+      th:last-child {
+        padding-right: 24px;
+      }
+
+      td:first-child > code {
+        color: black;
+        font-weight: bold;
       }
     </style>
 
@@ -35,7 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   Polymer({
 
-    is: 'markdown-render',
+    is: 'mark-down',
 
     properties: {
       /**

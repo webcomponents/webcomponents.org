@@ -2,7 +2,7 @@
 
 <link rel="import" href="catalog-api-property.html">
 <link rel="import" href="catalog-styles.html">
-<link rel="import" href="markdown-render.html">
+<link rel="import" href="mark-down.html">
 
 <dom-module id="catalog-api-doc">
   <template>
@@ -45,53 +45,6 @@
         padding: 4px 0;
       }
 
-      #summary .markdown-html table {
-        font-size: 14px;
-        background-color: hsl(0, 0%, 95%);
-        border-collapse: collapse;
-        margin: 12px 0;
-        width: 100%;
-      }
-
-      #summary .markdown-html tr {
-        padding: 0 18px;
-      }
-
-      #summary .markdown-html th {
-        font-weight: bold;
-      }
-
-      #summary .markdown-html td,
-      #summary .markdown-html th {
-        padding: 6px 12px;
-      }
-
-      #summary .markdown-html td:first-child,
-      #summary .markdown-html th:first-child {
-        padding-left: 24px;
-      }
-
-      #summary .markdown-html td:last-child,
-      #summary .markdown-html th:last-child {
-        padding-right: 24px;
-      }
-
-      #summary .markdown-html td:first-child > code {
-        color: black;
-        font-weight: bold;
-      }
-
-      #summary .markdown-html p {
-        padding: 0;
-      }
-
-      #summary .markdown-html a {
-        background: none;
-        color: #536dfe; /*var(--paper-indigo-a200);*/
-        font-weight: 500;
-        text-decoration: none;
-      }
-
       /* Property Sections */
 
       .card {
@@ -109,11 +62,11 @@
       }
 
       nav {
-        border-bottom: 1px solid #eeeeee; /*var(--paper-grey-200)*/
+        border-bottom: 1px solid hsl(0, 0%, 95%);
       }
 
       catalog-api-property {
-        background: #eeeeee; /*var(--paper-grey-200)*/
+        background: hsl(0, 0%, 95%);
       }
 
       catalog-api-property:first-of-type {
@@ -143,7 +96,7 @@
     </style>
 
     <section id="summary" class="card" hidden$="[[!descriptor.desc]]">
-      <markdown-render markdown="{{descriptor.desc}}" class="markdown-html"></markdown-render>
+      <mark-down markdown="{{descriptor.desc}}" class="markdown-html"></mark-down>
     </section>
 
     <nav id="api">
