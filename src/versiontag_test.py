@@ -17,3 +17,11 @@ class VersionTagTest(unittest.TestCase):
 
     self.assertFalse(versiontag.match('2.0.0', '1.x'))
     self.assertFalse(versiontag.match('0.0.1', '1.x'))
+
+  def test_tilde_ranges(self):
+    self.assertTrue(versiontag.match('1.0.0', '~1'))
+    self.assertTrue(versiontag.match('1.1.0', '~1'))
+    self.assertTrue(versiontag.match('1.0.1', '~1'))
+    self.assertFalse(versiontag.match('2.0.0', '~1'))
+    self.assertFalse(versiontag.match('0.1.0', '~1'))
+    self.assertFalse(versiontag.match('0.0.1', '~1'))
