@@ -587,18 +587,22 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'README.md'), validate_certificate=True)
-    if response.status_code == 200:
-      readme = response.content
-      try:
-        Content(parent=self.version_key, id='readme', content=readme,
-                status=Status.ready, etag=response.headers.get('ETag', None)).put()
-      except db.BadValueError:
-        return self.error("Could not store README.md as a utf-8 string")
-    elif response.status_code == 404:
-      readme = None
-    else:
-      return self.retry('error fetching readme (%d)' % response.status_code)
+    readme = None
+    for readme_file_name in ['README.md', 'readme.md', 'ReadMe.md', 'Readme.md']:
+      response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, readme_file_name), validate_certificate=True)
+      if response.status_code == 200:
+        readme = response.content
+        try:
+          Content(parent=self.version_key, id='readme', content=readme,
+                  status=Status.ready, etag=response.headers.get('ETag', None)).put()
+          break
+        except db.BadValueError:
+          return self.error("Could not store README.md as a utf-8 string")
+      elif response.status_code == 404:
+        logging.info('no readme found at %s', readme_file_name)
+        continue
+      else:
+        return self.retry('error fetching readme (%d)' % response.status_code)
 
     if readme is not None:
       response = util.github_markdown(readme)
