@@ -711,13 +711,21 @@ class IngestAnalysis(RequestHandler):
     content = Content.get_by_id('analysis', parent=version_key)
     if content is None:
       return
-    content.content = None if data == '' else data
+    if data == '':
+      content.content = None
+    elif len(data) > 500000:
+      # Max entity size is only 1MB.
+      error = 'content was too large: %d' % len(data)
+    else:
+      content.content = data
+
     if error is None:
       content.status = Status.ready
       content.error = None
     else:
       content.status = Status.error
       content.error = error
+
     content.put()
 
     if version_key.id() == Library.latest_version_for_key_async(version_key.parent()).get_result():
