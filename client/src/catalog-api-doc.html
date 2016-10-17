@@ -206,6 +206,13 @@
           }
         },
 
+        ready: function() {
+          var hash = window.location.hash;
+          if (hash) {
+            this.async(this.scrollToAnchor.bind(this, hash), 500);
+          }
+        },
+
         _noneToShow: function(items) {
           return items.length == 0;
         },
