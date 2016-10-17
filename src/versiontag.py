@@ -1,6 +1,8 @@
 import re
 import semantic_version
 
+X_RANGE = re.compile(r'(\.[*xX])+$')
+BAD_TILDE = re.compile(r'^~\d+$')
 EXPR = re.compile(r'^(v)?(\d+)\.(\d+)\.(\d+)$')
 
 def is_valid(tag):
@@ -23,6 +25,12 @@ def compare(version1, version2):
 def match(version, spec):
   if spec == '*' or spec == 'master':
     return True
+  if X_RANGE.search(spec):
+    spec = '~' + X_RANGE.sub('', spec)
+  # semantic_version fails with '~1'...
+  if BAD_TILDE.search(spec):
+    main = spec[1:]
+    spec = '>=%s,<%d' % (main, int(main) + 1)
   if version[0] == 'v':
     version = version[1:]
   try:
