@@ -809,13 +809,13 @@ class BuildSitemaps(RequestHandler):
     collections = Sitemap(id='collections')
     collections.pages = [key.id() for key in keys]
     collections.put()
-    logging.info('%d collections', len(elements.pages))
+    logging.info('%d collections', len(collections.pages))
 
     keys = Author.query().fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY)
     authors = Sitemap(id='authors')
     authors.pages = [key.id() for key in keys]
     authors.put()
-    logging.info('%d authors', len(elements.pages))
+    logging.info('%d authors', len(authors.pages))
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
