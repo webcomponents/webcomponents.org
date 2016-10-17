@@ -560,7 +560,7 @@
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
@@ -570,7 +570,7 @@
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
