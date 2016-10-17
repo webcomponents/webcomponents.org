@@ -20,9 +20,9 @@ handlers:
   upload: assets/favicon.ico
   static_files: assets/favicon.ico
   secure: always
-- url: /service-worker-entry.js
-  upload: service-worker-entry.js
-  static_files: service-worker-entry.js
+- url: /service-worker-runtime.js
+  upload: service-worker-runtime.js
+  static_files: service-worker-runtime.js
   secure: always
 - url: /service-worker.js
   upload: service-worker.js
