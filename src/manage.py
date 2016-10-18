@@ -711,13 +711,22 @@ class IngestAnalysis(RequestHandler):
     content = Content.get_by_id('analysis', parent=version_key)
     if content is None:
       return
-    content.content = None if data == '' else data
+    if data == '':
+      content.content = None
+    elif len(data) > 500000:
+      # Max entity size is only 1MB.
+      logging.error('content was too large: %d %s %s', len(data), Library.id(owner, repo), version)
+      error = 'content was too large: %d' % len(data)
+    else:
+      content.content = data
+
     if error is None:
       content.status = Status.ready
       content.error = None
     else:
       content.status = Status.error
       content.error = error
+
     content.put()
 
     if version_key.id() == Library.latest_version_for_key_async(version_key.parent()).get_result():
@@ -809,13 +818,13 @@ class BuildSitemaps(RequestHandler):
     collections = Sitemap(id='collections')
     collections.pages = [key.id() for key in keys]
     collections.put()
-    logging.info('%d collections', len(elements.pages))
+    logging.info('%d collections', len(collections.pages))
 
     keys = Author.query().fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY)
     authors = Sitemap(id='authors')
     authors.pages = [key.id() for key in keys]
     authors.put()
-    logging.info('%d authors', len(elements.pages))
+    logging.info('%d authors', len(authors.pages))
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
