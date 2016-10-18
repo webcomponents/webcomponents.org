@@ -29,6 +29,7 @@
         font-family: var(--theme-font);
         font-size: 16px;
         color: var(--theme-blue-grey);
+        -webkit-appearance: none; /* Safari support */
       }
 
       #search-input:focus {
@@ -267,12 +268,12 @@
           focused = true;
           this._onFocus();
         }.bind(this);
-        var blurListener = function() {
+        var blurListener = function(event) {
           focused = false;
           this.async(function() {
             if (!focused)
-              this._onBlur();
-          }, 1);
+              this._onBlur(event);
+          }, 100); /* 100ms is a Safari workaround since this fires before the focus event */
         }.bind(this);
 
         this.addEventListener('focus', focusListener, true);
