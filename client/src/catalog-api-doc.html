@@ -184,32 +184,15 @@
           this._behaviors = this.descriptor.behaviors || [];
 
           this.toggleAttribute('abstract', this.descriptor.abstract);
-        },
 
-        /**
-         * Scrolls to the currently selected anchor, as identified
-         * by the URL hash. Whichever element or script is in charge
-         * of routing should call this method on initial page load and
-         * on hashchange events.
-         * @param {string} hash The hash to scroll to
-         */
-        scrollToAnchor: function(hash) {
-          // ToDo: handle linking to private members
-          if (hash && hash.length > 1) {
-            // ensure all dom-repeats have rendered.
-            Polymer.dom.flush();
-            var anchorId = window.location.hash.slice(1);
-            var elementToFocus = this.$$('[anchor-id="' + anchorId + '"]');
-            if (elementToFocus) {
-              elementToFocus.scrollIntoView();
-            }
-          }
-        },
-
-        ready: function() {
           var hash = window.location.hash;
           if (hash) {
-            this.async(this.scrollToAnchor.bind(this, hash), 500);
+            this.async(function() {
+              var elementToFocus = this.$$('[anchor-id="' + hash.slice(1) + '"]');
+              if (elementToFocus) {
+                elementToFocus.scrollIntoView();
+              }
+            }, 1);
           }
         },
 
