@@ -62,7 +62,9 @@ class Hydrolysis {
               Ana.debug("Got elements and behaviors");
 
               // Strip ridiculously huge (or circular) fields from elements.
-              removeProperties(elements, ["scriptElement", "javascriptNode"]);
+              removeProperties(elements, ["scriptElement", "javascriptNode", "observerNode"]);
+              removeProperties(behaviors, ["scriptElement", "javascriptNode", "observerNode"]);
+
               Ana.debug("Filtered elements");
 
               // Get the element names that were in the folder.
