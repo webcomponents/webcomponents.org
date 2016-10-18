@@ -1,5 +1,3 @@
-importScripts('/service-worker.js');
-
 toolbox.router.get(/\/api\/search\/.*/, toolbox.networkFirst, {
   cache: {
     maxEntries:100,
