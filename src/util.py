@@ -151,3 +151,8 @@ def generate_prefixes_from_list(list_of_strings):
     for token in tokens:
       prefixes = prefixes + generate_prefixes(token.lower())
   return list(set(prefixes))
+
+def safesplit(input):
+  if input is None:
+    return []
+  return str(input).split()
