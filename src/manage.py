@@ -715,6 +715,7 @@ class IngestAnalysis(RequestHandler):
       content.content = None
     elif len(data) > 500000:
       # Max entity size is only 1MB.
+      logging.error('content was too large: %d %s %s', len(data), Library.id(owner, repo), version)
       error = 'content was too large: %d' % len(data)
     else:
       content.content = data
