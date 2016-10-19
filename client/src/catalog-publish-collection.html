@@ -94,6 +94,7 @@
         window.history.pushState({}, null, '/collection/' + this._validatedRepo);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
+        this.fire('event', {category: 'Publish collection', action: 'success'});
       },
 
       _error: function() {

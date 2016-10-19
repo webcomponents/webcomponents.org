@@ -256,6 +256,14 @@
         100% { opacity: 1; }
       }
 
+      #toast:unresolved {
+        display: none;
+      }
+
+      #toast a {
+        margin-left: 16px;
+      }
+
       @media (max-width: 500px), (max-height: 500px) {
         :host {
           padding-top: 70px;
@@ -359,7 +367,7 @@
       }
     </style>
 
-    <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
+    <catalog-analytics id="analytics" key="[[analyticsKey()]]"></catalog-analytics>
 
     <app-location route="{{route}}"></app-location>
     <app-route
@@ -404,6 +412,10 @@
     </app-header>
 
     <progress-bar id="progress" indeterminate></progress-bar>
+
+    <paper-toast id="toast" text="Redirected from Polymer Element catalog">
+      <a href="#" on-click="_optOut">Take me back</a>
+    </paper-toast>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
       <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
@@ -481,24 +493,31 @@
         '_updatePage(routeData.page, subroute)',
       ],
 
-      _filter: function(value, test, result, strip) {
-        if (strip) {
-          result = result.replace(new RegExp(strip), '');
-        }
-        return value == test ? result : undefined;
-      },
-
       listeners: {
         'error': '_handleError',
         'triggerSearch': '_handleSearch',
         'code-mirror-loaded': '_onCodeMirror',
         'syntax-highlight': '_onHighlight',
+        'event': '_onEvent',
+        'lazy-loaded': '_onLazyLoaded',
       },
 
       created: function() {
         if (window.performance && performance.mark)
           performance.mark('catalog-app.created');
         this.removeAttribute('unresolved');
+      },
+
+      ready: function() {
+        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0)
+          this.$.toast.setAttribute('opened', '');
+      },
+
+      _filter: function(value, test, result, strip) {
+        if (strip) {
+          result = result.replace(new RegExp(strip), '');
+        }
+        return value == test ? result : undefined;
       },
 
       _setLoading: function() {
@@ -630,6 +649,7 @@
       },
 
       _searchTag: function(event) {
+        this.fire('event', {category: 'Search', action: 'tag'});
         this.fire('triggerSearch', {query: event.target.textContent});
       },
 
@@ -644,6 +664,46 @@
 
       _onHighlight: function(event) {
         this.$.highlighter.highlightAll(event.detail.codeBlocks);
+      },
+
+      _onLazyLoaded: function() {
+        this._lazyLoaded = true;
+
+        // Flush analytics events
+        if (this._eventRecords && this._eventRecords.length) {
+          for (var i = 0; i < this._eventRecords.length; i++)
+            this.$.analytics.recordEvent(this._eventRecords[i]);
+          delete this._eventRecords;
+        }
+      },
+
+      _optOut: function() {
+        /* global ga */
+        if (window.ga) {
+          ga('send', 'event', {
+            eventCategory: 'Optout',
+            eventAction: 'Toast',
+            eventLabel: 'Polymer Elements redirect',
+            transport: 'beacon'
+          });
+        }
+        // Forced delay to allow analytics to run.
+        setTimeout(function() {
+          window.location.href = 'https://elements.polymer-project.org?redirect=';
+        }, 500);
+      },
+
+      /**
+       * Captures and sends analytics on events
+       * @param {Object} event - event Object
+       */
+      _onEvent: function(event) {
+        if (!this._lazyLoaded) {
+          this._eventRecords = this._eventRecords || [];
+          this._eventRecords.push(event.detail);
+          return;
+        }
+        this.$.analytics.recordEvent(event.detail);
       },
 
     });

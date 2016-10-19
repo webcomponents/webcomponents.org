@@ -245,6 +245,7 @@
           '```',
         ].join('\n');
         window.open('data:text/plain;base64,' + btoa(source));
+        this.fire('event', {category: 'Inline demo', action: 'export'});
       },
 
       _expandSource: function() {
@@ -285,6 +286,11 @@
           return;
 
         this.debounce('updateDemo', this._setDemo, 200);
+
+        if (!this._editEvent) {
+          this.fire('event', {category: 'Inline demo', action: 'edit'});
+          this._editEvent = true;
+        }
       },
 
       _setFrame: function() {
