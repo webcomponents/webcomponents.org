@@ -591,21 +591,13 @@ class IngestVersion(RequestHandler):
     readme_api_url = util.github_url('repos', self.owner, self.repo, 'readme') + '?ref=%s' % self.sha
     readme_api_response = urlfetch.fetch(readme_api_url)
     if readme_api_response.status_code == 200:
-      readme_url = json.loads(readme_api_response.content)['download_url']
-      readme_response = urlfetch.fetch(readme_url)
-      if readme_response.status_code == 200:
-        readme = readme_response.content
-        try:
-          Content(parent=self.version_key, id='readme', content=readme,
-                  status=Status.ready, etag=readme_response.headers.get('ETag', None)).put()
-          break
-        except db.BadValueError:
-          return self.error("Could not store README.md as a utf-8 string")
-      elif readme_response.status_code == 404:
-        logging.info('no readme found at %s', readme_url)
-        readme = None
-      else:
-        return self.retry('error fetching readme (%d)' % readme_response.status_code)
+      readme_api_content = json.loads(readme_api_response.content)
+      readme = base64.b64decode(readme_api_content['content'])
+      try:
+        Content(parent=self.version_key, id='readme', content=readme,
+                status=Status.ready, etag=readme_api_response.headers.get('ETag', None)).put()
+      except db.BadValueError:
+        return self.error("Could not store README.md as a utf-8 string")
     elif readme_api_response.status_code == 404:
       logging.info('no readme found at %s', readme_api_url)
       readme = None
