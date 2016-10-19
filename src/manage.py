@@ -587,9 +587,9 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'README.md'), validate_certificate=True)
+    response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
     if response.status_code == 200:
-      readme = response.content
+      readme = base64.b64decode(json.loads(response.content)['content'])
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()
