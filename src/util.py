@@ -4,6 +4,7 @@ from google.appengine.api import urlfetch
 import json
 import logging
 import re
+import urllib
 import yaml
 
 SECRETS = {}
@@ -22,9 +23,10 @@ def add_authorization_header(headers, access_token=None):
   if access_token is not None:
     headers['Authorization'] = 'token %s' % access_token
 
-def github_url(prefix, owner=None, repo=None, detail=None):
+def github_url(prefix, owner=None, repo=None, detail=None, params=None):
   parts = [part for part in [prefix, owner, repo, detail] if part is not None]
-  return 'https://api.github.com/' + '/'.join(parts)
+  params = '?' + urllib.urlencode(params) if params is not None else ''
+  return 'https://api.github.com/' + '/'.join(parts) + params
 
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
@@ -98,19 +100,19 @@ def github_rate_limit():
 def github_markdown(content):
   return github_post('markdown', payload={'text': inline_demo_transform(content)})
 
-def github_get(name, owner=None, repo=None, context=None, etag=None, access_token=None, headers=None):
-  return github_request(name, owner=owner, repo=repo, context=context, etag=etag, access_token=access_token, headers=headers)
+def github_get(name, owner=None, repo=None, context=None, etag=None, access_token=None, headers=None, params=None):
+  return github_request(name, owner=owner, repo=repo, context=context, etag=etag, access_token=access_token, headers=headers, params=params)
 
 def github_post(name, owner=None, repo=None, context=None, payload=None, access_token=None):
   return github_request(name, owner=owner, repo=repo, context=context, access_token=access_token, method='POST', payload=payload)
 
-def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None, headers=None):
+def github_request(name, owner=None, repo=None, context=None, etag=None, access_token=None, method='GET', payload=None, headers=None, params=None):
   if headers is None:
     headers = {}
   add_authorization_header(headers, access_token)
   if etag is not None:
     headers['If-None-Match'] = etag
-  url = github_url(name, owner, repo, context)
+  url = github_url(name, owner, repo, context, params)
   response = urlfetch.fetch(url, headers=headers, validate_certificate=True, payload=json.dumps(payload), method=method)
   ratelimit_remaining = response.headers.get('x-ratelimit-remaining', None)
   if ratelimit_remaining is not None:

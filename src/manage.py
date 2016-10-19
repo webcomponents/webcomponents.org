@@ -587,7 +587,7 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = util.github_get('repos', self.owner, self.repo, 'readme?ref=%s' % self.sha)
+    response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
     if response.status_code == 200:
       readme = base64.b64decode(json.loads(response.content)['content'])
       try:
