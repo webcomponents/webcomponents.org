@@ -1,3 +1,4 @@
+from base64 import b64encode
 import unittest
 import webtest
 
@@ -5,7 +6,6 @@ from datamodel import Author, Library, Version, Content, Status, VersionCache, C
 from manage import app
 import util
 
-from base64 import b64encode
 from google.appengine.ext import ndb
 
 from test_base import TestBase
@@ -330,7 +330,7 @@ class IngestLibraryTest(ManageTestBase):
     library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
     Version(id='v1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to_github('https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
+    self.respond_to_github(r'https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
     self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
