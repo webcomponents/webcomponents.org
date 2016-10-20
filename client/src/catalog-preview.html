@@ -74,6 +74,10 @@
           return;
         }
 
+        if (window.ga) {
+          window.ga('send', 'event', 'preview', 'submit');
+        }
+
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.params = {
           url: url,

@@ -173,6 +173,9 @@
           return;
         }
 
+        if (window.ga) {
+          window.ga('send', 'event', 'publish', 'submit');
+        }
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();

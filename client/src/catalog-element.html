@@ -948,6 +948,10 @@
 
       _toggleExpand: function() {
         this._infoBodyCollapsed = !this._infoBodyCollapsed;
+
+        if (window.ga) {
+          window.ga('send', 'event', 'element', 'toggle-info');
+        }
       },
 
       _searchTag: function(event) {
