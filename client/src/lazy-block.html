@@ -68,6 +68,7 @@
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/lazy-resources.html', this._loadCodeEditor.bind(this), null, true);
           });
+          this.fire('lazy-loaded');
         },
 
         _loadCodeEditor: function() {
@@ -79,6 +80,7 @@
               this._remove();
             }.bind(this), null, true);
           });
+          this.fire('code-editor-loaded');
         },
 
       });

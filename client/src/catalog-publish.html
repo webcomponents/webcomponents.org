@@ -186,6 +186,7 @@
         window.history.pushState({}, null, '/element/' + this._validatedRepo);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
+        this.fire('event', {category: 'Publish element', action: 'success'});
       },
 
       _error: function() {

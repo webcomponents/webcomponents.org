@@ -93,6 +93,7 @@
         window.history.pushState({}, null, '/preview/' + this._ownerRepoSha);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
+        this.fire('event', {category: 'Preview element', action: 'success'});
       },
 
       _error: function() {
