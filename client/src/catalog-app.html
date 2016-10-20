@@ -678,19 +678,22 @@
       },
 
       _optOut: function() {
+        function navigate() {
+          window.location.href = 'https://elements.polymer-project.org?redirect=';
+        }
+
         /* global ga */
         if (window.ga) {
           ga('send', 'event', {
             eventCategory: 'Optout',
             eventAction: 'Toast',
             eventLabel: 'Polymer Elements redirect',
-            transport: 'beacon'
+            transport: 'beacon',
+            hitCallback: navigate,
           });
+        } else {
+          navigate();
         }
-        // Forced delay to allow analytics to run.
-        setTimeout(function() {
-          window.location.href = 'https://elements.polymer-project.org?redirect=';
-        }, 500);
       },
 
       /**
