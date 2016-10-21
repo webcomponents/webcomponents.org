@@ -388,7 +388,7 @@
             <div id="logo"></div>
             <div id="title-tag">
               <h2 id="domain-title">webcomponents.org</h2>
-              <div id="tag-line" aria-label="web components .org">Discuss & share web components</div>
+              <div id="tag-line" aria-label="web components .org">[[_tagLine()]]</div>
             </div>
             <a id="publish-cta" class="desktop-only" href="/publish">Publish an element</a>
             <svg id="mobile-search-trigger" class="mobile-only" viewBox="0 0 100 100" id="search-symbol" on-click="_openSearch"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
@@ -646,6 +646,19 @@
         }
 
         return result;
+      },
+
+      _tagLine: function() {
+        var tagLines = [
+          "Discuss & share web components",
+          "There's an element for that",
+          "Building blocks for the web",
+          "Keep calm and #UseThePlatform",
+        ];
+
+        // Changes everyday
+        var daysSinceEpoch = Math.floor(Date.now() / 8.64e7);
+        return tagLines[Math.round(daysSinceEpoch % tagLines.length)];
       },
 
       _searchTag: function(event) {
