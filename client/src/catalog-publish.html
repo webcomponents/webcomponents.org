@@ -2,11 +2,13 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-syntax-styles.html">
 <link rel="import" href="polling-meta-behavior.html">
 
 <dom-module id="catalog-publish">
   <template>
     <style include="catalog-styles"></style>
+    <style include="catalog-syntax-styles"></style>
 
     <style>
       .tip {
@@ -53,6 +55,12 @@
           <li>README - please create a README.md for your repository. Here's a template you can use: <a href="https://gist.github.com/zenorocha/4526327">A template for Github READMEs (Markdown)</a>.</li>
         </ul>
 
+        <h2>Add a badge</h2>
+        <p>You can add a badge to the top of of your README so users can access your listing.</p>
+        <img src="https://img.shields.io/badge/webcomponents.org-published-blue.svg">
+        <img src="https://img.shields.io/badge/webcomponents.org-published-blue.svg?style=flat-square">
+        <pre>[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://beta.webcomponents.org/element/owner/my-element)</pre>
+
         <h2>Add an inline demo</h2>
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
 
@@ -67,7 +75,7 @@
 
         <p>For the following raw markdown:</p>
    
-<pre>&lt;!--
+<pre lang="html">&lt;!--
 ```
 &lt;custom-element-demo&gt;
   &lt;template&gt;
@@ -82,7 +90,7 @@
 ```</pre>
 
         <p>The Github rendered markdown is:</p>	
-        <pre>&lt;my-element&gt;&lt;/my-element&gt;</pre>
+        <pre lang="html">&lt;my-element&gt;&lt;/my-element&gt;</pre>
 	
         <p>Best practices:</p>
         <ul>
@@ -154,6 +162,11 @@
         sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQo8L3N0eWxlPgo8cGFwZXItcHJvZ3Jlc3MgaW5kZXRlcm1pbmF0ZT48L3BhcGVyLXByb2dyZXNzPg==");
         sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGU+PC9wYXBlci1wcm9ncmVzcz4=");
         sample.docsPending = false;
+
+        var codeBlocks = Polymer.dom(this.root).querySelectorAll('pre[lang]');
+        for (var i = 0; i < codeBlocks.length; i++)
+          this.scopeSubtree(codeBlocks[i], true);
+        this.fire('syntax-highlight', {codeBlocks: codeBlocks});
       },
 
       onSubmit: function() {
