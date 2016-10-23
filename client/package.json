@@ -1,0 +1,9 @@
+{
+  "name": "client",
+  "scripts": {
+    "install": "bower install"
+  },
+  "dependencies": {
+    "codemirror": "^5.20.0"
+  }
+}

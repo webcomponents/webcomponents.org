@@ -14,6 +14,7 @@ cache:
   directories:
     - node_modules
     - client/bower_components
+    - client/node_modules
     - lib
     - gcloud
     - analysis/node_modules
@@ -26,7 +27,7 @@ before_install:
 install:
 - npm install -g bower
 - npm install
-- "(cd client; bower install)"
+- "(cd client; npm install)"
 - "(cd analysis; npm install)"
 - pip install -r requirements.txt -t lib/
 - if [ ! -d $HOME/gcloud/google-cloud-sdk ]; then mkdir -p $HOME/gcloud && wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
