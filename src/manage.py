@@ -286,8 +286,8 @@ class LibraryTask(RequestHandler):
 
   def trigger_version_ingestion(self, tag, sha, url=None, preview=False):
     version_object = Version.get_by_id(tag, parent=self.library.key)
-    if version_object is not None and version_object.status == Status.ready:
-      # Version object is already up to date
+    if version_object is not None and (version_object.status == Status.ready or version_object.status == Status.pending):
+      # Version object is already up to date or pending
       return
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url, preview=preview).put()
@@ -312,9 +312,13 @@ class LibraryTask(RequestHandler):
     util.new_task(task_url, target='manage', transactional=True)
 
   def update_collection_tags(self):
+    # Transition from when we didn't store tag_map
+    if self.library.tag_map is None:
+      self.library.tags_etag = None
+
     response = util.github_get('repos', self.owner, self.repo, 'git/refs/heads/master', etag=self.library.tags_etag)
     if response.status_code == 304:
-      return
+      return json.loads(self.library.tag_map)
 
     if response.status_code != 200:
       return self.retry('could not update git/refs/heads/master (%d)' % response.status_code)
@@ -327,19 +331,35 @@ class LibraryTask(RequestHandler):
     if data.get('ref', None) != 'refs/heads/master':
       return self.error('could not find master branch')
 
+    master_sha = data['object']['sha']
+
+    if self.library.tag_map is not None:
+      # Even though we got a reply the master_sha might not have changed.
+      tag_map = json.loads(self.library.tag_map)
+      if tag_map.values()[0] == master_sha:
+        return tag_map
+
     self.library.collection_sequence_number = self.library.collection_sequence_number + 1
     version = 'v0.0.%d' % self.library.collection_sequence_number
+    tag_map = {version: master_sha}
+
+    self.library_dirty = True
     self.library.tags = [version]
+    self.library.tag_map = json.dumps(tag_map)
     self.library.tags_etag = response.headers.get('ETag', None)
     self.library.tags_updated = datetime.datetime.now()
-    self.library.library_dirty = True
 
-    return {version: data['object']['sha']}
+    return tag_map
 
   def update_element_tags(self):
+    # Transition from when we didn't store tag_map
+    if self.library.tag_map is None:
+      self.library.tags_etag = None
+
     response = util.github_get('repos', self.owner, self.repo, 'tags', etag=self.library.tags_etag)
+
     if response.status_code == 304:
-      return None
+      return json.loads(self.library.tag_map)
 
     if response.status_code != 200:
       return self.retry('could not update git/refs/tags (%d)' % response.status_code)
@@ -347,19 +367,18 @@ class LibraryTask(RequestHandler):
     try:
       data = json.loads(response.content)
     except ValueError:
-      return self.error("could not parse git/refs/tags")
+      return self.error("could not parse tags")
 
-    new_tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
-                       if versiontag.is_valid(tag['name']))
-    new_tags = new_tag_map.keys()
-    new_tags.sort(versiontag.compare)
-
-    self.library.tags = new_tags
+    tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
+                   if versiontag.is_valid(tag['name']))
+    tags = tag_map.keys()
+    tags.sort(versiontag.compare)
+    self.library.library_dirty = True
+    self.library.tags = tags
+    self.library.tag_map = json.dumps(tag_map)
     self.library.tags_etag = response.headers.get('ETag', None)
     self.library.tags_updated = datetime.datetime.now()
-    self.library.library_dirty = True
-
-    return new_tag_map
+    return tag_map
 
   def update_versions(self):
     if self.library.shallow_ingestion:
@@ -373,32 +392,30 @@ class LibraryTask(RequestHandler):
       assert self.library.kind == 'element'
       new_tag_map = self.update_element_tags()
 
-    if new_tag_map is None:
-      new_tags = old_tags
-    else:
-      new_tags = new_tag_map.keys()
-      new_tags.sort(versiontag.compare)
+    new_tags = new_tag_map.keys()
 
-    # FIXME: Rename to tags_to_delete.
-    # FIXME: And change to (Library.versions_for_key_async - new_tags).
-    # FIXME: And do this check regardless of whether the tags have changed.
-    # FIXME: But not if there are any pending ingestions.
-    removed_tags = list(set(old_tags) - set(new_tags))
-    added_tags = list(set(new_tags) - set(old_tags))
+    ingested_tags = Library.versions_for_key_async(self.library.key).get_result()
+    tags_to_add = list(set(new_tags) - set(ingested_tags))
+    tags_to_add.sort(versiontag.compare)
+    tags_to_add.reverse()
 
-    for tag in removed_tags:
-      self.trigger_version_deletion(tag)
+    if ingested_tags == [] and len(tags_to_add) > 1:
+      # Only ingest the latest version if we're doing ingestion for the first time.
+      tags_to_add = tags_to_add[-1:]
+
+    tags_to_delete = list(set(ingested_tags) - set(new_tags))
+
+    # To avoid running into limits on the number of tasks (5) that can be spawned transactionally
+    # only ingest (2 tasks) or delete (1 task) one version per update.
+    if len(tags_to_add) > 0:
+      tag = tags_to_add[0]
+      self.trigger_version_ingestion(tag, new_tag_map[tag])
+    elif len(tags_to_delete) > 0:
+      tag = tags_to_delete[0]
+      self.trigger_version_deletion(tags_to_delete[0])
 
     if len(new_tags) is 0:
       return self.error("couldn't find any tagged versions")
-
-    added_tags.sort(versiontag.compare)
-    added_tags.reverse()
-    for tag in added_tags:
-      is_latest = tag == new_tags[-1]
-      # Only ingest the latest version if we're doing ingestion for the first time.
-      if old_tags != [] or is_latest:
-        self.trigger_version_ingestion(tag, new_tag_map[tag])
 
 class IngestLibrary(LibraryTask):
   def is_transactional(self):
