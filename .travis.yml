@@ -2,7 +2,6 @@ language: python
 node_js: stable
 sudo: false
 addons:
-  firefox: latest
   sauce_connect: true
   apt:
     sources:
