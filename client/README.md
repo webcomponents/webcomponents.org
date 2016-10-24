@@ -3,6 +3,10 @@
 ```bash
 cd client && npm install
 ```
+Using yarn:
+```bash
+cd client && yarn
+```
 
 ### Running
 Run using either of these commands:
