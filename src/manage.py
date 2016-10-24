@@ -384,8 +384,6 @@ class LibraryTask(RequestHandler):
     if self.library.shallow_ingestion:
       return
 
-    old_tags = self.library.tags
-
     if self.library.kind == 'collection':
       new_tag_map = self.update_collection_tags()
     else:
