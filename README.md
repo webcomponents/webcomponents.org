@@ -33,6 +33,10 @@ The following dependencies are required to develop, test and/or deploy beta.webc
 ```bash
 npm install
 ```
+Alternatively, you can use yarn for faster builds:
+```bash
+yarn
+```
 
 ## Client & analysis
 For instructions, view their sub-directories `client/` and `analysis/`.
