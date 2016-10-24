@@ -6,7 +6,7 @@
     "type": "git"
   },
   "scripts": {
-    "install": "pip install -t lib -r requirements.txt",
+    "install": "rm -rvf lib && pip install -t lib -r requirements.txt",
     "client": "cd client && npm install && dev_appserver.py client.yaml"
   },
   "devDependencies": {
