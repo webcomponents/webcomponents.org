@@ -191,6 +191,26 @@ class UpdateLibraryTest(ManageTestBase):
         util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
     ], [task.url for task in tasks])
 
+  def test_update_doesnt_ingest_older_versions(self):
+    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0'], spdx_identifier='MIT').put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v0.5.0", "commit": {"sha": "new"}},
+        {"name": "v1.0.0", "commit": {"sha": "old"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+    ], [task.url for task in tasks])
+
   def test_subsequent_update_triggers_version_ingestion(self):
     library_key = Library(id='org/repo', spdx_identifier='MIT', tag_map='{"v1.0.0":"new","v2.0.0":"old","v3.0.0":"new"}').put()
     Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
