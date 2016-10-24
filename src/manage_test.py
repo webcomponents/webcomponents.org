@@ -138,7 +138,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual(library.status, Status.suppressed)
 
   def test_update_respects_304(self):
-    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
+    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', tag_map='{}', spdx_identifier='MIT')
     library.put()
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -171,6 +171,7 @@ class UpdateLibraryTest(ManageTestBase):
     Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -186,10 +187,72 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0'),
         util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
-        # We intentionally don't update tags that have changed to point to different commits.
+    ], [task.url for task in tasks])
+
+  def test_subsequent_update_triggers_version_ingestion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT', tag_map='{"v1.0.0":"new","v2.0.0":"old","v3.0.0":"new"}').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
+    ], [task.url for task in tasks])
+
+  def test_update_triggers_version_deletion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v1.0.0", "commit": {"sha": "old"}},
+        {"name": "v2.0.0", "commit": {"sha": "old"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.delete_task('org', 'repo', 'v0.1.0'),
+    ], [task.url for task in tasks])
+
+  def test_subsequent_update_triggers_version_deletion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT', tag_map='{"v1.0.0":"old","v2.0.0":"old"}').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.delete_task('org', 'repo', 'v0.1.0'),
     ], [task.url for task in tasks])
 
   def test_update_collection(self):
@@ -212,7 +275,6 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.0.1'),
         util.ingest_version_task('org', 'repo', 'v0.0.2'),
         util.ingest_analysis_task('org', 'repo', 'v0.0.2', 'new-master-sha'),
     ], [task.url for task in tasks])
