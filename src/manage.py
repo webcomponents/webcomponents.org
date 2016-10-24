@@ -393,6 +393,8 @@ class LibraryTask(RequestHandler):
     new_tags = new_tag_map.keys()
 
     ingested_tags = Library.versions_for_key_async(self.library.key).get_result()
+    logging.info('%d of %d tags ingested', len(ingested_tags), len(new_tags))
+
     tags_to_add = list(set(new_tags) - set(ingested_tags))
     tags_to_add.sort(versiontag.compare)
     tags_to_add.reverse()
@@ -404,6 +406,7 @@ class LibraryTask(RequestHandler):
       tags_to_add = [tag for tag in tags_to_add if versiontag.compare(tag, ingested_tags[0]) > 0]
 
     tags_to_delete = list(set(ingested_tags) - set(new_tags))
+    logging.info('%d adds and %d deletes pending', len(tags_to_add), len(tags_to_delete))
 
     # To avoid running into limits on the number of tasks (5) that can be spawned transactionally
     # only ingest (2 tasks) or delete (1 task) one version per update.
