@@ -66,7 +66,7 @@ class SearchContents(webapp2.RequestHandler):
           results.append(result)
 
     result = {
-        'cursor': cursor.web_safe_string if cursor else None,
+        'cursor': cursor.web_safe_string if cursor and include_results else None,
     }
     if include_count:
       result['count'] = count
