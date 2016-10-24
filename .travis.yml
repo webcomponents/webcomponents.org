@@ -7,7 +7,6 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
-    - firefox-locale-en
 cache:
   directories:
     - node_modules
