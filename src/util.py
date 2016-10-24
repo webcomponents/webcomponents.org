@@ -157,4 +157,6 @@ def generate_prefixes_from_list(list_of_strings):
 def safesplit(item):
   if item is None:
     return []
-  return str(item).split()
+  if not isinstance(item, basestring):
+    item = str(item)
+  return item.split()
