@@ -1,7 +1,6 @@
 language: python
 node_js: stable
-dist: trusty
-sudo: required
+sudo: false
 addons:
   firefox: latest
   sauce_connect: true
@@ -10,6 +9,7 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
+    - firefox-locale-en
 cache:
   directories:
     - node_modules
