@@ -13,6 +13,11 @@
        * Used to backoff the requests
        */
       _numPolls: Number,
+
+      _pollingInterval: {
+        type: Number,
+        value: 100,
+      },
     },
 
     startPolling: function(metaAjax) {
@@ -26,8 +31,8 @@
     },
 
     _pollMeta: function() {
-      if (this._numPolls > 10) {
-        this.fire('error', {title: 'error', message: 'Timed out waiting for server to process'});
+      if (this._numPolls > 6) {
+        this.onPollingTimeout();
         return;
       }
       this._metaAjax.generateRequest();
@@ -36,17 +41,15 @@
 
     onMetaResponse: function(event) {
       var response = event.detail.response;
-      if (response.status == 'error')
-        this.fire('error', {title: 'Unable to process element', message: response.error});
-      else if (response.status == 'pending')
-        this.async(this._pollMeta, 250 * this._numPolls);
+      if (response.status == 'pending')
+        this.async(this._pollMeta, this._pollingInterval * this._numPolls);
       else
         this.success();
     },
 
     onMetaError: function(event, error) {
       if (error.request.status == 400 || error.request.status == 404 || error.request.status == 0)
-        this.async(this._pollMeta, 250 * this._numPolls);
+        this.async(this._pollMeta, this._pollingInterval * this._numPolls);
       else
         this.fire('error', {status: error.request.status, title: 'error'});
     },
