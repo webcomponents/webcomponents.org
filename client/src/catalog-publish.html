@@ -195,11 +195,19 @@
         this.startPolling(this.$.metaAjax);
       },
 
-      success: function() {
+      _navigate: function(type) {
         window.history.pushState({}, null, '/element/' + this._validatedRepo);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
-        this.fire('event', {category: 'Publish element', action: 'success'});
+        this.fire('event', {category: 'Publish element', action: type});
+      },
+
+      success: function() {
+        this._navigate('success');
+      },
+
+      onPollingTimeout: function() {
+        this._navigate('fail');
       },
 
       _error: function() {

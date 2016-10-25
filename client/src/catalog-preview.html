@@ -89,11 +89,19 @@
         this.startPolling(this.$.metaAjax);
       },
 
-      success: function() {
+      _navigate: function(type) {
         window.history.pushState({}, null, '/preview/' + this._ownerRepoSha);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
-        this.fire('event', {category: 'Preview element', action: 'success'});
+        this.fire('event', {category: 'Preview element', action: type});
+      },
+
+      success: function() {
+        this._navigate('success');
+      },
+
+      onPollingTimeout: function() {
+        this._navigate('fail');
       },
 
       _error: function() {
