@@ -37,6 +37,7 @@ class GetResource(webapp2.RequestHandler):
 
     config_map = {}
     for dependency in dependencies:
+      dependency['owner'] = dependency['owner'].replace('git://github.com/', '')
       if dependency['owner'] == owner and dependency['repo'] == repo:
         continue
       config_map[dependency['name']] = '%s/%s/%s' % (dependency['owner'], dependency['repo'], dependency['version'])

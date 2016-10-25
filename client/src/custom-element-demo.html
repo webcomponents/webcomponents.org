@@ -296,7 +296,7 @@
       _setFrame: function() {
         if (!this.data || this.docsPending)
           return;
-        this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo + '/';
+        this.$.frame.src = this.baseUrl + '/' + this.data.owner + '/' + this.data.repo + '/' + this.data.version + '/' + this.data.repo.toLowerCase() + '/';
         this.$.frame.style.minHeight = (this.height + 'px') || 0;
         this.$.demoContainer.style.minHeight = (this.height + 'px') || 0;
 
