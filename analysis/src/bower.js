@@ -160,8 +160,11 @@ class Bower {
           offline: offline
         }
       ).on('end', function(info) {
-        info.metadata = metadata;
-        resolve(info);
+        // For anything with an unspecified version, the result from bower may be
+        // an unspecified list. Choose the latest.
+        var result = info.latest ? info.latest : info;
+        result.metadata = metadata;
+        resolve(result);
       }).on('error', function(error) {
         Ana.fail("bower/findDependencies/info");
         Ana.log("bower/findDependencies/info failure info %s", error);
