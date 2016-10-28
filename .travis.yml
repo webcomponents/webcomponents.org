@@ -1,10 +1,7 @@
 language: python
 node_js: stable
-dist: trusty
-sudo: required
+sudo: false
 addons:
-  firefox: latest
-  sauce_connect: true
   apt:
     sources:
     - google-chrome
