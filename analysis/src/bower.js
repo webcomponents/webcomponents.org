@@ -9,7 +9,8 @@ const Ana = require('./ana_log');
 // Don't retry ECONFLICT ("Unable to find suitable version for...").
 // Don't retry ENORESTARGET ("Tag/branch x does not exist").
 // Don't retry ECMDERR ("Fatal: reference is not a tree:...")
-const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET'];
+// Don't retry EMALFORMED ("Unexpected token } in JSON at position:...")
+const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET', 'EMALFORMED'];
 
 /**
  * Service for communicating with Bower on the local machine.
@@ -80,7 +81,7 @@ class Bower {
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
         var retry = true;
-        if (error.code && fatalErrorCodes.includes(error.code)) {
+        if (error.code && fatalErrorCodes.includes(error.code) || error instanceof TypeError) {
           retry = false;
         }
         reject({retry: retry, error: error});
