@@ -176,7 +176,9 @@ class Bower {
           if (source.hostname != 'github.com')
             return;
 
-          var [owner, repo] = source.pathname.substring(1).split('/', 2);
+          var parts = source.pathname.substring(1).split('/', 2);
+          var owner = parts[0];
+          var repo = parts[1];
           repo = repo.replace(/\.git$/, '');
           var tag = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
 
