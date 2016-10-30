@@ -171,30 +171,20 @@ class Bower {
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
-          logEntry.data.pkgMeta._resolution) {
-          var owner = "";
-          var repo = "";
-          var sha = "";
-          // Our package strings look like "Owner/Repo#1.2.3"
-          if (ownerPackageVersionString.includes("/") && !ownerPackageVersionString.includes("git://")) {
-            owner = ownerPackageVersionString;
-            repo = owner.substring(owner.lastIndexOf("/") + 1, owner.lastIndexOf("#"));
-            owner = owner.substring(0, owner.lastIndexOf("/"));
-            if (ownerPackageVersionString.includes("#")) {
-              sha = ownerPackageVersionString.substring(ownerPackageVersionString.lastIndexOf("#"));
-            }
-          } else {
-            // These uris look like "git://github.com/Owner/Repo.git"
-            owner = url.parse(logEntry.data.resolver.source).pathname;
-            repo = owner.substring(owner.lastIndexOf("/") + 1, owner.lastIndexOf("."));
-            owner = owner.substring(1 /* skip leading slash */, owner.lastIndexOf("/"));
-            if (logEntry.data.resolver.source.includes("#")) {
-              sha = logEntry.data.resolver.source.substring(logEntry.data.resolver.source.lastIndexOf("#"));
-            }
-          }
+            logEntry.data.pkgMeta._resolution) {
+          var source = url.parse(logEntry.data.resolver.source);
+          if (source.hostname != 'github.com')
+            return;
+
+          var parts = source.pathname.substring(1).split('/', 2);
+          var owner = parts[0];
+          var repo = parts[1];
+          repo = repo.replace(/\.git$/, '');
+          var tag = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
+
           metadata = {
             name: logEntry.data.pkgMeta.name,
-            version: logEntry.data.pkgMeta._resolution.tag ? logEntry.data.pkgMeta._resolution.tag : sha.replace("#", ""),
+            version: tag,
             owner: owner,
             repo: repo
           };
