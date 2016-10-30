@@ -3,6 +3,7 @@
   "shell": "src/catalog-app.html",
   "fragments": [
     "src/catalog-author.html",
+    "src/catalog-community.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
     "src/catalog-error.html",
