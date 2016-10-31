@@ -401,7 +401,7 @@ class LibraryTask(RequestHandler):
 
     if ingested_tags == [] and len(tags_to_add) > 0:
       # Only ingest the latest version if we're doing ingestion for the first time.
-      tags_to_add = tags_to_add[-1:]
+      tags_to_add = tags_to_add[:1]
     else:
       tags_to_add = [tag for tag in tags_to_add if versiontag.compare(tag, ingested_tags[0]) > 0]
 
