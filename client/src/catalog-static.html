@@ -102,8 +102,15 @@ shadowRoot.innerHTML = '&lt;h1&gt;Hello Shadow DOM&lt;/h1&gt;'; // Could also us
           <li><a href="https://x-tag.github.io/">X-Tag</a> is an open source JavaScript library that provides an interface for component development.</li>
         </ul>
 
+      </div>
+    </template>
 
+    <template is="dom-if" if="[[_is(name, 'assets')]]">
+      <h1 class="page-title">webcomponents.org assets</h1>
 
+      <div class="main-content static-content">
+        <p>Raw SVG logo is <a href="/assets/logo.svg" target="_blank">available here</a></p>
+        <img src="/assets/logo.svg">
       </div>
     </template>
 
