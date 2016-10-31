@@ -8,14 +8,12 @@
       #demoContainer {
         width: 100%;
         overflow: hidden;
-        border: 1px solid #ededed;
         border-radius: 4px 4px 0 0;
-        border-bottom: none;
         box-sizing: border-box;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 61px;
+        min-height: 64px;
         max-height: 550px;
         background: white;
       }
@@ -80,18 +78,19 @@
       #editorBar button {
         color: var(--syntax-accent);
         cursor: pointer;
-      }
-
-      #editorBar button {
         margin: 0;
         padding: 0;
         border: none;
         background: transparent;
         margin-left: 6px;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
       }
 
       #editorBar button > svg {
         width: 20px;
+        margin: 0 8px;
       }
 
       #lazyEditor {
@@ -142,12 +141,14 @@
               <svg viewBox="0 0 100 100">
                 <use xlink:href="/sprite.octicons.svg#markdown"></use>
               </svg>
+              Markdown
             </template>
           </button>
           <button id="expandSource" title="Expand source" on-tap="_expandSource">
             <svg viewBox="0 0 100 100">
               <use xlink:href="/sprite.octicons.svg#gist"></use>
             </svg>
+            Expand
           </button>
           <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
             <input type="hidden" id="html" name="html">
@@ -155,6 +156,7 @@
               <svg viewBox="0 0 100 100">
                 <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
               </svg>
+              Export
             </button>
           </form>
         </div>
@@ -325,6 +327,7 @@
 
         this.$['demo-spinner'].removeAttribute('active');
 
+        event.data.height = Math.max(64, event.data.height);
         if (this._lastHeight && event.data.height <= this._lastHeight)
           return;
         this._lastHeight = event.data.height;

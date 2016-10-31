@@ -173,6 +173,7 @@
         this.$.threshold.toggleScrollListener(active);
         if (!active || this._currentQuery == query)
           return;
+        this.$.threshold.clearTriggers();
         this._currentQuery = query;
         this._elementRequestParams = {};
         this._collectionRequestParams = {};

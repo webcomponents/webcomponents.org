@@ -18,7 +18,6 @@
       }
 
       .CodeMirror {
-        padding: 0 16px;
         background: var(--syntax-bg);
         border-radius: 0 0 4px 4px;
         font-size: 14px;
@@ -26,6 +25,8 @@
         color: var(--mono-1);
         line-height: 24px;
         height: auto;
+        border-left: 4px solid var(--theme-blue);
+        padding-left: 12px;
       }
 
       .CodeMirror-lines {
@@ -35,6 +36,8 @@
       @media (max-width: 500px), (max-height: 500px) {
         .CodeMirror {
           border-radius: 0;
+          padding-left: 16px;
+          border-left: none;
         }
       }
 

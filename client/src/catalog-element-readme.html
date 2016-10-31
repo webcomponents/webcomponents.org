@@ -107,9 +107,13 @@
 
       #inline-demo-creator {
         display: block;
-        padding-left: 8px;
-        border-left: 4px solid var(--theme-accent-1);
         margin-bottom: 16px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #fafafa;
+        box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1), 0 0px 4px 0 hsla(0, 0%, 0%, 0.1);
+        padding: 24px;
+        padding-top: 8px;
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -118,12 +122,16 @@
           margin-right: -16px;
           border-radius: 0;
         }
+
+        #inline-demo-creator {
+          display: none;
+        }
       }
     </style>
     <template is="dom-if" if="[[editing]]">
       <div id="inline-demo-creator">
-        <h3>Inline demo creator</h3>
-        <p>Tip! Build an inline demo and export Markdown to include in README.md</p>
+        <h3>💡 Inline demo creator - only visible to you</h3>
+        <p>Create an inline demo and export Markdown to include in README.md</p>
         <custom-element-demo example data="[[data]]" base-url="[[baseUrls.userContent]]"></custom-element-demo>
       </div>
     </template>
