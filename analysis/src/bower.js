@@ -154,7 +154,7 @@ class Bower {
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
-        ownerPackageVersionString,
+        ownerPackageVersionString.toLowerCase(),
         undefined /* property */,
         {
           offline: offline
