@@ -81,7 +81,7 @@ class Bower {
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
         var retry = true;
-        if (error.code && fatalErrorCodes.includes(error.code) || error instanceof TypeError) {
+        if (error.code && fatalErrorCodes.indexOf(error.code) != -1 || error instanceof TypeError) {
           retry = false;
         }
         reject({retry: retry, error: error});
