@@ -352,7 +352,7 @@ class IngestLibraryTest(ManageTestBase):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
 
@@ -362,9 +362,10 @@ class IngestLibraryTest(ManageTestBase):
     self.assertIsNone(library.error)
     self.assertEqual(library.metadata, '{"metadata": "bits"}')
     self.assertEqual(library.contributors, '["a"]')
-    self.assertEqual(library.tags, ['v1.0.0'])
+    self.assertEqual(library.tags, ['v0.5.0', 'v1.0.0'])
 
     version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
+    self.assertIsNotNone(version)
     self.assertIsNone(version.error)
     self.assertEqual(version.sha, 'lol')
 
