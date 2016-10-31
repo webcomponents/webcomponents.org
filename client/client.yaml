@@ -46,7 +46,7 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
-- url: /(about|introduction)(/.*)?
+- url: /(about|introduction|assets)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
