@@ -57,7 +57,7 @@
 
         window.performance && performance.mark && performance.mark('index.html');
 
-        Polymer = {lazyRegister: true};
+        Polymer = {lazyRegister: true, useNativeCSSProperties: true};
 
         if ('registerElement' in document
             && 'import' in document.createElement('link')
