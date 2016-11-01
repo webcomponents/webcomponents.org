@@ -25,6 +25,10 @@
         margin-right: -16px;
       }
 
+      div.overflow-button {
+        margin-right: 16px;
+      }
+
       collection-card, #spacer {
         flex: 1 0 300px;
         max-width: 400px;
@@ -69,6 +73,9 @@
       <template is="dom-repeat" items="[[_collections.results]]">
         <collection-card class="box" data="[[item]]"></collection-card>
       </template>
+      <div class="overflow-button soft-button" on-click="_loadMoreCollections" hidden$="[[_hideOverflow(_collectionOverflowCount, collection)]]">
+        + [[_collectionOverflowCount]] collection[[_s(_collectionOverflowCount)]]
+      </div>
       <div id="spacer"></div>
     </div>
     <progress-bar indeterminate hidden$="[[!_and(_collectionsLoading, _collections)]]"></progress-bar>
@@ -91,7 +98,10 @@
       is: 'catalog-list',
 
       properties: {
-        collection: String,
+        collection: {
+          type: String,
+          value: '',
+        },
         query: String,
         baseUrls: Object,
         noscore: {
@@ -139,12 +149,16 @@
         }
         if (this._collections && this._collections.cursor && (this._elements && !this._elements.count)) {
           // Only keep adding collections if there's no elements.
-          this._collectionRequestParams.cursor = this._collections.cursor;
-          this.$.collectionsAjax.generateRequest();
+          this._loadMoreCollections();
         } else if (this._elements && this._elements.cursor) {
           this._elementRequestParams.cursor = this._elements.cursor;
           this.$.elementsAjax.generateRequest();
         }
+      },
+
+      _loadMoreCollections: function() {
+          this._collectionRequestParams.cursor = this._collections.cursor;
+          this.$.collectionsAjax.generateRequest();
       },
 
       _updateLoading: function() {
@@ -203,6 +217,7 @@
         } else {
           this._collections = this.$.collectionsAjax.lastResponse;
         }
+        this._collectionOverflowCount = this._collections.count - this._collections.results.length;
         this.$.threshold.clearTriggers();
         this.$.threshold.checkScrollThesholds();
       },
@@ -233,6 +248,11 @@
 
       _s: function(n) {
         return n == 1 ? '' : 's';
+      },
+
+      _hideOverflow: function(count, collection) {
+        // Don't show overflow button on browse collection page
+        return (this._elements && !this._elements.count) || !count;
       },
 
     });
