@@ -1,0 +1,167 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+
+<link rel="import" href="catalog-styles.html">
+<link rel="import" href="mark-down.html">
+<link rel="import" href="progress-bar.html">
+
+<dom-module id="catalog-community">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      :host {
+        font-size: 18px;
+        line-height: 30px;
+      }
+
+      .resource {
+        padding: 24px;
+        color: hsl(0, 0%, 45%);
+        display: flex;
+      }
+
+      .resource div:first-child {
+        flex: 0 0 200px;
+        text-align: right;
+        margin-right: 24px;
+        font-size: 18px;
+        color: var(--theme-blue-grey);
+      }
+
+      .resource-title {
+        font-weight: 600;
+        color: black;
+      }
+
+      .resource:hover:not(:active) {
+        background: hsla(0, 0%, 98%, 1);
+      }
+
+    </style>
+
+    <iron-ajax
+      auto
+      id="ajax"
+      url="https://web-components-resources.appspot.com/resources"
+      handle-as="json"
+      loading="{{_resourcesLoading}}"
+      on-response="_onResourcesResponse"></iron-ajax>
+
+    <iron-ajax
+      id="contentAjax"
+      handle-as="json"
+      loading="{{_contentLoading}}"
+      last-response="{{_content}}"></iron-ajax>
+
+    <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
+
+    <template is="dom-if" if="[[!path]]">
+      <h1 class="page-title">Community</h1>
+      <div class="box loader" loading$="[[!_resources]]">
+        <template is="dom-repeat" items="[[_resources.results]]">
+          <a href="[[_computeLink(item)]]" class="resource">
+            <div>[[_formatDate(item.date)]]</div>
+            <div>
+              <h1 class="resource-title">[[item.title]]</h1>
+              <div>[[_stripHTML(item.excerpt)]]</div>
+              [[item.link]]
+            </div>
+          </a>
+        </template>
+        <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[path]]">
+      <div class="loader" loading$="[[_contentLoading]]">
+        <h1 class="page-title">[[_content.metadata.title]]</h1>
+        <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
+        <mark-down markdown="[[_content.content]]"></mark-down>
+      </div>
+    </template>
+  </template>
+  <script>
+    Polymer({
+
+      is: 'catalog-community',
+
+      properties: {
+        path: {
+          type: String,
+          observer: '_pathChanged',
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibilityChanged',
+        },
+
+        // Resources list object
+        _resources: Object,
+
+        // Article content
+        _content: Object,
+      },
+
+      ready: function() {
+        this._resources = null;
+      },
+
+      _visibilityChanged: function(visible) {
+        this.$.threshold.toggleScrollListener(visible);
+        if (visible) {
+          this.$.threshold.clearTriggers();
+          this.$.threshold.checkScrollThesholds();
+        }
+      },
+
+      _loadMore: function() {
+        if (!this.visible || this.path || !this._resources || this._resources.results.length >= this._resources.count)
+          return;
+
+        this.$.ajax.params = {offset: this._resources.results.length};
+      },
+
+      _onResourcesResponse: function() {
+        if (this._resources) {
+          this._resources.results = this._resources.results.concat(this.$.ajax.lastResponse.results);
+          this.notifyPath('_resources.results');
+        } else {
+          this._resources = this.$.ajax.lastResponse;
+        }
+        this.$.threshold.clearTriggers();
+        this.$.threshold.checkScrollThesholds();
+      },
+
+      _pathChanged: function(path) {
+        if (!path) {
+          this._content = null;
+          this._visibilityChanged(this.visible);
+          return;
+        }
+        Polymer.AppLayout.scroll(0);
+        this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content' + path;
+        this.$.contentAjax.generateRequest();
+      },
+
+      _formatDate: function(dateString) {
+        if (!dateString)
+          return '';
+        var date = new Date(dateString);
+        return date.toLocaleString("en-us", {day: 'numeric', month: 'long', year: 'numeric'});
+      },
+
+      _computeLink: function(resource) {
+        return resource.link || '/community/' + resource.relativePath;
+      },
+
+      _stripHTML: function(html) {
+        var template = document.createElement('template');
+        template.innerHTML = html;
+        return template.content.firstChild.textContent;
+      },
+
+    });
+  </script>
+</dom-module>
