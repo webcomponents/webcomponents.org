@@ -124,11 +124,11 @@
       },
 
       _onResourcesResponse: function() {
-        if (!this._resources) {
-          this._resources = this.$.ajax.lastResponse;
-        } else {
+        if (this._resources) {
           this._resources.results = this._resources.results.concat(this.$.ajax.lastResponse.results);
           this.notifyPath('_resources.results');
+        } else {
+          this._resources = this.$.ajax.lastResponse;
         }
         this.$.threshold.clearTriggers();
         this.$.threshold.checkScrollThesholds();
@@ -141,7 +141,7 @@
           return;
         }
         Polymer.AppLayout.scroll(0);
-        this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content'+ path;
+        this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content' + path;
         this.$.contentAjax.generateRequest();
       },
 
@@ -149,7 +149,7 @@
         if (!dateString)
           return '';
         var date = new Date(dateString);
-        return date.toLocaleString("en-us", { day: 'numeric', month: 'long', year: 'numeric' });
+        return date.toLocaleString("en-us", {day: 'numeric', month: 'long', year: 'numeric'});
       },
 
       _computeLink: function(resource) {
