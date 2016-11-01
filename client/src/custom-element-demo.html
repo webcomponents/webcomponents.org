@@ -260,7 +260,9 @@
 
       _fullSource: function() {
         var nextBlockRegex = /<next-code-block><\/next-code-block>/;
-        return this._code.replace(nextBlockRegex, this._snippet);
+        // Use identity function so '$' isn't a special character.
+        var identity = this._snippet.toString.bind(this._snippet);
+        return this._code.replace(nextBlockRegex, identity);
       },
 
       _sourceChanged: function(snippet, code) {
