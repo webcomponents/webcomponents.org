@@ -29,6 +29,38 @@
         margin: 0 auto;
         max-width: 600px;
       }
+
+      .steps {
+        display: flex;
+      }
+
+      .steps > div {
+        display: flex;
+        align-items: center;
+        font-size: 24px;
+        flex: 1 0 0;
+      }
+
+      .steps > div > span {
+        font-size: 32px;
+        font-weight: 600;
+        color: white;
+        width: 70px;
+        height: 70px;
+        margin: 24px;
+        flex: 0 0 70px;
+        background: var(--theme-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        .steps {
+          flex-wrap: wrap;
+        }
+      }
     </style>
 
     <iron-ajax
@@ -47,6 +79,13 @@
 
       <div class="main-content static-content">
         <p>You need to publish your elements before they will appear on the site. It’s quick and easy to do! First, there’s a few tips on how to make your element stand out.</p>
+
+        <div class="steps">
+          <div><span>1</span>Check requirements</div>
+          <div><span>2</span>Create inline demo</div>
+          <div><span>3</span>Publish!</div>
+        </div>
+
         <h1>Before you publish</h1>
         <h2>Requirements</h2>
         <ul>
