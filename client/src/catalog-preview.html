@@ -69,10 +69,8 @@
         var url = this.url;
         url = url.replace(/\/$/, '');
 
-        if (url.match(/https:\/\/github.com\/.*/) == null) {
-          this.$.error.removeAttribute('hidden');
-          return;
-        }
+        if (!url.match(/https:\/\/github.com\/.*/))
+          url = 'https://github.com/' + url;
 
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.params = {
