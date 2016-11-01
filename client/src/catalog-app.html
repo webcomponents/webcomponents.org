@@ -434,7 +434,7 @@
       <catalog-static name="about"></catalog-static>
       <catalog-static name="introduction"></catalog-static>
       <catalog-static name="assets"></catalog-static>
-      <catalog-community name="community" path="[[subroute.path]]"></catalog-community>
+      <catalog-community name="community" path="[[_filter('/community', subroute.prefix, subroute.path)]]"></catalog-community>
     </iron-pages>
 
     <footer role="contentinfo">
