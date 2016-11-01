@@ -73,7 +73,7 @@
       <template is="dom-repeat" items="[[_collections.results]]">
         <collection-card class="box" data="[[item]]"></collection-card>
       </template>
-      <div class="overflow-button soft-button" on-click="_loadMoreCollections" hidden$="[[_hideOverflow(_collectionOverflowCount, collection)]]">
+      <div class="overflow-button soft-button" on-click="_loadMoreCollections" hidden$="[[_hideOverflow(_collectionOverflowCount)]]">
         + [[_collectionOverflowCount]] collection[[_s(_collectionOverflowCount)]]
       </div>
       <div id="spacer"></div>
@@ -157,8 +157,8 @@
       },
 
       _loadMoreCollections: function() {
-          this._collectionRequestParams.cursor = this._collections.cursor;
-          this.$.collectionsAjax.generateRequest();
+        this._collectionRequestParams.cursor = this._collections.cursor;
+        this.$.collectionsAjax.generateRequest();
       },
 
       _updateLoading: function() {
@@ -250,7 +250,7 @@
         return n == 1 ? '' : 's';
       },
 
-      _hideOverflow: function(count, collection) {
+      _hideOverflow: function(count) {
         // Don't show overflow button on browse collection page
         return (this._elements && !this._elements.count) || !count;
       },
