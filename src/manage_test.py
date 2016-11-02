@@ -370,7 +370,7 @@ class AddTest(ManageTestBase):
 class IngestLibraryTest(ManageTestBase):
   def test_ingest_element(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
@@ -380,7 +380,7 @@ class IngestLibraryTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertEqual(library.metadata, '{"name":"repo"}')
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v0.5.0', 'v1.0.0'])
 
@@ -398,7 +398,7 @@ class IngestLibraryTest(ManageTestBase):
 
   def test_ingest_collection(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"], "license": "MIT"}')
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/heads/master', '{"ref": "refs/heads/master", "object": {"sha": "master-sha"}}')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
@@ -408,7 +408,7 @@ class IngestLibraryTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertEqual(library.metadata, '{"name":"repo"}')
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v0.0.1'])
 
@@ -456,7 +456,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(bower.content, '{}')
 
   def test_ingest_preview(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
@@ -482,7 +482,7 @@ class IngestLibraryTest(ManageTestBase):
     ], [task.url for task in tasks])
 
   def test_ingest_license_fallback(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
@@ -497,7 +497,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(library.spdx_identifier, 'MIT')
 
   def test_ingest_bad_license(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}, "name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}, "owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
@@ -510,7 +510,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(library.status, Status.error)
 
   def test_ingest_no_license(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": null, "name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": null, "owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
