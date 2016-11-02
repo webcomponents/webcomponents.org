@@ -166,7 +166,7 @@
         if (!readme || !data)
           return;
 
-        this.$.contents.innerHTML = readme;
+        this.$.contents.innerHTML = this._remapLinks(data, readme);
         // Only scope once so inline demos don't have conflicting styles.
         this.scopeSubtree(this.$.contents, false);
 
@@ -209,6 +209,13 @@
           demoElement.snippet = snippet;
           demoElement.code = code;
         }
+      },
+
+      _remapLinks: function(data, readme) {
+        var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
+        readme = readme.replace(/(src=")(\/[^"]*")/g, '$1' + githubBase + '/raw/master$2');
+        readme = readme.replace(/(href=")(\/[^"]*")/g, '$1' + githubBase + '/blob/master$2');
+        return readme;
       },
 
       _loadDemos: function(docsPending) {
