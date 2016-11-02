@@ -201,8 +201,8 @@ class LibraryTask(RequestHandler):
         return self.error("could not parse metadata")
 
       repo = metadata.get('name').lower()
-      if repo != self.repo:
-        owner = metadata.get('owner', {}).get('login').lower()
+      owner = metadata.get('owner', {}).get('login').lower()
+      if repo != self.repo or owner != self.owner:
         logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
         delete_library(self.library.key)
         task_url = util.ensure_library_task(owner, repo)
