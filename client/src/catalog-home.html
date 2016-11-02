@@ -161,14 +161,14 @@
       loading="{{_elementsLoading}}"
       url="[[baseUrls.api]]/api/search/kind:element?limit=6&noscore"
       handle-as="json"
-      on-response="_featuredElementsResponse"></iron-ajax>
+      last-response="{{_elementSearch}}"></iron-ajax>
 
     <iron-ajax
       id="featuredCollections"
       loading="{{_collectionsLoading}}"
       url="[[baseUrls.api]]/api/search/kind:collection?limit=6&noscore"
       handle-as="json"
-      on-response="_featuredCollectionsResponse"></iron-ajax>
+      last-response="{{_collectionSearch}}"></iron-ajax>
 
     <div id="container">
       <section>
@@ -177,7 +177,7 @@
           <a href="/elements">Browse elements</a>
         </div>
         <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
-          <template is="dom-repeat" items="[[_featuredElements]]">
+          <template is="dom-repeat" items="[[_filterFeatured(_elementSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_elementsLoading]]">
@@ -192,7 +192,7 @@
           <a href="/collections">Browse collections</a>
         </div>
         <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
-          <template is="dom-repeat" items="[[_featuredCollections]]">
+          <template is="dom-repeat" items="[[_filterFeatured(_collectionSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_collectionsLoading]]">
@@ -265,26 +265,23 @@
         this.$.featuredCollections.generateRequest();
       },
 
-      _featuredElementsResponse: function() {
-        this._featuredElements = this._filterFeatured(this.$.featuredElements.lastResponse.results);
-      },
-
-      _featuredCollectionsResponse: function() {
-        this._featuredCollections = this._filterFeatured(this.$.featuredCollections.lastResponse.results);
-      },
-
-      _filterFeatured: function(candidates) {
+      _filterFeatured: function(search) {
+        var candidates = search.results;
         var featured = [];
         var owners = {};
         // Attempt to feature different owners.
         for (var i = 0; i < candidates.length && featured.length < 3; i++) {
           if (!owners[candidates[i].owner]) {
-            owners[candidates[i].owner] = true;
-            featured.push(candidates.splice(i, 1)[0]);
+            owners[candidates[i].owner] = candidates[i].repo;
+            featured.push(candidates[i]);
           }
         }
         // Fill last remaining spots.
-        return featured.concat(candidates.splice(0, 3 - featured.length));
+        for (i = 0; i < candidates.length && featured.length < 3; i++) {
+          if (owners[candidates[i].owner] != candidates[i].repo)
+            featured.push(candidates[i]);
+        }
+        return featured;
       },
 
     });
