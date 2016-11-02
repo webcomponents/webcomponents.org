@@ -196,9 +196,19 @@ class LibraryTask(RequestHandler):
     response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag, headers=headers)
     if response.status_code == 200:
       try:
-        json.loads(response.content)
+        metadata = json.loads(response.content)
       except ValueError:
         return self.error("could not parse metadata")
+
+      repo = metadata.get('name').lower()
+      owner = metadata.get('owner', {}).get('login').lower()
+      if repo != self.repo or owner != self.owner:
+        logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
+        delete_library(self.library.key)
+        task_url = util.ensure_library_task(owner, repo)
+        util.new_task(task_url, target='manage')
+        raise RequestAborted('repo has been renamed to %s', Library.id(owner, repo))
+
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
       self.library.metadata_updated = datetime.datetime.now()
