@@ -32,7 +32,7 @@ def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
 def analyze_library_task(owner, repo):
-  return '/manage/analyze/%s/%s' % (owner, repo)
+  return '/task/analyze/%s/%s' % (owner, repo)
 
 def update_author_task(name):
   return '/task/update/%s' % name

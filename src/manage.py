@@ -304,16 +304,16 @@ class LibraryTask(RequestHandler):
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
-    self.trigger_analysis(tag, sha)
+    self.trigger_analysis(tag, sha, transactional=True)
 
-  def trigger_analysis(self, tag, sha):
+  def trigger_analysis(self, tag, sha, transactional=False):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
     version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
     Content(id='analysis', parent=version_key, status=Status.pending).put()
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
-    util.new_task(task_url, target='analysis', transactional=True)
+    util.new_task(task_url, target='analysis', transactional=transactional)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
@@ -512,7 +512,7 @@ class AnalyzeLibrary(LibraryTask):
 
     versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
     for version in versions:
-      self.trigger_analysis(version.key.id(), version.sha)
+      self.trigger_analysis(version.key.id(), version.sha, transactional=False)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
@@ -944,10 +944,10 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
-    webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
+    webapp2.Route(r'/task/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/task/ensure/<name>', handler=EnsureAuthor),
     webapp2.Route(r'/task/ensure/<owner>/<repo>', handler=EnsureLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
