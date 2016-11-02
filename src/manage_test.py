@@ -50,7 +50,7 @@ class XsrfTest(ManageTestBase):
 
 class AnalyzeAllTest(ManageTestBase):
   def test_analyze_all(self):
-    library_key = Library(id='owner/repo').put()
+    Library(id='owner/repo').put()
 
     response = self.app.get('/manage/analyze-all', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
