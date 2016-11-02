@@ -993,9 +993,8 @@
       },
 
       _authenticateStar: function() {
-        if (!this.queryParams.code) {
+        if (!this.queryParams.code)
           window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
-        }
       },
 
       _starRepo: function() {
@@ -1016,7 +1015,7 @@
         });
 
         // TODO(samli): change to this.baseUrls.api
-        xhr.open('POST', 'https://custom-elements-staging.appspot.com/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
+        xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();
       },
 
