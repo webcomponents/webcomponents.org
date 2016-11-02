@@ -663,7 +663,7 @@
       ],
 
       ready: function() {
-        if (this.queryParams.code)
+        if (this.queryParams && this.queryParams.code)
           this._starRepo();
       },
 
@@ -1014,7 +1014,6 @@
           console.log(e);
         });
 
-        // TODO(samli): change to this.baseUrls.api
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();
       },
