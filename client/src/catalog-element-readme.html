@@ -213,8 +213,8 @@
 
       _remapLinks: function(data, readme) {
         var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
-        readme = readme.replace(/(src=")(\/[^"]*")/g, '$1' + githubBase + '/raw/master$2');
-        readme = readme.replace(/(href=")(\/[^"]*")/g, '$1' + githubBase + '/blob/master$2');
+        readme = readme.replace(/(src=")(?!http)\/?([^"]*")/g, '$1' + githubBase + '/raw/master/$2');
+        readme = readme.replace(/(href=")(?!http)\/?([^"]*")/g, '$1' + githubBase + '/blob/master/$2');
         return readme;
       },
 
