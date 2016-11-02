@@ -1,7 +1,8 @@
 {
   "name": "client",
   "scripts": {
-    "install": "bower install"
+    "install": "bower install",
+    "test": "wct --skip-plugin sauce"
   },
   "dependencies": {
     "codemirror": "^5.20.0"
