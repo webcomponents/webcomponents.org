@@ -466,10 +466,12 @@
             </div>
             <div id="info-stats">
               <div title="[[data.stars]] users starred this repository">
-                <svg viewBox="0 0 100 100" class="octicon octicon-star">
-                 <use xlink:href="/sprite.octicons.svg#star"></use>
-                </svg>
-                [[data.stars]]
+                <div on-click="_authenticateStar">
+                  <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                   <use xlink:href="/sprite.octicons.svg#star"></use>
+                  </svg>
+                  [[data.stars]]
+                </div>
               </div>
               <div title="[[data.forks]] users forked this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
@@ -659,6 +661,11 @@
         '_updateLoading(_metaLoading, data)',
         'onload(_metaLoading)',
       ],
+
+      ready: function() {
+        if (this.queryParams.code)
+          this._starRepo();
+      },
 
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
@@ -983,6 +990,34 @@
 
       _isPreview: function(prefix) {
         return prefix == '/preview';
+      },
+
+      _authenticateStar: function() {
+        if (!this.queryParams.code) {
+          window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
+        }
+      },
+
+      _starRepo: function() {
+        if (!this.queryParams.code)
+          return;
+
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(event) {
+          if (event.target.status == 204) {
+            this.data.stars++;
+            this.notifyPath('data.stars');
+          } else if (event.target.status == 202) {
+            console.log('Already starred');
+          }
+        }.bind(this));
+        xhr.addEventListener('error', function(e) {
+          console.log(e);
+        });
+
+        // TODO(samli): change to this.baseUrls.api
+        xhr.open('POST', 'https://custom-elements-staging.appspot.com/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
+        xhr.send();
       },
 
     });
