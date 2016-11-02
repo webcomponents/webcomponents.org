@@ -155,8 +155,8 @@ class UpdateLibraryTest(ManageTestBase):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', tag_map='{}', spdx_identifier='MIT')
     library.put()
     self.respond_to_github('https://api.github.com/repos/org/repo', json.dumps({
-      "name": "newname",
-      "owner": {"login": "newowner"},
+        "name": "newname",
+        "owner": {"login": "newowner"},
     }))
 
     response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
