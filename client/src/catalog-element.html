@@ -14,15 +14,41 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      #title {
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 8px;
+        margin-left: -36px;
+      }
+
+      h1.page-title {
+        margin-bottom: 0;
+      }
+
+      #star {
+        width: 24px;
+        height: 24px;
+        stroke: hsl(0, 0%, 45%);
+        fill: transparent;
+        margin-right: 12px;
+        margin-bottom: 6px;
+        cursor: pointer;
+      }
+
+      #star:hover, #star[starred] {
+        fill: #f3b70b;
+        stroke: #f3b70b;
+      }
+
       #repo-version {
-        margin-left: 6px;
+        margin-left: 8px;
+        margin-bottom: 5px;
         font-size: 24px;
         display: inline-block;
         max-width: 150px;
         text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 45%);
-        vertical-align: text-bottom;
         word-wrap: normal;
       }
 
@@ -390,6 +416,15 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        #title {
+          margin-left: 16px;
+        }
+
+        h1.page-title {
+          margin-left: 0;
+          margin-bottom: -4px;
+        }
+
         #header-main {
           border-radius: 0;
         }
@@ -451,8 +486,13 @@
 
       <!-- Header -->
       <div>
-        <h1 class="page-title">[[repo]]</h1>
-        <span id="repo-version">[[data.version]]</span>
+        <div id="title">
+          <svg id="star" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+            <use xlink:href="/sprite.octicons.svg#star"></use>
+          </svg>
+          <h1 class="page-title">[[repo]]</h1>
+          <span id="repo-version">[[data.version]]</span>
+        </div>
         <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
       </div>
 
@@ -466,12 +506,10 @@
             </div>
             <div id="info-stats">
               <div title="[[data.stars]] users starred this repository">
-                <div on-click="_authenticateStar">
-                  <svg viewBox="0 0 100 100" class="octicon octicon-star">
-                   <use xlink:href="/sprite.octicons.svg#star"></use>
-                  </svg>
-                  [[data.stars]]
-                </div>
+                <svg viewBox="0 0 100 100" class="octicon octicon-star">
+                 <use xlink:href="/sprite.octicons.svg#star"></use>
+                </svg>
+                [[data.stars]]
               </div>
               <div title="[[data.forks]] users forked this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
@@ -745,6 +783,8 @@
         this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
 
+        this._repoStarred = this._isStarred();
+
         // Generate requests
         if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           this._currentOwner = this.owner;
@@ -993,26 +1033,37 @@
       },
 
       _authenticateStar: function() {
-        if (!this.queryParams.code)
-          window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
+        if (this._isStarred())
+          return;
+        window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
+      },
+
+      _isStarred: function() {
+        if (!window.localStorage.starredRepos)
+          return false;
+        var starred = JSON.parse(window.localStorage.starredRepos);
+        return starred.indexOf(this.owner + '/' + this.repo) != -1;
+      },
+
+      _setStarred: function(increment) {
+        if (this.data && increment) {
+          this.data.stars++;
+          this.notifyPath('data.stars');
+        }
+        var starred = JSON.parse(window.localStorage.starredRepos || '[]');
+        starred.push(this.owner + '/' + this.repo);
+        window.localStorage.starredRepos = JSON.stringify(starred);
+        this._repoStarred = true;
       },
 
       _starRepo: function() {
-        if (!this.queryParams.code)
+        if (!this.queryParams || !this.queryParams.code)
           return;
 
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', function(event) {
-          if (event.target.status == 204) {
-            this.data.stars++;
-            this.notifyPath('data.stars');
-          } else if (event.target.status == 202) {
-            console.log('Already starred');
-          }
+          this._setStarred(event.target.status == 204);
         }.bind(this));
-        xhr.addEventListener('error', function(e) {
-          console.log(e);
-        });
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();

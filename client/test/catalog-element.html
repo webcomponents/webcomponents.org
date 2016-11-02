@@ -13,7 +13,8 @@
 </test-fixture>
 
 <script>
-  suite('Smoke test', function() {
+  suite('Element test', function() {
+    var stashedStars;
     var elementPage;
     var responseHeaders = {
       json: {'Content-Type': 'application/json'}
@@ -60,10 +61,17 @@
           JSON.stringify(metaResponse)
         ]
       );
+      server.respondWith(
+        'POST',
+        /\/api\/star\/.*/, [204, '', '']
+      );
+      stashedStars = window.localStorage.starredRepos;
+      delete window.localStorage.starredRepos;
     });
 
     teardown(function() {
       server.restore();
+      window.localStorage.starredRepos = stashedStars;
     });
 
     test('api/meta readme displayed on page', function(done) {
@@ -79,6 +87,36 @@
           assert.notEqual(readmeContents.textContent.indexOf('readme'), -1);
           done();
         });
+      });
+    });
+
+    test('_isStarred and _setStarred', function() {
+      elementPage = fixture('element-page');
+      elementPage.baseUrls = {api: '', userContent: ''};
+      elementPage.route = {path: '/owner/repo', prefix: '/element'};
+      elementPage.setAttribute('visible', '');
+      server.respond();
+      assert(!elementPage._isStarred(), 'should not be starred');
+      elementPage._setStarred(false);
+      assert(elementPage._isStarred(), 'should be starred');
+    });
+
+    test('starred API call', function(done) {
+      elementPage = fixture('element-page');
+      elementPage.baseUrls = {api: '', userContent: ''};
+      elementPage.route = {path: '/owner/repo', prefix: '/element'};
+      elementPage.setAttribute('visible', '');
+      elementPage.queryParams = {code: 'fakeCode'};
+      server.respond();
+
+      flush(function() {
+        assert(!elementPage._isStarred(), 'should not be starred');
+        assert.equal(elementPage.data.stars, 0);
+        elementPage._starRepo();
+        server.respond();
+        assert(elementPage._isStarred(), 'should be starred');
+        assert.equal(elementPage.data.stars, 1);
+        done();
       });
     });
 
