@@ -21,6 +21,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/token', status=200)
     self.respond_to('https://api.github.com/rate_limit', '')
     self.app.get('/manage/github', status=200)
+    self.app.get('/manage/analyze-all', status=403)
     self.app.get('/manage/index-all', status=403)
     self.app.get('/manage/update-all', status=403)
     self.app.get('/manage/add/org/repo', status=403)
@@ -46,6 +47,18 @@ class XsrfTest(ManageTestBase):
 
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
+
+class AnalyzeAllTest(ManageTestBase):
+  def test_analyze_all(self):
+    library_key = Library(id='owner/repo').put()
+
+    response = self.app.get('/manage/analyze-all', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.analyze_library_task('owner', 'repo')
+    ], [task.url for task in tasks])
 
 class UpdateAllTest(ManageTestBase):
   def test_update_all(self):

@@ -777,6 +777,22 @@ class EnsureAuthor(RequestHandler):
       task_url = util.ingest_author_task(name)
       util.new_task(task_url, target='manage')
 
+class AnalyzeAll(RequestHandler):
+  def handle_get(self):
+    query = Library.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        owner, repo = key.id().split('/', 1)
+        task_url = util.analyze_library_task(owner, repo)
+        util.new_task(task_url, target='analysis')
+
+    logging.info('triggered %d analyses', task_count)
+
 class IndexAll(RequestHandler):
   def handle_get(self):
     query = Library.query()
@@ -924,6 +940,7 @@ class DeleteEverything(RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
+    webapp2.Route(r'/manage/analyze-all', handler=AnalyzeAll),
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
