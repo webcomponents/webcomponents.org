@@ -170,6 +170,7 @@
         if (disabled || !collection || this._currentCollection == collection)
           return;
         this._currentCollection = collection;
+        this._collectionRequestParams = {};
         this._elements = null;
         this._collections = null;
         this.$.dependenciesAjax.generateRequest();
@@ -245,6 +246,7 @@
           results: collections,
           count: collections.length
         };
+        this._collectionOverflowCount = 0;
       },
 
       _s: function(n) {
