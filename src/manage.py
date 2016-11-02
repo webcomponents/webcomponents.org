@@ -789,7 +789,7 @@ class AnalyzeAll(RequestHandler):
         task_count = task_count + 1
         owner, repo = key.id().split('/', 1)
         task_url = util.analyze_library_task(owner, repo)
-        util.new_task(task_url, target='analysis')
+        util.new_task(task_url, target='manage')
 
     logging.info('triggered %d analyses', task_count)
 
