@@ -19,7 +19,7 @@
           Preview allows you to view how code changes affect documentation/demo on this site. Preview requires access to your GitHub repository to publish status updates.
         </p>
         <template is="dom-if" if="[[!queryParams.code]]">
-          <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status">
+          <a href="https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=write:repo_hook%20repo:status&redirect_uri=[[_getPath()]]">
             <button>Sign in with Github</button>
           </a>
         </template>
@@ -43,6 +43,10 @@
         queryParams: Object,
 
         baseUrls: Object
+      },
+
+      _getPath: function() {
+        return window.location.href;
       },
 
     });

@@ -377,9 +377,43 @@ class GetAuthor(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(result))
 
+def exchange_token(handler):
+  code = handler.request.get('code')
+  # Exchange code for an access token from Github
+  headers = {'Accept': 'application/json'}
+  access_token_url = 'https://github.com/login/oauth/access_token'
+  params = {
+      'client_id': util.SECRETS['github_client_id'],
+      'client_secret': util.SECRETS['github_client_secret'],
+      'code': code
+  }
+  access_response = urlfetch.fetch(access_token_url, payload=urllib.urlencode(params), headers=headers, method='POST', validate_certificate=True)
+  access_token_response = json.loads(access_response.content)
+
+  if access_response.status_code != 200 or not access_token_response or access_token_response.get('error'):
+    handler.response.set_status(401)
+    handler.response.write('Authorization failed')
+    return None
+  return access_token_response['access_token']
+
+class StarRepo(webapp2.RequestHandler):
+  def post(self, owner, repo):
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    access_token = exchange_token(self)
+    if access_token is None:
+      return
+
+    starred = util.github_request('user/starred', owner, repo, access_token=access_token, method='GET')
+    # Check if repository is already starred
+    if starred.status_code is 204:
+      self.response.set_status(202)
+      return
+
+    util.github_request('user/starred', owner, repo, access_token=access_token, method='PUT')
+    self.response.set_status(204)
+
 class RegisterPreview(webapp2.RequestHandler):
   def post(self):
-    code = self.request.get('code')
     full_name = self.request.get('repo').lower()
     split = full_name.split('/')
     if len(split) != 2:
@@ -389,22 +423,9 @@ class RegisterPreview(webapp2.RequestHandler):
     owner = split[0]
     repo = split[1]
 
-    # Exchange code for an access token from Github
-    headers = {'Accept': 'application/json'}
-    access_token_url = 'https://github.com/login/oauth/access_token'
-    params = {
-        'client_id': util.SECRETS['github_client_id'],
-        'client_secret': util.SECRETS['github_client_secret'],
-        'code': code
-    }
-    access_response = urlfetch.fetch(access_token_url, payload=urllib.urlencode(params), headers=headers, method='POST', validate_certificate=True)
-    access_token_response = json.loads(access_response.content)
-
-    if access_response.status_code != 200 or not access_token_response or access_token_response.get('error'):
-      self.response.set_status(401)
-      self.response.write('Authorization failed')
+    access_token = exchange_token(self)
+    if access_token is None:
       return
-    access_token = access_token_response['access_token']
 
     # Validate access token against repo
     repos_response = util.github_get('repos/%s' % full_name, access_token=access_token)
@@ -608,4 +629,5 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/collections/<owner>/<repo>/<version>', handler=GetCollections),
     webapp2.Route(r'/api/search/<terms>', handler=SearchContents),
     webapp2.Route(r'/api/sitemap/<kind>.txt', handler=GetSitemap),
+    webapp2.Route(r'/api/star/<owner>/<repo>', handler=StarRepo),
 ], debug=True)
