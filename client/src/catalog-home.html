@@ -157,18 +157,18 @@
     </style>
 
     <iron-ajax
-      id="_featuredElements"
+      id="featuredElements"
       loading="{{_elementsLoading}}"
-      url="[[baseUrls.api]]/api/search/kind:element%20AND%20NOT%20owner:polymerelements?limit=3&noscore"
+      url="[[baseUrls.api]]/api/search/kind:element?limit=6&noscore"
       handle-as="json"
-      last-response="{{_elements}}"></iron-ajax>
+      last-response="{{_elementSearch}}"></iron-ajax>
 
     <iron-ajax
-      id="_featuredCollections"
+      id="featuredCollections"
       loading="{{_collectionsLoading}}"
-      url="[[baseUrls.api]]/api/search/kind:collection?limit=3&noscore"
+      url="[[baseUrls.api]]/api/search/kind:collection?limit=6&noscore"
       handle-as="json"
-      last-response="{{_collections}}"></iron-ajax>
+      last-response="{{_collectionSearch}}"></iron-ajax>
 
     <div id="container">
       <section>
@@ -177,7 +177,7 @@
           <a href="/elements">Browse elements</a>
         </div>
         <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
-          <template is="dom-repeat" items="[[_elements.results]]">
+          <template is="dom-repeat" items="[[_filterFeatured(_elementSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_elementsLoading]]">
@@ -192,7 +192,7 @@
           <a href="/collections">Browse collections</a>
         </div>
         <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
-          <template is="dom-repeat" items="[[_collections.results]]">
+          <template is="dom-repeat" items="[[_filterFeatured(_collectionSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_collectionsLoading]]">
@@ -261,8 +261,28 @@
       },
 
       ready: function() {
-        this.$._featuredElements.generateRequest();
-        this.$._featuredCollections.generateRequest();
+        this.$.featuredElements.generateRequest();
+        this.$.featuredCollections.generateRequest();
+      },
+
+      _filterFeatured: function(search) {
+        var candidates = search.results;
+        var featured = [];
+        var owners = {};
+        var i;
+        // Attempt to feature different owners.
+        for (i = 0; i < candidates.length && featured.length < 3; i++) {
+          if (!owners[candidates[i].owner]) {
+            owners[candidates[i].owner] = candidates[i].repo;
+            featured.push(candidates[i]);
+          }
+        }
+        // Fill last remaining spots.
+        for (i = 0; i < candidates.length && featured.length < 3; i++) {
+          if (owners[candidates[i].owner] != candidates[i].repo)
+            featured.push(candidates[i]);
+        }
+        return featured;
       },
 
     });
