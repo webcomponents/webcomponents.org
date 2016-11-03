@@ -26,33 +26,6 @@
       var demos = Polymer.dom(readmeElement.root).querySelectorAll('custom-element-demo');
       assert.equal(demos.length, 1, 'one inline demo created');
       assert.equal(demos[0].getAttribute('height'), 500);
-    });
-  });
-
-  suite('catalog-element-readme _remapLinks', function() {
-    var readmeElement;
-    setup(function() {
-      readmeElement = fixture('basic');
-      readmeElement.data = {owner: 'owner', repo: 'repo', version: 'version'};
-      readmeElement.baseUrls = {userContent:''};
-    });
-    test('Mapping images', function() {
-      var result = readmeElement._remapLinks(readmeElement.data, '<img src="/img.png">');
-      assert.equal(result, '<img src="https://github.com/owner/repo/raw/master/img.png">');
-      result = readmeElement._remapLinks(readmeElement.data, '<img src="img.png">');
-      assert.equal(result, '<img src="https://github.com/owner/repo/raw/master/img.png">');
-    });
-    test('Mapping anchor links', function() {
-      var result = readmeElement._remapLinks(readmeElement.data, '<a href="/subfolder">');
-      assert.equal(result, '<a href="https://github.com/owner/repo/blob/master/subfolder">');
-    });
-    test('Dont change other links', function() {
-      var urls = [
-        'https://github.com/owner/repo',
-        'http://google.com',
-      ];
-      for (var i = 0; i < urls.length; i++)
-        assert.equal(readmeElement._remapLinks(readmeElement.data, urls[i]), urls[i]);
-    });
+    })
   });
 </script>
