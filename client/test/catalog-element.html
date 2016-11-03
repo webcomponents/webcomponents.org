@@ -109,14 +109,16 @@
       elementPage.queryParams = {code: 'fakeCode'};
       server.respond();
 
-      flush(function() {
-        assert(!elementPage._isStarred(), 'should not be starred');
-        assert.equal(elementPage.data.stars, 0);
-        elementPage._starRepo();
-        server.respond();
-        assert(elementPage._isStarred(), 'should be starred');
-        assert.equal(elementPage.data.stars, 1);
-        done();
+      elementPage.$.metaAjax.addEventListener('response', function() {
+        flush(function() {
+          assert(!elementPage._isStarred(), 'should not be starred');
+          assert.equal(elementPage.data.stars, 0);
+          elementPage._starRepo();
+          server.respond();
+          assert(elementPage._isStarred(), 'should be starred');
+          assert.equal(elementPage.data.stars, 1);
+          done();
+        });
       });
     });
 
