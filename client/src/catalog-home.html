@@ -269,8 +269,9 @@
         var candidates = search.results;
         var featured = [];
         var owners = {};
+        var i;
         // Attempt to feature different owners.
-        for (var i = 0; i < candidates.length && featured.length < 3; i++) {
+        for (i = 0; i < candidates.length && featured.length < 3; i++) {
           if (!owners[candidates[i].owner]) {
             owners[candidates[i].owner] = candidates[i].repo;
             featured.push(candidates[i]);
