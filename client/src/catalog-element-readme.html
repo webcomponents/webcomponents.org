@@ -209,6 +209,18 @@
           demoElement.snippet = snippet;
           demoElement.code = code;
         }
+
+        var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
+        var relativeRegex =/^(?!http|#)\/?([^"]*$)/;
+        var i;
+
+        var links = Polymer.dom(this.$.contents).querySelectorAll('[href]');
+        for (i = 0; i < links.length; i++)
+          links[i].setAttribute('href', links[i].getAttribute('href').replace(relativeRegex, githubBase + '/blob/master/$1'));
+
+        links = Polymer.dom(this.$.contents).querySelectorAll('[src]');
+        for (i = 0; i < links.length; i++)
+          links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/master/$1'));
       },
 
       _loadDemos: function(docsPending) {
