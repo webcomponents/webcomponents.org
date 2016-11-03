@@ -1042,7 +1042,7 @@
         if (!window.localStorage.starredRepos)
           return false;
         var starred = JSON.parse(window.localStorage.starredRepos);
-        return starred.indexOf(this.owner + '/' + this.repo) != -1;
+        return this._inflightStar || starred.indexOf(this.owner + '/' + this.repo) != -1;
       },
 
       _setStarred: function(increment) {
@@ -1061,14 +1061,16 @@
           return;
 
         // Pre-emptively set starred, so UI updates while the request is in flight.
-        this._repoStarred = true;
+        this._inflightStar = true;
+        this._repoStarred = this._isStarred();
 
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', function(event) {
+          this._inflightStar = false;
           this._setStarred(event.target.status == 204);
         }.bind(this));
         xhr.addEventListener('error', function() {
-          this._repoStarred = false;
+          this._inflightStar = false;
         }.bind(this));
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
