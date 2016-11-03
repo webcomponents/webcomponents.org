@@ -6,7 +6,7 @@ toolbox.router.get(/\/api\/search\/.*/, toolbox.networkFirst, {
   successResponses: /^0|[123]\d\d$/,
 });
 
-toolbox.router.get(/\/api\/.*/, toolbox.networkFirst, {
+toolbox.router.get(/\/api\/.*/, toolbox.fastest, {
   cache: {
     maxEntries:1000,
     name: "api-cache",

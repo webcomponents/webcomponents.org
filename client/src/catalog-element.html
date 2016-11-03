@@ -1057,12 +1057,18 @@
       },
 
       _starRepo: function() {
-        if (!this.queryParams || !this.queryParams.code)
+        if (!this.queryParams || !this.queryParams.code || this._isStarred())
           return;
+
+        // Pre-emptively set starred, so UI updates while the request is in flight.
+        this._repoStarred = true;
 
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', function(event) {
           this._setStarred(event.target.status == 204);
+        }.bind(this));
+        xhr.addEventListener('error', function() {
+          this._repoStarred = false;
         }.bind(this));
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
