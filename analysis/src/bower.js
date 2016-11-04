@@ -108,13 +108,13 @@ class Bower {
     // report the github tag that it used to download the correct dependencies. In order
     // to make it do what we want, we need to do two dependency walks - one (online) to
     // populate the cache and another (offline) to gather the results.
-    return Bower.dependencies(ownerPackageVersionString, {}, false).then(() => {
-      return Bower.dependencies(ownerPackageVersionString, {}, true);
+    return Bower.dependencies(ownerPackageVersionString, {}, false, false).then(() => {
+      return Bower.dependencies(ownerPackageVersionString, {}, true, false);
     });
   }
 
-  static dependencies(ownerPackageVersionString, processed, offline) {
-    return Bower.infoPromise(ownerPackageVersionString, offline).then(info => {
+  static dependencies(ownerPackageVersionString, processed, offline, mayNotExist) {
+    return Bower.infoPromise(ownerPackageVersionString, offline, mayNotExist).then(info => {
       // Gather all of the dependencies we want to look at.
       var depsToProcess =
           Object.assign(info.dependencies ? info.dependencies : {},
@@ -135,23 +135,29 @@ class Bower {
       }
 
       // Analyse all of the dependencies we have left.
-      var promises = keys.map(key => {
+      var promises = [];
+      keys.forEach(key => {
         processed[key] = key;
 
-        // Sanitize packages in ludicrous formats.
         var packageToProcess = depsToProcess[key];
-        if (!packageToProcess.includes("/")) {
-          packageToProcess = key + "#" + packageToProcess;
+        // Many packages are in package:semver format (others are in package:package#semver format or package:owner/package#semver)
+        // Sadly, not all semvers are equal and it seems that bower supports a rich vein of
+        // weird version symbols which are hard to distinguish between. (eg 'bower install q#x' is fine)
+        // Rather than parsing semvers, we'll just take anything that looks like it might possibly be one
+        // and try a couple of versions of it...
+        var mayNotExist = false;
+        if (!packageToProcess.includes("#") && !packageToProcess.includes("/")) {
+          mayNotExist = true;
+          promises.push(Bower.dependencies(key + "#" + packageToProcess, processed, offline, mayNotExist));
         }
-
-        return Bower.dependencies(packageToProcess, processed, offline);
+        promises.push(Bower.dependencies(packageToProcess, processed, offline, mayNotExist));
       });
 
       return Promise.all(promises).then(dependencyList => [].concat.apply(result, dependencyList));
     });
   }
 
-  static infoPromise(ownerPackageVersionString, offline) {
+  static infoPromise(ownerPackageVersionString, offline, mayNotExist) {
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
@@ -167,8 +173,12 @@ class Bower {
         result.metadata = metadata;
         resolve(result);
       }).on('error', function(error) {
-        Ana.fail("bower/findDependencies/info");
-        Ana.log("bower/findDependencies/info failure info %s", error);
+        if (mayNotExist) {
+          Ana.fail("bower/findDependencies/info", ownerPackageVersionString, "speculative option - may not exist");
+        } else {
+          Ana.fail("bower/findDependencies/info");
+          Ana.log("bower/findDependencies/info failure info %s", error);
+        }
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
