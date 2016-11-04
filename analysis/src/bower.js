@@ -140,11 +140,13 @@ class Bower {
         processed[key] = key;
 
         var packageToProcess = depsToProcess[key];
-        // Many packages are in package:semver format (others are in package:package#semver format or package:owner/package#semver)
-        // Sadly, not all semvers are equal and it seems that bower supports a rich vein of
-        // weird version symbols which are hard to distinguish between. (eg 'bower install q#x' is fine)
-        // Rather than parsing semvers, we'll just take anything that looks like it might possibly be one
-        // and try a couple of versions of it...
+        /*
+         Many packages are in package:semver format (also package:package#semver package:owner/package#semver)
+         Sadly, many of the 'semver's in Bower are just not matched by any semver parsers. It seems that Bower
+         is extremely tolerant, so we must be too. However, this is hard! (eg 'bower install q#x' is fine)
+         Rather than parsing or validating semvers, we'll just take anything that looks like it might be in
+         package:semver format and try a couple of versions of it...
+        */
         var mayNotExist = false;
         if (!packageToProcess.includes("#") && !packageToProcess.includes("/")) {
           mayNotExist = true;
