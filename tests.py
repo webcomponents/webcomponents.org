@@ -38,9 +38,11 @@ def main(sdk_path):
 
   logging.disable(logging.CRITICAL)
 
+  from colour_runner import runner
+
   # Discover and run tests.
   suite = unittest.loader.TestLoader().discover(test_path, pattern='*_test.py')
-  result = unittest.TextTestRunner(verbosity=2).run(suite)
+  result = runner.ColourTextTestRunner(verbosity=2).run(suite)
 
   if not result.wasSuccessful():
     sys.exit(result)
