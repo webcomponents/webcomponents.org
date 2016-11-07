@@ -182,6 +182,7 @@ class LibraryMetadata(object):
       result['avatar_url'] = metadata['owner']['avatar_url']
       result['repo'] = metadata['name']
       result['homepage'] = metadata['homepage']
+      result['default_branch'] = metadata['default_branch']
 
     if not brief:
       readme = yield readme_future

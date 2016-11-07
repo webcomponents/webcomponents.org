@@ -163,10 +163,14 @@
       ],
 
       readmeChanged: function(data, readme) {
-        if (!readme || !data)
+        if (!data)
           return;
 
-        this.$.contents.innerHTML = readme;
+        this.$.contents.innerHTML = readme || 'Empty README.md';
+
+        if(!readme)
+          return;
+
         // Only scope once so inline demos don't have conflicting styles.
         this.scopeSubtree(this.$.contents, false);
 
@@ -215,12 +219,13 @@
         var i;
 
         var links = Polymer.dom(this.$.contents).querySelectorAll('[href]');
+        var defaultBranch = data.default_branch || 'master';
         for (i = 0; i < links.length; i++)
-          links[i].setAttribute('href', links[i].getAttribute('href').replace(relativeRegex, githubBase + '/blob/master/$1'));
+          links[i].setAttribute('href', links[i].getAttribute('href').replace(relativeRegex, githubBase + '/blob/' + defaultBranch + '/$1'));
 
         links = Polymer.dom(this.$.contents).querySelectorAll('[src]');
         for (i = 0; i < links.length; i++)
-          links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/master/$1'));
+          links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/' + defaultBranch + '/$1'));
       },
 
       _loadDemos: function(docsPending) {
