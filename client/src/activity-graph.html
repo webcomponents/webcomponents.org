@@ -107,7 +107,7 @@
           rect.setAttribute('width', columnWidth);
           rect.setAttribute('height', height + '%');
           var title = document.createElementNS(xmlns, 'title');
-          var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+          var options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
           title.textContent = buckets[i] + ' commits in period starting ' + this._computeDate((buckets.length - i) * 3).toLocaleString('en-us', options);
           rect.appendChild(title);
           // Normalise alpha values to 10, 30, 50, 70
