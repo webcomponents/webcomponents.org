@@ -536,6 +536,7 @@
       },
 
       _setLoading: function() {
+        document.title = 'webcomponents.org';
         Polymer.AppLayout.scroll(0);
         this.$.pages.classList.add('loading');
         this.$.progress.removeAttribute('hidden');
@@ -556,7 +557,6 @@
       },
 
       _pageReady: function() {
-        document.title = 'webcomponents.org';
         var selectedItem = this.$.pages.selectedItem;
         // Work around for https://github.com/PolymerElements/iron-pages/issues/52
         if (!selectedItem)
