@@ -166,7 +166,7 @@
         align-items: center;
       }
 
-      #publish-cta {
+      .cta-button {
         background: var(--theme-blue);
         color: white;
         border-radius: 5px;
@@ -264,6 +264,12 @@
 
       #toast a {
         margin-left: 16px;
+      }
+
+      @media (min-width: 500px) and (max-width: 1000px) {
+        #tag-line {
+          display: none;
+        }
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -392,7 +398,10 @@
               <h2 id="domain-title">webcomponents.org</h2>
               <div id="tag-line" aria-label="web components .org">[[_tagLine()]]</div>
             </div>
-            <a id="publish-cta" class="desktop-only" href="/publish">Publish an element</a>
+            <div id="nav">
+              <a class="cta-button desktop-only" href="https://gitter.im/webcomponents/community" target="_blank">Chat</a>
+              <a class="cta-button desktop-only" href="/publish">Publish element</a>
+            </div>
             <svg id="mobile-search-trigger" class="mobile-only" viewBox="0 0 100 100" id="search-symbol" on-click="_openSearch"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
             <catalog-search-box id="mobile-search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
           </a>
