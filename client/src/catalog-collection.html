@@ -122,12 +122,12 @@
         if (!visible || !collection || collection == this._currentCollection)
           return;
 
-        document.title = this._repo;
         this._currentFullName = collection;
 
         var parts = collection.split('/');
         this._owner = parts[0];
         this._repo = parts[1];
+        document.title = this._repo;
 
         this._metadata = null;
         this._authorMetadata = null;
