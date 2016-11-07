@@ -425,7 +425,10 @@ class LibraryTask(RequestHandler):
       # Ingest from newest to oldest.
       tag = tags_to_add[0]
       if self.trigger_version_ingestion(tag, new_tag_map[tag]):
-        logging.info('ingesting new %s version (%s)', versiontag.categorize(tag, ingested_tags), tag)
+        if self.library.kind == 'collection':
+          logging.info('ingesting new collection version (%s)', tag)
+        else:
+          logging.info('ingesting new %s version (%s)', versiontag.categorize(tag, ingested_tags), tag)
     elif len(tags_to_delete) > 0:
       tag = tags_to_delete[0]
       self.trigger_version_deletion(tags_to_delete[0])
