@@ -46,9 +46,9 @@
 
     <div id="container" aria-hidden="true">
       <svg id="svg" height="86"></svg>
-      <div id="today" class="date">[[_computeDate(0)]]</div>
-      <div id="today-9" class="date">[[_computeDate(9)]]</div>
-      <div id="startDate" class="date">[[_computeDate(45)]]</div>
+      <div id="today" class="date">[[_date(0)]]</div>
+      <div id="today-9" class="date">[[_date(9)]]</div>
+      <div id="startDate" class="date">[[_date(45)]]</div>
     </div>
   </template>
 
@@ -68,6 +68,11 @@
       _computeDate: function(weeksBeforeToday) {
         var date = new Date(Date.now());
         date.setDate(date.getDate() - 7 * weeksBeforeToday);
+        return date;
+      },
+
+      _date: function(weeksBeforeToday) {
+        var date = this._computeDate(weeksBeforeToday);
         return date.getMonth() + '/' + date.getFullYear();
       },
 
@@ -101,6 +106,10 @@
           rect.setAttribute('y', 100 - height + '%');
           rect.setAttribute('width', columnWidth);
           rect.setAttribute('height', height + '%');
+          var title = document.createElementNS(xmlns, 'title');
+          var options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
+          title.textContent = buckets[i] + ' commits in period starting ' + this._computeDate((buckets.length - i) * 3).toLocaleString('en-us', options);
+          rect.appendChild(title);
           // Normalise alpha values to 10, 30, 50, 70
           var alpha = Math.round(height / 25) * 20 + 10;
           rect.setAttribute('fill', 'hsla(0, 0%, 0%, ' + alpha / 100 + ')');
