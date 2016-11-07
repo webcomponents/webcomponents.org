@@ -298,13 +298,14 @@ class LibraryTask(RequestHandler):
     version_object = Version.get_by_id(tag, parent=self.library.key)
     if version_object is not None and (version_object.status == Status.ready or version_object.status == Status.pending):
       # Version object is already up to date or pending
-      return
+      return False
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url, preview=preview).put()
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
     self.trigger_analysis(tag, sha, transactional=True)
+    return True
 
   def trigger_analysis(self, tag, sha, transactional=False):
     analysis_sha = None
@@ -421,8 +422,10 @@ class LibraryTask(RequestHandler):
     # To avoid running into limits on the number of tasks (5) that can be spawned transactionally
     # only ingest (2 tasks) or delete (1 task) one version per update.
     if len(tags_to_add) > 0:
+      # Ingest from newest to oldest.
       tag = tags_to_add[0]
-      self.trigger_version_ingestion(tag, new_tag_map[tag])
+      if self.trigger_version_ingestion(tag, new_tag_map[tag]):
+        logging.info('ingesting new %s version (%s)', versiontag.categorize(tag, ingested_tags), tag)
     elif len(tags_to_delete) > 0:
       tag = tags_to_delete[0]
       self.trigger_version_deletion(tags_to_delete[0])
