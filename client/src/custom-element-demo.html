@@ -330,9 +330,6 @@
         this.$['demo-spinner'].removeAttribute('active');
 
         event.data.height = Math.max(64, event.data.height);
-        if (this._lastHeight && event.data.height <= this._lastHeight)
-          return;
-        this._lastHeight = event.data.height;
         this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
         this.$.demoContainer.style.height = event.data.height + 'px';

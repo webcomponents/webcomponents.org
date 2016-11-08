@@ -41,8 +41,9 @@
   var currentFrame;
   var loadingFrame;
   var sourceWindow;
+  var timeoutId;
+  var numberOfMeasures = 0;
   var demoId;
-  window.addEventListener('resize', postHeight);
 
   function receiveMessage(event) {
     // Allow messaging back to original window.
@@ -57,6 +58,10 @@
       loadingFrame.onload = null;
       container.removeChild(loadingFrame);
     }
+
+    if (timeoutId)
+      clearTimeout(timeoutId);
+    numberOfMeasures = 0;
 
     loadingFrame = document.createElement('iframe');
     loadingFrame.setAttribute('role', 'none');
@@ -95,5 +100,7 @@
   function postHeight() {
     if (sourceWindow && currentFrame && currentFrame.contentDocument)
       sourceWindow.postMessage({id: demoId, height: currentFrame.contentDocument.documentElement.offsetHeight}, '*');
+    numberOfMeasures++;
+    timeoutId = setTimeout(postHeight, Math.min(1000, 100 * numberOfMeasures));
   }
 </script>
