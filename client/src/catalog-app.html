@@ -258,8 +258,12 @@
         100% { opacity: 1; }
       }
 
-      #toast:unresolved {
+      #toast {
         display: none;
+      }
+
+      #toast:not(:unresolved) {
+        display: block;
       }
 
       #toast a {
