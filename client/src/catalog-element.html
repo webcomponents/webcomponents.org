@@ -610,7 +610,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
@@ -754,9 +754,9 @@
         this.owner = split.shift();
         this.repo = split.shift();
 
-        if (split.length && split[0].indexOf('.') != -1)
+        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+$/))
           this.versionRoute = '/' + split.shift();
-        else if (split.length && split[0].match(/[0-9a-f]{20,}/))
+        else if (split.length && split[0].match(/^[0-9a-f]{20,}$/))
           this.versionRoute = '/' + split.shift();
 
         if (split.length && split[0].indexOf('demo') != -1) {
