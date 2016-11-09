@@ -1039,6 +1039,7 @@
       _authenticateStar: function() {
         if (this._isStarred())
           return;
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Start'});
         window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
       },
 
@@ -1067,11 +1068,14 @@
         // Pre-emptively set starred, so UI updates while the request is in flight.
         this._inflightStar = true;
         this._repoStarred = this._isStarred();
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Requesting star'});
 
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', function(event) {
           this._inflightStar = false;
-          this._setStarred(event.target.status == 204);
+          var newStar = event.target.status == 204;
+          this._setStarred(newStar);
+          this.fire('event', {category: 'Star', action: 'Element star', label: newStar ? 'Success - New star' : 'Success - Already starred'});
         }.bind(this));
         xhr.addEventListener('error', function() {
           this._inflightStar = false;
