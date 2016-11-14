@@ -163,7 +163,7 @@ class Bower {
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
-        ownerPackageVersionString.toLowerCase(),
+        ownerPackageVersionString.indexOf("git://") == 0 ? ownerPackageVersionString : ownerPackageVersionString.toLowerCase(),
         undefined /* property */,
         {
           offline: offline
