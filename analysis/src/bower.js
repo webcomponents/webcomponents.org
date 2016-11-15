@@ -108,13 +108,13 @@ class Bower {
     // report the github tag that it used to download the correct dependencies. In order
     // to make it do what we want, we need to do two dependency walks - one (online) to
     // populate the cache and another (offline) to gather the results.
-    return Bower.dependencies(ownerPackageVersionString, {}, false, false).then(() => {
-      return Bower.dependencies(ownerPackageVersionString, {}, true, false);
+    return Bower.dependencies(ownerPackageVersionString, {}, false, ['empty-buddy']).then(() => {
+      return Bower.dependencies(ownerPackageVersionString, {}, true, ['empty-buddy']);
     });
   }
 
-  static dependencies(ownerPackageVersionString, processed, offline, mayNotExist) {
-    return Bower.infoPromise(ownerPackageVersionString, offline, mayNotExist).then(info => {
+  static dependencies(ownerPackageVersionString, processed, offline, pairBuddy) {
+    return Bower.infoPromise(ownerPackageVersionString, offline, pairBuddy).then(info => {
       // Gather all of the dependencies we want to look at.
       var depsToProcess =
           Object.assign(info.dependencies ? info.dependencies : {},
@@ -138,28 +138,26 @@ class Bower {
       var promises = [];
       keys.forEach(key => {
         processed[key] = key;
-
         var packageToProcess = depsToProcess[key];
         /*
          Many packages are in package:semver format (also package:package#semver package:owner/package#semver)
          Sadly, many of the 'semver's in Bower are just not matched by any semver parsers. It seems that Bower
          is extremely tolerant, so we must be too. However, this is hard! (eg 'bower install q#x' is fine)
-         Rather than parsing or validating semvers, we'll just take anything that looks like it might be in
-         package:semver format and try a couple of versions of it...
+         Rather than parsing or validating semvers, we'll just try a couple of versions of each package.
         */
-        var mayNotExist = false;
-        if (!packageToProcess.includes("#") && !packageToProcess.includes("/")) {
-          mayNotExist = true;
-          promises.push(Bower.dependencies(key + "#" + packageToProcess, processed, offline, mayNotExist));
-        }
-        promises.push(Bower.dependencies(packageToProcess, processed, offline, mayNotExist));
+
+        // pairBuddy collects the errors from each install.
+        // We use it to determine whether a genuine error occured (two failures).
+        var pairBuddy = [];
+        promises.push(Bower.dependencies(key + "#" + packageToProcess, processed, offline, pairBuddy));
+        promises.push(Bower.dependencies(packageToProcess, processed, offline, pairBuddy));
       });
 
       return Promise.all(promises).then(dependencyList => [].concat.apply(result, dependencyList));
     });
   }
 
-  static infoPromise(ownerPackageVersionString, offline, mayNotExist) {
+  static infoPromise(ownerPackageVersionString, offline, pairBuddy) {
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
@@ -175,11 +173,11 @@ class Bower {
         result.metadata = metadata;
         resolve(result);
       }).on('error', function(error) {
-        if (mayNotExist) {
-          Ana.fail("bower/findDependencies/info", ownerPackageVersionString, "speculative option - may not exist");
-        } else {
+        pairBuddy.push(error);
+        if (pairBuddy.length == 2) {
+          // Oh NOES! Neither pair attempt made it. This dependency was actually probably bad! :(
           Ana.fail("bower/findDependencies/info");
-          Ana.log("bower/findDependencies/info failure info %s", error);
+          Ana.log("bower/findDependencies/info failure info %s", pairBuddy);
         }
         resolve({});
       }).on('log', function(logEntry) {
