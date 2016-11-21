@@ -73,7 +73,7 @@
 
       _date: function(weeksBeforeToday) {
         var date = this._computeDate(weeksBeforeToday);
-        return date.getMonth() + '/' + date.getFullYear();
+        return (date.getMonth() + 1) + '/' + date.getFullYear();
       },
 
       _activityChanged: function(activity) {
