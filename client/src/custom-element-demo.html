@@ -386,7 +386,7 @@
         return !window.localStorage.fteInlineDemoEdit;
       },
 
-      _dismissFirstTimeMessage: function(event) {
+      _dismissFirstTimeMessage: function() {
         window.localStorage.fteInlineDemoEdit = "true";
         this.querySelector('#fte-message').remove();
       },
