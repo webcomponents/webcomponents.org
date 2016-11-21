@@ -61,6 +61,42 @@
         position: relative;
       }
 
+      #fte-message {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        background: hsla(0, 0%, 0%, 0.3);
+        color: white;
+        opacity: 0;
+        transition: opacity 300ms cubic-bezier(0, 0, 0.2, 1);
+        font-size: 20px;
+        -webkit-user-select: none;
+        cursor: pointer;
+      }
+
+      #fte-message:hover {
+        opacity: 1;
+      }
+
+      #fte-message svg {
+        width: 64px;
+        height: 64px;
+        margin-right: 24px;
+        margin-left: -24px;
+        fill: white;
+      }
+
+      #fte-message h2 {
+        margin: 0;
+        margin-bottom: 16px;
+      }
+
       #editorBar {
         height: 20px;
         padding: 16px 16px 4px 4px;
@@ -133,6 +169,17 @@
         <spinner-lite id="demo-spinner" active></paper>
       </div>
       <div id="editorSection">
+        <template is="dom-if" if="[[_showFirstTimeMessage()]]">
+          <div id="fte-message" class="desktop-only" on-click="_dismissFirstTimeMessage">
+            <svg viewBox="0 0 100 100">
+              <use xlink:href="/sprite.octicons.svg#pencil"></use>
+            </svg>
+            <div>
+              <h2>Tap to edit</h2>
+              Demo will live update as you edit.
+            </div>
+          </div>
+        </template>
         <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
         <pre id="lazyEditor"></pre>
         <div id="editorBar">
@@ -333,7 +380,16 @@
         this.$.demoContainer.classList.add('reveal');
         this.$.frame.style.height = event.data.height + 'px';
         this.$.demoContainer.style.height = event.data.height + 'px';
-      }
+      },
+
+      _showFirstTimeMessage: function() {
+        return !window.localStorage.fteInlineDemoEdit;
+      },
+
+      _dismissFirstTimeMessage: function() {
+        window.localStorage.fteInlineDemoEdit = "true";
+        this.querySelector('#fte-message').remove();
+      },
 
     });
   })();
