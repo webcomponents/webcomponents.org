@@ -24,6 +24,38 @@
         color: white;
       }
 
+      .annotated span {
+        position: relative;
+        display: inline-block;
+        padding-left: 8px;
+        padding-right: 8px;
+        margin-left: -8px;
+      }
+
+      .annotated span:hover {
+        background: hsla(0, 0%, 100%, 0.2);
+      }
+
+      .annotated span:hover:before {
+        content: attr(aria-label);
+        -webkit-user-select: none;
+        position: absolute;
+        top: -40px;
+        padding: 4px 10px;
+        font-weight: 600;
+        border-radius: 4px;
+        animation: 150ms fade;
+        font-family: 'Source Sans Pro', sans-serif;
+        background: var(--theme-green);
+        color: #333;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+      }
+
       custom-element-demo {
         display: block;
         margin: 0 auto;
@@ -114,31 +146,32 @@
 
         <p>For the following raw markdown:</p>
    
-<pre lang="html">&lt;!--
+<pre class="annotated">
+&lt;!--
 ```
 &lt;custom-element-demo&gt;
   &lt;template&gt;
-    &lt;link rel="import" href="../other-element/other-element.html"&gt;
-    &lt;link rel="import" href="my-element.html"&gt;
-    &lt;next-code-block&gt;&lt;/next-code-block&gt;
+    <span aria-label="Styling and imports - importing your element">&lt;link rel="import" href="my-element.html"&gt;</span>
+    <span aria-label="Styling and imports - dependencies are siblings of your repo">&lt;link rel="import" href="../other-element/other-element.html"&gt;</span>
+    <span aria-label="Snippet reference - This will be replaced with the visible code block below">&lt;next-code-block&gt;&lt;/next-code-block&gt;</span>
   &lt;/template&gt;
 &lt;/custom-element-demo&gt;
 ```
 --&gt;
-```
+<span aria-label="Code snippet - Referenced using <next-code-block> above">```html
 &lt;other-element&gt;&lt;/other-element&gt;
 &lt;my-element&gt;&lt;/my-element&gt;
-```</pre>
+```</span></pre>
 
-        <p>The Github rendered markdown is:</p>	
-        <pre lang="html">&lt;other-element&gt;&lt;/other-element&gt;</pre>
-        <pre lang="html">&lt;my-element&gt;&lt;/my-element&gt;</pre>
-	
+        <p>The default visible snippet and GitHub rendered markdown will appear as:</p>
+        <pre lang="html">&lt;other-element&gt;&lt;/other-element&gt;
+&lt;my-element&gt;&lt;/my-element&gt;</pre>
         <p>Best practices:</p>
         <ul>
           <li>Keep number of dependencies down - inline demos need to be fast!</li>
           <li>Make sure your demo is responsive. Height is automatically determined, but if you need to explicitly define a minimum height you can set <code>height="400"</code> on <code>&lt;custom-element-demo&gt;</code>.</li>
           <li>Don’t demo everything - inline demos are just a quick demo. Use demo files for complex demos.</li>
+          <li>Use the inline demo creator (append <code>?editing</code> to an element page) or the <a href="/preview">preview</a> page to make sure your demo works before publishing.</li>
         </ul>
 
         <h1>Ready to publish?</h1>
