@@ -126,8 +126,14 @@
       }
 
       #info-download-command {
+        border: 0;
+        color: var(--theme-font-color);
+        display: block;
         font-family: var(--monospace-font);
         font-size: 12px;
+        outline: 0;
+        padding: 4px 0;
+        width: 100%;
       }
 
       #info-stats {
@@ -573,7 +579,7 @@
           <div class="box">
             <div id="info-download">
               <h3>Download</h3>
-              <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
+              <input id="info-download-command" title="Download command" readonly value="bower install --save [[owner]]/[[repo]]" on-tap="_selectAllInfoDownload"/>
             </div>
             <a id="info-view-github" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
@@ -1085,6 +1091,10 @@
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();
+      },
+
+      _selectAllInfoDownload: function(event) {
+        event.currentTarget.select();
       },
 
     });
