@@ -55,7 +55,8 @@
 
         _remove: function() {
           var parent = Polymer.dom(this).parentNode;
-          Polymer.dom(parent).removeChild(this);
+          if (parent)
+            Polymer.dom(parent).removeChild(this);
         },
 
         _loadResources: function() {

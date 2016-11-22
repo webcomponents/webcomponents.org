@@ -353,17 +353,7 @@
       }
 
       #report-link {
-        margin-top: 60px;
-        position: relative;
-      }
-
-      #report-link:before {
-        content: '';
-        position: absolute;
-        top: -20px;
-        border-top: 1px solid #ededed;
-        height: 1px;
-        width: 100%;
+        margin-top: 24px;
       }
 
       /* Demo frame */
@@ -626,7 +616,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]" hidden$="[[!collections.count]]">
+          <div class="loader" loading$="[[!docs]]" hidden$="[[!collections.count]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -634,7 +624,9 @@
                 <collection-card class="box" data="[[item]]"></collection-card>
               </template>
             </template>
+          </div>
 
+          <div class="loader" loading$="[[!docs]]">
             <template is="dom-if" if="[[_dependencies(data).count]]">
               <div id="info-dependencies">
                 <h1>Dependencies</h1>
@@ -900,18 +892,22 @@
         }
       },
 
-      _docsResponse: function() {
-        if (!this._lazyUnblocked) {
-          this.$.block.unblock();
-          this._lazyUnblocked = true;
-        }
+      _unblockLazy: function() {
+        if (this._lazyUnblocked)
+          return;
+        this.$.block.unblock();
+        this._lazyUnblocked = true;
+      },
 
+      _docsResponse: function() {
+        this._unblockLazy();
         this.$['sidebar-spinner'].removeAttribute('active');
         this._updateDescriptor();
         this.async(this._updateActiveLinks);
       },
 
       _docsError: function(event, error) {
+        this._unblockLazy();
         if (error.request.response && error.request.response.status == 'pending') {
           this.$['sidebar-spinner'].setAttribute('active', '');
           this.async(function() {
@@ -924,6 +920,7 @@
       },
 
       _updateDescriptor: function() {
+        this._hasRepoContents = false;
         if (!this.docs || !this.docs.content)
           return;
         this.bundledElements = this._elements();
