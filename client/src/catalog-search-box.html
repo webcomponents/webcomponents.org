@@ -270,6 +270,7 @@
           focused = true;
           this._onFocus();
         }.bind(this);
+
         var blurListener = function(event) {
           focused = false;
           this.async(function() {
@@ -278,8 +279,16 @@
           }, 100); /* 100ms is a Safari workaround since this fires before the focus event */
         }.bind(this);
 
+        var keydownListener = function(event) {
+          var escKey = 27;
+          if (event.keyCode === escKey) {
+            this._queryChanged(null);
+          }
+        }.bind(this);
+
         this.addEventListener('focus', focusListener, true);
         this.addEventListener('blur', blurListener, true);
+        this.$.results.addEventListener('keydown', keydownListener, true);
       },
 
       open: function() {
@@ -317,7 +326,7 @@
 
       _queryChanged: function(query) {
         this.$['search-input'].focus();
-        this.$['search-input'].value = query;
+        this.$['search-input'].value = query || '';
         this._triggerSearch();
       },
 
