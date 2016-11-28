@@ -10,28 +10,52 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
-      :host {
-        font-size: 18px;
-        line-height: 30px;
+      h1.page-title {
+        padding-bottom: 16px;
+        border-bottom: 1px solid #ededed;
+        width: 100%;
+      }
+
+      .sidebar {
+        margin-top: 24px;
+      }
+
+      .sidebar-nav a[count]:after {
+        content: attr(count);
+        float: right;
+        color: var(--theme-blue-grey);
       }
 
       .resource {
-        padding: 24px;
+        padding: 24px 0;
         color: hsl(0, 0%, 45%);
-        display: flex;
-      }
-
-      .resource div:first-child {
-        flex: 0 0 200px;
-        text-align: right;
-        margin-right: 24px;
-        font-size: 18px;
         color: var(--theme-blue-grey);
+        border-bottom: 1px solid #ededed;
+        display: flex;
+        flex-direction: column;
       }
 
       .resource-title {
         font-weight: 600;
-        color: black;
+        color: var(--theme-black);
+      }
+
+      .resource-author {
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+      }
+
+      .resource-author svg {
+        width: 16px;
+        fill: #b1c2d6;
+        margin-left: 8px;
+      }
+
+      img {
+        max-width: 100%;
+        margin: auto;
+        margin-bottom: 16px;
       }
 
       .resource:hover:not(:active) {
@@ -43,7 +67,7 @@
     <iron-ajax
       auto
       id="ajax"
-      url="https://web-components-resources.appspot.com/resources"
+      url="https://web-components-resources.appspot.com/resources[[_filterPath]]"
       handle-as="json"
       loading="{{_resourcesLoading}}"
       on-response="_onResourcesResponse"></iron-ajax>
@@ -58,18 +82,35 @@
 
     <template is="dom-if" if="[[!path]]">
       <h1 class="page-title">Community</h1>
-      <div class="box loader" loading$="[[!_resources]]">
-        <template is="dom-repeat" items="[[_resources.results]]">
-          <a href="[[_computeLink(item)]]" class="resource">
-            <div>[[_formatDate(item.date)]]</div>
-            <div>
+
+      <div class="body">
+        <div class="sidebar">
+          <h1>Show</h1>
+          <div class="sidebar-nav box">
+            <a on-click="_filterChanged" active>All</a>
+            <a on-click="_filterChanged">Articles</a>
+            <a on-click="_filterChanged">Podcasts</a>
+            <a on-click="_filterChanged">Presentations</a>
+          </div>
+        </div>
+
+        <div class="main-content loader" loading$="[[!_resources]]">
+          <template is="dom-repeat" items="[[_resources.results]]">
+            <a href="[[_computeLink(item)]]" class="resource" aria-label="[[item.category]] titled [[item.title]]">
               <h1 class="resource-title">[[item.title]]</h1>
-              <div>[[_stripHTML(item.excerpt)]]</div>
-              [[item.link]]
-            </div>
-          </a>
-        </template>
-        <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+              <div class="resource-author">
+                [[_formatDate(item.date)]]
+                <svg viewBox="0 0 100 100" id="search-symbol"><use href$="/sprite.octicons.svg#[[_toSVG(item.category)]]"></use></svg>
+              </div>
+              <template is="dom-if" if="[[item.image]]">
+                <img src="https://web-components-resources.appspot.com/assets/images/[[item.image]]">
+              </template>
+              <mark-down markdown="[[_stripHTML(item.excerpt)]]"></mark-down>
+            </a>
+          </template>
+          <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+        </div>
+
       </div>
     </template>
 
@@ -106,6 +147,13 @@
 
       ready: function() {
         this._resources = null;
+        this._filterPath = '';
+
+        this._categorySVGMap = {
+          podcasts: 'unmute',
+          articles: 'file',
+          presentations: 'device-camera-video',
+        };
       },
 
       _visibilityChanged: function(visible) {
@@ -119,7 +167,6 @@
       _loadMore: function() {
         if (!this.visible || this.path || !this._resources || this._resources.results.length >= this._resources.count)
           return;
-
         this.$.ajax.params = {offset: this._resources.results.length};
       },
 
@@ -129,9 +176,11 @@
           this.notifyPath('_resources.results');
         } else {
           this._resources = this.$.ajax.lastResponse;
+          var filterLink = this.querySelector('.sidebar-nav a[active]');
+          filterLink.setAttribute('count', this._resources.count);
         }
+
         this.$.threshold.clearTriggers();
-        this.$.threshold.checkScrollThesholds();
       },
 
       _pathChanged: function(path) {
@@ -159,7 +208,26 @@
       _stripHTML: function(html) {
         var template = document.createElement('template');
         template.innerHTML = html;
-        return template.content.firstChild.textContent;
+        return html ? template.content.firstChild.textContent : '';
+      },
+
+      _toSVG: function(category) {
+        return this._categorySVGMap[category];
+      },
+
+      _filterChanged: function(event) {
+        var type = event.target.textContent.toLowerCase();
+        var links = this.querySelectorAll('.sidebar-nav a');
+        for (var i = 0; i < links.length; i++)
+          links[i].removeAttribute('active');
+        event.target.setAttribute('active', '');
+
+        if (this.$.ajax.loading)
+          this.$.ajax.lastRequest.abort();
+
+        this._filterPath = type == 'all' ? '' : '/' + type;
+        this._resources = null;
+        this.$.ajax.params = {};
       },
 
     });
