@@ -1,6 +1,17 @@
 ## Front-end client
-### Running
+### Building
 ```bash
+cd client && npm install
+```
+Using yarn:
+```bash
+cd client && yarn
+```
+
+### Running
+Run using either of these commands:
+```bash
+npm run client
 dev_appserver.py client/client.yaml
 ```
 

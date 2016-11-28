@@ -1,0 +1,56 @@
+<!doctype html>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
+
+<!-- Import the element to test -->
+<link rel="import" href="../src/catalog-publish.html">
+<link rel="import" href="../src/re-captcha.html">
+
+<test-fixture id="publish-page">
+  <template>
+     <catalog-publish base-urls="{api: '', userContent: ''}"></catalog-publish>
+  </template>
+</test-fixture>
+
+<script>
+  suite('Errors', function() {
+    var publishPage;
+    var responseHeaders = {
+      json: {'Content-Type': 'application/json'}
+    };
+    var metaResponse = {"status": "error", "kind": "element", "error": "Could not detect an OSI approved license on GitHub or in master/bower.json"};
+
+    setup(function() {
+      server = sinon.fakeServer.create();
+      server.autoRespond = true;
+      server.respondImmediately = true;
+      server.respondWith(
+        'GET',
+        /.*/, [
+          400,
+          responseHeaders.json,
+          JSON.stringify(metaResponse)
+        ]
+      );
+    });
+
+    test('invalid license shows error page', function(done) {
+      publishPage = fixture('publish-page');
+      publishPage._pollingInterval = 0;
+      publishPage.baseUrls = {api: '', userContent: ''};
+      publishPage.path = '/owner/repo';
+      publishPage.$.recaptcha.getResponse = function() { return 'code'; };
+      sinon.stub(publishPage, 'onPollingTimeout', function() {
+        done();
+      });
+      publishPage.onSubmit();
+    });
+
+    teardown(function() {
+      server.restore();
+      publishPage.onPollingTimeout.restore();
+    });
+
+  });
+</script>

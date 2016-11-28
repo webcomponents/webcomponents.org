@@ -1,3 +1,5 @@
+from base64 import b64encode
+import json
 import unittest
 import webtest
 
@@ -19,12 +21,13 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/token', status=200)
     self.respond_to('https://api.github.com/rate_limit', '')
     self.app.get('/manage/github', status=200)
+    self.app.get('/manage/analyze-all', status=403)
     self.app.get('/manage/index-all', status=403)
     self.app.get('/manage/update-all', status=403)
     self.app.get('/manage/add/org/repo', status=403)
-    self.app.get('/manage/analyze/owner/repo', status=403)
     self.app.get('/manage/delete/org/repo', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
+    self.app.get('/task/analyze/owner/repo', status=403)
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
     self.app.get('/task/ensure/owner', status=403)
@@ -45,6 +48,18 @@ class XsrfTest(ManageTestBase):
   def test_invalid_token(self):
     self.app.get('/manage/update-all', status=403, params={'token': 'hello'})
 
+class AnalyzeAllTest(ManageTestBase):
+  def test_analyze_all(self):
+    Library(id='owner/repo').put()
+
+    response = self.app.get('/manage/analyze-all', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.analyze_library_task('owner', 'repo')
+    ], [task.url for task in tasks])
+
 class UpdateAllTest(ManageTestBase):
   def test_update_all(self):
     library_key = Library(id='owner/repo').put()
@@ -64,7 +79,7 @@ class AnalyzeTest(ManageTestBase):
     library_key = Library(id='owner/repo').put()
     Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
 
-    response = self.app.get('/manage/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get('/task/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -137,7 +152,7 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual(library.status, Status.suppressed)
 
   def test_update_respects_304(self):
-    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
+    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', tag_map='{}', spdx_identifier='MIT')
     library.put()
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -148,6 +163,25 @@ class UpdateLibraryTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
+
+  def test_renamed_repo_is_renamed(self):
+    library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', tag_map='{}', spdx_identifier='MIT')
+    library.put()
+    self.respond_to_github('https://api.github.com/repos/org/repo', json.dumps({
+        "name": "newname",
+        "owner": {"login": "newowner"},
+    }))
+
+    response = self.app.get('/task/update/org/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    library = library.key.get()
+    self.assertIsNone(library)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ensure_library_task('newowner', 'newname'),
+    ], [task.url for task in tasks])
 
   def test_update_deletes_missing_repo(self):
     library = Library(id='org/repo', metadata_etag='a', contributors_etag='b', tags_etag='c', spdx_identifier='MIT')
@@ -170,6 +204,7 @@ class UpdateLibraryTest(ManageTestBase):
     Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
     Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
 
     self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
@@ -185,10 +220,92 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.1.0'),
         util.ingest_version_task('org', 'repo', 'v3.0.0'),
         util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
-        # We intentionally don't update tags that have changed to point to different commits.
+    ], [task.url for task in tasks])
+
+  def test_update_doesnt_ingest_older_versions(self):
+    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0'], spdx_identifier='MIT').put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v0.5.0", "commit": {"sha": "new"}},
+        {"name": "v1.0.0", "commit": {"sha": "old"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+    ], [task.url for task in tasks])
+
+  def test_subsequent_update_triggers_version_ingestion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT', tag_map='{"v1.0.0":"new","v2.0.0":"old","v3.0.0":"new"}').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
+        util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
+    ], [task.url for task in tasks])
+
+  def test_update_triggers_version_deletion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v1.0.0", "commit": {"sha": "old"}},
+        {"name": "v2.0.0", "commit": {"sha": "old"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.delete_task('org', 'repo', 'v0.1.0'),
+    ], [task.url for task in tasks])
+
+  def test_subsequent_update_triggers_version_deletion(self):
+    library_key = Library(id='org/repo', spdx_identifier='MIT', tag_map='{"v1.0.0":"old","v2.0.0":"old"}').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.delete_task('org', 'repo', 'v0.1.0'),
     ], [task.url for task in tasks])
 
   def test_update_collection(self):
@@ -211,7 +328,6 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.0.1'),
         util.ingest_version_task('org', 'repo', 'v0.0.2'),
         util.ingest_analysis_task('org', 'repo', 'v0.0.2', 'new-master-sha'),
     ], [task.url for task in tasks])
@@ -267,9 +383,9 @@ class AddTest(ManageTestBase):
 class IngestLibraryTest(ManageTestBase):
   def test_ingest_element(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
 
@@ -277,11 +393,12 @@ class IngestLibraryTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertEqual(library.metadata, '{"metadata": "bits"}')
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
-    self.assertEqual(library.tags, ['v1.0.0'])
+    self.assertEqual(library.tags, ['v0.5.0', 'v1.0.0'])
 
     version = ndb.Key(Library, 'org/repo', Version, 'v1.0.0').get()
+    self.assertIsNotNone(version)
     self.assertIsNone(version.error)
     self.assertEqual(version.sha, 'lol')
 
@@ -294,7 +411,7 @@ class IngestLibraryTest(ManageTestBase):
 
   def test_ingest_collection(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"], "license": "MIT"}')
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"metadata": "bits"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/git/refs/heads/master', '{"ref": "refs/heads/master", "object": {"sha": "master-sha"}}')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
@@ -304,7 +421,7 @@ class IngestLibraryTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNone(library.error)
-    self.assertEqual(library.metadata, '{"metadata": "bits"}')
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['v0.0.1'])
 
@@ -329,7 +446,7 @@ class IngestLibraryTest(ManageTestBase):
     library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
     Version(id='v1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to('https://raw.githubusercontent.com/org/repo/sha/README.md', 'README')
+    self.respond_to_github(r'https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
     self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
 
@@ -352,7 +469,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(bower.content, '{}')
 
   def test_ingest_preview(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
@@ -378,7 +495,7 @@ class IngestLibraryTest(ManageTestBase):
     ], [task.url for task in tasks])
 
   def test_ingest_license_fallback(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
@@ -393,7 +510,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(library.spdx_identifier, 'MIT')
 
   def test_ingest_bad_license(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}, "owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
@@ -406,7 +523,7 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(library.status, Status.error)
 
   def test_ingest_no_license(self):
-    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": null}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": null, "owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')

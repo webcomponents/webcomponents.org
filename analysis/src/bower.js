@@ -9,7 +9,8 @@ const Ana = require('./ana_log');
 // Don't retry ECONFLICT ("Unable to find suitable version for...").
 // Don't retry ENORESTARGET ("Tag/branch x does not exist").
 // Don't retry ECMDERR ("Fatal: reference is not a tree:...")
-const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET'];
+// Don't retry EMALFORMED ("Unexpected token } in JSON at position:...")
+const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET', 'EMALFORMED'];
 
 /**
  * Service for communicating with Bower on the local machine.
@@ -80,7 +81,7 @@ class Bower {
       }).on('error', function(error) {
         Ana.fail("bower/install", packageToInstall);
         var retry = true;
-        if (error.code && fatalErrorCodes.includes(error.code)) {
+        if (error.code && fatalErrorCodes.indexOf(error.code) != -1 || error instanceof TypeError) {
           retry = false;
         }
         reject({retry: retry, error: error});
@@ -107,13 +108,13 @@ class Bower {
     // report the github tag that it used to download the correct dependencies. In order
     // to make it do what we want, we need to do two dependency walks - one (online) to
     // populate the cache and another (offline) to gather the results.
-    return Bower.dependencies(ownerPackageVersionString, {}, false).then(() => {
-      return Bower.dependencies(ownerPackageVersionString, {}, true);
+    return Bower.dependencies(ownerPackageVersionString, {}, false, ['empty-buddy']).then(() => {
+      return Bower.dependencies(ownerPackageVersionString, {}, true, ['empty-buddy']);
     });
   }
 
-  static dependencies(ownerPackageVersionString, processed, offline) {
-    return Bower.infoPromise(ownerPackageVersionString, offline).then(info => {
+  static dependencies(ownerPackageVersionString, processed, offline, pairBuddy) {
+    return Bower.infoPromise(ownerPackageVersionString, offline, pairBuddy).then(info => {
       // Gather all of the dependencies we want to look at.
       var depsToProcess =
           Object.assign(info.dependencies ? info.dependencies : {},
@@ -134,57 +135,67 @@ class Bower {
       }
 
       // Analyse all of the dependencies we have left.
-      var promises = keys.map(key => {
+      var promises = [];
+      keys.forEach(key => {
         processed[key] = key;
-
-        // Sanitize packages in ludicrous formats.
         var packageToProcess = depsToProcess[key];
-        if (!packageToProcess.includes("/")) {
-          packageToProcess = key + "#" + packageToProcess;
-        }
+        /*
+         Many packages are in package:semver format (also package:package#semver package:owner/package#semver)
+         Sadly, many of the 'semver's in Bower are just not matched by any semver parsers. It seems that Bower
+         is extremely tolerant, so we must be too. However, this is hard! (eg 'bower install q#x' is fine)
+         Rather than parsing or validating semvers, we'll just try a couple of versions of each package.
+        */
 
-        return Bower.dependencies(packageToProcess, processed, offline);
+        // pairBuddy collects the errors from each install.
+        // We use it to determine whether a genuine error occured (two failures).
+        var pairBuddy = [];
+        promises.push(Bower.dependencies(key + "#" + packageToProcess, processed, offline, pairBuddy));
+        promises.push(Bower.dependencies(packageToProcess, processed, offline, pairBuddy));
       });
 
       return Promise.all(promises).then(dependencyList => [].concat.apply(result, dependencyList));
     });
   }
 
-  static infoPromise(ownerPackageVersionString, offline) {
+  static infoPromise(ownerPackageVersionString, offline, pairBuddy) {
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
-        ownerPackageVersionString,
+        ownerPackageVersionString.indexOf("git://") == 0 ? ownerPackageVersionString : ownerPackageVersionString.toLowerCase(),
         undefined /* property */,
         {
           offline: offline
         }
       ).on('end', function(info) {
-        info.metadata = metadata;
-        resolve(info);
+        // For anything with an unspecified version, the result from bower may be
+        // an unspecified list. Choose the latest.
+        var result = info.latest ? info.latest : info;
+        result.metadata = metadata;
+        resolve(result);
       }).on('error', function(error) {
-        Ana.fail("bower/findDependencies/info");
-        Ana.log("bower/findDependencies/info failure info %s", error);
+        pairBuddy.push(error);
+        if (pairBuddy.length == 2) {
+          // Oh NOES! Neither pair attempt made it. This dependency was actually probably bad! :(
+          Ana.fail("bower/findDependencies/info");
+          Ana.log("bower/findDependencies/info failure info %s", pairBuddy);
+        }
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
-          logEntry.data.pkgMeta._resolution) {
-          var owner = "";
-          var repo = "";
-          // Our package strings look like "Owner/Repo#1.2.3"
-          if (ownerPackageVersionString.includes("/")) {
-            owner = ownerPackageVersionString;
-            repo = owner.substring(owner.lastIndexOf("/") + 1, owner.lastIndexOf("#"));
-            owner = owner.substring(0, owner.lastIndexOf("/"));
-          } else {
-            // These uris look like "git://github.com/Owner/Repo.git"
-            owner = url.parse(logEntry.data.resolver.source).pathname;
-            repo = owner.substring(owner.lastIndexOf("/") + 1, owner.lastIndexOf("."));
-            owner = owner.substring(1 /* skip leading slash */, owner.lastIndexOf("/"));
-          }
+            logEntry.data.pkgMeta._resolution) {
+          var source = url.parse(logEntry.data.resolver.source);
+          if (source.hostname != 'github.com')
+            return;
+
+          var parts = source.pathname.substring(1).split('/', 2);
+          var owner = parts[0];
+          var repo = parts[1];
+          repo = repo.replace(/\.git$/, '');
+          var tag = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
+
           metadata = {
             name: logEntry.data.pkgMeta.name,
-            version: logEntry.data.pkgMeta._resolution.tag,
+            version: tag,
             owner: owner,
             repo: repo
           };

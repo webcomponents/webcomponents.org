@@ -55,7 +55,8 @@
 
         _remove: function() {
           var parent = Polymer.dom(this).parentNode;
-          Polymer.dom(parent).removeChild(this);
+          if (parent)
+            Polymer.dom(parent).removeChild(this);
         },
 
         _loadResources: function() {
@@ -68,6 +69,7 @@
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/lazy-resources.html', this._loadCodeEditor.bind(this), null, true);
           });
+          this.fire('lazy-loaded');
         },
 
         _loadCodeEditor: function() {
@@ -75,10 +77,11 @@
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/code-editor.html', function() {
               if ('serviceWorker' in navigator && window.location.hostname != 'localhost')
-                navigator.serviceWorker.register('/service-worker-entry.js');
+                navigator.serviceWorker.register('/service-worker.js');
               this._remove();
             }.bind(this), null, true);
           });
+          this.fire('code-editor-loaded');
         },
 
       });

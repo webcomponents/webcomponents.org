@@ -126,5 +126,24 @@ class PreviewEventHandler(ApiTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
+class StarTest(ApiTestBase):
+  def setUp(self):
+    ApiTestBase.setUp(self)
+
+  def test_normal(self):
+    self.respond_to('https://github.com/login/oauth/access_token', '{"access_token": "access_token"}')
+    self.respond_to('https://api.github.com/user/starred/owner/repo', {'status': 404})
+    self.respond_to('https://api.github.com/user/starred/owner/repo', {'status': 204})
+    self.app.post('/api/star/owner/repo', params={'code': 'code'}, status=204)
+
+  def test_already_starred(self):
+    self.respond_to('https://github.com/login/oauth/access_token', '{"access_token": "access_token"}')
+    self.respond_to('https://api.github.com/user/starred/owner/repo', {'status': 204})
+    self.app.post('/api/star/owner/repo', params={'code': 'code'}, status=202)
+
+  def test_bad_code(self):
+    self.respond_to('https://github.com/login/oauth/access_token', '{"error": "error"}')
+    self.app.post('/api/star/owner/repo', params={'code': 'code'}, status=401)
+
 if __name__ == '__main__':
   unittest.main()

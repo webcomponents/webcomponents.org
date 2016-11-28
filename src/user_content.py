@@ -80,6 +80,6 @@ class GetResource(webapp2.RequestHandler):
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/<owner>/<repo>/<tag>', handler=GetResource),
-    webapp2.Route(r'/<owner>/<repo>/<tag>/<:>/<:(bower_)?components>/<path:.*>', handler=RedirectResource),
+    webapp2.Route(r'/<owner>/<repo>/<tag>/<:>/<:bower_components>/<path:.*>', handler=RedirectResource),
     webapp2.Route(r'/<owner>/<repo>/<tag>/<name><path:/.*>', handler=GetResource),
 ], debug=True)

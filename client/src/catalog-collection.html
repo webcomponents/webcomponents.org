@@ -17,6 +17,10 @@
         display: block;
       }
 
+      author-profile:hover:not(:active) {
+        box-shadow: 0 0 20px 0 hsla(0, 0%, 0%, 0.1) !important;
+      }
+
       #author-link {
         color: inherit;
       }
@@ -118,12 +122,12 @@
         if (!visible || !collection || collection == this._currentCollection)
           return;
 
-        document.title = this._repo;
         this._currentFullName = collection;
 
         var parts = collection.split('/');
         this._owner = parts[0];
         this._repo = parts[1];
+        document.title = this._repo;
 
         this._metadata = null;
         this._authorMetadata = null;

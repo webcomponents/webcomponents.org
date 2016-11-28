@@ -2,15 +2,17 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-syntax-styles.html">
 <link rel="import" href="polling-meta-behavior.html">
 
 <dom-module id="catalog-publish">
   <template>
     <style include="catalog-styles"></style>
+    <style include="catalog-syntax-styles"></style>
 
     <style>
       .tip {
-        padding: 16px;
+        padding: 24px;
         background: var(--syntax-bg);
         color: var(--syntax-fg);
         border-radius: 4px;
@@ -22,10 +24,74 @@
         color: white;
       }
 
+      .annotated span {
+        position: relative;
+        display: inline-block;
+        padding-left: 8px;
+        padding-right: 8px;
+        margin-left: -8px;
+      }
+
+      .annotated span:hover {
+        background: hsla(0, 0%, 100%, 0.2);
+      }
+
+      .annotated span:hover:before {
+        content: attr(aria-label);
+        -webkit-user-select: none;
+        position: absolute;
+        top: -40px;
+        padding: 4px 10px;
+        font-weight: 600;
+        border-radius: 4px;
+        animation: 150ms fade;
+        font-family: 'Source Sans Pro', sans-serif;
+        background: var(--theme-green);
+        color: #333;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+      }
+
       custom-element-demo {
         display: block;
         margin: 0 auto;
         max-width: 600px;
+      }
+
+      .steps {
+        display: flex;
+      }
+
+      .steps > div {
+        display: flex;
+        align-items: center;
+        font-size: 24px;
+        flex: 1 0 200px;
+      }
+
+      .steps > div > span {
+        font-size: 32px;
+        font-weight: 600;
+        color: white;
+        width: 70px;
+        height: 70px;
+        margin: 24px;
+        flex: 0 0 70px;
+        background: var(--theme-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        .steps {
+          flex-wrap: wrap;
+        }
       }
     </style>
 
@@ -45,6 +111,13 @@
 
       <div class="main-content static-content">
         <p>You need to publish your elements before they will appear on the site. It’s quick and easy to do! First, there’s a few tips on how to make your element stand out.</p>
+
+        <div class="steps">
+          <div><span>1</span>Check requirements</div>
+          <div><span>2</span>Create inline demo</div>
+          <div><span>3</span>Publish!</div>
+        </div>
+
         <h1>Before you publish</h1>
         <h2>Requirements</h2>
         <ul>
@@ -52,6 +125,12 @@
           <li>Tagged release - your repository must have a tagged release before it can be published.</li>
           <li>README - please create a README.md for your repository. Here's a template you can use: <a href="https://gist.github.com/zenorocha/4526327">A template for Github READMEs (Markdown)</a>.</li>
         </ul>
+
+        <h2>Add a badge</h2>
+        <p>You can add a badge to the top of of your README so users can access your listing.</p>
+        Default: <img style="vertical-align: sub" src="https://img.shields.io/badge/webcomponents.org-published-blue.svg">
+        <code>?style=flat-square</code>: <img style="vertical-align: sub" src="https://img.shields.io/badge/webcomponents.org-published-blue.svg?style=flat-square">
+        <pre>[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://beta.webcomponents.org/element/owner/my-element)</pre>
 
         <h2>Add an inline demo</h2>
         <p>You can include a demo in the README.md, allowing others to view and play with your element. If you have a visual element, it is recommended you include a simple inline demo in the README.md.</p>
@@ -67,28 +146,32 @@
 
         <p>For the following raw markdown:</p>
    
-<pre>&lt;!--
+<pre class="annotated">
+&lt;!--
 ```
 &lt;custom-element-demo&gt;
   &lt;template&gt;
-      &lt;link&nbsp;rel=&rdquo;import&rdquo;&nbsp;href=&rdquo;my-element.html&rdquo;&gt;
-    &lt;next-code-block&gt;&lt;/next-code-block&gt;
-  &lt;/template&gt;    
+    <span aria-label="Styling and imports - importing your element">&lt;link rel="import" href="my-element.html"&gt;</span>
+    <span aria-label="Styling and imports - dependencies are siblings of your repo">&lt;link rel="import" href="../other-element/other-element.html"&gt;</span>
+    <span aria-label="Snippet reference - This will be replaced with the visible code block below">&lt;next-code-block&gt;&lt;/next-code-block&gt;</span>
+  &lt;/template&gt;
 &lt;/custom-element-demo&gt;
 ```
 --&gt;
-```
+<span aria-label="Code snippet - Referenced using <next-code-block> above">```html
+&lt;other-element&gt;&lt;/other-element&gt;
 &lt;my-element&gt;&lt;/my-element&gt;
-```</pre>
+```</span></pre>
 
-        <p>The Github rendered markdown is:</p>	
-        <pre>&lt;my-element&gt;&lt;/my-element&gt;</pre>
-	
+        <p>The default visible snippet and GitHub rendered markdown will appear as:</p>
+        <pre lang="html">&lt;other-element&gt;&lt;/other-element&gt;
+&lt;my-element&gt;&lt;/my-element&gt;</pre>
         <p>Best practices:</p>
         <ul>
           <li>Keep number of dependencies down - inline demos need to be fast!</li>
           <li>Make sure your demo is responsive. Height is automatically determined, but if you need to explicitly define a minimum height you can set <code>height="400"</code> on <code>&lt;custom-element-demo&gt;</code>.</li>
           <li>Don’t demo everything - inline demos are just a quick demo. Use demo files for complex demos.</li>
+          <li>Use the inline demo creator (append <code>?editing</code> to an element page) or the <a href="/preview">preview</a> page to make sure your demo works before publishing.</li>
         </ul>
 
         <h1>Ready to publish?</h1>
@@ -108,6 +191,9 @@
         <h2>How are resources loaded?</h2>
         <p>Your inline demo will be relative to the root of your repository, with bower dependencies as siblings to your repository.</p>
 
+        <h2>I'm publishing multiple elements, do I publish them one at a time?</h2>
+        <p>Consider creating a collection of these elements. <a href="/publish-collection">Publishing a collection</a> will publish its elements.</p>
+
         <h2>How do I update my element?</h2>
         <p>Once you tag a new release on GitHub, your element will automatically update within 10-15 minutes. You can add webcomponents to your <a href="/preview-integration">Github pull request checklist</a>.</p>
 
@@ -120,9 +206,7 @@
           <li>Attributes of your element and possible values</li>
           <li>A code sample showing how to include and use your element in an HTML page</li>
         </ul>
-        <p>In addition an inline demo is optional, but very helpful.</p>
-        <p>Here's an example of a well-documented element: <a href="/element/wbinnssmith/emo-ji">wbinnssmith's emo-ji element</a>
-
+        <p>For Polymer elements, see "<a href="https://www.polymer-project.org/1.0/docs/tools/documentation">Document your elements</a>" for more information.
       </div>
     </div>
 
@@ -154,6 +238,11 @@
         sample.code = atob("PHNjcmlwdCBzcmM9Ii4uL3dlYmNvbXBvbmVudHNqcy93ZWJjb21wb25lbnRzLWxpdGUuanMiPjwvc2NyaXB0Pgo8bGluayByZWw9ImltcG9ydCIgaHJlZj0icGFwZXItcHJvZ3Jlc3MuaHRtbCI+CjxzdHlsZSBpcz0iY3VzdG9tLXN0eWxlIj4KICBwYXBlci1wcm9ncmVzcyB7CiAgICBkaXNwbGF5OiBibG9jazsKICAgIHdpZHRoOiAxMDAlOwogICAgbWFyZ2luOiAyMHB4IDA7CiAgfQo8L3N0eWxlPgo8cGFwZXItcHJvZ3Jlc3MgaW5kZXRlcm1pbmF0ZT48L3BhcGVyLXByb2dyZXNzPg==");
         sample.snippet = atob("PHBhcGVyLXByb2dyZXNzIGluZGV0ZXJtaW5hdGU+PC9wYXBlci1wcm9ncmVzcz4=");
         sample.docsPending = false;
+
+        var codeBlocks = Polymer.dom(this.root).querySelectorAll('pre[lang]');
+        for (var i = 0; i < codeBlocks.length; i++)
+          this.scopeSubtree(codeBlocks[i], true);
+        this.fire('syntax-highlight', {codeBlocks: codeBlocks});
       },
 
       onSubmit: function() {
@@ -182,10 +271,19 @@
         this.startPolling(this.$.metaAjax);
       },
 
-      success: function() {
+      _navigate: function(type) {
         window.history.pushState({}, null, '/element/' + this._validatedRepo);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
+        this.fire('event', {category: 'Publish element', action: type});
+      },
+
+      success: function() {
+        this._navigate('success');
+      },
+
+      onPollingTimeout: function() {
+        this._navigate('fail');
       },
 
       _error: function() {

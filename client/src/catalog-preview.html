@@ -39,7 +39,7 @@
         <div id="error" class="error-message" hidden>Invalid input - enter a GitHub URL</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button id="submit" on-tap="onSubmit">
-          <spinner-lite></spinner-lite>
+          <spinner-lite active></spinner-lite>
           Preview
         </button>
       </div>
@@ -69,10 +69,8 @@
         var url = this.url;
         url = url.replace(/\/$/, '');
 
-        if (url.match(/https:\/\/github.com\/.*/) == null) {
-          this.$.error.removeAttribute('hidden');
-          return;
-        }
+        if (!url.match(/https:\/\/github.com\/.*/))
+          url = 'https://github.com/' + url;
 
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.params = {
@@ -89,10 +87,19 @@
         this.startPolling(this.$.metaAjax);
       },
 
-      success: function() {
+      _navigate: function(type) {
         window.history.pushState({}, null, '/preview/' + this._ownerRepoSha);
         this.fire('location-changed');
         this.$.submit.removeAttribute('disabled');
+        this.fire('event', {category: 'Preview element', action: type});
+      },
+
+      success: function() {
+        this._navigate('success');
+      },
+
+      onPollingTimeout: function() {
+        this._navigate('fail');
       },
 
       _error: function() {

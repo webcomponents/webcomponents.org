@@ -23,6 +23,7 @@
         font-family: 'Source Sans Pro', sans-serif;
         font-size: 16px;
         line-height: 24px;
+        word-wrap: break-word;
         padding-top: 160px;
         color: var(--theme-font-color);
         --bg-gradient: linear-gradient(to bottom, #F3F4F5 160px, white 50vh);
@@ -31,12 +32,13 @@
         --theme-font: 'Source Sans Pro', sans-serif;
         --monospace-font: 'Source Code Pro', monospace;
 
-        --theme-font-color: #383F46;
+        --theme-font-color: #383F46; /* AAA */
         --theme-yellow: #E6F616;
         --theme-green: #8EDB69;
         --theme-navy: #226392;
-        --theme-blue: #37A0CE;
-        --theme-blue-grey: #697785;
+        --theme-blue: #37A0CE; /* 3.0 AA (large) as background */
+        --theme-blue-small: #027cb1; /* 4.5 AA text */
+        --theme-blue-grey: #697785; /** 4.6 AA on white */
         --theme-black: #2D2F31;
 
         /* Deprecated colors */
@@ -49,34 +51,34 @@
         --syntax-brightness:   18%;
 
         /* Monochrome */
-        --mono-1: hsl(var(--syntax-hue), 14%, 90%); /* default text; changed from 71% lightness */
-        --mono-2: hsl(var(--syntax-hue),  9%, 55%);
-        --mono-3: hsl(var(--syntax-hue), 10%, 40%);
+        --mono-1: hsl(var(--syntax-hue), 14%, 90%); /* AAA - default text */
+        --mono-2: hsl(var(--syntax-hue), 9%, 59%); /* AA */
+        --mono-3: hsl(var(--syntax-hue), 6%, 58%);
 
         /* Colors */
-        --hue-1:   hsl(187, 47%, 55%); /* cyan */
-        --hue-2:   hsl(207, 82%, 66%); /* blue */
-        --hue-3:   hsl(286, 60%, 67%); /* purple */
-        --hue-4:   hsl( 95, 38%, 62%); /* green */
+        --hue-1:   hsl(187, 47%, 55%); /* cyan - AA */
+        --hue-2:   hsl(207, 82%, 66%); /* blue - AA */
+        --hue-3:   hsl(286, 60%, 67%); /* purple - AA */
+        --hue-4:   hsl( 95, 38%, 62%); /* green - AA */
 
-        --hue-5:   hsl(355, 65%, 65%); /* red 1 */
-        --hue-5-2: hsl(  5, 48%, 51%); /* red 2 */
+        --hue-5:   hsl(355, 65%, 66%); /* red 1 - AA */
+        --hue-5-2: hsl(  5, 80%, 65%); /* red 2 - AA */
 
-        --hue-6:   hsl( 29, 54%, 61%); /* orange 1 */
-        --hue-6-2: hsl( 39, 67%, 69%); /* orange 2 */
+        --hue-6:   hsl( 29, 54%, 61%); /* orange 1 - AA */
+        --hue-6-2: hsl( 39, 67%, 69%); /* orange 2 - AAA */
 
         /* Base colors*/
         --syntax-fg:     var(--mono-1);
         --syntax-bg:     hsl(var(--syntax-hue), var(--syntax-saturation), var(--syntax-brightness));
         --syntax-selection: hsl(var(--syntax-hue), var(--syntax-saturation), 28%);
         --syntax-corrected-selection: hsl(var(--syntax-hue), 7%, 62%);
-        --syntax-accent: hsl(var(--syntax-hue), 100%, 66% );
+        --syntax-accent: hsl(var(--syntax-hue), 100%, 67%); /* AA */
         --syntax-gutter: hsl(var(--syntax-hue), 14%, 45%);
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
       }
 
       :host[page=home] {
-        background: linear-gradient(168deg, transparent 80vh, #F3F4F5 80vh, transparent 100vh),
+        background: linear-gradient(168deg, transparent 80vh, #F3F4F5 80vh, white 100vh),
                     var(--bg-gradient), white;
       }
 
@@ -105,7 +107,7 @@
 
       app-header {
         @apply(--layout-fixed-top);
-        z-index: 1;
+        z-index: 100;
         height: calc(2 * 80px);
         position: fixed;
         top: 0;
@@ -153,7 +155,7 @@
         height: 64px;
         margin-right: 20px;
         background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYxIiBoZWlnaHQ9IjEzMiIgdmlld0JveD0iMCAwIDE2MSAxMzIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSIwJSIgeTE9IjUwJSIgeTI9IjUwJSIgaWQ9ImEiPjxzdG9wIHN0b3AtY29sb3I9IiMyQTNCOEYiIG9mZnNldD0iMCUiLz48c3RvcCBzdG9wLWNvbG9yPSIjMjlBQkUyIiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCB4MT0iMCUiIHkxPSI1MCUiIHkyPSI1MCUiIGlkPSJiIj48c3RvcCBzdG9wLWNvbG9yPSIjMkEzQjhGIiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzI5QUJFMiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgeDE9IjEwMCUiIHkxPSI1MCUiIHgyPSIwJSIgeTI9IjUwJSIgaWQ9ImMiPjxzdG9wIHN0b3AtY29sb3I9IiNCNEQ0NEUiIG9mZnNldD0iMCUiLz48c3RvcCBzdG9wLWNvbG9yPSIjRTdGNzE2IiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCB4MT0iMTAwJSIgeTE9IjUwJSIgeDI9IjAlIiB5Mj0iNTAlIiBpZD0iZCI+PHN0b3Agc3RvcC1jb2xvcj0iI0I0RDQ0RSIgb2Zmc2V0PSIwJSIvPjxzdG9wIHN0b3AtY29sb3I9IiNFN0Y3MTYiIG9mZnNldD0iMTAwJSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PHBhdGggZmlsbD0iIzE2NkRBNSIgZD0iTTE2MC42IDY1LjlsLTE3LjQgMjkuMy0yNC40LTI5LjcgMjQuNC0yOC45eiIvPjxwYXRoIGZpbGw9IiM4RkRCNjkiIGQ9Ik0xNDEuMyAxMDAuMmwtMjYuNS0zMS43LTE1LjkgMjYuNiAyNC43IDM2LjF6Ii8+PHBhdGggZmlsbD0iIzE2NkRBNSIgZD0iTTE0MSAzMS40bC0yNi4yIDMxLjgtMTUuOS0yNi42TDEyMy42Ljl6Ii8+PHBhdGggZmlsbD0idXJsKCNhKSIgb3BhY2l0eT0iLjk1IiBkPSJNNjEuMSAzMS40SDE0MUwxMjMuNC45SDc4Ljd6Ii8+PHBhdGggZmlsbD0idXJsKCNiKSIgb3BhY2l0eT0iLjk1IiBkPSJNMTE0LjggNjMuM0gxNTlsLTE1LjktMjYuOEg5OC44Ii8+PHBhdGggZmlsbD0idXJsKCNjKSIgb3BhY2l0eT0iLjk1IiBkPSJNMTQxLjMgMTAwLjNINjFsMTcuNiAzMC41aDQ1eiIvPjxwYXRoIGZpbGw9IiMwMTAxMDEiIGQ9Ik03OC42IDEzMC44TDQxIDY1LjggNzkuMS44SDM3LjlMLjQgNjUuOGwzNy41IDY1eiIvPjxwYXRoIGZpbGw9InVybCgjZCkiIG9wYWNpdHk9Ii45NSIgZD0iTTExNC44IDY4LjRIMTU5bC0xNS45IDI2LjhIOTguOCIvPjwvZz48L3N2Zz4=');
-        background-size: 64px 64px;
+        background-size: 64px auto;
         background-repeat: no-repeat;
         background-position: center;
       }
@@ -164,7 +166,7 @@
         align-items: center;
       }
 
-      #publish-cta {
+      .cta-button {
         background: var(--theme-blue);
         color: white;
         border-radius: 5px;
@@ -254,6 +256,24 @@
       @keyframes fade-in {
         0% { opacity: 0; }
         100% { opacity: 1; }
+      }
+
+      #toast {
+        display: none;
+      }
+
+      #toast:not(:unresolved) {
+        display: block;
+      }
+
+      #toast a {
+        margin-left: 16px;
+      }
+
+      @media (min-width: 500px) and (max-width: 1000px) {
+        #tag-line {
+          display: none;
+        }
       }
 
       @media (max-width: 500px), (max-height: 500px) {
@@ -359,7 +379,7 @@
       }
     </style>
 
-    <catalog-analytics key="[[analyticsKey()]]"></catalog-analytics>
+    <catalog-analytics id="analytics" key="[[analyticsKey()]]"></catalog-analytics>
 
     <app-location route="{{route}}"></app-location>
     <app-route
@@ -380,9 +400,12 @@
             <div id="logo"></div>
             <div id="title-tag">
               <h2 id="domain-title">webcomponents.org</h2>
-              <div id="tag-line" aria-label="web components .org">Discuss & share web components</div>
+              <div id="tag-line" aria-label="web components .org">[[_tagLine()]]</div>
             </div>
-            <a id="publish-cta" class="desktop-only" href="/publish">Publish an element</a>
+            <div id="nav">
+              <a class="cta-button desktop-only" href="https://gitter.im/webcomponents/community" target="_blank">Chat</a>
+              <a class="cta-button desktop-only" href="/publish">Publish element</a>
+            </div>
             <svg id="mobile-search-trigger" class="mobile-only" viewBox="0 0 100 100" id="search-symbol" on-click="_openSearch"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
             <catalog-search-box id="mobile-search-box" base-urls="[[baseUrls(queryParams)]]"></catalog-search-box>
           </a>
@@ -405,6 +428,10 @@
 
     <progress-bar id="progress" indeterminate></progress-bar>
 
+    <paper-toast id="toast" text="Redirected from Polymer Element catalog">
+      <a href="#" on-click="_optOut">Take me back</a>
+    </paper-toast>
+
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
       <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
       <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" author="[[_filter('/author', subroute.prefix, subroute.path, '^\/')]]"></catalog-author>
@@ -420,6 +447,8 @@
       <catalog-error name="error" id="error"></catalog-error>
       <catalog-static name="about"></catalog-static>
       <catalog-static name="introduction"></catalog-static>
+      <catalog-static name="assets"></catalog-static>
+      <catalog-community name="community" path="[[_filter('/community', subroute.prefix, subroute.path)]]"></catalog-community>
     </iron-pages>
 
     <footer role="contentinfo">
@@ -438,7 +467,7 @@
         <section>
           <h2>Community</h2>
           <div role="navigation">
-            <a>News & articles</a>
+            <a href="/community">News & articles</a>
             <a href="https://gitter.im/webcomponents/community" target="_blank">Chat on Gitter</a>
           </div>
         </section>
@@ -456,6 +485,8 @@
           <div role="navigation">
             <a href="/about">About webcomponents.org</a>
             <a href="#feedback" on-tap="_onFeedback">Feedback</a>
+            <a href="https://github.com/webcomponents/beta">View on GitHub</a>
+            <a href="/assets">Assets</a>
           </div>
         </section>
       </div>
@@ -481,18 +512,13 @@
         '_updatePage(routeData.page, subroute)',
       ],
 
-      _filter: function(value, test, result, strip) {
-        if (strip) {
-          result = result.replace(new RegExp(strip), '');
-        }
-        return value == test ? result : undefined;
-      },
-
       listeners: {
         'error': '_handleError',
         'triggerSearch': '_handleSearch',
         'code-mirror-loaded': '_onCodeMirror',
         'syntax-highlight': '_onHighlight',
+        'event': '_onEvent',
+        'lazy-loaded': '_onLazyLoaded',
       },
 
       created: function() {
@@ -501,7 +527,20 @@
         this.removeAttribute('unresolved');
       },
 
+      ready: function() {
+        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0)
+          this.$.toast.setAttribute('opened', '');
+      },
+
+      _filter: function(value, test, result, strip) {
+        if (strip) {
+          result = result.replace(new RegExp(strip), '');
+        }
+        return value == test ? result : undefined;
+      },
+
       _setLoading: function() {
+        document.title = 'webcomponents.org';
         Polymer.AppLayout.scroll(0);
         this.$.pages.classList.add('loading');
         this.$.progress.removeAttribute('hidden');
@@ -522,7 +561,6 @@
       },
 
       _pageReady: function() {
-        document.title = 'webcomponents.org';
         var selectedItem = this.$.pages.selectedItem;
         // Work around for https://github.com/PolymerElements/iron-pages/issues/52
         if (!selectedItem)
@@ -629,7 +667,21 @@
         return result;
       },
 
+      _tagLine: function() {
+        var tagLines = [
+          "Discuss & share web components",
+          "There's an element for that",
+          "Building blocks for the web",
+          "Keep calm and #UseThePlatform",
+        ];
+
+        // Changes everyday
+        var daysSinceEpoch = Math.floor(Date.now() / 8.64e7);
+        return tagLines[Math.round(daysSinceEpoch % tagLines.length)];
+      },
+
       _searchTag: function(event) {
+        this.fire('event', {category: 'Search', action: 'tag'});
         this.fire('triggerSearch', {query: event.target.textContent});
       },
 
@@ -644,6 +696,49 @@
 
       _onHighlight: function(event) {
         this.$.highlighter.highlightAll(event.detail.codeBlocks);
+      },
+
+      _onLazyLoaded: function() {
+        this._lazyLoaded = true;
+
+        // Flush analytics events
+        if (this._eventRecords && this._eventRecords.length) {
+          for (var i = 0; i < this._eventRecords.length; i++)
+            this.$.analytics.recordEvent(this._eventRecords[i]);
+          delete this._eventRecords;
+        }
+      },
+
+      _optOut: function() {
+        function navigate() {
+          window.location.href = 'https://elements.polymer-project.org?redirect=';
+        }
+
+        /* global ga */
+        if (window.ga) {
+          ga('send', 'event', {
+            eventCategory: 'Optout',
+            eventAction: 'Toast',
+            eventLabel: 'Polymer Elements redirect',
+            transport: 'beacon',
+            hitCallback: navigate,
+          });
+        } else {
+          navigate();
+        }
+      },
+
+      /**
+       * Captures and sends analytics on events
+       * @param {Object} event - event Object
+       */
+      _onEvent: function(event) {
+        if (!this._lazyLoaded) {
+          this._eventRecords = this._eventRecords || [];
+          this._eventRecords.push(event.detail);
+          return;
+        }
+        this.$.analytics.recordEvent(event.detail);
       },
 
     });

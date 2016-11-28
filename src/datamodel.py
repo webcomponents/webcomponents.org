@@ -51,6 +51,7 @@ class Library(ndb.Model):
   contributors_updated = ndb.DateTimeProperty()
 
   tags = ndb.StringProperty(repeated=True, indexed=False)
+  tag_map = ndb.TextProperty(indexed=False)
   tags_etag = ndb.StringProperty(indexed=False)
   tags_updated = ndb.DateTimeProperty()
 

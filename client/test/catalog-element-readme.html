@@ -26,6 +26,24 @@
       var demos = Polymer.dom(readmeElement.root).querySelectorAll('custom-element-demo');
       assert.equal(demos.length, 1, 'one inline demo created');
       assert.equal(demos[0].getAttribute('height'), 500);
-    })
+    });
+  });
+
+  suite('catalog-element-readme rewriting links', function() {
+    var readmeElement;
+    setup(function() {
+      readmeElement = fixture('basic');
+      readmeElement.data = {owner: 'owner', repo: 'repo', version: 'version'};
+      readmeElement.baseUrls = {userContent:''};
+    });
+    test('Should create custom-element-demo', function() {
+      readmeElement.readme = '<img src="img.png">';
+      var element = Polymer.dom(readmeElement.root).querySelector('img');
+      assert.equal(element.getAttribute('src'), 'https://github.com/owner/repo/raw/master/img.png');
+
+      readmeElement.readme = '<a href="/doc">';
+      var element = Polymer.dom(readmeElement.root).querySelector('a');
+      assert.equal(element.getAttribute('href'), 'https://github.com/owner/repo/blob/master/doc');
+    });
   });
 </script>

@@ -3,6 +3,7 @@
   "shell": "src/catalog-app.html",
   "fragments": [
     "src/catalog-author.html",
+    "src/catalog-community.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
     "src/catalog-error.html",
@@ -18,7 +19,7 @@
   ],
   "includeDependencies": [
     "assets/**/*",
-    "service-worker-entry.js",
+    "service-worker-runtime.js",
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
     "third_party/octicons/sprite.octicons.svg",

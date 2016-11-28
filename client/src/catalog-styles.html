@@ -9,7 +9,7 @@
 
       a {
         text-decoration: none;
-        color: var(--theme-blue);
+        color: var(--theme-blue-small);
       }
 
       h1 {
@@ -97,7 +97,7 @@
       }
 
       .main-content {
-        flex: 1 0;
+        flex: 1 0 200px;
         max-width: calc(100% - 270px);
         min-width: 300px;
         margin-right: 40px;
@@ -156,6 +156,14 @@
 
       spinner-lite[active] {
         display: block;
+      }
+
+      progress-bar {
+        width: 100%;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 2s;
+        --paper-progress-transition-transition-delay: 250ms;
+        height: 2px;
       }
 
       @media (max-width: 500px), (max-height: 500px) {

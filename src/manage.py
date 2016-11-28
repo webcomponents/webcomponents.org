@@ -196,9 +196,19 @@ class LibraryTask(RequestHandler):
     response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag, headers=headers)
     if response.status_code == 200:
       try:
-        json.loads(response.content)
+        metadata = json.loads(response.content)
       except ValueError:
         return self.error("could not parse metadata")
+
+      repo = metadata.get('name', '').lower()
+      owner = metadata.get('owner', {}).get('login', '').lower()
+      if repo != '' and owner != '' and (repo != self.repo or owner != self.owner):
+        logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
+        delete_library(self.library.key)
+        task_url = util.ensure_library_task(owner, repo)
+        util.new_task(task_url, target='manage')
+        raise RequestAborted('repo has been renamed to %s', Library.id(owner, repo))
+
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
       self.library.metadata_updated = datetime.datetime.now()
@@ -286,24 +296,25 @@ class LibraryTask(RequestHandler):
 
   def trigger_version_ingestion(self, tag, sha, url=None, preview=False):
     version_object = Version.get_by_id(tag, parent=self.library.key)
-    if version_object is not None and version_object.status == Status.ready:
-      # Version object is already up to date
-      return
+    if version_object is not None and (version_object.status == Status.ready or version_object.status == Status.pending):
+      # Version object is already up to date or pending
+      return False
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url, preview=preview).put()
 
     task_url = util.ingest_version_task(self.owner, self.repo, tag)
     util.new_task(task_url, target='manage', transactional=True)
-    self.trigger_analysis(tag, sha)
+    self.trigger_analysis(tag, sha, transactional=True)
+    return True
 
-  def trigger_analysis(self, tag, sha):
+  def trigger_analysis(self, tag, sha, transactional=False):
     analysis_sha = None
     if self.library.kind == 'collection':
       analysis_sha = sha
     version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
     Content(id='analysis', parent=version_key, status=Status.pending).put()
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
-    util.new_task(task_url, target='analysis', transactional=True)
+    util.new_task(task_url, target='analysis', transactional=transactional)
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
@@ -312,9 +323,13 @@ class LibraryTask(RequestHandler):
     util.new_task(task_url, target='manage', transactional=True)
 
   def update_collection_tags(self):
+    # Transition from when we didn't store tag_map
+    if self.library.tag_map is None:
+      self.library.tags_etag = None
+
     response = util.github_get('repos', self.owner, self.repo, 'git/refs/heads/master', etag=self.library.tags_etag)
     if response.status_code == 304:
-      return
+      return json.loads(self.library.tag_map)
 
     if response.status_code != 200:
       return self.retry('could not update git/refs/heads/master (%d)' % response.status_code)
@@ -327,19 +342,35 @@ class LibraryTask(RequestHandler):
     if data.get('ref', None) != 'refs/heads/master':
       return self.error('could not find master branch')
 
+    master_sha = data['object']['sha']
+
+    if self.library.tag_map is not None:
+      # Even though we got a reply the master_sha might not have changed.
+      tag_map = json.loads(self.library.tag_map)
+      if tag_map.values()[0] == master_sha:
+        return tag_map
+
     self.library.collection_sequence_number = self.library.collection_sequence_number + 1
     version = 'v0.0.%d' % self.library.collection_sequence_number
+    tag_map = {version: master_sha}
+
+    self.library_dirty = True
     self.library.tags = [version]
+    self.library.tag_map = json.dumps(tag_map)
     self.library.tags_etag = response.headers.get('ETag', None)
     self.library.tags_updated = datetime.datetime.now()
-    self.library.library_dirty = True
 
-    return {version: data['object']['sha']}
+    return tag_map
 
   def update_element_tags(self):
+    # Transition from when we didn't store tag_map
+    if self.library.tag_map is None:
+      self.library.tags_etag = None
+
     response = util.github_get('repos', self.owner, self.repo, 'tags', etag=self.library.tags_etag)
+
     if response.status_code == 304:
-      return None
+      return json.loads(self.library.tag_map)
 
     if response.status_code != 200:
       return self.retry('could not update git/refs/tags (%d)' % response.status_code)
@@ -347,25 +378,22 @@ class LibraryTask(RequestHandler):
     try:
       data = json.loads(response.content)
     except ValueError:
-      return self.error("could not parse git/refs/tags")
+      return self.error("could not parse tags")
 
-    new_tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
-                       if versiontag.is_valid(tag['name']))
-    new_tags = new_tag_map.keys()
-    new_tags.sort(versiontag.compare)
-
-    self.library.tags = new_tags
+    tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
+                   if versiontag.is_valid(tag['name']))
+    tags = tag_map.keys()
+    tags.sort(versiontag.compare)
+    self.library.library_dirty = True
+    self.library.tags = tags
+    self.library.tag_map = json.dumps(tag_map)
     self.library.tags_etag = response.headers.get('ETag', None)
     self.library.tags_updated = datetime.datetime.now()
-    self.library.library_dirty = True
-
-    return new_tag_map
+    return tag_map
 
   def update_versions(self):
     if self.library.shallow_ingestion:
       return
-
-    old_tags = self.library.tags
 
     if self.library.kind == 'collection':
       new_tag_map = self.update_collection_tags()
@@ -373,32 +401,40 @@ class LibraryTask(RequestHandler):
       assert self.library.kind == 'element'
       new_tag_map = self.update_element_tags()
 
-    if new_tag_map is None:
-      new_tags = old_tags
+    new_tags = new_tag_map.keys()
+
+    ingested_tags = Library.versions_for_key_async(self.library.key).get_result()
+    logging.info('%d of %d tags ingested', len(ingested_tags), len(new_tags))
+
+    tags_to_add = list(set(new_tags) - set(ingested_tags))
+    tags_to_add.sort(versiontag.compare)
+    tags_to_add.reverse()
+
+    if ingested_tags == [] and len(tags_to_add) > 0:
+      # Only ingest the latest version if we're doing ingestion for the first time.
+      tags_to_add = tags_to_add[:1]
     else:
-      new_tags = new_tag_map.keys()
-      new_tags.sort(versiontag.compare)
+      tags_to_add = [tag for tag in tags_to_add if versiontag.compare(tag, ingested_tags[0]) > 0]
 
-    # FIXME: Rename to tags_to_delete.
-    # FIXME: And change to (Library.versions_for_key_async - new_tags).
-    # FIXME: And do this check regardless of whether the tags have changed.
-    # FIXME: But not if there are any pending ingestions.
-    removed_tags = list(set(old_tags) - set(new_tags))
-    added_tags = list(set(new_tags) - set(old_tags))
+    tags_to_delete = list(set(ingested_tags) - set(new_tags))
+    logging.info('%d adds and %d deletes pending', len(tags_to_add), len(tags_to_delete))
 
-    for tag in removed_tags:
-      self.trigger_version_deletion(tag)
+    # To avoid running into limits on the number of tasks (5) that can be spawned transactionally
+    # only ingest (2 tasks) or delete (1 task) one version per update.
+    if len(tags_to_add) > 0:
+      # Ingest from newest to oldest.
+      tag = tags_to_add[0]
+      if self.trigger_version_ingestion(tag, new_tag_map[tag]):
+        if self.library.kind == 'collection':
+          logging.info('ingesting new collection version (%s)', tag)
+        else:
+          logging.info('ingesting new %s version (%s)', versiontag.categorize(tag, ingested_tags), tag)
+    elif len(tags_to_delete) > 0:
+      tag = tags_to_delete[0]
+      self.trigger_version_deletion(tags_to_delete[0])
 
     if len(new_tags) is 0:
       return self.error("couldn't find any tagged versions")
-
-    added_tags.sort(versiontag.compare)
-    added_tags.reverse()
-    for tag in added_tags:
-      is_latest = tag == new_tags[-1]
-      # Only ingest the latest version if we're doing ingestion for the first time.
-      if old_tags != [] or is_latest:
-        self.trigger_version_ingestion(tag, new_tag_map[tag])
 
 class IngestLibrary(LibraryTask):
   def is_transactional(self):
@@ -482,7 +518,7 @@ class AnalyzeLibrary(LibraryTask):
 
     versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
     for version in versions:
-      self.trigger_analysis(version.key.id(), version.sha)
+      self.trigger_analysis(version.key.id(), version.sha, transactional=False)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
@@ -587,9 +623,9 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, self.sha, 'README.md'), validate_certificate=True)
+    response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
     if response.status_code == 200:
-      readme = response.content
+      readme = base64.b64decode(json.loads(response.content)['content'])
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()
@@ -672,7 +708,7 @@ class UpdateIndexes(RequestHandler):
         search.TextField(name='bower_description', value=bower.get('description', '')),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
         search.TextField(name='prefix_matches', value=' '.join(util.generate_prefixes_from_list(
-            [repo] + metadata.get('description', '').split() + bower.get('description', '').split() +
+            [repo] + util.safesplit(metadata.get('description')) + util.safesplit(bower.get('description')) +
             repo.replace("_", " ").replace("-", " ").split()))),
     ]
 
@@ -711,13 +747,22 @@ class IngestAnalysis(RequestHandler):
     content = Content.get_by_id('analysis', parent=version_key)
     if content is None:
       return
-    content.content = None if data == '' else data
+    if data == '':
+      content.content = None
+    elif len(data) > 500000:
+      # Max entity size is only 1MB.
+      logging.error('content was too large: %d %s %s', len(data), Library.id(owner, repo), version)
+      error = 'content was too large: %d' % len(data)
+    else:
+      content.content = data
+
     if error is None:
       content.status = Status.ready
       content.error = None
     else:
       content.status = Status.error
       content.error = error
+
     content.put()
 
     if version_key.id() == Library.latest_version_for_key_async(version_key.parent()).get_result():
@@ -727,7 +772,7 @@ class IngestAnalysis(RequestHandler):
 class EnsureLibrary(RequestHandler):
   def handle_get(self, owner, repo):
     library = Library.get_by_id(Library.id(owner, repo))
-    if library is None:
+    if library is None or library.shallow_ingestion:
       task_url = util.ingest_library_task(owner, repo)
       util.new_task(task_url, target='manage')
 
@@ -737,6 +782,22 @@ class EnsureAuthor(RequestHandler):
     if author is None:
       task_url = util.ingest_author_task(name)
       util.new_task(task_url, target='manage')
+
+class AnalyzeAll(RequestHandler):
+  def handle_get(self):
+    query = Library.query()
+    cursor = None
+    more = True
+    task_count = 0
+    while more:
+      keys, cursor, more = query.fetch_page(50, keys_only=True, start_cursor=cursor)
+      for key in keys:
+        task_count = task_count + 1
+        owner, repo = key.id().split('/', 1)
+        task_url = util.analyze_library_task(owner, repo)
+        util.new_task(task_url, target='manage')
+
+    logging.info('triggered %d analyses', task_count)
 
 class IndexAll(RequestHandler):
   def handle_get(self):
@@ -793,7 +854,7 @@ class BuildSitemaps(RequestHandler):
             .filter(Library.kind == 'element')
             # pylint: disable=singleton-comparison
             .filter(Library.shallow_ingestion == False)
-            .filter(Library.status != Status.suppressed)
+            .filter(Library.status == Status.ready)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     elements = Sitemap(id='elements')
     elements.pages = [key.id() for key in keys]
@@ -804,18 +865,18 @@ class BuildSitemaps(RequestHandler):
             .filter(Library.kind == 'collection')
             # pylint: disable=singleton-comparison
             .filter(Library.shallow_ingestion == False)
-            .filter(Library.status != Status.suppressed)
+            .filter(Library.status == Status.ready)
             .fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY))
     collections = Sitemap(id='collections')
     collections.pages = [key.id() for key in keys]
     collections.put()
-    logging.info('%d collections', len(elements.pages))
+    logging.info('%d collections', len(collections.pages))
 
     keys = Author.query().fetch(keys_only=True, read_policy=ndb.EVENTUAL_CONSISTENCY)
     authors = Sitemap(id='authors')
     authors.pages = [key.id() for key in keys]
     authors.put()
-    logging.info('%d authors', len(elements.pages))
+    logging.info('%d authors', len(authors.pages))
 
 def delete_author(author_key, response_for_logging=None):
   keys = [author_key] + ndb.Query(ancestor=author_key).fetch(keys_only=True)
@@ -885,13 +946,14 @@ class DeleteEverything(RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/token', handler=GetXsrfToken),
     webapp2.Route(r'/manage/github', handler=GithubStatus),
+    webapp2.Route(r'/manage/analyze-all', handler=AnalyzeAll),
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
-    webapp2.Route(r'/manage/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
+    webapp2.Route(r'/task/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
     webapp2.Route(r'/task/ensure/<name>', handler=EnsureAuthor),
     webapp2.Route(r'/task/ensure/<owner>/<repo>', handler=EnsureLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),

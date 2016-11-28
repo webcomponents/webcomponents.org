@@ -14,15 +14,42 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
+      #title {
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 8px;
+        margin-left: -36px;
+      }
+
+      h1.page-title {
+        margin-bottom: 0;
+      }
+
+      #star {
+        width: 24px;
+        height: 24px;
+        stroke: hsl(0, 0%, 45%);
+        fill: transparent;
+        margin-right: 12px;
+        margin-bottom: 6px;
+        cursor: pointer;
+      }
+
+      #star:hover, #star[starred] {
+        fill: #f3b70b;
+        stroke: #f3b70b;
+      }
+
       #repo-version {
-        margin-left: 6px;
+        margin-left: 8px;
+        margin-bottom: 5px;
         font-size: 24px;
         display: inline-block;
         max-width: 150px;
         text-overflow: ellipsis;
         overflow: hidden;
-        color: hsl(0, 0%, 50%);
-        vertical-align: text-bottom;
+        color: hsl(0, 0%, 45%);
+        word-wrap: normal;
       }
 
       #repo-desc {
@@ -49,7 +76,6 @@
         margin: 0;
         margin-bottom: 8px;
       }
-
 
       #header-main > div {
         padding: 12px 16px;
@@ -100,13 +126,19 @@
       }
 
       #info-download-command {
+        border: 0;
+        color: var(--theme-font-color);
+        display: block;
         font-family: var(--monospace-font);
         font-size: 12px;
+        outline: 0;
+        padding: 4px 0;
+        width: 100%;
       }
 
       #info-stats {
         display: flex;
-        flex: 1 0;
+        flex: 1 0 200px;
         justify-content: space-between;
         padding-right: 16px;
         color: #9eadbb;
@@ -263,7 +295,7 @@
         width: 10px;
         position: absolute;
         top: 0px;
-        right: -10px;
+        right: -9px;
         height: 100%;
         background: white;
         -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
@@ -321,17 +353,7 @@
       }
 
       #report-link {
-        margin-top: 60px;
-        position: relative;
-      }
-
-      #report-link:before {
-        content: '';
-        position: absolute;
-        top: -20px;
-        border-top: 1px solid #ededed;
-        height: 1px;
-        width: 100%;
+        margin-top: 24px;
       }
 
       /* Demo frame */
@@ -390,6 +412,19 @@
       }
 
       @media (max-width: 500px), (max-height: 500px) {
+        #title {
+          margin-left: 16px;
+        }
+
+        h1.page-title {
+          margin-left: 0;
+          margin-bottom: -4px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          max-width: calc(100% - 120px);
+        }
+
         #header-main {
           border-radius: 0;
         }
@@ -451,8 +486,13 @@
 
       <!-- Header -->
       <div>
-        <h1 class="page-title">[[repo]]</h1>
-        <span id="repo-version">[[data.version]]</span>
+        <div id="title">
+          <svg id="star" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+            <use xlink:href="/sprite.octicons.svg#star"></use>
+          </svg>
+          <h1 class="page-title">[[repo]]</h1>
+          <span id="repo-version">[[data.version]]</span>
+        </div>
         <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
       </div>
 
@@ -529,7 +569,7 @@
           <div class="box">
             <div id="info-download">
               <h3>Download</h3>
-              <div id="info-download-command">bower install --save [[owner]]/[[repo]]</div>
+              <input id="info-download-command" title="Download command" readonly value="bower i [[owner]]/[[repo]] --save" on-tap="_selectAllInfoDownload"/>
             </div>
             <a id="info-view-github" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
@@ -552,7 +592,7 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -560,23 +600,23 @@
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[behavior.is]]"><span>[[behavior.is]]</span></a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link" href="[[route.prefix]]/[[owner]]/[[repo]]/[[data.version]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
           </div>
 
-          <div class="loader" loading$="[[_or(!docs, collectionsLoading)]]" hidden$="[[!collections.count]]">
+          <div class="loader" loading$="[[!docs]]" hidden$="[[!collections.count]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -584,7 +624,9 @@
                 <collection-card class="box" data="[[item]]"></collection-card>
               </template>
             </template>
+          </div>
 
+          <div class="loader" loading$="[[!docs]]">
             <template is="dom-if" if="[[_dependencies(data).count]]">
               <div id="info-dependencies">
                 <h1>Dependencies</h1>
@@ -660,6 +702,11 @@
         'onload(_metaLoading)',
       ],
 
+      ready: function() {
+        if (this.queryParams && this.queryParams.code)
+          this._starRepo();
+      },
+
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
       },
@@ -705,9 +752,9 @@
         this.owner = split.shift();
         this.repo = split.shift();
 
-        if (split.length && split[0].indexOf('.') != -1)
+        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+$/))
           this.versionRoute = '/' + split.shift();
-        else if (split.length && split[0].match(/[0-9a-f]{20,}/))
+        else if (split.length && split[0].match(/^[0-9a-f]{20,}$/))
           this.versionRoute = '/' + split.shift();
 
         if (split.length && split[0].indexOf('demo') != -1) {
@@ -737,6 +784,8 @@
         this._splitRoute();
         this._updateActiveLinks();
         document.title = this.owner + '/' + this.repo;
+
+        this._repoStarred = this._isStarred();
 
         // Generate requests
         if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
@@ -843,18 +892,22 @@
         }
       },
 
-      _docsResponse: function() {
-        if (!this._lazyUnblocked) {
-          this.$.block.unblock();
-          this._lazyUnblocked = true;
-        }
+      _unblockLazy: function() {
+        if (this._lazyUnblocked)
+          return;
+        this.$.block.unblock();
+        this._lazyUnblocked = true;
+      },
 
+      _docsResponse: function() {
+        this._unblockLazy();
         this.$['sidebar-spinner'].removeAttribute('active');
         this._updateDescriptor();
         this.async(this._updateActiveLinks);
       },
 
       _docsError: function(event, error) {
+        this._unblockLazy();
         if (error.request.response && error.request.response.status == 'pending') {
           this.$['sidebar-spinner'].setAttribute('active', '');
           this.async(function() {
@@ -867,6 +920,7 @@
       },
 
       _updateDescriptor: function() {
+        this._hasRepoContents = false;
         if (!this.docs || !this.docs.content)
           return;
         this.bundledElements = this._elements();
@@ -940,6 +994,8 @@
         }
         if (i == 0)
           return 'Updated recently';
+        if (i == activity.length)
+          return '';
         if (i < 8)
           return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
         var months = Math.round(i / 4);
@@ -983,6 +1039,59 @@
 
       _isPreview: function(prefix) {
         return prefix == '/preview';
+      },
+
+      _authenticateStar: function() {
+        if (this._isStarred())
+          return;
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Start'});
+        window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
+      },
+
+      _isStarred: function() {
+        if (!window.localStorage.starredRepos)
+          return false;
+        var starred = JSON.parse(window.localStorage.starredRepos);
+        return this._inflightStar || starred.indexOf(this.owner + '/' + this.repo) != -1;
+      },
+
+      _setStarred: function(increment) {
+        if (this.data && increment) {
+          this.data.stars++;
+          this.notifyPath('data.stars');
+        }
+        var starred = JSON.parse(window.localStorage.starredRepos || '[]');
+        starred.push(this.owner + '/' + this.repo);
+        window.localStorage.starredRepos = JSON.stringify(starred);
+        this._repoStarred = true;
+      },
+
+      _starRepo: function() {
+        if (!this.queryParams || !this.queryParams.code || this._isStarred())
+          return;
+
+        // Pre-emptively set starred, so UI updates while the request is in flight.
+        this._inflightStar = true;
+        this._repoStarred = this._isStarred();
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Requesting star'});
+
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(event) {
+          this._inflightStar = false;
+          var newStar = event.target.status == 204;
+          this._setStarred(newStar);
+          this.fire('event', {category: 'Star', action: 'Element star', label: newStar ? 'Success - New star' : 'Success - Already starred'});
+        }.bind(this));
+        xhr.addEventListener('error', function() {
+          this._inflightStar = false;
+        }.bind(this));
+
+        xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
+        xhr.send();
+      },
+
+      _selectAllInfoDownload: function(event) {
+        event.currentTarget.select();
       },
 
     });
