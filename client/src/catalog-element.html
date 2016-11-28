@@ -262,76 +262,40 @@
         margin-bottom: 40px;
       }
 
-      #sidebar-nav {
-        overflow: visible;
-        font-weight: 600;
-      }
-
       #sidebar-spinner {
         position: absolute;
         margin: 14px 0 0 20px;
         z-index: 10;
       }
 
-      #sidebar-nav a {
-        padding: 16px 20px 18px;
-        font-size: 16px;
-        line-height: 20px;
-        display: flex;
-        justify-content: space-between;
-        box-sizing: border-box;
-      }
-
-      #sidebar-nav a[active] {
-        color: inherit;
-        position: relative;
-        -webkit-filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
-        filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
-        background: white;
-      }
-
-      #sidebar-nav a[active]::before {
-        content: '';
-        width: 10px;
-        position: absolute;
-        top: 0px;
-        right: -9px;
-        height: 100%;
-        background: white;
-        -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
-        clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
-      }
-
-      #sidebar-nav a span {
+      .sidebar-nav a span {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 185px;
       }
 
-      #sidebar-nav[collapse] .element-demos {
+      .sidebar-nav[collapse] .element-demos {
         overflow: hidden;
         display: none;
       }
 
-      #sidebar-nav[collapse] a[active] + .element-demos {
+      .sidebar-nav[collapse] a[active] + .element-demos {
         display: block;
       }
 
-      #sidebar-nav a span {
+      .sidebar-nav a span {
         max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      #sidebar-nav a.demo-link {
+      .sidebar-nav a.demo-link {
         background: hsl(0, 0%, 98%);
         text-transform: capitalize;
       }
 
-      #sidebar-nav a.demo-link:after, #sidebar-nav a.api-link:after {
+      .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -340,7 +304,7 @@
         font-size: 12px;
       }
 
-      #sidebar-nav a.api-link:after {
+      .sidebar-nav a.api-link:after {
         content: 'api';
       }
 
@@ -447,7 +411,7 @@
           height: calc(100vh - 50px);
         }
 
-        #sidebar-nav a {
+        .sidebar-nav a {
           border: 0;
           background: inherit;
         }
@@ -588,7 +552,7 @@
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
+          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
@@ -1016,7 +980,7 @@
 
       _updateActiveLinks: function() {
         var currentPath = this.route.prefix + this.route.path;
-        var links = this.$['sidebar-nav'].querySelectorAll('a');
+        var links = this.querySelectorAll('.sidebar-nav a');
         for (var i = 0; i < links.length; i++) {
           if (links[i].getAttribute('href') == currentPath)
             links[i].setAttribute('active', '');

@@ -262,6 +262,44 @@
         color: #ce3737;
         padding-top: 8px;
       }
+
+      /* Sidebar navigation */
+
+      .sidebar-nav {
+        overflow: visible;
+        font-weight: 600;
+      }
+
+      .sidebar-nav a {
+        padding: 16px 20px 18px;
+        font-size: 16px;
+        line-height: 20px;
+        display: flex;
+        justify-content: space-between;
+        box-sizing: border-box;
+      }
+
+      .sidebar-nav a[active] {
+        color: inherit;
+        position: relative;
+        -webkit-filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
+        background: white;
+      }
+
+      .sidebar-nav a[active]::before {
+        content: '';
+        width: 10px;
+        position: absolute;
+        top: 0px;
+        right: -9px;
+        height: 100%;
+        background: white;
+        -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
+      }
     </style>
   </template>
 </dom-module>
