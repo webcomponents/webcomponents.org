@@ -12,20 +12,26 @@ let analyzer = new PolymerAnalyzer({
   urlResolver: new PackageUrlResolver(),
 });
 
-var elements;
-var metadata;
+
+var gDocument;
 // analyzer.analyze('iron-pages/iron-pages.html').then(document => {
-analyzer.analyze('iron-a11y-keys-behavior/iron-a11y-keys-behavior.html').then(document => {
-  elements = Array.from(document.getByKind('element'));
-  metadata = generateElementMetadata(elements, '');
+analyzer.analyze('paper-button/paper-button.html').then(aDocument => {
+  gDocument = aDocument;
+  console.log(gDocument);
 }).catch(error => {
   console.log(error);
 });
 
 
-elements.forEach(x => console.log(x.tagName, "\t\t", x.sourceRange.file));
+// var elements = Array.from(gDocument.getByKind('element'));
+// var metadata = generateElementMetadata(elements, '');
 
-elements.forEach(x => console.log(x.tagName, "\t\t", x.sourceRange.file, x.kinds));
+// elements.forEach(x => console.log(x.tagName, "\t\t", x.sourceRange.file));
+
+// elements.forEach(x => console.log(x.tagName, "\t\t", x.sourceRange.file, x.kinds));
+
+
+
 
 // /**
 //  * Service for running Polymer Analyzer on the local machine.
