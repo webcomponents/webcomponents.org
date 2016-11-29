@@ -260,6 +260,7 @@
 
       #toast {
         display: none;
+        font-size: 16px;
       }
 
       #toast:not(:unresolved) {
@@ -267,7 +268,9 @@
       }
 
       #toast a {
+        font-weight: 600;
         margin-left: 16px;
+        color: var(--theme-blue);
       }
 
       @media (min-width: 500px) and (max-width: 1000px) {
@@ -428,8 +431,8 @@
 
     <progress-bar id="progress" indeterminate></progress-bar>
 
-    <paper-toast id="toast" text="Redirected from Polymer Element catalog">
-      <a href="#" on-click="_optOut">Take me back</a>
+    <paper-toast id="toast">
+      <a id="toastAction" on-click="_handleToast" href="#"></a>
     </paper-toast>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
@@ -519,6 +522,7 @@
         'syntax-highlight': '_onHighlight',
         'event': '_onEvent',
         'lazy-loaded': '_onLazyLoaded',
+        'notify': '_notifyUser',
       },
 
       created: function() {
@@ -528,8 +532,32 @@
       },
 
       ready: function() {
-        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0)
-          this.$.toast.setAttribute('opened', '');
+        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0) {
+          this.fire('notify', {
+            message: 'Redirected from Polymer Element catalog',
+            buttonText: 'Take me back',
+            buttonTapHandler: this._optOut.bind(this),
+            duration: 5000,
+          });
+        }
+      },
+
+      _notifyUser: function(event) {
+        var options = event.detail;
+        this.$.toast.text = options.message;
+        this.$.toastAction.textContent = options.buttonText;
+        this.$.toast.duration = options.duration == null ? 5000 : options.duration;
+        this.$.toast.setAttribute('opened', '');
+
+        this._currentToast = options;
+        this.fire('event', {category: 'Notify toast', action: 'Shown', label: options.message});
+      },
+
+      _handleToast: function() {
+        if (!this._currentToast || !this._currentToast.buttonTapHandler)
+          return;
+        this.fire('event', {category: 'Notify toast', action: 'Clicked', label: this._currentToast.buttonText});
+        this._currentToast.buttonTapHandler();
       },
 
       _filter: function(value, test, result, strip) {
