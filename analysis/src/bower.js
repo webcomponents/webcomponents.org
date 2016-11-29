@@ -149,14 +149,13 @@ class Bower {
         // pairBuddy collects the errors from each install.
         // We use it to determine whether a genuine error occured (two failures).
         var pairBuddy = [];
-        var promiseOne;
+        var keyPlusPackageToProcess;
         if (packageToProcess.indexOf('#') == 0) {
-          promiseOne = key + packageToProcess;
+          keyPlusPackageToProcess = key + packageToProcess;
         } else {
-          promiseOne = key + "#" + packageToProcess;
+          keyPlusPackageToProcess = key + "#" + packageToProcess;
         }
-        var promiseTwo = packageToProcess;
-        promises.push(Bower.dependencies(promiseOne, processed, offline, pairBuddy));
+        promises.push(Bower.dependencies(keyPlusPackageToProcess, processed, offline, pairBuddy));
         promises.push(Bower.dependencies(packageToProcess, processed, offline, pairBuddy));
       });
 
