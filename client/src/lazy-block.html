@@ -73,11 +73,38 @@
         },
 
         _loadCodeEditor: function() {
+          var parentElement = this.parentElement;
           Polymer.RenderStatus.afterNextRender(this, function() {
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/code-editor.html', function() {
               if ('serviceWorker' in navigator && window.location.hostname != 'localhost')
-                navigator.serviceWorker.register('/service-worker.js');
+                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                  registration.onupdatefound = function() {
+                    var installingWorker = registration.installing;
+
+                    installingWorker.onstatechange = function() {
+                      switch (installingWorker.state) {
+                        case 'installed':
+                          if (navigator.serviceWorker.controller) {
+                            console.log('New version available');
+                            parentElement.fire('notify', {
+                              message: 'New version available',
+                              buttonText: 'Reload to update',
+                              buttonTapHandler: function() {
+                                window.location.reload();
+                              },
+                              duration: 0,
+                            });
+                          }
+                          break;
+
+                        case 'redundant':
+                          console.error('The installing service worker became redundant.');
+                          break;
+                      }
+                    };
+                  };
+                });
               this._remove();
             }.bind(this), null, true);
           });
