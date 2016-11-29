@@ -546,15 +546,18 @@
         var options = event.detail;
         this.$.toast.text = options.message;
         this.$.toastAction.textContent = options.buttonText;
-        this._toastHandler = options.buttonTapHandler;
         this.$.toast.duration = options.duration == null ? 5000 : options.duration;
         this.$.toast.setAttribute('opened', '');
+
+        this._currentToast = options;
+        this.fire('event', {category: 'Notify toast', action: 'Shown', label: options.message});
       },
 
       _handleToast: function() {
-        if (!this._toastHandler)
+        if (!this._currentToast || !this._currentToast.buttonTapHandler)
           return;
-        this._toastHandler();
+        this.fire('event', {category: 'Notify toast', action: 'Clicked', label: this._currentToast.buttonText});
+        this._currentToast.buttonTapHandler();
       },
 
       _filter: function(value, test, result, strip) {
