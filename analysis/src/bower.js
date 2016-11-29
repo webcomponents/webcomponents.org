@@ -164,7 +164,7 @@ class Bower {
   }
 
   static infoPromise(ownerPackageVersionString, offline, pairBuddy) {
-    let ownerRepo = function(resolverSource) {
+    var ownerRepo = function(resolverSource) {
       var source = url.parse(resolverSource);
       if (source.hostname != 'github.com')
         return;
