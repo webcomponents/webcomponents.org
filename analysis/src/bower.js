@@ -167,7 +167,7 @@ class Bower {
     var ownerRepo = function(resolverSource) {
       var source = url.parse(resolverSource);
       if (source.hostname != 'github.com')
-        return;
+        return null;
 
       var parts = source.pathname.substring(1).split('/', 2);
       var owner = parts[0];
