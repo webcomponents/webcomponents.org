@@ -13,7 +13,7 @@
       }
 
       :host.box:hover:not(:active) {
-        box-shadow: 0 0 20px 0 hsla(0, 0%, 0%, 0.1) !important;
+        box-shadow: 0 1px 4px 0 var(--shadow-color, hsla(0, 0%, 0%, 0.1)), 0 0px 4px 0 var(--shadow-color, hsla(0, 0%, 0%, 0.1)), 0 0 20px 0 hsla(0, 0%, 0%, 0.1) !important;
       }
 
       .container {
@@ -22,7 +22,6 @@
         display: flex;
         flex-direction: column;
         padding: 0 24px;
-        border-top: 3px solid;
       }
 
       #header {
@@ -87,7 +86,7 @@
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <div class="container" style="border-top-color: [[_background(data.kind, data.owner, data.repo)]]">
+      <div class="container">
         <a id="header" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.latest_version)]]" aria-label$="[[data.owner]]/[[data.repo]] collection">
           <svg viewBox="0 0 100 100" type$="[[data.kind]]">
            <use xlink:href="/sprite.octicons.svg#collection"></use>
@@ -104,6 +103,20 @@
   </template>
 
   <script>
+  (function() {
+    var colors = [
+      'hsla(198, 61%, 51%, 0.7)', // theme blue
+      'hsla(101, 61%, 64%, 0.7)', // theme green
+      'hsla(64, 93%, 53%, 0.7)', // theme yellow
+      'hsla(205, 62%, 35%, 0.7)', // theme navy
+      'hsla(0, 61%, 51%, 0.7)', // red
+      'hsla(28, 61%, 51%, 0.7)', // orange
+      'hsla(313, 61%, 51%, 0.7)', // pink
+      'hsla(258, 61%, 51%, 0.7)', // purple
+      'hsla(174, 61%, 51%, 0.7)', // teal
+      'hsla(111, 61%, 51%, 0.7)', // green
+    ];
+
     Polymer({
 
       is: 'collection-card',
@@ -112,11 +125,15 @@
         data: Object
       },
 
+      observers: [
+        '_computeColor(data.kind, data.owner, data.repo)',
+      ],
+
       _versionPath: function(version, latestVersion) {
         return version == latestVersion ? '' : '/' + version;
       },
 
-      _background: function(type, owner, repo) {
+      _computeColor: function(type, owner, repo) {
         function hash(string) {
           if (!string)
             return 0;
@@ -135,12 +152,17 @@
           }
           s = (s + zi * (p - 1)) % p;
           return Math.abs(s | 0);
-        };
+        }
 
-        var colors = ['#F44336', '#9c27b0', '#3f51b5', '#4caf50', '#ff9800', '#009688', '#8bc34a', '#ffeb3b', '#ffc107'];
-        return type == 'collection' ? colors[hash(owner + repo) % colors.length] : 'transparent';
+        if (type != 'collection') {
+          this.style.removeProperty('--shadow-color');
+          return;
+        }
+
+        this.style.setProperty('--shadow-color', colors[hash(owner + repo) % colors.length]);
       },
 
     });
+  })();
   </script>
 </dom-module>
