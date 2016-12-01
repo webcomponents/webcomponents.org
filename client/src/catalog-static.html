@@ -62,12 +62,18 @@ mkdir emoji-rain-demo && cd emoji-rain-demo
 bower install emoji-rain</pre>
 
         <h1>How do I define a new HTML element?</h1>
+        <p>This section describes the syntax for the new cross-browser version (v1) of the Web Components specification.</p>
+        
         <p>Use JavaScript to define a new HTML element and its tag with the customElements global. Call customElements.define() with the tag name you want to create and a JavaScript class that extends the base HTMLElement.</p>
 
         <p>For example, to define a mobile drawer panel, <code>&lt;app-drawer&gt;</code>:</p>
 <pre lang="javascript">
 class AppDrawer extends HTMLElement {...}
 window.customElements.define('app-drawer', AppDrawer);</pre>
+		  <p>v0 of the Custom Elements specification used document.registerElement() for this purpose:</p>
+<pre> lang="javascript">var XFoo = document.registerElement('x-foo');
+document.body.appendChild(new XFoo());</pre>
+<p>See this article on the <a href="https://www.html5rocks.com/en/tutorials/webcomponents/customelements/" target="_blank">v0 Custom Elements specification</a> for more information.</p>	  
         <p>To use the new tag:</p>
         <pre lang="html">&lt;app-drawer&gt;&lt;/app-drawer&gt;</pre>
 
@@ -83,6 +89,7 @@ window.customElements.define('app-drawer', AppDrawer);</pre>
 &lt;/script&gt;</pre>
 
         <h1>Creating and using a shadow root</h1>
+        <p>This section describes the syntax for creating shadow DOM with the new cross-browser version (v1) of the shadow DOM specification.</p>
         <p>Shadow DOM is a new DOM feature that helps you build components. You can think of shadow DOM as a scoped subtree inside your element.</p>
 
         <p>A shadow root is a document fragment that gets attached to a “host” element. The act of attaching a shadow root is how the element gains its shadow DOM. To create shadow DOM for an element, call element.attachShadow():</p>
@@ -92,6 +99,9 @@ shadowRoot.innerHTML = '&lt;h1&gt;Hello Shadow DOM&lt;/h1&gt;'; // Could also us
 // header.shadowRoot === shadowRoot
 // shadowRoot.host === header</pre>
 
+		  <p>Version 0 of the shadow DOM specification provided a slightly different method for creating shadow DOM:</p>
+		  <pre lang="js">var root = host.createShadowRoot();</pre>
+		  <p>See this article on <a href="https://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/">shadow DOM v0</a> for more information. See also <a href="http://hayato.io/2016/shadowdomv1/">Hayato Ito's comparison of v0 and v1 of the shadow DOM specification</a>. 
         <h1>Libraries for building web components</h1>
         <p>Many libraries already exist that make it easier to build web components. To dive in and create your own components, here are some you can try out:</p>
 
