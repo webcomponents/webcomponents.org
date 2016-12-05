@@ -312,9 +312,13 @@ class LibraryTask(RequestHandler):
     if self.library.kind == 'collection':
       analysis_sha = sha
     version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
-    Content(id='analysis', parent=version_key, status=Status.pending).put()
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    if content is None:
+      Content(id='analysis', parent=version_key, status=Status.pending).put()
+
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
-    util.new_task(task_url, target='analysis', transactional=transactional)
+    util.new_task(task_url, target='analysis', transactional=transactional, queue_name='analysis')
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
