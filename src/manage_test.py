@@ -77,10 +77,54 @@ class UpdateAllTest(ManageTestBase):
 class AnalyzeTest(ManageTestBase):
   def test_analyze(self):
     library_key = Library(id='owner/repo').put()
-    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
 
     response = self.app.get('/task/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    self.assertEqual(content.content, None)
+    self.assertEqual(content.status, Status.pending)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
+    ], [task.url for task in tasks])
+
+  def test_analyze_leaves_existing_content_when_reanalyzing(self):
+    library_key = Library(id='owner/repo').put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    content.content = 'existing data'
+    content.status = Status.ready
+    content.put()
+
+    response = self.app.get('/task/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    self.assertEqual(content.content, 'existing data')
+    self.assertEqual(content.status, Status.ready)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
+    ], [task.url for task in tasks])
+
+  def test_analyze_resets_error_content_when_reanalyzing(self):
+    library_key = Library(id='owner/repo').put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    content.status = Status.error
+    content.put()
+
+    response = self.app.get('/task/analyze/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    self.assertEqual(content.status, Status.pending)
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
@@ -220,8 +264,8 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v3.0.0'),
         util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
     ], [task.url for task in tasks])
 
   def test_update_doesnt_ingest_older_versions(self):
@@ -261,8 +305,8 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v3.0.0'),
         util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
     ], [task.url for task in tasks])
 
   def test_update_triggers_version_deletion(self):
@@ -328,8 +372,8 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v0.0.2'),
         util.ingest_analysis_task('org', 'repo', 'v0.0.2', 'new-master-sha'),
+        util.ingest_version_task('org', 'repo', 'v0.0.2'),
     ], [task.url for task in tasks])
 
     version = Version.get_by_id('v0.0.2', parent=library_key)
@@ -404,8 +448,8 @@ class IngestLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v1.0.0'),
         util.ingest_analysis_task('org', 'repo', 'v1.0.0'),
+        util.ingest_version_task('org', 'repo', 'v1.0.0'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -432,8 +476,8 @@ class IngestLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'v0.0.1'),
         util.ingest_analysis_task('org', 'repo', 'v0.0.1', 'master-sha'),
+        util.ingest_version_task('org', 'repo', 'v0.0.1'),
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
 
@@ -490,8 +534,8 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 2)
     self.assertEqual([
-        util.ingest_version_task('org', 'repo', 'commit-sha'),
         util.ingest_analysis_task('org', 'repo', 'commit-sha'),
+        util.ingest_version_task('org', 'repo', 'commit-sha'),
     ], [task.url for task in tasks])
 
   def test_ingest_license_fallback(self):
