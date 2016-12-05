@@ -26,6 +26,7 @@ env:
 before_install:
 - mkdir -p lib
 install:
+- sudo apt-get install default-jre
 - npm install -g yarn@0.16
 - npm install -g bower
 - yarn
