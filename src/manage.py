@@ -314,7 +314,7 @@ class LibraryTask(RequestHandler):
     version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    if content is None:
+    if content is None or content.status == Status.error:
       Content(id='analysis', parent=version_key, status=Status.pending).put()
 
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
