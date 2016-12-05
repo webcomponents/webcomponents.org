@@ -205,7 +205,7 @@ class Bower {
           if (metadata == null)
             return;
 
-          metadata.tag = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
+          metadata.version = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
           metadata.name = logEntry.data.pkgMeta.name;
         } else if (logEntry.id == 'not-cached' && metadata == null) {
           // Only use these values if we have no other choice...
@@ -213,7 +213,7 @@ class Bower {
           if (metadata == null)
             return;
 
-          metadata.tag = logEntry.data.resolver.target;
+          metadata.version = logEntry.data.resolver.target;
           metadata.name = logEntry.data.resolver.name;
         }
       });
