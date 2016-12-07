@@ -153,32 +153,6 @@
           flex-direction: column;
         }
       }
-
-      [stable]:before {
-        content: '';
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        position: absolute;
-        background: 
-        url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 16%27 version=%271.1%27 aria-hidden=%27true%27><path fill-rule=%27evenodd%27 fill=%27white%27 d=%27M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5z%27></path></svg>"), #8edb69;
-        background-position: 5px 3px;
-        background-repeat: no-repeat;
-        background-size: 12px;
-      }
-
-      [hold]:before {
-        content: '';
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        position: absolute;
-        background: 
-        url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 16%27 version=%271.1%27 aria-hidden=%27true%27><circle fill=%27white%27 cx=%2750%%27 cy=%2750%%27 r=%273%27></circle></svg>"), #f5a623;
-        /*background-position: 5px 3px;*/
-        background-repeat: no-repeat;
-        background-size: 12px;
-      }
     </style>
 
     <iron-ajax
@@ -227,23 +201,6 @@
       </section>
 
       <section>
-        <div class="box">
-          <div class="header">
-            <div>Browser support</div>
-            <div>Chrome</div>
-            <div>Opera</div>
-          </div>
-          <div>
-            <div>Templates</div>
-            <div stable>stable</div>
-            <div hold>stable</div>
-            <div><img src="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' height='128' viewBox='0 0 12 16' width='96'%3e%3cpath fill-rule='evenodd' d='M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5z'%3e%3c/path%3e%3c/svg%3e">stable</div>
-
-          </div>
-        </div>
-      </section>
-
-      <section>
         <h1>Getting started with web components</h1>
         <div id="getting-started" role="navigation">
           <a href="/introduction" class="box">
@@ -279,6 +236,10 @@
           </a>
         </div>
 
+      </section>
+
+      <section>
+        <browser-table></browser-table>
       </section>
 
       <section id="gitter">
