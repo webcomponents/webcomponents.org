@@ -55,3 +55,7 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
+  # Legacy pathing redirects
+- url: /(articles|podcasts|presentations)(.*)
+  script: client.app
+  secure: always
