@@ -26,8 +26,9 @@ env:
 before_install:
 - mkdir -p lib
 install:
-- npm install -g yarn@0.16
+- npm install -g yarn
 - npm install -g bower
+- npm install -g web-component-tester
 - yarn
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"
@@ -40,7 +41,7 @@ install:
 script:
 - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
-# - xvfb-run wct --skip-plugin sauce
+- xvfb-run wct --skip-plugin sauce
 - "(cd analysis; npm test)"
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
 before_deploy:
