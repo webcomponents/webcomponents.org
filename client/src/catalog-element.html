@@ -938,7 +938,7 @@
         var i;
         for (i = 0; i < names.length; i++) {
           var name = names[i];
-          var parts = this.data.bower.dependencies[name].split(/[\/#]/g);
+          var parts = this.data.bower.dependencies[name].split(/[/#]/g);
           results.push({
             owner: parts[0],
             repo: parts[1],
