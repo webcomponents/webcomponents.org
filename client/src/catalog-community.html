@@ -118,7 +118,7 @@
       <div class="loader" loading$="[[_contentLoading]]">
         <h1 class="page-title">[[_content.metadata.title]]</h1>
         <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
-        <mark-down markdown="[[_content.content]]"></mark-down>
+        <mark-down markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
       </div>
     </template>
   </template>
@@ -177,7 +177,8 @@
         } else {
           this._resources = this.$.ajax.lastResponse;
           var filterLink = this.querySelector('.sidebar-nav a[active]');
-          filterLink.setAttribute('count', this._resources.count);
+          if (filterLink)
+            filterLink.setAttribute('count', this._resources.count);
         }
 
         this.$.threshold.clearTriggers();
@@ -189,6 +190,7 @@
           this._visibilityChanged(this.visible);
           return;
         }
+        path = path.replace(/\/$/, '');
         Polymer.AppLayout.scroll(0);
         this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content' + path;
         this.$.contentAjax.generateRequest();

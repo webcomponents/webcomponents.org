@@ -67,6 +67,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         -webkit-margin-after: 0;
       }
 
+      h1 {
+        margin: 16px 0;
+      }
+
       /* Community content styles */
       iframe {
         border: none;
@@ -88,6 +92,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     properties: {
       /**
+       * Base url
+       */
+      baseUrl: {
+        observer: 'render',
+        type: String,
+      },
+
+      /**
        * The markdown source that should be rendered by this element.
        */
       markdown: {
@@ -107,12 +119,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @event marked-render-complete
      */
     render: function() {
+      function basePrefix(baseUrl, render, href, title, text) {
+        // Check if already absolute path.
+        var absolutePath = /^(http|#|\/\/)/;
+        if (!href.match(absolutePath))
+          href = baseUrl + href;
+        return render.call(this, href, title, text);
+      }
+
       if (!this.markdown) {
         Polymer.dom(this.$.content).innerHTML = '';
         return;
       }
+
+      var renderer = null;
+      if (this.baseUrl) {
+        renderer = new marked.Renderer();
+        renderer.image = basePrefix.bind(renderer, this.baseUrl, renderer.image);
+      }
       /* global marked */
-      Polymer.dom(this.$.content).innerHTML = marked(this.markdown);
+      Polymer.dom(this.$.content).innerHTML = marked(this.markdown, {renderer: renderer});
       this.fire('marked-render-complete');
       var codeBlocks = Polymer.dom(this.root).querySelectorAll('pre');
       for (var i = 0; i < codeBlocks.length; i++)

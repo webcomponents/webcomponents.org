@@ -215,7 +215,7 @@
         }
 
         var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
-        var relativeRegex = /^(?!http|#)\/?(.*$)/;
+        var relativeRegex = /^(?!http|#|\/\/)\/?(.*$)/;
         var i;
 
         var links = Polymer.dom(this.$.contents).querySelectorAll('[href]');
