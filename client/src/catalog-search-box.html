@@ -284,6 +284,7 @@
 
         this.addEventListener('focus', focusListener, true);
         this.addEventListener('blur', blurListener, true);
+        this.addEventListener('keydown', this._onKeyDown, true);
       },
 
       open: function() {
@@ -304,6 +305,14 @@
         this._focused = false;
         this.classList.remove('active');
         this._updateExpandedState();
+      },
+
+      _onKeyDown: function(event) {
+        // ESC key
+        if (event.keyCode == 27) {
+          this.$['search-input'].focus();
+          this._queryChanged('');
+        }
       },
 
       _hideProgress: function() {
