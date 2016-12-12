@@ -448,9 +448,12 @@
       <catalog-search name="elements" title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-search name="collections" title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
-      <catalog-static name="about"></catalog-static>
-      <catalog-static name="introduction"></catalog-static>
-      <catalog-static name="assets"></catalog-static>
+
+      <catalog-static name="about" title="About webcomponents.org"></catalog-static>
+      <catalog-static name="assets" title="webcomponents.org assets"></catalog-static>
+      <catalog-static name="introduction" title="Introduction"></catalog-static>
+      <catalog-static name="polyfills" title="Polyfills"></catalog-static>
+
       <catalog-community name="community" path="[[_filter('/community', subroute.prefix, subroute.path)]]"></catalog-community>
     </iron-pages>
 
@@ -460,7 +463,7 @@
           <h2>Resources</h2>
           <div role="navigation">
             <a href="/introduction">Introduction</a>
-            <a>Polyfills</a>
+            <a href="/polyfills">Polyfills</a>
             <a>Tools</a>
             <a>Specifications</a>
             <a>Browser compatability</a>
