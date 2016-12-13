@@ -18,6 +18,10 @@
         padding: 2px 0;
       }
 
+      #collections {
+        height: 224px;
+      }
+
       h1 {
         font-weight: normal;
         margin-bottom: 32px;
@@ -191,7 +195,7 @@
           <h1>Featured collections</h1>
           <a href="/collections">Browse collections</a>
         </div>
-        <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
+        <div id="collections" class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
           <template is="dom-repeat" items="[[_filterFeatured(_collectionSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
