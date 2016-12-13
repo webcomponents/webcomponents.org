@@ -226,19 +226,18 @@
           this.$.ajax.lastRequest.abort();
 
         this._filterPath = filter;
+        this._resources = null;
+        this.$.ajax.params = {};
+
+        // Update filter UI
         Polymer.dom.flush();
         var links = this.querySelectorAll('.sidebar-nav a');
         for (var i = 0; i < links.length; i++) {
-          if (this._filterPath.indexOf(links[i].textContent.toLowerCase()) != -1) {
+          if (links[i].getAttribute('href') == '/community' + this._filterPath)
             links[i].setAttribute('active', '');
-          } else if (this._filterPath == '' && links[i].textContent.toLowerCase() == 'all') {
-            links[i].setAttribute('active', '');
-          } else {
+          else
             links[i].removeAttribute('active');
-          }
         }
-        this._resources = null;
-        this.$.ajax.params = {};
       },
 
     });
