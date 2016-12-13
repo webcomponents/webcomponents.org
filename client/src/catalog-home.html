@@ -45,6 +45,31 @@
         font-weight: 600;
       }
 
+      /* Polyfill browsers */
+      #polyfill-compat {
+        display: flex;
+        text-transform: uppercase;
+        color: var(--theme-blue-grey);
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 24px;
+      }
+
+      #polyfill-compat div {
+        flex: 1 0 100px;
+        display: flex;
+        align-items: center;
+      }
+
+      #polyfill-compat div:last-child {
+        flex: 0 0 auto;
+      }
+
+      #polyfill-compat img {
+        width: 24px;
+        margin-right: 8px;
+      }
+
       #getting-started {
         display: flex;
         flex-wrap: wrap;
@@ -212,26 +237,45 @@
           <div id="vertical-box">
             <a href="/polyfills" class="box">
               <h2>Polyfills</h2>
-              <div>Use web components today and have them work in all major browsers.</div>
+              <div>
+                <span>Use web components today and have them work in all major browsers.</span>
+                <div id="polyfill-compat">
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Google_Chrome_for_Android_Icon_2016.svg/48px-Google_Chrome_for_Android_Icon_2016.svg.png">
+                    <span>Chrome</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/48px-Opera_2015_icon.svg.png">
+                    <span>Opera</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Mozilla_Firefox_logo_2013.svg/48px-Mozilla_Firefox_logo_2013.svg.png">
+                    <span>Firefox</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/en/6/61/Apple_Safari.png">
+                    <span>Safari 7+</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Microsoft_Edge_logo.svg/48px-Microsoft_Edge_logo.svg.png">
+                    <span>Edge / IE11+</span>
+                  </div>
+                </div>
+              </div>
             </a>
 
-            <a class="box">
-              <h2>Tools</h2>
+            <a href="/resources" class="box">
+              <h2>Resources</h2>
               <div>Tools and boilerplates to help you build your own webcomponents.</div>
             </a>
           </div>
 
-          <a class="box">
+          <a href="/specs" class="box">
             <h2>Specifications</h2>
             <div>Web component specifications from the W3C.</div>
           </a>
 
-          <a class="box">
-            <h2>Compatibility</h2>
-            <div>Latest browser compatibility list. What works and where.</div>
-          </a>
-
-          <a class="box">
+          <a href="/libraries" class="box">
             <h2>Libraries</h2>
             <div>Third party libraries to help you make the most of web components.</div>
           </a>
