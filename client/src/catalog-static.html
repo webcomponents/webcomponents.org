@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
@@ -9,6 +10,12 @@
 <dom-module id="catalog-static">
   <template>
     <style include="catalog-styles"></style>
+    <style>
+      .sidebar-nav {
+        position: sticky; /* Falls back to position: static */
+        top: 100px;
+      }
+    </style>
 
     <iron-ajax
       id="ajax"
@@ -18,8 +25,20 @@
       last-response="{{_markdown}}"></iron-ajax>
 
     <h1 class="page-title">[[title]]</h1>
-    <div class="main-content static-content">
-      <mark-down markdown="[[_markdown]]"></mark-down>
+
+    <div class="body">
+      <div class="sidebar">
+        <h1>Contents</h1>
+        <div class="sidebar-nav box">
+          <template is="dom-repeat" items="[[_headings]]">
+            <a class$="[[item.class]]" href="#[[item.id]]" on-click="_updateScroll">[[item.title]]</a>
+          </template>
+        </div>
+      </div>
+
+      <div class="main-content static-content">
+        <mark-down markdown="[[_markdown]]"></mark-down>
+      </div>
     </div>
   </template>
 
@@ -41,15 +60,48 @@
         },
       },
 
+      listeners: {
+        'marked-render-complete': '_updateHeadings'
+      },
+
       _is: function(name, match) {
         return name == match;
       },
 
-      _visibilityChanged: function(visible) {
-        if (!visible || !this.name)
-          return;
+      created: function() {
+        this._hashChangeHandler = this._updateScroll.bind(this);
+      },
 
+      _visibilityChanged: function(visible) {
+        if (!visible || !this.name) {
+          window.removeEventListener('hashchange', this._hashChangeHandler);
+          return;
+        }
+
+        window.addEventListener('hashchange', this._hashChangeHandler);
         this.$.ajax.generateRequest();
+      },
+
+      _updateHeadings: function() {
+        var elements = this.querySelectorAll('mark-down h1, mark-down h2');
+        var headings = [];
+        for (var i = 0; i < elements.length; i++) {
+          var classes = elements[i].tagName == 'H2' ? 'sub-item' : '';
+          headings.push({title: elements[i].textContent, id: elements[i].id, class: classes});
+        }
+        this._headings = headings;
+
+        // Headings are now rendered, scroll if loaded with hash.
+        this._updateScroll();
+      },
+
+      _updateScroll: function(event) {
+        var ref = event && event.type == 'click' ? event.target.getAttribute('href') : window.location.hash;
+        if (!this.visible || !ref)
+          return;
+        var element = this.querySelector(ref);
+        if (element)
+          element.scrollIntoView();
       },
 
     });
