@@ -48,15 +48,16 @@
       /* Polyfill browsers */
       #polyfill-compat {
         display: flex;
+        flex-wrap: wrap;
         text-transform: uppercase;
         color: var(--theme-blue-grey);
         font-size: 14px;
         font-weight: 600;
-        margin-top: 24px;
       }
 
       #polyfill-compat div {
-        flex: 1 0 100px;
+        margin-top: 24px;
+        flex: 1 0 130px;
         display: flex;
         align-items: center;
       }
@@ -154,6 +155,10 @@
 
         section > h1 {
           margin: 0 16px;
+        }
+
+        #polyfill-compat div {
+          flex-grow: 0;
         }
 
         #getting-started {
