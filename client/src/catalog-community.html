@@ -80,17 +80,17 @@
 
     <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
 
-    <template is="dom-if" if="[[!path]]">
+    <template is="dom-if" if="[[!_content]]">
       <h1 class="page-title">Community</h1>
 
       <div class="body">
         <div class="sidebar">
           <h1>Show</h1>
           <div class="sidebar-nav box">
-            <a on-click="_filterChanged" active>All</a>
-            <a on-click="_filterChanged">Articles</a>
-            <a on-click="_filterChanged">Podcasts</a>
-            <a on-click="_filterChanged">Presentations</a>
+            <a href="/community">All</a>
+            <a href="/community/articles">Articles</a>
+            <a href="/community/podcasts">Podcasts</a>
+            <a href="/community/presentations">Presentations</a>
           </div>
         </div>
 
@@ -114,7 +114,7 @@
       </div>
     </template>
 
-    <template is="dom-if" if="[[path]]">
+    <template is="dom-if" if="[[_content]]">
       <div class="loader" loading$="[[_contentLoading]]">
         <h1 class="page-title">[[_content.metadata.title]]</h1>
         <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
@@ -147,7 +147,6 @@
 
       ready: function() {
         this._resources = null;
-        this._filterPath = '';
 
         this._categorySVGMap = {
           podcasts: 'unmute',
@@ -185,12 +184,17 @@
       },
 
       _pathChanged: function(path) {
-        if (!path) {
+        var filters = ['', '/podcasts', '/presentations', '/articles'];
+        if (filters.indexOf(path) != -1) {
           this._content = null;
+          this._setFilter(path);
           this._visibilityChanged(this.visible);
           return;
         }
-        path = path.replace(/\/$/, '');
+
+        if (!path)
+          return;
+
         Polymer.AppLayout.scroll(0);
         this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content' + path;
         this.$.contentAjax.generateRequest();
@@ -217,17 +221,22 @@
         return this._categorySVGMap[category];
       },
 
-      _filterChanged: function(event) {
-        var type = event.target.textContent.toLowerCase();
-        var links = this.querySelectorAll('.sidebar-nav a');
-        for (var i = 0; i < links.length; i++)
-          links[i].removeAttribute('active');
-        event.target.setAttribute('active', '');
-
+      _setFilter: function(filter) {
         if (this.$.ajax.loading)
           this.$.ajax.lastRequest.abort();
 
-        this._filterPath = type == 'all' ? '' : '/' + type;
+        this._filterPath = filter;
+        Polymer.dom.flush();
+        var links = this.querySelectorAll('.sidebar-nav a');
+        for (var i = 0; i < links.length; i++) {
+          if (this._filterPath.indexOf(links[i].textContent.toLowerCase()) != -1) {
+            links[i].setAttribute('active', '');
+          } else if (this._filterPath == '' && links[i].textContent.toLowerCase() == 'all') {
+            links[i].setAttribute('active', '');
+          } else {
+            links[i].removeAttribute('active');
+          }
+        }
         this._resources = null;
         this.$.ajax.params = {};
       },
