@@ -586,22 +586,24 @@
       },
 
       _updateLoading: function() {
-        if (!this.$.pages.selectedItem)
-          return;
-        if (this.$.pages.selectedItem.loading === true)
-          this._setLoading();
-        if (this.$.pages.selectedItem.loading === false)
-          this._clearLoading();
-      },
-
-      _pageReady: function() {
         var selectedItem = this.$.pages.selectedItem;
         // Work around for https://github.com/PolymerElements/iron-pages/issues/52
         if (!selectedItem)
           selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + this.page + ']');
 
-        if (selectedItem && selectedItem.loading !== true)
-          this._clearLoading();
+        var wasLoading = this.$.pages.classList.contains('loading');
+        var loading = selectedItem && selectedItem.loading === true;
+        if (loading != wasLoading) {
+          if (loading) {
+            this._setLoading();
+          } else {
+            this._clearLoading();
+          }
+        }
+      },
+
+      _pageReady: function() {
+        this._updateLoading();
         if (this._lazyResourcesLoaded)
           return;
         this._lazyResourcesLoaded = true;
