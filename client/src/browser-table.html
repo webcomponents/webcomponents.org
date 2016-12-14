@@ -67,7 +67,7 @@
       /* Browser row */
       .row {
         display: flex;
-        height: 80px;
+        height: 100px;
         border-bottom: 1px solid #ededed;
         align-items: center;
       }
@@ -75,12 +75,16 @@
       .row > :not([label]) {
         flex: 1 1 60px;
         padding: 8px 0;
-        display: flex;
-        align-items: center;
         font-weight: bold;
       }
 
-      div:not(.header) > div.row > :not([label]):before {
+      div.header > div.row > div:not([label]), div.row [title] {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+      }
+
+      div:not(.header) > div.row [title]:before {
         content: '';
         width: 22px;
         height: 22px;
@@ -91,7 +95,11 @@
         margin-right: 8px;
       }
 
-      [title="Stable"]:before {
+      div:not(.header) > div.row > :not([title]):not([label]) {
+        flex-direction: column;
+      }
+
+      [title="Stable"]:before, [title="Polyfill"]:before {
         background: url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 22 22%27 version=%271.1%27 aria-hidden=%27true%27><path fill-rule=%27evenodd%27 fill=%27white%27 d=%27M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5z%27></path></svg>"), #8edb69;
         background-position: 5px 3px;
       }
@@ -110,6 +118,11 @@
         content: 'stable';
       }
 
+      [title="Polyfill"]:after {
+        color: hsla(101,61%,32%,1);
+        content: 'Polyfill';
+      }
+
       [title="On hold"]:after {
         color: hsla(0,0%,46%,1);
         content: 'on hold';
@@ -122,7 +135,7 @@
 
       [title="Under consideration"]:after {
         color: hsla(0,0%,46%,1);
-        content: 'Under consideration';
+        content: 'Considering';
       }
 
       @media (max-width: 900px) {
@@ -132,6 +145,7 @@
         }
         
         [title="Stable"]:after,
+        [title="Polyfill"]:after,
         [title="On hold"]:after,
         [title="Developing"]:after,
         [title="Under consideration"]:after {
@@ -171,7 +185,7 @@
 
         div[label]:after {
           position: absolute;
-          margin-top: -40px;
+          margin-top: -51px;
           padding-right: 8px;
           background: white;
         }
@@ -180,7 +194,7 @@
 
     <div id="container" class="box">
       <div class="header">
-        <h1 label>Native support</h1>
+        <h1 label>Browser support</h1>
         <div class="row">
           <div label=""></div>
           <div>
@@ -217,25 +231,49 @@
         <div label="Imports"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
-        <a title="On hold" href="https://platform-status.mozilla.org/#html-imports"></a>
-        <div title="On hold"></div>
-        <a title="Under consideration" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/htmlimports/"></a>
+        <a href="https://platform-status.mozilla.org/#html-imports">
+          <div title="Polyfill"></div>
+          <div title="On hold"></div>
+        </a>
+        <div>
+          <div title="Polyfill"></div>
+          <div title="On hold"></div>
+        </div>
+        <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/htmlimports/">
+          <div title="Polyfill"></div>
+          <div title="Under consideration"></div>
+        </a>
       </div>
       <div class="row">
         <div label="Custom elements"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#element"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/4696261944934400"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4696261944934400"></a>
-        <a title="Developing" href="https://platform-status.mozilla.org/#custom-elements"></a>
-        <a title="Developing" href="https://webkit.org/blog/7027/introducing-custom-elements/"></a>
-        <a title="Under consideration" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/customelements/"></a>
+        <a href="https://platform-status.mozilla.org/#custom-elements">
+          <div title="Polyfill"></div>
+          <div title="Developing"></div>
+        </a>
+        <a href="https://webkit.org/blog/7027/introducing-custom-elements/">
+          <div title="Polyfill"></div>
+          <div title="Developing"></div>
+        </a>
+        <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/customelements/">
+          <div title="Polyfill"></div>
+          <div title="Under consideration"></div>
+        </a>
       </div>
       <div class="row">
         <div label="Shadow DOM"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#shadow"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/4667415417847808"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4667415417847808"></a>
-        <a title="Developing" href="https://platform-status.mozilla.org/#shadow-dom"></a>
+        <a href="https://platform-status.mozilla.org/#shadow-dom">
+          <div title="Polyfill"></div>
+          <div title="Developing"></div>
+        </a>
         <a title="Stable" href="https://webkit.org/status/#feature-shadow-dom"></a>
-        <a title="Under consideration" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/shadowdom/"></a>
+        <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/shadowdom/">
+          <div title="Polyfill"></div>
+          <div title="Under consideration"></div>
+        </a>
       </div>
     </div>
   </template>
