@@ -56,8 +56,8 @@
 
       img {
         max-width: 100%;
-        margin: auto;
-        margin: 16px 0;
+        margin: 32px auto;
+        display: block;
       }
 
       .resource:hover:not(:active) {
@@ -133,7 +133,10 @@
             </template>
           </div>
           <div class="main-content">
-            <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
+            <h3 class="page-subtitle">Published on [[_formatDate(_content.metadata.original_date)]]</h3>
+            <template is="dom-if" if="[[_content.metadata.image]]">
+              <img src="https://web-components-resources.appspot.com/assets/images/[[_content.metadata.image]]">
+            </template>
             <mark-down markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
           </div>
         </div>
