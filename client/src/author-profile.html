@@ -136,7 +136,7 @@
     <div class="box">
       <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]" role="presentation"></div>
       <div id="header">
-        <h1>[[_nameOrLogin(author.name)]]</h1>
+        <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
         <div id="subtitle" hidden="[[!author.bio]]">[[author.bio]]</div>
       </div>
 
@@ -199,8 +199,8 @@
         author: Object,
       },
 
-      _nameOrLogin: function(name) {
-        return name || this.author.login;
+      _nameOrLogin: function(name, login) {
+        return name || login;
       },
 
       _showMore: function(condensed, type) {

@@ -49,6 +49,11 @@
         height: 22px;
       }
 
+      author-profile {
+        display: block;
+        margin-bottom: 40px;
+      }
+
       img {
         max-width: 100%;
         margin: auto;
@@ -121,14 +126,16 @@
     <template is="dom-if" if="[[_content]]">
       <div class="loader" loading$="[[_contentLoading]]">
         <h1 class="page-title">[[_content.metadata.title]]</h1>
-        <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
         <div class="body">
           <div class="sidebar">
             <template is="dom-repeat" items="[[_content.metadata.authors]]">
               <author-profile author="[[_formatAuthor(item)]]"></author-profile>
             </template>
           </div>
-          <mark-down class="main-content" markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
+          <div class="main-content">
+            <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
+            <mark-down markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
+          </div>
         </div>
       </div>
     </template>
@@ -261,6 +268,7 @@
         } else if (author.github) {
           author.avatar_url = 'https://avatars.githubusercontent.com/u/' + author.github + '?v=3&s=270';
         }
+        author.login = '';
         return author;
       },
 
