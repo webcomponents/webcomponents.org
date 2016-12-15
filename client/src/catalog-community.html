@@ -182,7 +182,7 @@
       },
 
       _loadMore: function() {
-        if (!this.visible || (this.path && !this._filterPath)|| !this._resources || this._resources.results.length >= this._resources.count)
+        if (!this.visible || (this.path && !this._filterPath) || !this._resources || this._resources.results.length >= this._resources.count)
           return;
         this.$.ajax.params = {offset: this._resources.results.length};
       },
@@ -264,8 +264,10 @@
 
       _formatAuthor: function(author) {
         if (author.gravatar) {
+          // eslint-disable-next-line camelcase
           author.avatar_url = 'https://www.gravatar.com/avatar/' + author.gravatar + '?s=270';
         } else if (author.github) {
+          // eslint-disable-next-line camelcase
           author.avatar_url = 'https://avatars.githubusercontent.com/u/' + author.github + '?v=3&s=270';
         }
         author.login = '';
