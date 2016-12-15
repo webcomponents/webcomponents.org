@@ -92,6 +92,10 @@
         flex: 0 0 20px;
       }
 
+      #more svg.twitter {
+        fill: #1da1f2;
+      }
+
       #more a {
         text-overflow: ellipsis;
         overflow: hidden;
@@ -132,7 +136,7 @@
     <div class="box">
       <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]" role="presentation"></div>
       <div id="header">
-        <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
+        <h1>[[_nameOrLogin(author.name)]]</h1>
         <div id="subtitle" hidden="[[!author.bio]]">[[author.bio]]</div>
       </div>
 
@@ -141,11 +145,11 @@
       </div>
 
       <div id="more">
-        <div>
+        <div hidden="[[!author.login]]">
           <svg viewBox="0 0 100 100" class="octicon">
             <use xlink:href="/sprite.octicons.svg#mark-github"></use>
           </svg>
-          <a href="https://github.com/[[author.login]]">[[author.login]]</a>
+          <a href="https://github.com/[[author.login]]" target="_blank">[[author.login]]</a>
         </div>
         <div hidden="[[!author.company]]">
           <svg viewBox="0 0 100 100" class="octicon octicon-organization">
@@ -171,6 +175,12 @@
           </svg>
           <a href="[[_ensureURL(author.blog)]]">[[author.blog]]</a>
         </div>
+        <div hidden="[[!author.twitter]]">
+          <svg viewBox="0 0 100 100" class="octicon twitter">
+            <use xlink:href="/sprite.octicons.svg#twitter"></use>
+          </svg>
+          <a href="https://twitter.com/[[author.twitter]]" target="_blank">@[[author.twitter]]</a>
+        </div>
       </div>
     </div>
   </template>
@@ -189,8 +199,8 @@
         author: Object,
       },
 
-      _nameOrLogin: function(name, login) {
-        return name || login;
+      _nameOrLogin: function(name) {
+        return name || this.author.login;
       },
 
       _showMore: function(condensed, type) {

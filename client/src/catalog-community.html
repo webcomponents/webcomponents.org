@@ -5,6 +5,7 @@
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="mark-down.html">
 <link rel="import" href="progress-bar.html">
+<link rel="import" href="author-profile.html">
 
 <dom-module id="catalog-community">
   <template>
@@ -27,7 +28,7 @@
       }
 
       .resource {
-        padding: 24px 0;
+        padding: 24px 0 8px;
         color: hsl(0, 0%, 45%);
         color: var(--theme-blue-grey);
         border-bottom: 1px solid #ededed;
@@ -40,22 +41,18 @@
         color: var(--theme-black);
       }
 
-      .resource-author {
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-      }
-
       .resource-author svg {
         width: 16px;
         fill: #b1c2d6;
         margin-left: 8px;
+        vertical-align: text-bottom;
+        height: 22px;
       }
 
       img {
         max-width: 100%;
         margin: auto;
-        margin-bottom: 16px;
+        margin: 16px 0;
       }
 
       .resource:hover:not(:active) {
@@ -99,7 +96,14 @@
             <a href="[[_computeLink(item)]]" class="resource" aria-label="[[item.category]] titled [[item.title]]">
               <h1 class="resource-title">[[item.title]]</h1>
               <div class="resource-author">
-                [[_formatDate(item.date)]]
+                <template is="dom-if" if="[[item.authors]]">
+                  <span>By</span>
+                  <template is="dom-repeat" items="[[item.authors]]" as="author">
+                    <span>[[_amp(index)]] </span><a href="https://twitter.com/[[author.twitter]]">[[author.name]] </a>
+                  </template>
+                  <span>on </span>
+                </template>
+                <span>[[_formatDate(item.date)]]</span>
                 <svg viewBox="0 0 100 100" id="search-symbol"><use href$="/sprite.octicons.svg#[[_toSVG(item.category)]]"></use></svg>
               </div>
               <template is="dom-if" if="[[item.image]]">
@@ -118,7 +122,14 @@
       <div class="loader" loading$="[[_contentLoading]]">
         <h1 class="page-title">[[_content.metadata.title]]</h1>
         <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
-        <mark-down markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
+        <div class="body">
+          <div class="sidebar">
+            <template is="dom-repeat" items="[[_content.metadata.authors]]">
+              <author-profile author="[[_formatAuthor(item)]]"></author-profile>
+            </template>
+          </div>
+          <mark-down class="main-content" markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
+        </div>
       </div>
     </template>
   </template>
@@ -164,7 +175,7 @@
       },
 
       _loadMore: function() {
-        if (!this.visible || this.path || !this._resources || this._resources.results.length >= this._resources.count)
+        if (!this.visible || (this.path && !this._filterPath)|| !this._resources || this._resources.results.length >= this._resources.count)
           return;
         this.$.ajax.params = {offset: this._resources.results.length};
       },
@@ -238,6 +249,19 @@
           else
             links[i].removeAttribute('active');
         }
+      },
+
+      _amp: function(index) {
+        return index ? '&' : '';
+      },
+
+      _formatAuthor: function(author) {
+        if (author.gravatar) {
+          author.avatar_url = 'https://www.gravatar.com/avatar/' + author.gravatar + '?s=270';
+        } else if (author.github) {
+          author.avatar_url = 'https://avatars.githubusercontent.com/u/' + author.github + '?v=3&s=270';
+        }
+        return author;
       },
 
     });
