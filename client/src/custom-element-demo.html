@@ -5,10 +5,13 @@
   <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
   <template>
     <style>
+      #container {
+        border-left: 8px solid var(--theme-blue);
+      }
+
       #demoContainer {
         width: 100%;
         overflow: hidden;
-        border-radius: 4px 4px 0 0;
         box-sizing: border-box;
         display: flex;
         justify-content: center;
@@ -131,7 +134,7 @@
 
       #lazyEditor {
         display: none;
-        padding: 16px 20px;
+        padding: 16px 20px 16px 16px;
         color: var(--syntax-fg);
         background: var(--syntax-bg);
         font-size: 14px;
@@ -139,7 +142,7 @@
         line-height: 24px;
         margin: 0;
         white-space: pre;
-        border-radius: 0 0 4px 4px;
+        border-bottom-right-radius: 4px;
         overflow: hidden;
       }
 
@@ -374,12 +377,22 @@
         if (event.data.id != this._id)
           return;
 
+        if (!this._firstShown)
+          this._firstShown = performance.now();
+
+        // Allow resizing when loading but only grow once loaded.
+        if (performance.now() - this._firstShown > 500
+            && this._height
+            && event.data.height < this._height) {
+          return;
+        }
+
         this.$['demo-spinner'].removeAttribute('active');
 
-        event.data.height = Math.max(64, event.data.height);
+        this._height = Math.max(64, event.data.height);
         this.$.demoContainer.classList.add('reveal');
-        this.$.frame.style.height = event.data.height + 'px';
-        this.$.demoContainer.style.height = event.data.height + 'px';
+        this.$.frame.style.height = this._height + 'px';
+        this.$.demoContainer.style.height = this._height + 'px';
       },
 
       _showFirstTimeMessage: function() {
