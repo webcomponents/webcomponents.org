@@ -155,19 +155,7 @@
         height: 2px;
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
-        h1.page-title {
-          font-size: 28px;
-        }
-
-        h2.page-subtitle {
-          font-size: 18px;
-        }
-
-        h1.page-title, h2.page-subtitle {
-          margin-left: 16px;
-        }
-
+      @media (max-width: 800px) {
         .body {
           flex-wrap: wrap;
         }
@@ -183,6 +171,21 @@
           order: 0;
           margin: 32px;
           margin-top: 0;
+        }
+
+      }
+
+      @media (max-width: 500px), (max-height: 500px) {
+        h1.page-title {
+          font-size: 28px;
+        }
+
+        h2.page-subtitle {
+          font-size: 18px;
+        }
+
+        h1.page-title, h2.page-subtitle {
+          margin-left: 16px;
         }
 
         pre {
