@@ -716,15 +716,26 @@ class UpdateIndexes(RequestHandler):
             util.safe_split_strip(repo)))),
     ]
 
+    # Generate weighting field
+    weights = [(repo, 100)]
+
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
       analysis = json.loads(analysis.content)
       elements = analysis.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
+        weights.append((' '.join(elements), 50))
       behaviors = analysis.get('behaviorsByName', {}).keys()
       if behaviors != []:
         fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
+        weights.append((' '.join(behaviors), 50))
+
+    weighted = []
+    for value, weight in weights:
+      for _ in range(0, weight):
+        weighted.append(value)
+    fields.append(search.TextField(name='weighted_fields', value=' '.join(weighted)))
 
     document = search.Document(doc_id=Library.id(owner, repo), fields=fields)
     index = search.Index('repo')
