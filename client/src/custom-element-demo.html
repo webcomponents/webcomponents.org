@@ -381,9 +381,9 @@
           this._firstShown = performance.now();
 
         // Allow resizing when loading but only grow once loaded.
-        if (performance.now() - this._firstShown > 500
-            && this._height
-            && event.data.height < this._height) {
+        if (performance.now() - this._firstShown > 500 &&
+            this._height &&
+            event.data.height < this._height) {
           return;
         }
 
