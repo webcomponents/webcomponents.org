@@ -13,6 +13,9 @@ handlers:
 - url: /manifest.json
   upload: manifest.json
   static_files: manifest.json
+- url: /opensearch.xml
+  upload: opensearch.xml
+  static_files: opensearch.xml
 - url: /assets
   static_dir: assets
   secure: always
