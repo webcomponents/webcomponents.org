@@ -22,6 +22,23 @@
         display: none;
       }
 
+      :host[shorten] article.markdown-body > :not(:nth-child(-n+4)) {
+        display: none;
+      }
+
+      #expand-button {
+        width: 100%;
+        padding: 12px 0;
+        margin: 16px 0;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+        display: flex;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--theme-blue-small);
+        font-weight: bold;
+      }
+
       .markdown-body .highlight pre, .markdown-body pre {
         font-family: var(--monospace-font);
         font-size: 14px;
@@ -135,8 +152,8 @@
         <custom-element-demo example data="[[data]]" base-url="[[baseUrls.userContent]]"></custom-element-demo>
       </div>
     </template>
-    <article id="contents" class="markdown-body">
-    </article>
+    <article id="contents" class="markdown-body"></article>
+    <div id="expand-button" hidden="[[!_showExpand]]" on-click="_expand">View all of README.md</div>
 
   </template>
 
@@ -155,6 +172,12 @@
         baseUrls: Object,
 
         editing: Boolean,
+
+        shorten: {
+          type: Boolean,
+          reflectToAttribute: true,
+          value: false,
+        },
       },
 
       observers: [
@@ -163,6 +186,7 @@
       ],
 
       readmeChanged: function(data, readme) {
+        this._showExpand = false;
         if (!data)
           return;
 
@@ -170,6 +194,8 @@
 
         if (!readme)
           return;
+
+        this._showExpand = this.shorten && this.$.contents.children.length > 4;
 
         // Only scope once so inline demos don't have conflicting styles.
         this.scopeSubtree(this.$.contents, false);
@@ -236,6 +262,11 @@
           if (demos[i].docsPending)
             demos[i].docsPending = false;
         }
+      },
+
+      _expand: function() {
+        this.shorten = false;
+        this._showExpand = false;
       },
 
     });
