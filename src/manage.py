@@ -819,6 +819,20 @@ class IndexAll(RequestHandler):
 
     logging.info('triggered %d index updates', task_count)
 
+class InspectIndex(RequestHandler):
+  def is_mutation(self):
+    return False
+
+  def handle_get(self, owner, repo):
+    index = search.Index('repo')
+    document = index.get(Library.id(owner, repo))
+    if document is None:
+      self.response.set_status(404)
+      return
+
+    for field in document.fields:
+      self.response.write('%s: %s<br>' % (field.name, field.value))
+
 class UpdateAll(RequestHandler):
   def handle_get(self):
     queue = taskqueue.Queue('update')
@@ -952,6 +966,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/analyze-all', handler=AnalyzeAll),
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
+    webapp2.Route(r'/manage/inspect-index/<owner>/<repo>', handler=InspectIndex),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
