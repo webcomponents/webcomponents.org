@@ -157,9 +157,10 @@ def generate_prefixes_from_list(list_of_strings):
       prefixes = prefixes + generate_prefixes(token.lower())
   return list(set(prefixes))
 
-def safesplit(item):
+def safe_split_strip(item):
   if item is None:
     return []
   if not isinstance(item, basestring):
     item = str(item)
+  item = re.sub(r'[^a-zA-Z0-9]+', ' ', item)
   return item.split()

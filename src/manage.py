@@ -712,8 +712,8 @@ class UpdateIndexes(RequestHandler):
         search.TextField(name='bower_description', value=bower.get('description', '')),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
         search.TextField(name='prefix_matches', value=' '.join(util.generate_prefixes_from_list(
-            [repo] + util.safesplit(metadata.get('description')) + util.safesplit(bower.get('description')) +
-            repo.replace("_", " ").replace("-", " ").split()))),
+            util.safe_split_strip(metadata.get('description')) + util.safe_split_strip(bower.get('description')) +
+            util.safe_split_strip(repo)))),
     ]
 
     analysis = Content.get_by_id('analysis', parent=version_key)

@@ -31,5 +31,9 @@ class InlineDemoTransformTest(unittest.TestCase):
     self.assertEqual(util.generate_prefixes_from_list(['ThisIsWord', 'moon']),
                      ['thisiswo', 'thisiswor', 'this', 'thisisw', 'wor', 'thisi', 'thisis', 'moo', 'thi'])
 
+  def test_generate_prefixes_split(self):
+    self.assertEqual(sorted(util.generate_prefixes_from_list(util.safe_split_strip('material-toggle/button'))),
+                     ['but', 'butt', 'butto', 'mat', 'mate', 'mater', 'materi', 'materia', 'tog', 'togg', 'toggl'])
+
 if __name__ == '__main__':
   unittest.main()
