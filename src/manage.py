@@ -717,7 +717,7 @@ class UpdateIndexes(RequestHandler):
     ]
 
     # Generate weighting field
-    weights = [(repo, 100)]
+    weights = [(repo, 10)]
 
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
@@ -725,11 +725,11 @@ class UpdateIndexes(RequestHandler):
       elements = analysis.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
-        weights.append((' '.join(elements), 50))
+        weights.append((' '.join(elements), 5))
       behaviors = analysis.get('behaviorsByName', {}).keys()
       if behaviors != []:
         fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
-        weights.append((' '.join(behaviors), 50))
+        weights.append((' '.join(behaviors), 5))
 
     weighted = []
     for value, weight in weights:
