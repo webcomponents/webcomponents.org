@@ -805,7 +805,7 @@ class AnalyzeAll(RequestHandler):
 
 class IndexAll(RequestHandler):
   def handle_get(self):
-    query = Library.query()
+    query = Library.query().order(Library.updated)
     cursor = None
     more = True
     task_count = 0
