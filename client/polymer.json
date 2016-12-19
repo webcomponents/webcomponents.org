@@ -21,6 +21,7 @@
     "assets/**/*",
     "service-worker-runtime.js",
     "manifest.json",
+    "opensearch.xml",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
     "third_party/octicons/sprite.octicons.svg",
     "client.yaml",
