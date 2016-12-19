@@ -737,7 +737,8 @@ class UpdateIndexes(RequestHandler):
         weighted.append(value)
     fields.append(search.TextField(name='weighted_fields', value=' '.join(weighted)))
 
-    document = search.Document(doc_id=Library.id(owner, repo), fields=fields)
+    rank = int((library.updated - datetime.datetime(2016, 1, 1)).total_seconds())
+    document = search.Document(doc_id=Library.id(owner, repo), fields=fields, rank=rank)
     index = search.Index('repo')
     index.put(document)
 
@@ -816,7 +817,7 @@ class AnalyzeAll(RequestHandler):
 
 class IndexAll(RequestHandler):
   def handle_get(self):
-    query = Library.query().order(Library.updated)
+    query = Library.query()
     cursor = None
     more = True
     task_count = 0
@@ -843,6 +844,7 @@ class InspectIndex(RequestHandler):
 
     for field in document.fields:
       self.response.write('%s: %s<br>' % (field.name, field.value))
+    self.response.write('rank: %s<br>' % (document.rank))
 
 class UpdateAll(RequestHandler):
   def handle_get(self):
