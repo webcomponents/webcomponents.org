@@ -98,6 +98,7 @@
 
       #repo-author {
         line-height: 40px;
+        white-space: nowrap;
         vertical-align: top;
         display: flex;
       }
@@ -389,11 +390,22 @@
         }
 
         #header-main {
-          border-radius: 0;
+          margin: 0 16px;
+          padding: 0;
         }
 
         #info-header {
           flex-wrap: wrap;
+        }
+
+        #github-mobile-link {
+          margin-right: 16px;
+        }
+
+        #github-mobile-link svg {
+          width: 32px;
+          fill: var(--theme-blue-small);
+          vertical-align: text-top;
         }
 
         #info-stats {
@@ -450,7 +462,10 @@
       <!-- Header -->
       <div>
         <div id="title">
-          <svg id="star" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+          <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
+            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+          </a>
+          <svg id="star" class="desktop-only" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
             <use xlink:href="/sprite.octicons.svg#star"></use>
           </svg>
           <h1 class="page-title">[[repo]]</h1>
@@ -583,9 +598,11 @@
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
-              <template is="dom-repeat" items="[[collections.results]]">
-                <collection-card class="box" data="[[item]]"></collection-card>
-              </template>
+              <div class="horizontal-scroll">
+                <template is="dom-repeat" items="[[collections.results]]">
+                  <collection-card class="box" data="[[item]]"></collection-card>
+                </template>
+              </div>
             </template>
           </div>
 
