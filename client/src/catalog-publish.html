@@ -216,8 +216,8 @@
         </ul>
         <p>For Polymer elements, see "<a href="https://www.polymer-project.org/1.0/docs/tools/documentation">Document your elements</a>" for more information.</p>
 
-        <h2>How do I use data binding in an inline demo?</h2>
-        <p>Polymer supports a HTML data binding feature, which automatically performs data binding inside custom elements. To inform Polymer to perform data binding inside your inline demo, place your data-binding HTML in <code>&lt;template is="dom-bind"&gt;&lt;/template&gt;</code>. Ensure there's no script elements inside your template. If your snippet is simply HTML, you can do this in your hidden code:
+        <h2>How do I use Polymer's data binding in an inline demo?</h2>
+        <p>Polymer supports a HTML data binding feature, which automatically performs data binding inside custom elements. To allow data binding at the top level inside your inline demo, place your data bound HTML in <code>&lt;template is="dom-bind"&gt;&lt;/template&gt;</code>. Ensure there's no script elements inside your template. If your snippet is simply HTML, you can do this in your hidden code:
         <pre lang="html">&lt;template is="dom-bind"&gt;
   &lt;next-code-block&gt;&lt;/next-code-block&gt;
 &lt;/template&gt;</pre></p>
