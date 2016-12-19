@@ -47,6 +47,9 @@
   var demoId;
 
   function receiveMessage(event) {
+    if (!event || !event.data || !event.data.id || !event.data.source)
+      return;
+
     // Allow messaging back to original window.
     sourceWindow = event.source;
     demoId = event.data.id;
