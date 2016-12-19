@@ -47,7 +47,7 @@
   var demoId;
 
   function receiveMessage(event) {
-    if (!event.origin.match(/https:\/\/\w*\.?webcomponents\.org/))
+    if (!event || !event.data || !event.data.id || !event.data.source)
       return;
 
     // Allow messaging back to original window.
