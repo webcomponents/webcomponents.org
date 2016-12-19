@@ -95,6 +95,7 @@
       .sidebar {
         flex: 0 0 270px;
         order: 2;
+        width: 270px;
       }
 
       .sidebar h3 {
@@ -169,7 +170,7 @@
         .sidebar {
           flex-grow: 1;
           order: 0;
-          margin: 32px;
+          margin: 16px;
           margin-top: 0;
         }
 
@@ -199,6 +200,20 @@
 
         .mobile-only {
           display: block;
+        }
+
+        .horizontal-scroll {
+          width: calc(100% + 32px);
+          overflow: scroll;
+          display: flex;
+          margin: 0 -16px;
+          padding: 0 8px;
+        }
+
+        .horizontal-scroll > * {
+          width: 270px;
+          flex: 1 0 300px;
+          margin: 16px 8px;
         }
       }
 
