@@ -381,6 +381,21 @@
         font-weight: 600;
       }
 
+      #footer-content a:focus {
+        margin-left: -20px;
+        padding-left: 20px;
+        margin-right: 8px;
+      }
+
+      #footer-content a:focus:before {
+        position: absolute;
+        content: '>';
+        width: 12px;
+        display: inline-block;
+        margin-left: -20px;
+        padding-left: 8px;
+      }
+
       #footer-content a:not([href]) {
         color: hsl(0, 0%, 70%);
       }
