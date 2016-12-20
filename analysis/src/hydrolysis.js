@@ -44,7 +44,14 @@ class Hydrolysis {
 
       Promise.all(
         mainHtmlPaths.map(mainHtmlPath => {
-          return hyd.Analyzer.analyze(mainHtmlPath, {clean: true, filter: () => false})
+          return hyd.Analyzer.analyze(mainHtmlPath,
+            {
+              clean: true,
+              filter: (path) => {
+                // Only filter out URIs (we want to look at any and all files in relative dirs)
+                return path.indexOf('http') == 0 || path.indexOf('//') == 0;
+              }
+            })
             .then(analyzer => {
 
               // There's a weird name.indexOf === 0 thing in hydrolysis that means that
