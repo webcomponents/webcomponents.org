@@ -765,18 +765,25 @@
       },
 
       _optOut: function() {
+        this._navigated = false;
         function navigate() {
-          window.location.href = 'https://elements.polymer-project.org?redirect=';
+          if (!this._navigated) {
+            this._navigated = true;
+            window.location.href = 'https://elements.polymer-project.org?redirect=';
+          }
         }
 
         /* global ga */
         if (window.ga) {
+          clearTimeout(this._optOutTimerId);
+          this._optOutTimerId = setTimeout(navigate.bind(this), 500);
+
           ga('send', 'event', {
             eventCategory: 'Optout',
             eventAction: 'Toast',
             eventLabel: 'Polymer Elements redirect',
             transport: 'beacon',
-            hitCallback: navigate,
+            hitCallback: navigate.bind(this),
           });
         } else {
           navigate();
