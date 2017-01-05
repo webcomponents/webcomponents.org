@@ -166,13 +166,23 @@
         align-items: center;
       }
 
-      .cta-button {
+      #nav > a {
+        font-size: 16px;
+        font-weight: 600;
+        margin-left: 16px;
+        color: var(--theme-black);
+      }
+
+      #nav > a[active] {
+        padding-bottom: 4px;
+        border-bottom: 2px solid var(--theme-black);
+      }
+
+      #nav > .cta-button {
         background: var(--theme-blue);
         color: white;
         border-radius: 5px;
         padding: 5px 16px;
-        font-size: 16px;
-        font-weight: 600;
       }
 
       #mobile-search-trigger {
@@ -279,6 +289,12 @@
         }
 
         #tag-line {
+          display: none;
+        }
+      }
+
+      @media (max-width: 800px) {
+        #nav > a:not(.cta-button) {
           display: none;
         }
       }
@@ -425,7 +441,9 @@
               <div id="tag-line" aria-label="web components .org">[[_tagLine()]]</div>
             </div>
             <div id="nav">
-              <a class="cta-button desktop-only" href="https://gitter.im/webcomponents/community" target="_blank">Chat</a>
+              <a class="desktop-only" href="/introduction" active$="[[_pathIs(route, '/introduction')]]">Getting started</a>
+              <a class="desktop-only" href="/community" active$="[[_pathIs(route, '/community')]]">Community</a>
+              <a class="desktop-only" href="https://gitter.im/webcomponents/community" target="_blank">Chat</a>
               <a class="cta-button desktop-only" href="/publish">Publish element</a>
             </div>
             <svg id="mobile-search-trigger" class="mobile-only" viewBox="0 0 100 100" id="search-symbol" on-click="_openSearch"><use xlink:href="/sprite.octicons.svg#search"></use></svg>
@@ -801,6 +819,10 @@
           return;
         }
         this.$.analytics.recordEvent(event.detail);
+      },
+
+      _pathIs: function(route, match) {
+        return route && route.path == match;
       },
 
     });
