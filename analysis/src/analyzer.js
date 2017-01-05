@@ -37,16 +37,6 @@ function remove(obj) {
 class Analyzer {
 
   /**
-   * Creates an Analyzer!
-   */
-  constructor() {
-    this.analyzer = new PolymerAnalyzer({
-      urlLoader: new FSUrlLoader("/"),
-      urlResolver: new PackageUrlResolver(),
-    });
-  }
-
-  /**
    * Runs Polymer Analyzer against each main html file in the given list.
    * Merges Element and Behavior key/values from each main html into one set each.
    * Output looks like {elementsByTagName:{}, behaviorsByName:{}}.
@@ -66,10 +56,15 @@ class Analyzer {
 
       Promise.all(
         mainHtmlPaths.map(mainHtmlPath => {
+          var analyzer = new PolymerAnalyzer({
+            urlLoader: new FSUrlLoader("/"),
+            urlResolver: new PackageUrlResolver(),
+          });
+
           var dirName = path.dirname(mainHtmlPath);
           var skipItem = item => path.relative(dirName, "/" + item.sourceRange.file).includes("..");
 
-          return this.analyzer.analyze(mainHtmlPath).then(document => {
+          return analyzer.analyze(mainHtmlPath).then(document => {
             var elements = document.getByKind('element');
             elements.forEach(element => {
               if (skipItem(element)) return;
