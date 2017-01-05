@@ -399,13 +399,12 @@
         }
 
         #github-mobile-link {
-          margin-right: 16px;
+          margin-left: 8px;
         }
 
         #github-mobile-link svg {
-          width: 32px;
-          fill: var(--theme-blue-small);
-          vertical-align: text-top;
+          width: 22px;
+          fill: var(--theme-black);
         }
 
         #info-stats {
@@ -462,14 +461,14 @@
       <!-- Header -->
       <div>
         <div id="title">
-          <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
-            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-          </a>
           <svg id="star" class="desktop-only" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
             <use xlink:href="/sprite.octicons.svg#star"></use>
           </svg>
           <h1 class="page-title">[[repo]]</h1>
           <span id="repo-version">[[data.version]]</span>
+          <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
+            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+          </a>
         </div>
         <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
       </div>
