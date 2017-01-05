@@ -6,6 +6,7 @@
 <link rel="import" href="mark-down.html">
 <link rel="import" href="progress-bar.html">
 <link rel="import" href="author-profile.html">
+<link rel="import" href="catalog-community-item.html">
 
 <dom-module id="catalog-community">
   <template>
@@ -27,32 +28,6 @@
         color: var(--theme-blue-grey);
       }
 
-      .resource {
-        padding: 24px 0 8px;
-        color: hsl(0, 0%, 45%);
-        color: var(--theme-blue-grey);
-        border-bottom: 1px solid #ededed;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .resource-title {
-        font-weight: 600;
-        color: var(--theme-black);
-      }
-
-      .resource-author a {
-        font-weight: 600;
-      }
-
-      .resource-author svg {
-        width: 16px;
-        fill: #b1c2d6;
-        margin-left: 8px;
-        vertical-align: text-bottom;
-        height: 22px;
-      }
-
       author-profile {
         display: block;
         margin-bottom: 40px;
@@ -64,9 +39,6 @@
         display: block;
       }
 
-      .resource:hover:not(:active) {
-        background: hsla(0, 0%, 98%, 1);
-      }
 
     </style>
 
@@ -102,24 +74,7 @@
 
         <div class="main-content loader" loading$="[[!_resources]]">
           <template is="dom-repeat" items="[[_resources.results]]">
-            <a href="[[_computeLink(item)]]" class="resource" aria-label="[[item.category]] titled [[item.title]]">
-              <h1 class="resource-title">[[item.title]]</h1>
-              <div class="resource-author">
-                <template is="dom-if" if="[[item.authors]]">
-                  <span>By</span>
-                  <template is="dom-repeat" items="[[item.authors]]" as="author">
-                    <span>[[_amp(index)]] </span><a href="https://twitter.com/[[author.twitter]]">[[author.name]] </a>
-                  </template>
-                  <span>on </span>
-                </template>
-                <span>[[_formatDate(item.date)]]</span>
-                <svg viewBox="0 0 100 100" id="search-symbol"><use href$="/sprite.octicons.svg#[[_toSVG(item.category)]]"></use></svg>
-              </div>
-              <template is="dom-if" if="[[item.image]]">
-                <img src="https://web-components-resources.appspot.com/assets/images/[[item.image]]">
-              </template>
-              <mark-down markdown="[[_stripHTML(item.excerpt)]]"></mark-down>
-            </a>
+            <catalog-community-item data="[[item]]"></catalog-community-item>
           </template>
           <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
         </div>
@@ -172,12 +127,6 @@
 
       ready: function() {
         this._resources = null;
-
-        this._categorySVGMap = {
-          podcasts: 'unmute',
-          articles: 'file',
-          presentations: 'device-camera-video',
-        };
       },
 
       _visibilityChanged: function(visible) {
@@ -232,20 +181,6 @@
         return date.toLocaleString("en-us", {day: 'numeric', month: 'long', year: 'numeric'});
       },
 
-      _computeLink: function(resource) {
-        return resource.link || '/community/' + resource.relativePath;
-      },
-
-      _stripHTML: function(html) {
-        var template = document.createElement('template');
-        template.innerHTML = html;
-        return html ? template.content.firstChild.textContent : '';
-      },
-
-      _toSVG: function(category) {
-        return this._categorySVGMap[category];
-      },
-
       _setFilter: function(filter) {
         if (this.$.ajax.loading)
           this.$.ajax.lastRequest.abort();
@@ -263,10 +198,6 @@
           else
             links[i].removeAttribute('active');
         }
-      },
-
-      _amp: function(index) {
-        return index ? '&' : '';
       },
 
       _formatAuthor: function(author) {
