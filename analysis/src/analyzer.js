@@ -6,6 +6,7 @@ const PolymerAnalyzer = require('polymer-analyzer').Analyzer;
 const Element = require('polymer-analyzer/lib/model/model').Element;
 const FSUrlLoader = require('polymer-analyzer/lib/url-loader/fs-url-loader').FSUrlLoader;
 const PackageUrlResolver = require('polymer-analyzer/lib/url-loader/package-url-resolver').PackageUrlResolver;
+const path = require('path');
 
 /**
  * @param {Object} obj - The object to strip properties from.
@@ -65,14 +66,21 @@ class Analyzer {
 
       Promise.all(
         mainHtmlPaths.map(mainHtmlPath => {
+          var dirName = path.dirname(mainHtmlPath);
+          var skipItem = item => path.relative(dirName, "/" + item.sourceRange.file).includes("..");
+
           return this.analyzer.analyze(mainHtmlPath).then(document => {
             var elements = document.getByKind('element');
             elements.forEach(element => {
+              if (skipItem(element)) return;
+
               data.elementsByTagName[element.tagName] = element;
               remove(data.elementsByTagName[element.tagName])
             });
             var behaviors = document.getByKind('behavior');
             behaviors.forEach(behavior => {
+              if (skipItem(behavior)) return;
+
               data.behaviorsByName[behavior.className] = behavior;
               remove(data.behaviorsByName[behavior.className])
             });
