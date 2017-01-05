@@ -75,6 +75,13 @@
         _loadCodeEditor: function() {
           var parentElement = this.parentElement;
           Polymer.RenderStatus.afterNextRender(this, function() {
+            // Polymer's subtree scoping doesn't work synchronously which codemirror requires
+            // to perform correctly. This workaround injects a stylesheet which is not style
+            // scoped and enables codemirror to function as intended.
+            var stylesheet = document.createElement('link');
+            stylesheet.rel = 'stylesheet';
+            stylesheet.href = '/node_modules/codemirror/lib/codemirror.css';
+            document.head.appendChild(stylesheet);
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/code-editor.html', function() {
               if ('serviceWorker' in navigator && window.location.hostname != 'localhost')
