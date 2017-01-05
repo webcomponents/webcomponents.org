@@ -7,6 +7,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const Ana = require('./ana_log');
 const Analysis = require('./analysis');
+const PolymerAnalyzer = require('./analyzer');
 const Bower = require('./bower');
 const Catalog = require('./catalog');
 const DebugCatalog = require('./debug_catalog');
@@ -49,6 +50,7 @@ function processTasks() {
   var analysis = new Analysis(
       new Bower(),
       new Hydrolysis(),
+      new PolymerAnalyzer(),
       catalog);
 
   var locky = new Date().toString() + ".lock";
