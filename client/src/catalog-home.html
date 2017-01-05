@@ -3,6 +3,7 @@
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="collection-card.html">
+<link rel="import" href="catalog-community-item.html">
 
 <dom-module id="catalog-home">
   <template>
@@ -146,6 +147,11 @@
         font-weight: 600;
       }
 
+      catalog-community-item:first-of-type {
+        display: block;
+        border-top: 1px solid #ededed;
+      }
+
       @media (max-width: 500px) {
         .sub-heading {
           display: block;
@@ -203,6 +209,14 @@
       url="[[baseUrls.api]]/api/search/kind:collection?limit=6&noscore"
       handle-as="json"
       last-response="{{_collectionSearch}}"></iron-ajax>
+
+    <iron-ajax
+      auto
+      id="communityAjax"
+      url="https://web-components-resources.appspot.com/resources?limit=3"
+      handle-as="json"
+      loading="{{_communityLoading}}"
+      last-response="{{_communityPosts}}"></iron-ajax>
 
     <div id="container">
       <section>
@@ -299,6 +313,16 @@
 
       <section>
         <browser-table></browser-table>
+      </section>
+
+      <section>
+        <div class="sub-heading">
+          <h1>Latest from the community</h1>
+          <a href="/community">More from the community</a>
+        </div>
+        <template is="dom-repeat" items="[[_communityPosts.results]]">
+          <catalog-community-item data="[[item]]"></catalog-community-item>
+        </template>
       </section>
 
       <section id="gitter">
