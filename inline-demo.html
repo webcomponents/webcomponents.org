@@ -6,7 +6,8 @@
   }
 
   body:before {
-    border: 1px solid #ededed;
+    border: 2px solid #ededed;
+    border-left: none;
     border-bottom: none;
     position: absolute;
     content: '';
@@ -46,6 +47,9 @@
   var demoId;
 
   function receiveMessage(event) {
+    if (!event || !event.data || event.data.id == undefined || !event.data.source)
+      return;
+
     // Allow messaging back to original window.
     sourceWindow = event.source;
     demoId = event.data.id;

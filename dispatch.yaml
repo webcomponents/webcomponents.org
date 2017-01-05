@@ -1,3 +1,8 @@
 dispatch:
   - url: "*/api/*"
     module: api
+  - url: "webcomponents.org/*"
+    module: redirect
+# Don't enable until webcomponents.org is live.
+#  - url: "beta.webcomponents.org/*"
+#    module: redirect

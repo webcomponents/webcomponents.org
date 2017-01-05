@@ -260,6 +260,7 @@
 
       #toast {
         display: none;
+        font-size: 16px;
       }
 
       #toast:not(:unresolved) {
@@ -267,16 +268,22 @@
       }
 
       #toast a {
+        font-weight: 600;
         margin-left: 16px;
+        color: var(--theme-blue);
       }
 
-      @media (min-width: 500px) and (max-width: 1000px) {
+      @media (min-width: 500px) and (max-width: 1160px) {
+        iron-pages {
+          padding: 0 32px;
+        }
+
         #tag-line {
           display: none;
         }
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
+      @media (max-width: 500px) {
         :host {
           padding-top: 70px;
         }
@@ -374,6 +381,21 @@
         font-weight: 600;
       }
 
+      #footer-content a:focus {
+        margin-left: -20px;
+        padding-left: 20px;
+        margin-right: 8px;
+      }
+
+      #footer-content a:focus:before {
+        position: absolute;
+        content: '>';
+        width: 12px;
+        display: inline-block;
+        margin-left: -20px;
+        padding-left: 8px;
+      }
+
       #footer-content a:not([href]) {
         color: hsl(0, 0%, 70%);
       }
@@ -428,8 +450,8 @@
 
     <progress-bar id="progress" indeterminate></progress-bar>
 
-    <paper-toast id="toast" text="Redirected from Polymer Element catalog">
-      <a href="#" on-click="_optOut">Take me back</a>
+    <paper-toast id="toast">
+      <a id="toastAction" on-click="_handleToast" href="#"></a>
     </paper-toast>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
@@ -445,23 +467,28 @@
       <catalog-search name="elements" title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-search name="collections" title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
-      <catalog-static name="about"></catalog-static>
-      <catalog-static name="introduction"></catalog-static>
-      <catalog-static name="assets"></catalog-static>
+
+      <catalog-static name="about" title="About webcomponents.org"></catalog-static>
+      <catalog-static name="assets" title="webcomponents.org assets"></catalog-static>
+      <catalog-static name="introduction" title="Introduction"></catalog-static>
+      <catalog-static name="polyfills" title="Polyfills"></catalog-static>
+      <catalog-static name="resources" title="Resources"></catalog-static>
+      <catalog-static name="specs" title="Specifications"></catalog-static>
+      <catalog-static name="libraries" title="Libraries"></catalog-static>
+
       <catalog-community name="community" path="[[_filter('/community', subroute.prefix, subroute.path)]]"></catalog-community>
     </iron-pages>
 
     <footer role="contentinfo">
       <div id="footer-content">
         <section>
-          <h2>Resources</h2>
+          <h2>Getting started</h2>
           <div role="navigation">
             <a href="/introduction">Introduction</a>
-            <a>Polyfills</a>
-            <a>Tools</a>
-            <a>Specifications</a>
-            <a>Browser compatability</a>
-            <a>Libraries</a>
+            <a href="/polyfills">Polyfills</a>
+            <a href="/resources">Resources</a>
+            <a href="/specs">Specifications</a>
+            <a href="/libraries">Libraries</a>
           </div>
         </section>
         <section>
@@ -477,16 +504,17 @@
             <a href="/publish">Publish an element</a>
             <a href="/publish-collection">Publish a collection</a>
             <a href="/preview">Preview an element</a>
-            <a href="/preview-integration">Setup Github integration</a>
+            <a href="/preview-integration">Setup GitHub integration</a>
           </div>
         </section>
         <section>
           <h2>About</h2>
           <div role="navigation">
             <a href="/about">About webcomponents.org</a>
-            <a href="#feedback" on-tap="_onFeedback">Feedback</a>
-            <a href="https://github.com/webcomponents/beta">View on GitHub</a>
-            <a href="/assets">Assets</a>
+            <a href="#feedback" on-tap="_onFeedback">Send feedback</a>
+            <a href="https://github.com/webcomponents/beta">View source on GitHub</a>
+            <a href="/assets">Raw assets</a>
+            <a href="https://webcomponents.github.io">Previous webcomponents.org</a>
           </div>
         </section>
       </div>
@@ -519,6 +547,7 @@
         'syntax-highlight': '_onHighlight',
         'event': '_onEvent',
         'lazy-loaded': '_onLazyLoaded',
+        'notify': '_notifyUser',
       },
 
       created: function() {
@@ -528,8 +557,32 @@
       },
 
       ready: function() {
-        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0)
-          this.$.toast.setAttribute('opened', '');
+        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0) {
+          this.fire('notify', {
+            message: 'Redirected from Polymer Element catalog',
+            buttonText: 'Take me back',
+            buttonTapHandler: this._optOut.bind(this),
+            duration: 5000,
+          });
+        }
+      },
+
+      _notifyUser: function(event) {
+        var options = event.detail;
+        this.$.toast.text = options.message;
+        this.$.toastAction.textContent = options.buttonText;
+        this.$.toast.duration = options.duration == null ? 5000 : options.duration;
+        this.$.toast.setAttribute('opened', '');
+
+        this._currentToast = options;
+        this.fire('event', {category: 'Notify toast', action: 'Shown', label: options.message});
+      },
+
+      _handleToast: function() {
+        if (!this._currentToast || !this._currentToast.buttonTapHandler)
+          return;
+        this.fire('event', {category: 'Notify toast', action: 'Clicked', label: this._currentToast.buttonText});
+        this._currentToast.buttonTapHandler();
       },
 
       _filter: function(value, test, result, strip) {
@@ -552,22 +605,24 @@
       },
 
       _updateLoading: function() {
-        if (!this.$.pages.selectedItem)
-          return;
-        if (this.$.pages.selectedItem.loading === true)
-          this._setLoading();
-        if (this.$.pages.selectedItem.loading === false)
-          this._clearLoading();
-      },
-
-      _pageReady: function() {
         var selectedItem = this.$.pages.selectedItem;
         // Work around for https://github.com/PolymerElements/iron-pages/issues/52
         if (!selectedItem)
           selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + this.page + ']');
 
-        if (selectedItem && selectedItem.loading !== true)
-          this._clearLoading();
+        var wasLoading = this.$.pages.classList.contains('loading');
+        var loading = selectedItem && selectedItem.loading === true;
+        if (loading != wasLoading) {
+          if (loading) {
+            this._setLoading();
+          } else {
+            this._clearLoading();
+          }
+        }
+      },
+
+      _pageReady: function() {
+        this._updateLoading();
         if (this._lazyResourcesLoaded)
           return;
         this._lazyResourcesLoaded = true;
@@ -710,18 +765,25 @@
       },
 
       _optOut: function() {
+        this._navigated = false;
         function navigate() {
-          window.location.href = 'https://elements.polymer-project.org?redirect=';
+          if (!this._navigated) {
+            this._navigated = true;
+            window.location.href = 'https://elements.polymer-project.org?redirect=';
+          }
         }
 
         /* global ga */
         if (window.ga) {
+          clearTimeout(this._optOutTimerId);
+          this._optOutTimerId = setTimeout(navigate.bind(this), 500);
+
           ga('send', 'event', {
             eventCategory: 'Optout',
             eventAction: 'Toast',
             eventLabel: 'Polymer Elements redirect',
             transport: 'beacon',
-            hitCallback: navigate,
+            hitCallback: navigate.bind(this),
           });
         } else {
           navigate();

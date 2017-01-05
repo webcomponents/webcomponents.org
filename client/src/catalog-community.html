@@ -5,33 +5,63 @@
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="mark-down.html">
 <link rel="import" href="progress-bar.html">
+<link rel="import" href="author-profile.html">
 
 <dom-module id="catalog-community">
   <template>
     <style include="catalog-styles"></style>
     <style>
-      :host {
-        font-size: 18px;
-        line-height: 30px;
+      h1.page-title {
+        padding-bottom: 16px;
+        border-bottom: 1px solid #ededed;
+        width: 100%;
+      }
+
+      .sidebar {
+        margin-top: 24px;
+      }
+
+      .sidebar-nav a[count]:after {
+        content: attr(count);
+        float: right;
+        color: var(--theme-blue-grey);
       }
 
       .resource {
-        padding: 24px;
+        padding: 24px 0 8px;
         color: hsl(0, 0%, 45%);
-        display: flex;
-      }
-
-      .resource div:first-child {
-        flex: 0 0 200px;
-        text-align: right;
-        margin-right: 24px;
-        font-size: 18px;
         color: var(--theme-blue-grey);
+        border-bottom: 1px solid #ededed;
+        display: flex;
+        flex-direction: column;
       }
 
       .resource-title {
         font-weight: 600;
-        color: black;
+        color: var(--theme-black);
+      }
+
+      .resource-author a {
+        font-weight: 600;
+      }
+
+      .resource-author svg {
+        width: 16px;
+        fill: #b1c2d6;
+        margin-left: 8px;
+        vertical-align: text-bottom;
+        height: 22px;
+      }
+
+      author-profile {
+        display: block;
+        margin-bottom: 40px;
+      }
+
+      img {
+        max-width: 100%;
+        margin: 32px auto;
+        display: block;
       }
 
       .resource:hover:not(:active) {
@@ -43,7 +73,7 @@
     <iron-ajax
       auto
       id="ajax"
-      url="https://web-components-resources.appspot.com/resources"
+      url="https://web-components-resources.appspot.com/resources[[_filterPath]]"
       handle-as="json"
       loading="{{_resourcesLoading}}"
       on-response="_onResourcesResponse"></iron-ajax>
@@ -56,28 +86,64 @@
 
     <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
 
-    <template is="dom-if" if="[[!path]]">
+    <template is="dom-if" if="[[!_content]]">
       <h1 class="page-title">Community</h1>
-      <div class="box loader" loading$="[[!_resources]]">
-        <template is="dom-repeat" items="[[_resources.results]]">
-          <a href="[[_computeLink(item)]]" class="resource">
-            <div>[[_formatDate(item.date)]]</div>
-            <div>
+
+      <div class="body">
+        <div class="sidebar">
+          <h1>Show</h1>
+          <div class="sidebar-nav box">
+            <a href="/community">All</a>
+            <a href="/community/articles">Articles</a>
+            <a href="/community/podcasts">Podcasts</a>
+            <a href="/community/presentations">Presentations</a>
+          </div>
+        </div>
+
+        <div class="main-content loader" loading$="[[!_resources]]">
+          <template is="dom-repeat" items="[[_resources.results]]">
+            <a href="[[_computeLink(item)]]" class="resource" aria-label="[[item.category]] titled [[item.title]]">
               <h1 class="resource-title">[[item.title]]</h1>
-              <div>[[_stripHTML(item.excerpt)]]</div>
-              [[item.link]]
-            </div>
-          </a>
-        </template>
-        <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+              <div class="resource-author">
+                <template is="dom-if" if="[[item.authors]]">
+                  <span>By</span>
+                  <template is="dom-repeat" items="[[item.authors]]" as="author">
+                    <span>[[_amp(index)]] </span><a href="https://twitter.com/[[author.twitter]]">[[author.name]] </a>
+                  </template>
+                  <span>on </span>
+                </template>
+                <span>[[_formatDate(item.date)]]</span>
+                <svg viewBox="0 0 100 100" id="search-symbol"><use href$="/sprite.octicons.svg#[[_toSVG(item.category)]]"></use></svg>
+              </div>
+              <template is="dom-if" if="[[item.image]]">
+                <img src="https://web-components-resources.appspot.com/assets/images/[[item.image]]">
+              </template>
+              <mark-down markdown="[[_stripHTML(item.excerpt)]]"></mark-down>
+            </a>
+          </template>
+          <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+        </div>
+
       </div>
     </template>
 
-    <template is="dom-if" if="[[path]]">
+    <template is="dom-if" if="[[_content]]">
       <div class="loader" loading$="[[_contentLoading]]">
         <h1 class="page-title">[[_content.metadata.title]]</h1>
-        <h3 class="page-subtitle">[[_formatDate(_content.metadata.original_date)]]</h3>
-        <mark-down markdown="[[_content.content]]"></mark-down>
+        <div class="body">
+          <div class="sidebar">
+            <template is="dom-repeat" items="[[_content.metadata.authors]]">
+              <author-profile author="[[_formatAuthor(item)]]"></author-profile>
+            </template>
+          </div>
+          <div class="main-content">
+            <h3 class="page-subtitle">Published on [[_formatDate(_content.metadata.original_date)]]</h3>
+            <template is="dom-if" if="[[_content.metadata.image]]">
+              <img src="https://web-components-resources.appspot.com/assets/images/[[_content.metadata.image]]">
+            </template>
+            <mark-down markdown="[[_content.content]]" base-url="https://web-components-resources.appspot.com"></mark-down>
+          </div>
+        </div>
       </div>
     </template>
   </template>
@@ -106,6 +172,12 @@
 
       ready: function() {
         this._resources = null;
+
+        this._categorySVGMap = {
+          podcasts: 'unmute',
+          articles: 'file',
+          presentations: 'device-camera-video',
+        };
       },
 
       _visibilityChanged: function(visible) {
@@ -117,9 +189,8 @@
       },
 
       _loadMore: function() {
-        if (!this.visible || this.path || !this._resources || this._resources.results.length >= this._resources.count)
+        if (!this.visible || (this.path && !this._filterPath) || !this._resources || this._resources.results.length >= this._resources.count)
           return;
-
         this.$.ajax.params = {offset: this._resources.results.length};
       },
 
@@ -129,17 +200,26 @@
           this.notifyPath('_resources.results');
         } else {
           this._resources = this.$.ajax.lastResponse;
+          var filterLink = this.querySelector('.sidebar-nav a[active]');
+          if (filterLink)
+            filterLink.setAttribute('count', this._resources.count);
         }
+
         this.$.threshold.clearTriggers();
-        this.$.threshold.checkScrollThesholds();
       },
 
       _pathChanged: function(path) {
-        if (!path) {
+        var filters = ['', '/podcasts', '/presentations', '/articles'];
+        if (filters.indexOf(path) != -1) {
           this._content = null;
+          this._setFilter(path);
           this._visibilityChanged(this.visible);
           return;
         }
+
+        if (!path)
+          return;
+
         Polymer.AppLayout.scroll(0);
         this.$.contentAjax.url = 'https://web-components-resources.appspot.com/content' + path;
         this.$.contentAjax.generateRequest();
@@ -159,7 +239,46 @@
       _stripHTML: function(html) {
         var template = document.createElement('template');
         template.innerHTML = html;
-        return template.content.firstChild.textContent;
+        return html ? template.content.firstChild.textContent : '';
+      },
+
+      _toSVG: function(category) {
+        return this._categorySVGMap[category];
+      },
+
+      _setFilter: function(filter) {
+        if (this.$.ajax.loading)
+          this.$.ajax.lastRequest.abort();
+
+        this._filterPath = filter;
+        this._resources = null;
+        this.$.ajax.params = {};
+
+        // Update filter UI
+        Polymer.dom.flush();
+        var links = this.querySelectorAll('.sidebar-nav a');
+        for (var i = 0; i < links.length; i++) {
+          if (links[i].getAttribute('href') == '/community' + this._filterPath)
+            links[i].setAttribute('active', '');
+          else
+            links[i].removeAttribute('active');
+        }
+      },
+
+      _amp: function(index) {
+        return index ? '&' : '';
+      },
+
+      _formatAuthor: function(author) {
+        if (author.gravatar) {
+          // eslint-disable-next-line camelcase
+          author.avatar_url = 'https://www.gravatar.com/avatar/' + author.gravatar + '?s=270';
+        } else if (author.github) {
+          // eslint-disable-next-line camelcase
+          author.avatar_url = 'https://avatars.githubusercontent.com/u/' + author.github + '?v=3&s=270';
+        }
+        author.login = '';
+        return author;
       },
 
     });

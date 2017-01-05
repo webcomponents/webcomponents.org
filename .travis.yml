@@ -28,6 +28,7 @@ before_install:
 install:
 - npm install -g yarn@0.16
 - npm install -g bower
+- npm install -g web-component-tester
 - yarn
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"

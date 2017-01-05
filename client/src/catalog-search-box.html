@@ -16,6 +16,10 @@
         position: absolute;
       }
 
+      form {
+        height: 100%;
+      }
+
       #search-input {
         box-sizing: border-box;
         width: 100%;
@@ -89,8 +93,8 @@
       }
 
       #collections > collection-card {
-        flex: 0 0 250px;
-        height: 200px;
+        flex: 0 0 300px;
+        height: 220px;
         border: none;
         border-right: 1px solid #ededed;
       }
@@ -149,7 +153,7 @@
         display: none;
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
+      @media (max-width: 500px) {
         #search-input {
           height: 100%;
           border-radius: 0;
@@ -280,6 +284,7 @@
 
         this.addEventListener('focus', focusListener, true);
         this.addEventListener('blur', blurListener, true);
+        this.addEventListener('keydown', this._onKeyDown, true);
       },
 
       open: function() {
@@ -300,6 +305,14 @@
         this._focused = false;
         this.classList.remove('active');
         this._updateExpandedState();
+      },
+
+      _onKeyDown: function(event) {
+        // ESC key
+        if (event.keyCode == 27) {
+          this.$['search-input'].focus();
+          this._queryChanged('');
+        }
       },
 
       _hideProgress: function() {

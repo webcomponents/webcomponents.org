@@ -13,6 +13,9 @@ handlers:
 - url: /manifest.json
   upload: manifest.json
   static_files: manifest.json
+- url: /opensearch.xml
+  upload: opensearch.xml
+  static_files: opensearch.xml
 - url: /assets
   static_dir: assets
   secure: always
@@ -47,11 +50,15 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
-- url: /(about|introduction|community|assets)(/.*)?
+- url: /(about|introduction|community|assets|polyfills|resources|libraries|specs)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
 - url: /(author|collections?|elements?|search|preview|preview-integration|publish|publish-collection)(/.*)?
   upload: index.html
   static_files: index.html
+  secure: always
+  # Legacy pathing redirects
+- url: /(articles|podcasts|presentations)(.*)
+  script: client.app
   secure: always

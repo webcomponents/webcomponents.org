@@ -312,9 +312,13 @@ class LibraryTask(RequestHandler):
     if self.library.kind == 'collection':
       analysis_sha = sha
     version_key = ndb.Key(Library, self.library.key.id(), Version, tag)
-    Content(id='analysis', parent=version_key, status=Status.pending).put()
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    if content is None or content.status == Status.error:
+      Content(id='analysis', parent=version_key, status=Status.pending).put()
+
     task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
-    util.new_task(task_url, target='analysis', transactional=transactional)
+    util.new_task(task_url, target='analysis', transactional=transactional, queue_name='analysis')
 
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
@@ -708,9 +712,12 @@ class UpdateIndexes(RequestHandler):
         search.TextField(name='bower_description', value=bower.get('description', '')),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
         search.TextField(name='prefix_matches', value=' '.join(util.generate_prefixes_from_list(
-            [repo] + util.safesplit(metadata.get('description')) + util.safesplit(bower.get('description')) +
-            repo.replace("_", " ").replace("-", " ").split()))),
+            util.safe_split_strip(metadata.get('description')) + util.safe_split_strip(bower.get('description')) +
+            util.safe_split_strip(repo)))),
     ]
+
+    # Generate weighting field
+    weights = [(repo, 10)]
 
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
@@ -718,11 +725,20 @@ class UpdateIndexes(RequestHandler):
       elements = analysis.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
+        weights.append((' '.join(elements), 5))
       behaviors = analysis.get('behaviorsByName', {}).keys()
       if behaviors != []:
         fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
+        weights.append((' '.join(behaviors), 5))
 
-    document = search.Document(doc_id=Library.id(owner, repo), fields=fields)
+    weighted = []
+    for value, weight in weights:
+      for _ in range(0, weight):
+        weighted.append(value)
+    fields.append(search.TextField(name='weighted_fields', value=' '.join(weighted)))
+
+    rank = int((library.updated - datetime.datetime(2016, 1, 1)).total_seconds())
+    document = search.Document(doc_id=Library.id(owner, repo), fields=fields, rank=rank)
     index = search.Index('repo')
     index.put(document)
 
@@ -814,6 +830,21 @@ class IndexAll(RequestHandler):
         util.new_task(task_url, target='manage')
 
     logging.info('triggered %d index updates', task_count)
+
+class InspectIndex(RequestHandler):
+  def is_mutation(self):
+    return False
+
+  def handle_get(self, owner, repo):
+    index = search.Index('repo')
+    document = index.get(Library.id(owner, repo))
+    if document is None:
+      self.response.set_status(404)
+      return
+
+    for field in document.fields:
+      self.response.write('%s: %s<br>' % (field.name, field.value))
+    self.response.write('rank: %s<br>' % (document.rank))
 
 class UpdateAll(RequestHandler):
   def handle_get(self):
@@ -948,6 +979,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/github', handler=GithubStatus),
     webapp2.Route(r'/manage/analyze-all', handler=AnalyzeAll),
     webapp2.Route(r'/manage/index-all', handler=IndexAll),
+    webapp2.Route(r'/manage/inspect-index/<owner>/<repo>', handler=InspectIndex),
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),

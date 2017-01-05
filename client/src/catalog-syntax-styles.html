@@ -19,13 +19,12 @@
 
       .CodeMirror {
         background: var(--syntax-bg);
-        border-radius: 0 0 4px 4px;
+        border-bottom-right-radius: 4px;
         font-size: 14px;
         font-family: var(--monospace-font);
         color: var(--mono-1);
         line-height: 24px;
         height: auto;
-        border-left: 4px solid var(--theme-blue);
         padding-left: 12px;
       }
 
@@ -33,7 +32,7 @@
         padding: 16px 0;
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
+      @media (max-width: 500px) {
         .CodeMirror {
           border-radius: 0;
           padding-left: 16px;

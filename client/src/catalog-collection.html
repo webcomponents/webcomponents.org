@@ -37,12 +37,6 @@
       #parents collection-card {
         margin-right: 0;
       }
-
-      @media (max-width: 500px), (max-height: 500px) {
-        catalog-element-readme {
-          margin: 0 16px 40px;
-        }
-      }
     </style>
 
     <iron-ajax
@@ -80,9 +74,11 @@
           </a>
           <div id="parents" class="loader" loading$="[[_parentsLoading]]" hidden$="[[!_parents.count]]">
             <h1>In [[_parents.count]] collection[[_s(_parents.count)]]</h1>
-            <template is="dom-repeat" items="[[_parents.results]]">
-              <collection-card class="box" data="[[item]]"></collection-card>
-            </template>
+            <div class="horizontal-scroll">
+              <template is="dom-repeat" items="[[_parents.results]]">
+                <collection-card class="box" data="[[item]]"></collection-card>
+              </template>
+            </div>
           </div>
         </div>
 
@@ -91,7 +87,7 @@
             <h1 class="page-title">[[_repo]]</h1>
             <h2 class="page-subtitle">[[_metadata.description]]</h2>
           </div>
-          <catalog-element-readme readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+          <catalog-element-readme shorten readme="[[_metadata.readme]]" data="[[_metadata]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           <catalog-list collection="[[collection]]" base-urls="[[baseUrls]]" disabled="[[!visible]]"></catalog-list>
         </div>
       </div>

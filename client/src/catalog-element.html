@@ -98,6 +98,7 @@
 
       #repo-author {
         line-height: 40px;
+        white-space: nowrap;
         vertical-align: top;
         display: flex;
       }
@@ -262,76 +263,39 @@
         margin-bottom: 40px;
       }
 
-      #sidebar-nav {
-        overflow: visible;
-        font-weight: 600;
-      }
-
       #sidebar-spinner {
         position: absolute;
         margin: 14px 0 0 20px;
         z-index: 10;
       }
 
-      #sidebar-nav a {
-        padding: 16px 20px 18px;
-        font-size: 16px;
-        line-height: 20px;
-        display: flex;
-        justify-content: space-between;
-        box-sizing: border-box;
-      }
-
-      #sidebar-nav a[active] {
-        color: inherit;
-        position: relative;
-        -webkit-filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
-        filter: drop-shadow(0px 0px 1px hsl(0, 0%, 70%));
-        background: white;
-      }
-
-      #sidebar-nav a[active]::before {
-        content: '';
-        width: 10px;
-        position: absolute;
-        top: 0px;
-        right: -9px;
-        height: 100%;
-        background: white;
-        -webkit-clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
-        clip-path: polygon(100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% calc(100% - 2px), 0 50%, 100% 2px);
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
-      }
-
-      #sidebar-nav a span {
+      .sidebar-nav a span {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 185px;
       }
 
-      #sidebar-nav[collapse] .element-demos {
+      .sidebar-nav[collapse] .element-demos {
         overflow: hidden;
         display: none;
       }
 
-      #sidebar-nav[collapse] a[active] + .element-demos {
+      .sidebar-nav[collapse] a[active] + .element-demos {
         display: block;
       }
 
-      #sidebar-nav a span {
+      .sidebar-nav a span {
         max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      #sidebar-nav a.demo-link {
-        background: hsl(0, 0%, 98%);
+      .sidebar-nav a.demo-link {
         text-transform: capitalize;
       }
 
-      #sidebar-nav a.demo-link:after, #sidebar-nav a.api-link:after {
+      .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -340,7 +304,7 @@
         font-size: 12px;
       }
 
-      #sidebar-nav a.api-link:after {
+      .sidebar-nav a.api-link:after {
         content: 'api';
       }
 
@@ -411,7 +375,7 @@
         color: hsl(0, 0%, 40%);
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
+      @media (max-width: 500px) {
         #title {
           margin-left: 16px;
         }
@@ -426,11 +390,22 @@
         }
 
         #header-main {
-          border-radius: 0;
+          margin: 0 16px;
+          padding: 0;
         }
 
         #info-header {
           flex-wrap: wrap;
+        }
+
+        #github-mobile-link {
+          margin-right: 16px;
+        }
+
+        #github-mobile-link svg {
+          width: 32px;
+          fill: var(--theme-blue-small);
+          vertical-align: text-top;
         }
 
         #info-stats {
@@ -447,7 +422,7 @@
           height: calc(100vh - 50px);
         }
 
-        #sidebar-nav a {
+        .sidebar-nav a {
           border: 0;
           background: inherit;
         }
@@ -487,7 +462,10 @@
       <!-- Header -->
       <div>
         <div id="title">
-          <svg id="star" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+          <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
+            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+          </a>
+          <svg id="star" class="desktop-only" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
             <use xlink:href="/sprite.octicons.svg#star"></use>
           </svg>
           <h1 class="page-title">[[repo]]</h1>
@@ -588,19 +566,19 @@
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div id="sidebar-nav" class="box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
+          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]"><span>[[element.is]]</span></a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]"><span>&lt;[[element.is]]&gt;</span></a>
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
@@ -610,7 +588,7 @@
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
@@ -620,9 +598,11 @@
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
-              <template is="dom-repeat" items="[[collections.results]]">
-                <collection-card class="box" data="[[item]]"></collection-card>
-              </template>
+              <div class="horizontal-scroll">
+                <template is="dom-repeat" items="[[collections.results]]">
+                  <collection-card class="box" data="[[item]]"></collection-card>
+                </template>
+              </div>
             </template>
           </div>
 
@@ -654,7 +634,7 @@
           </template>
 
           <div hidden="[[!subElement]]">
-            <h1>[[subElement]]</h1>
+            <h1>[[_docTitle(subElement, descriptor)]]</h1>
             <catalog-api-doc descriptor="[[descriptor]]"></catalog-api-doc>
           </div>
         </div>
@@ -974,7 +954,7 @@
         var i;
         for (i = 0; i < names.length; i++) {
           var name = names[i];
-          var parts = this.data.bower.dependencies[name].split(/[\/#]/g);
+          var parts = this.data.bower.dependencies[name].split(/[/#]/g);
           results.push({
             owner: parts[0],
             repo: parts[1],
@@ -1016,7 +996,7 @@
 
       _updateActiveLinks: function() {
         var currentPath = this.route.prefix + this.route.path;
-        var links = this.$['sidebar-nav'].querySelectorAll('a');
+        var links = this.querySelectorAll('.sidebar-nav a');
         for (var i = 0; i < links.length; i++) {
           if (links[i].getAttribute('href') == currentPath)
             links[i].setAttribute('active', '');
@@ -1092,6 +1072,10 @@
 
       _selectAllInfoDownload: function(event) {
         event.currentTarget.select();
+      },
+
+      _docTitle: function(subElement, descriptor) {
+        return descriptor && descriptor.type == 'element' ? '<' + subElement + '>' : subElement;
       },
 
     });

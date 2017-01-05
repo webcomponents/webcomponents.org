@@ -109,7 +109,7 @@ class Bower {
     // to make it do what we want, we need to do two dependency walks - one (online) to
     // populate the cache and another (offline) to gather the results.
     return Bower.dependencies(ownerPackageVersionString, {}, false, ['empty-buddy']).then(() => {
-      return Bower.dependencies(ownerPackageVersionString, {}, true, ['empty-buddy']);
+      return Bower.dependencies(ownerPackageVersionString, {}, false, ['empty-buddy']);
     });
   }
 
@@ -149,7 +149,13 @@ class Bower {
         // pairBuddy collects the errors from each install.
         // We use it to determine whether a genuine error occured (two failures).
         var pairBuddy = [];
-        promises.push(Bower.dependencies(key + "#" + packageToProcess, processed, offline, pairBuddy));
+        var keyPlusPackageToProcess;
+        if (packageToProcess.indexOf('#') == 0) {
+          keyPlusPackageToProcess = key + packageToProcess;
+        } else {
+          keyPlusPackageToProcess = key + "#" + packageToProcess;
+        }
+        promises.push(Bower.dependencies(keyPlusPackageToProcess, processed, offline, pairBuddy));
         promises.push(Bower.dependencies(packageToProcess, processed, offline, pairBuddy));
       });
 
@@ -158,6 +164,18 @@ class Bower {
   }
 
   static infoPromise(ownerPackageVersionString, offline, pairBuddy) {
+    var ownerRepo = function(resolverSource) {
+      var source = url.parse(resolverSource);
+      if (source.hostname != 'github.com')
+        return null;
+
+      var parts = source.pathname.substring(1).split('/', 2);
+      var owner = parts[0];
+      var repo = parts[1];
+      repo = repo.replace(/\.git$/, '');
+      return {'owner': owner, 'repo': repo};
+    };
+
     return new Promise(resolve => {
       var metadata = null;
       bower.commands.info(
@@ -177,28 +195,26 @@ class Bower {
         if (pairBuddy.length == 2) {
           // Oh NOES! Neither pair attempt made it. This dependency was actually probably bad! :(
           Ana.fail("bower/findDependencies/info");
-          Ana.log("bower/findDependencies/info failure info %s", pairBuddy);
+          Ana.log("bower/findDependencies/info failure info %s: %s", ownerPackageVersionString, pairBuddy);
         }
         resolve({});
       }).on('log', function(logEntry) {
         if (logEntry.id == 'cached' && logEntry.data && logEntry.data.pkgMeta &&
             logEntry.data.pkgMeta._resolution) {
-          var source = url.parse(logEntry.data.resolver.source);
-          if (source.hostname != 'github.com')
+          metadata = ownerRepo(logEntry.data.resolver.source);
+          if (metadata == null)
             return;
 
-          var parts = source.pathname.substring(1).split('/', 2);
-          var owner = parts[0];
-          var repo = parts[1];
-          repo = repo.replace(/\.git$/, '');
-          var tag = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
+          metadata.version = logEntry.data.pkgMeta._resolution.tag || logEntry.data.pkgMeta._resolution.commit;
+          metadata.name = logEntry.data.pkgMeta.name;
+        } else if (logEntry.id == 'not-cached' && metadata == null) {
+          // Only use these values if we have no other choice...
+          metadata = ownerRepo(logEntry.data.resolver.source);
+          if (metadata == null)
+            return;
 
-          metadata = {
-            name: logEntry.data.pkgMeta.name,
-            version: tag,
-            owner: owner,
-            repo: repo
-          };
+          metadata.version = logEntry.data.resolver.target;
+          metadata.name = logEntry.data.resolver.name;
         }
       });
     });

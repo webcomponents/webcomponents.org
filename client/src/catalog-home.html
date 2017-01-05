@@ -18,6 +18,10 @@
         padding: 2px 0;
       }
 
+      #collections {
+        height: 224px;
+      }
+
       h1 {
         font-weight: normal;
         margin-bottom: 32px;
@@ -45,6 +49,32 @@
         font-weight: 600;
       }
 
+      /* Polyfill browsers */
+      #polyfill-compat {
+        display: flex;
+        flex-wrap: wrap;
+        text-transform: uppercase;
+        color: var(--theme-blue-grey);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      #polyfill-compat div {
+        margin-top: 24px;
+        flex: 1 0 130px;
+        display: flex;
+        align-items: center;
+      }
+
+      #polyfill-compat div:last-child {
+        flex: 0 0 auto;
+      }
+
+      #polyfill-compat img {
+        width: 24px;
+        margin-right: 8px;
+      }
+
       #getting-started {
         display: flex;
         flex-wrap: wrap;
@@ -62,7 +92,6 @@
         margin-left: 32px;
         margin-bottom: 32px;
         box-shadow: 0 1px 4px 0 hsla(0, 0%, 0%, 0.1);
-
       }
 
       #getting-started a.box[href]:hover:not(:active) {
@@ -71,6 +100,7 @@
 
       #getting-started a.box[href]:active {
         background-color: var(--theme-blue);
+        border-top-color: var(--theme-blue);
         color: white;
       }
 
@@ -116,7 +146,7 @@
         font-weight: 600;
       }
 
-      @media (max-width: 500px), (max-height: 500px) {
+      @media (max-width: 500px) {
         .sub-heading {
           display: block;
           text-align: center;
@@ -129,6 +159,10 @@
 
         section > h1 {
           margin: 0 16px;
+        }
+
+        #polyfill-compat div {
+          flex-grow: 0;
         }
 
         #getting-started {
@@ -191,7 +225,7 @@
           <h1>Featured collections</h1>
           <a href="/collections">Browse collections</a>
         </div>
-        <div class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
+        <div id="collections" class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
           <template is="dom-repeat" items="[[_filterFeatured(_collectionSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
@@ -210,33 +244,61 @@
           </a>
 
           <div id="vertical-box">
-            <a class="box">
+            <a href="/polyfills" class="box">
               <h2>Polyfills</h2>
-              <div>Use web components today and have them work in all major browsers.</div>
+              <div>
+                <span>Use web components today and have them work in all major browsers.</span>
+                <div id="polyfill-compat">
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Google_Chrome_for_Android_Icon_2016.svg/48px-Google_Chrome_for_Android_Icon_2016.svg.png">
+                    <span>Chrome</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/48px-Opera_2015_icon.svg.png">
+                    <span>Opera</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Mozilla_Firefox_logo_2013.svg/48px-Mozilla_Firefox_logo_2013.svg.png">
+                    <span>Firefox</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/en/6/61/Apple_Safari.png">
+                    <span>Safari 7+</span>
+                  </div>
+                  <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Microsoft_Edge_logo.svg/48px-Microsoft_Edge_logo.svg.png">
+                    <span>Edge / IE11+</span>
+                  </div>
+                </div>
+              </div>
             </a>
 
-            <a class="box">
-              <h2>Tools</h2>
+            <a href="/resources" class="box">
+              <h2>Resources</h2>
               <div>Tools and boilerplates to help you build your own webcomponents.</div>
             </a>
           </div>
 
-          <a class="box">
+          <a href="/specs" class="box">
             <h2>Specifications</h2>
             <div>Web component specifications from the W3C.</div>
           </a>
 
-          <a class="box">
-            <h2>Compatibility</h2>
-            <div>Latest browser compatibility list. What works and where.</div>
+          <a href="/community" class="box">
+            <h2>Community</h2>
+            <div>See the latest articles, presentations & podcasts from the community.</div>
           </a>
 
-          <a class="box">
+          <a href="/libraries" class="box">
             <h2>Libraries</h2>
             <div>Third party libraries to help you make the most of web components.</div>
           </a>
         </div>
 
+      </section>
+
+      <section>
+        <browser-table></browser-table>
       </section>
 
       <section id="gitter">
