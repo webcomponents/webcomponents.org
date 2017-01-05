@@ -1,0 +1,103 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="catalog-styles.html">
+<link rel="import" href="mark-down.html">
+
+<dom-module id="catalog-community-item">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      .resource {
+        padding: 24px 0 8px;
+        color: hsl(0, 0%, 45%);
+        color: var(--theme-blue-grey);
+        border-bottom: 1px solid #ededed;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .resource-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--theme-black);
+      }
+
+      .resource-author a {
+        font-weight: 600;
+      }
+
+      .resource-author svg {
+        width: 16px;
+        fill: #b1c2d6;
+        margin-left: 8px;
+        vertical-align: text-bottom;
+        height: 22px;
+      }
+
+      .resource:hover:not(:active) {
+        background: hsla(0, 0%, 98%, 1);
+      }
+    </style>
+
+    <a href="[[_computeLink(data)]]" class="resource" aria-label="[[data.category]] titled [[data.title]]">
+      <h1 class="resource-title">[[data.title]]</h1>
+      <div class="resource-author">
+        <template is="dom-if" if="[[data.authors]]">
+          <span>By</span>
+          <template is="dom-repeat" items="[[data.authors]]" as="author">
+            <span>[[_amp(index)]] </span><a href="https://twitter.com/[[author.twitter]]">[[author.name]] </a>
+          </template>
+          <span>on </span>
+        </template>
+        <span>[[_formatDate(data.date)]]</span>
+        <svg viewBox="0 0 100 100" id="search-symbol"><use href$="/sprite.octicons.svg#[[_toSVG(data.category)]]"></use></svg>
+      </div>
+      <template is="dom-if" if="[[data.image]]">
+        <img src="https://web-components-resources.appspot.com/assets/images/[[data.image]]">
+      </template>
+      <mark-down markdown="[[_stripHTML(data.excerpt)]]"></mark-down>
+    </a>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-community-item',
+
+      properties: {
+        data: Object,
+      },
+
+      _toSVG: function(category) {
+        var map = {
+          podcasts: 'unmute',
+          articles: 'file',
+          presentations: 'device-camera-video',
+        };
+        return map[category];
+      },
+
+      _stripHTML: function(html) {
+        var template = document.createElement('template');
+        template.innerHTML = html;
+        return html ? template.content.firstChild.textContent : '';
+      },
+
+      _computeLink: function(resource) {
+        return resource.link || '/community/' + resource.relativePath;
+      },
+
+      _amp: function(index) {
+        return index ? '&' : '';
+      },
+
+      _formatDate: function(dateString) {
+        if (!dateString)
+          return '';
+        var date = new Date(dateString);
+        return date.toLocaleString("en-us", {day: 'numeric', month: 'long', year: 'numeric'});
+      },
+
+    });
+  </script>
+</dom-module>
