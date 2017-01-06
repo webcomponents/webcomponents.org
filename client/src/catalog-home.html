@@ -194,19 +194,36 @@
           flex-direction: column;
         }
       }
+
+      /** Fixed featured */
+      @media (min-width: 500px) {
+        .fixed-featured {
+          min-height: 436px;
+          flex-wrap: wrap;
+          height: auto;
+          margin-left: -16px;
+          margin-bottom: -16px;
+        }
+
+        .fixed-featured collection-card {
+          flex-basis: 270px;
+          margin-left: 16px;
+          margin-bottom: 16px;
+        }
+      }
     </style>
 
     <iron-ajax
       id="featuredElements"
       loading="{{_elementsLoading}}"
-      url="[[baseUrls.api]]/api/search/kind:element?limit=6&noscore"
+      url="[[baseUrls.api]]/api/search/kind:element%20(repo:%20vaadin-grid%20AND%20owner:%20vaadin)%20OR%20(repo:%20calendar-lite%20AND%20owner:%20Manohar-Gunturu)%20OR%20(repo:%20app-layout%20AND%20owner:%20PolymerElements)%20OR%20(repo:%20paper-carousel%20AND%20owner:%20redbility)%20OR%20(repo:%20ken-burns-image%20AND%20owner:%20vogelrh)%20OR%20(repo:%20polymer-dragula%20AND%20owner:%20ergo)?limit=6&noscore"
       handle-as="json"
       last-response="{{_elementSearch}}"></iron-ajax>
 
     <iron-ajax
       id="featuredCollections"
       loading="{{_collectionsLoading}}"
-      url="[[baseUrls.api]]/api/search/kind:collection?limit=6&noscore"
+      url="[[baseUrls.api]]/api/search/kind:collection%20(repo:%20paper-input-elements%20AND%20owner:%20PolymerElements)%20OR%20(repo:%20%22awesome-elements%22%20AND%20owner:%20StartPolymer)%20OR%20(repo:%20core%20AND%20owner:%20nuclei)?limit=6&noscore"
       handle-as="json"
       last-response="{{_collectionSearch}}"></iron-ajax>
 
@@ -224,11 +241,13 @@
           <h1>Featured elements</h1>
           <a href="/elements">Browse elements</a>
         </div>
-        <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
-          <template is="dom-repeat" items="[[_filterFeatured(_elementSearch)]]">
+        <div class="featured-row loader fixed-featured" role="navigation" loading="[[_elementsLoading]]">
+          <template is="dom-repeat" items="[[_elementSearch.results]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_elementsLoading]]">
+            <collection-card class="box"></collection-card><collection-card class="box"></collection-card><collection-card class="box"></collection-card>
+            <!-- Fixed featured -->
             <collection-card class="box"></collection-card><collection-card class="box"></collection-card><collection-card class="box"></collection-card>
           </template>
         </div>
@@ -240,7 +259,7 @@
           <a href="/collections">Browse collections</a>
         </div>
         <div id="collections" class="featured-row loader" role="navigation" loading="[[_collectionsLoading]]">
-          <template is="dom-repeat" items="[[_filterFeatured(_collectionSearch)]]">
+          <template is="dom-repeat" items="[[_collectionSearch.results]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
           <template is="dom-if" if="[[_collectionsLoading]]">
