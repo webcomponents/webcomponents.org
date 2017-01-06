@@ -343,8 +343,8 @@ class GetDocs(webapp2.RequestHandler):
 
       if use_analyzer_data and has_analyzer_data:
         # Delete the fields used for hydrolysis data
-        del result['content']['elementsByTagName'];
-        del result['content']['behaviorsByName'];
+        del result['content']['elementsByTagName']
+        del result['content']['behaviorsByName']
       elif has_analyzer_data:
         # Delete the field used for analyzer data
         del result['content']['analyzerData']
