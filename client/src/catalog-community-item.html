@@ -45,7 +45,7 @@
         <template is="dom-if" if="[[data.authors]]">
           <span>By</span>
           <template is="dom-repeat" items="[[data.authors]]" as="author">
-            <span>[[_amp(index)]] </span><a href="https://twitter.com/[[author.twitter]]">[[author.name]] </a>
+            <a href="https://twitter.com/[[author.twitter]]">[[author.name]]</a>[[_separator(index, data.authors.length)]]
           </template>
           <span>on </span>
         </template>
@@ -87,8 +87,10 @@
         return resource.link || '/community/' + resource.relativePath;
       },
 
-      _amp: function(index) {
-        return index ? '&' : '';
+      _separator: function(index, length) {
+        if (index == length - 2)
+          return ' &';
+        return index < length - 2  ? ',' : '';
       },
 
       _formatDate: function(dateString) {

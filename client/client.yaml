@@ -50,7 +50,7 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
-- url: /(about|introduction|community|assets|polyfills|resources|libraries|specs)(/.*)?
+- url: /(about|introduction|community|assets|polyfills|resources|libraries|specs|launch-announcement)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
