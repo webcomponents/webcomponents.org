@@ -449,9 +449,31 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('org', 'repo', 'v1.0.0'),
+        util.ensure_author_task('org'),
         util.ingest_version_task('org', 'repo', 'v1.0.0'),
+    ], [task.url for task in tasks])
+
+  def test_ingest_element_no_versions(self):
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[]''')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNotNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, [])
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
         util.ensure_author_task('org'),
     ], [task.url for task in tasks])
+
 
   def test_ingest_collection(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"keywords": ["element-collection"], "license": "MIT"}')
@@ -477,8 +499,8 @@ class IngestLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('org', 'repo', 'v0.0.1', 'master-sha'),
-        util.ingest_version_task('org', 'repo', 'v0.0.1'),
         util.ensure_author_task('org'),
+        util.ingest_version_task('org', 'repo', 'v0.0.1'),
     ], [task.url for task in tasks])
 
   def test_github_error_fails_gracefully(self):

@@ -450,8 +450,8 @@ class IngestLibrary(LibraryTask):
       self.library_dirty = True
     self.update_metadata()
     self.update_license_and_kind()
-    self.update_versions()
     self.trigger_author_ingestion()
+    self.update_versions()
     self.set_ready()
 
 class UpdateLibrary(LibraryTask):
