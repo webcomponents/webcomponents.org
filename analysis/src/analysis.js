@@ -10,11 +10,13 @@ class Analysis {
    * Creates an Analysis using the given bower, hydrolysis and catalog services.
    * @param {Bower} bower - The Bower service.
    * @param {Hydrolysis} hydrolysis - The Hydrolysis service.
+   * @param {Analyzer} analyzer - The Analyzer service.
    * @param {Catalog} catalog - The Catalog service.
    */
-  constructor(bower, hydrolysis, catalog) {
+  constructor(bower, hydrolysis, analyzer, catalog) {
     this.bower = bower;
     this.hydrolysis = hydrolysis;
+    this.analyzer = analyzer;
     this.catalog = catalog;
   }
 
@@ -46,10 +48,12 @@ class Analysis {
       }).then(mainHtmlPaths => {
         return Promise.all([
           this.hydrolysis.analyze(mainHtmlPaths),
+          this.analyzer.analyze(mainHtmlPaths),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = results[0];
-        data.bowerDependencies = results[1];
+        data.analyzerData = results[1];
+        data.bowerDependencies = results[2];
         return this.catalog.postResponse(data, attributes);
       }).then(() => {
         Ana.success("analysis/processNextTask", taskAsString);

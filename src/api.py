@@ -317,6 +317,7 @@ class GetMetadata(webapp2.RequestHandler):
 class GetDocs(webapp2.RequestHandler):
   @ndb.toplevel
   def get(self, owner, repo, ver=None):
+    use_analyzer_data = self.request.get('use_analyzer_data', None) is not None
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     owner = owner.lower()
     repo = repo.lower()
@@ -338,6 +339,16 @@ class GetDocs(webapp2.RequestHandler):
     result['status'] = analysis.status
     if analysis.status == Status.ready:
       result['content'] = json.loads(analysis.content)
+      has_analyzer_data = result['content'].get('analyzerData', None) is not None
+
+      if use_analyzer_data and has_analyzer_data:
+        # Delete the fields used for hydrolysis data
+        del result['content']['elementsByTagName']
+        del result['content']['behaviorsByName']
+      elif has_analyzer_data:
+        # Delete the field used for analyzer data
+        del result['content']['analyzerData']
+
     if analysis.status == Status.error:
       result['error'] = analysis.error
 
