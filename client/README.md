@@ -1,4 +1,14 @@
 ## Front-end client
+### Installing
+Running the client requires Google App Engine, which can be installed using the [Google Cloud SDK](https://cloud.google.com/sdk/docs/).
+
+Once you have the Cloud SDK installed, install App Engine for Python by running:
+```bash
+gcloud components install app-engine-python
+```
+
+Altenatively, you may install the [App Engine SDK for Python](https://cloud.google.com/appengine/docs/python/download) directly.
+
 ### Building
 ```bash
 cd client && npm install
