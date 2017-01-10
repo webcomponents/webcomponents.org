@@ -18,6 +18,10 @@ skip_files:
 - node_modules
 
 handlers:
+- url: /service-worker.js
+  upload: client/service-worker-unregister.js
+  static_files: client/service-worker-unregister.js
+  secure: always
 - url: /.*
   script: src.redirect.app
   secure: always
