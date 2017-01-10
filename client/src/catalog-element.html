@@ -470,7 +470,7 @@
             <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
           </a>
         </div>
-        <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]">[[data.homepage]]</a></h2>
+        <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
       </div>
 
       <div id="header" class="body">
@@ -904,8 +904,7 @@
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
-        if (!this.dupedDemos.length)
-          this.dupedDemos = this._demos();
+        this.dupedDemos = this._demos();
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
@@ -1075,6 +1074,10 @@
 
       _docTitle: function(subElement, descriptor) {
         return descriptor && descriptor.type == 'element' ? '<' + subElement + '>' : subElement;
+      },
+
+      _redundantLink: function(link) {
+        return link && link.match(/.*\.webcomponents\.org\/element\//);
       },
 
     });
