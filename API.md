@@ -1,7 +1,7 @@
 # API
 Before using the API, please file an issue with your intention of using the API.
 
-You can access the API at `beta.webcomponents.org/api/<method>`. Example search API call: https://beta.webcomponents.org/api/search/input.
+You can access the API at `www.webcomponents.org/api/<method>`. Example search API call: https://www.webcomponents.org/api/search/input.
 
 ## Get data for an author
 ```

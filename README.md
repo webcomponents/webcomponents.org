@@ -1,6 +1,6 @@
-# webcomponents.org beta
+# webcomponents.org
 <p align="center">
-  <img alt="webcomponents.org" src="https://beta.webcomponents.org/assets/logo.svg" width="161">
+  <img alt="webcomponents.org" src="https://www.webcomponents.org/assets/logo.svg" width="161">
 </p>
 <p align="center">
   <a href="https://travis-ci.org/webcomponents/beta"><img src="https://img.shields.io/travis/webcomponents/beta.svg?maxAge=2592000&style=flat-square"></a>
@@ -11,7 +11,7 @@
 
 
 
-The beta (in-development) site for webcomponents.org.
+The webcomponents.org site.
 
 It consists of multiple Appengine services and requires gcloud for most development.
 
@@ -22,7 +22,7 @@ At a high-level, the services are
 - Analysis, a node.js service that performs slower analysis on ingested elements, using Bower and Hydrolysis.
 
 # System-level dependencies
-The following dependencies are required to develop, test and/or deploy beta.webcomponents.org
+The following dependencies are required to develop, test and/or deploy www.webcomponents.org
 - gcloud SDK (https://cloud.google.com/sdk/downloads#versioned) - needed for ALL services
 - node.js (and npm) (https://nodejs.org/en/download/) - needed for ALL services
 - pip (Linux: https://packaging.python.org/install_requirements_linux/, Mac: "sudo easy_install pip" or https://pip.pypa.io/en/stable/installing/) - needed for Manage and Api
