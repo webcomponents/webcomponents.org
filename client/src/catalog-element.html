@@ -569,7 +569,7 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -577,7 +577,7 @@
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
@@ -587,7 +587,7 @@
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-tap="_demoClicked"><span>[[demo.desc]]</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
                 </template>
               </div>
             </template>
@@ -788,7 +788,7 @@
       },
 
       _demoClicked: function() {
-        this._navigatedToDemo = true;
+        this._currentPath = document.location.href;
       },
 
       _showDemo: function() {
@@ -809,7 +809,7 @@
       },
 
       _closeDemo: function() {
-        this._navigatedToDemo = false;
+        this._currentPath = '';
         if (!this.$['demo-dialog'].opened)
           return;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
@@ -829,13 +829,22 @@
       },
 
       _demoCanceled: function() {
-        if (this._navigatedToDemo) {
+        if (this._currentPath) {
           history.back();
+          // The demo frame loading sometimes causes the browser to store extra
+          // history state. This attempts to restore again. Also note
+          // history.back() is not synchronous, so we need to wait to read path.
+          this.async(this._ensureNavigationMatches.bind(this, this._currentPath));
         } else {
           history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
           this.fire('location-changed');
         }
         this._dialogDemoLoading = false;
+      },
+
+      _ensureNavigationMatches: function(path) {
+          if (document.location.href != path)
+            history.back();
       },
 
       _updateLoading: function(metaLoading, data) {
@@ -904,7 +913,8 @@
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
-        this.dupedDemos = this._demos();
+        if (!this.dupedDemos || !this.dupedDemos.length)
+          this.dupedDemos = this._demos();
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
         this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
       },
