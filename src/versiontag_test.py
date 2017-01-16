@@ -68,7 +68,7 @@ class VersionTagTest(unittest.TestCase):
         'v2.1.0',
         'v2.1.1',
         '3.0.0',
-    ]);
+    ])
 
   def default_version(self):
     self.assertEqual(versiontag.default_version([]), None)
