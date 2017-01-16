@@ -807,7 +807,7 @@
       },
 
       _demoClicked: function() {
-        this._currentPath = document.location.href;
+        this._navigatedToDemo = true;
       },
 
       _showDemo: function() {
@@ -828,7 +828,7 @@
       },
 
       _closeDemo: function() {
-        this._currentPath = '';
+        this._navigatedToDemo = false;
         if (!this.$['demo-dialog'].opened)
           return;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
@@ -848,22 +848,13 @@
       },
 
       _demoCanceled: function() {
-        if (this._currentPath) {
+        if (this._navigatedToDemo) {
           history.back();
-          // The demo frame loading sometimes causes the browser to store extra
-          // history state. This attempts to restore again. Also note
-          // history.back() is not synchronous, so we need to wait to read path.
-          this.async(this._ensureNavigationMatches.bind(this, this._currentPath));
         } else {
           history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
           this.fire('location-changed');
         }
         this._dialogDemoLoading = false;
-      },
-
-      _ensureNavigationMatches: function(path) {
-        if (document.location.href != path)
-          history.back();
       },
 
       _updateLoading: function(metaLoading, data) {
