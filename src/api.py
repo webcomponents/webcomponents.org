@@ -98,6 +98,7 @@ class LibraryMetadata(object):
     }
     if not assume_latest:
       result['latest_version'] = metadata['latest_version']
+      result['default_version'] = metadata['default_version']
     raise ndb.Return(result)
 
   @staticmethod
@@ -155,6 +156,8 @@ class LibraryMetadata(object):
       versions = yield versions_future
       result['versions'] = versions
       if len(versions) > 0:
+        result['default_version'] = versiontag.default_version(versions)
+        # Remove latest_version once deployed clients all use default_version
         result['latest_version'] = versiontag.default_version(versions)
 
     if not brief and library.participation is not None:

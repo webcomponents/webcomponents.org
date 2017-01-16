@@ -77,7 +77,7 @@ def categorize(version, existing_versions):
 
 def default_version(versions):
   """Returns the default version - the latest stable version,
-  or the latests pre-release if all versions are pre-release.
+  or the latest pre-release if all versions are pre-release.
   Assumes input is sorted.
   """
   prerelease_result = None
