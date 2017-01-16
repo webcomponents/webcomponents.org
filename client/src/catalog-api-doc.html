@@ -168,6 +168,7 @@
         /** Converts `descriptor` into our template-friendly `_model`. */
         _descriptorChanged: function() {
           if (!this.descriptor) return;
+          this.descriptor.desc = this.descriptor.desc || this.descriptor.description;
 
           // Split the documented properties between functions and other types.
           var properties = [];
@@ -182,6 +183,9 @@
           this._properties = properties;
           this._methods = methods;
           this._events = this.descriptor.events || [];
+          this._events.forEach(function(event) {
+            event.desc = event.jsdoc.description;
+          });
           this._behaviors = this.descriptor.behaviors || [];
 
           this.toggleAttribute('abstract', this.descriptor.abstract);
