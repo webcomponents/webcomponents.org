@@ -4,7 +4,6 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="catalog-styles.html">
-<link rel="import" href="catalog-api-analyzer-doc.html">
 <link rel="import" href="catalog-api-doc.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="collection-card.html">
@@ -458,7 +457,7 @@
     <iron-ajax
       id="docsAjax"
       loading="{{_docsLoading}}"
-      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?use_analyzer_data"
       handle-as="json"
       last-response="{{docs}}"
       on-error="_docsError"
@@ -713,16 +712,36 @@
       _elements: function() {
         if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.content.elementsByTagName).map(function(elem) {
-          return this.docs.content.elementsByTagName[elem];
+
+        var content = this.docs.content.analyzerData || this.docs.content;
+        return Object.keys(content.elementsByTagName).map(function(elem) {
+          var el = content.elementsByTagName[elem];
+          el.is = el.is || el.tagName;
+          if (el.properties) {
+            el.properties.forEach(function(prop) {
+              prop.desc = prop.desc || prop.description;
+              prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          return el;
         }.bind(this));
       },
 
       _behaviors: function() {
         if (!this.docs || !this.docs.content)
           return [];
-        return Object.keys(this.docs.content.behaviorsByName).map(function(elem) {
-          return this.docs.content.behaviorsByName[elem];
+
+        var content = this.docs.content.analyzerData || this.docs.content;
+        return Object.keys(content.behaviorsByName).map(function(elem) {
+          var be = content.behaviorsByName[elem];
+          be.is = be.is || be.behaviorName;
+          if (be.properties) {
+            be.properties.forEach(function(prop) {
+              prop.desc = prop.desc || prop.description;
+              prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          return be;
         }.bind(this));
       },
 
@@ -936,7 +955,8 @@
         if (!this.dupedDemos || !this.dupedDemos.length)
           this.dupedDemos = this._demos();
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
-        this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
+        var content = this.docs.content.analyzerData || this.docs.content;
+        this.descriptor = content.elementsByTagName[this.subElement] || content.behaviorsByName[this.subElement];
       },
 
       _demos: function() {
