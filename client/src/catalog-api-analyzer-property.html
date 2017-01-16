@@ -1,0 +1,284 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="mark-down.html">
+
+<dom-module id="catalog-api-analyzer-property">
+  <template>
+    <style>
+
+    :root {
+      --code1: {
+        font-family: var(--monospace-font);
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        white-space: normal;
+      }
+
+      --code2: {
+        font-family: var(--monospace-font);
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 20px;
+        white-space: normal;
+      }
+    }
+
+      :host {
+        box-sizing: border-box;
+        display: block;
+        padding: 16px 24px;
+      }
+
+      #transitionMask {
+        overflow: hidden;
+        position: relative;
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+      .deeplink {
+        color: currentcolor;
+        text-decoration: none;
+      }
+
+      .deeplink:hover {
+        color: #e91e63; /*var(--paper-pink-500);*/
+      }
+
+      #signature {
+        @apply(--code1);
+
+        float: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 260px;
+        color: black;
+      }
+
+      #signature .name {
+        @apply(--code2);
+      }
+
+      :host([function]) #signature {
+        position: static;
+        width: 100%;
+      }
+
+      :host(:not([function])) #signature .params {
+        display: none;
+      }
+
+      :host([function]) #type {
+        display: none;
+      }
+
+      #details {
+        flex: 1;
+        font-size: 13px;
+        margin-left: 260px;
+      }
+
+      /* Metadata */
+
+      #type {
+        @apply(--code1);
+
+        font-style: italic;
+      }
+
+      .annotation {
+        color: #666;
+        float: right;
+      }
+
+      .annotation > span::before {
+        content: "  &middot;  ";
+      }
+
+      .annotation > span:first-child::before {
+        content: "" !important;
+      }
+
+      #default .value {
+        color: #999;
+        font-size: 12px;
+      }
+
+      /* Function Parameters */
+
+      #params {
+        list-style: none;
+        margin: 8px -8px 0 -8px;
+        padding: 0 8px;
+      }
+
+      #params .type {
+        @apply(--code1);
+      }
+
+      #params li {
+        padding: 4px 0;
+      }
+
+      #params li:first-child {
+        padding-top: 8px;
+      }
+
+      #params li:last-child {
+        padding-bottom: 8px;
+      }
+
+      mark-down {
+        display: inline-block;
+      }
+
+      #params .markdown-html p {
+        margin: 0;
+      }
+
+      /* Description */
+
+      #desc {
+        clear: both;
+        display: block;
+      }
+
+      #desc .markdown-html > :first-child {
+        margin-top: 0;
+      }
+
+      #desc .markdown-html > :last-child {
+        margin-bottom: 0;
+      }
+
+      #desc .markdown-html code {
+        @apply(--code1);
+      }
+
+      .return {
+        font-size: 14px;
+      }
+
+      #meta {
+        color: #2196f3; /*var(--paper-blue-500);*/
+      }
+
+      .name {
+        font-size: 14px;
+      }
+
+      @media (max-width: 600px) {
+        #details {
+          margin-left: 0;
+        }
+
+        .annotation {
+          display: block;
+          float: none;
+        }
+      }
+    </style>
+
+    <div id="signature">
+      <a id$="[[anchorId]]" href$="#[[anchorId]]" class="name deeplink">{{descriptor.name}}</a><span class="params">(<span>{{_paramText}}</span>)</span>
+      <span class="return" hidden$="{{!descriptor.return}}">➙ <span class="type">{{descriptor.return.type}}</span></span>
+    </div>
+    <div id="details">
+      <div id="meta" hidden$="{{_computeHideMeta(descriptor)}}">
+        <span id="type" class="type">{{descriptor.type}}</span>
+        <span class="annotation">[[_getAnnotation(descriptor)]]</span>
+      </div>
+      <ol id="params" hidden$="{{_computeHideParams(descriptor,return)}}">
+        <template is="dom-repeat" items="{{descriptor.params}}">
+          <li hidden$="{{!item.type}}">
+            <span class="name">{{item.name}}</span>
+            <span class="type">{{item.type}}</span>
+            <mark-down markdown="{{item.desc}}" class="markdown-html">
+            </mark-down>
+          </li>
+        </template>
+        <li class="return" hidden$="{{!descriptor.return}}">Returns
+          <span class="type">{{descriptor.return.type}}</span>
+          <mark-down markdown="{{descriptor.return.desc}}" class="markdown-html">
+          </mark-down>
+        </li>
+      </ol>
+      <mark-down id="desc" markdown="{{descriptor.desc}}" class="markdown-html" hidden$="{{!descriptor.desc}}">
+      </mark-down>
+    </div>
+  </template>
+
+  <script>
+    (function() {
+      Polymer({
+        is: 'catalog-api-analyzer-property',
+
+        properties: {
+          /**
+           * The [Hydrolysis](https://github.com/PolymerLabs/hydrolysis)-generated
+           * element descriptor to display details for.
+           *
+           * @type {hydrolysis.PropertyDescriptor}
+           */
+          descriptor: {
+            type: Object,
+            observer: '_descriptorChanged',
+          },
+
+          /**
+           * Unique anchor ID for deep-linking.
+           */
+          anchorId: {
+            type: String,
+            reflectToAttribute: true,
+          },
+
+          _paramText: String,
+        },
+
+        ready: function() {
+          this._isReady = true;
+        },
+
+        _descriptorChanged: function() {
+          this.toggleAttribute('configuration', this.descriptor.configuration);
+          this.toggleAttribute('function', this.descriptor.function);
+          this._paramText = (this.descriptor.params || []).map(function(param) {
+            return param.name;
+          }).join(', ');
+        },
+
+        // hidden if no type and no defaults
+        _computeHideMeta: function(descriptor) {
+          return descriptor.type === undefined && descriptor.default === undefined;
+        },
+
+        // hidden if no params, and no return value
+        _computeHideParams: function(descriptor, ret) {
+          return (!descriptor.params || descriptor.params.length === 0) && !ret;
+        },
+
+        _getAnnotation: function(descriptor) {
+          var annotations = [];
+
+          if (descriptor.default !== undefined) {
+            annotations.push('Default: ' + descriptor.default);
+          }
+          if (descriptor.readOnly) {
+            annotations.push('readOnly');
+          }
+          if (descriptor.notify) {
+            annotations.push('notifies');
+          }
+          return annotations.join(' – ');
+        }
+      });
+    })();
+  </script>
+</dom-module>
