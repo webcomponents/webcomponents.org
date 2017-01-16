@@ -3,24 +3,26 @@ import semantic_version
 
 X_RANGE = re.compile(r'(\.[*xX])+$')
 BAD_TILDE = re.compile(r'^~\d+$')
-EXPR = re.compile(r'^(v)?(\d+)\.(\d+)\.(\d+)$')
 
 def is_valid(tag):
-  return EXPR.match(tag) is not None
+  try:
+    parse(tag)
+    return True
+  except ValueError:
+    return False
+
+def is_prerelease(tag):
+  return '-' in tag
 
 def compare(version1, version2):
-  version1 = EXPR.match(version1)
-  version2 = EXPR.match(version2)
-  result = cmp(int(version1.group(2)), int(version2.group(2)))
-  if result != 0:
-    return result
-  result = cmp(int(version1.group(3)), int(version2.group(3)))
-  if result != 0:
-    return result
-  result = cmp(int(version1.group(4)), int(version2.group(4)))
-  if result != 0:
-    return result
-  return cmp(version1.group(1), version2.group(1))
+  v1 = parse(version1)
+  v2 = parse(version2)
+  if v1 > v2:
+    return 1
+  elif v2 > v1:
+    return -1
+  else:
+    return 0
 
 def match(version, spec):
   if spec == '*' or spec == 'master':
@@ -48,6 +50,9 @@ def categorize(version, existing_versions):
   if existing_versions == [] or not is_valid(version):
     return 'unknown'
 
+  if is_prerelease(version):
+    return 'pre-release'
+
   existing_versions = list(existing_versions)
   existing_versions.sort(compare)
   existing_versions.reverse()
@@ -69,3 +74,19 @@ def categorize(version, existing_versions):
     return 'minor'
 
   return 'patch'
+
+def default_version(versions):
+  """Returns the default version - the latest stable version,
+  or the latests pre-release if all versions are pre-release.
+  Assumes input is sorted.
+  """
+  prerelease_result = None
+  version_result = None
+  for version in versions:
+    if is_prerelease(version):
+      prerelease_result = version
+    else:
+      version_result = version
+  if version_result is None:
+    version_result = prerelease_result
+  return version_result

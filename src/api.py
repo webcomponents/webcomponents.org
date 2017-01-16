@@ -113,7 +113,8 @@ class LibraryMetadata(object):
 
     if tag is None:
       versions = yield versions_future
-      version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, versions[-1])
+      default_version = versiontag.default_version(versions)
+      version_key = None if len(versions) == 0 else ndb.Key(Library, library_key.id(), Version, default_version)
     else:
       version_key = ndb.Key(Library, library_key.id(), Version, tag)
 
@@ -154,7 +155,7 @@ class LibraryMetadata(object):
       versions = yield versions_future
       result['versions'] = versions
       if len(versions) > 0:
-        result['latest_version'] = versions[-1]
+        result['latest_version'] = versiontag.default_version(versions)
 
     if not brief and library.participation is not None:
       result['activity'] = json.loads(library.participation).get('all', [])
@@ -212,7 +213,7 @@ class GetCollections(webapp2.RequestHandler):
     library_key = ndb.Key(Library, Library.id(owner, repo))
 
     if version is None:
-      version = yield Library.latest_version_for_key_async(library_key)
+      version = yield Library.default_version_for_key_async(library_key)
       if version is None:
         self.response.set_status(404)
         return
@@ -244,7 +245,7 @@ class GetDependencies(webapp2.RequestHandler):
     library_key = ndb.Key(Library, Library.id(owner, repo))
 
     if version is None:
-      version = yield Library.latest_version_for_key_async(library_key)
+      version = yield Library.default_version_for_key_async(library_key)
       if version is None:
         self.response.set_status(404)
         return
@@ -323,7 +324,7 @@ class GetDocs(webapp2.RequestHandler):
     repo = repo.lower()
     library_key = ndb.Key(Library, Library.id(owner, repo))
     if ver is None:
-      ver = yield Library.latest_version_for_key_async(library_key)
+      ver = yield Library.default_version_for_key_async(library_key)
     if ver is None:
       self.response.set_status(404)
       return

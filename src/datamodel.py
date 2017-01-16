@@ -89,11 +89,11 @@ class Library(ndb.Model):
 
   @staticmethod
   @ndb.tasklet
-  def latest_version_for_key_async(key):
+  def default_version_for_key_async(key):
     versions = yield Library.versions_for_key_async(key)
     if versions == []:
       raise ndb.Return(None)
-    raise ndb.Return(versions[-1])
+    raise ndb.Return(versiontag.default_version(versions))
 
   @staticmethod
   def uncached_versions_for_key(key):
@@ -115,9 +115,9 @@ class VersionCache(ndb.Model):
     version_cache = VersionCache.get_or_insert('versions', parent=library_key)
     needs_index_update = False
     if version_cache.versions != versions:
-      old_latest = version_cache.versions[-1] if len(version_cache.versions) > 0 else None
-      new_latest = versions[-1] if len(versions) > 0 else None
-      needs_index_update = old_latest != new_latest
+      old_default = versiontag.default_version(version_cache.versions)
+      new_default = versiontag.default_version(versions)
+      needs_index_update = old_default != new_default
       version_cache.versions = versions
       version_cache.put()
     return needs_index_update
