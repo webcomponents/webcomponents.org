@@ -412,13 +412,12 @@ class LibraryTask(RequestHandler):
 
     tags_to_add = list(set(new_tags) - set(ingested_tags))
     tags_to_add.sort(versiontag.compare)
-    tags_to_add.reverse()
 
     if ingested_tags == [] and len(tags_to_add) > 0:
-      # Only ingest the latest version if we're doing ingestion for the first time.
-      tags_to_add = tags_to_add[:1]
+      # Only ingest the default version if we're doing ingestion for the first time.
+      tags_to_add = [versiontag.default_version(tags_to_add)]
     else:
-      tags_to_add = [tag for tag in tags_to_add if versiontag.compare(tag, ingested_tags[0]) > 0]
+      tags_to_add = [tag for tag in tags_to_add if versiontag.compare(tag, versiontag.default_version(ingested_tags)) > 0]
 
     tags_to_delete = list(set(ingested_tags) - set(new_tags))
     logging.info('%d adds and %d deletes pending', len(tags_to_add), len(tags_to_delete))
@@ -427,7 +426,7 @@ class LibraryTask(RequestHandler):
     # only ingest (2 tasks) or delete (1 task) one version per update.
     if len(tags_to_add) > 0:
       # Ingest from newest to oldest.
-      tag = tags_to_add[0]
+      tag = tags_to_add[-1]
       if self.trigger_version_ingestion(tag, new_tag_map[tag]):
         if self.library.kind == 'collection':
           logging.info('ingesting new collection version (%s)', tag)
@@ -669,7 +668,7 @@ class IngestVersion(RequestHandler):
 class UpdateIndexes(RequestHandler):
   def handle_get(self, owner, repo):
     library_key = ndb.Key(Library, Library.id(owner, repo))
-    version = Library.latest_version_for_key_async(library_key).get_result()
+    version = Library.default_version_for_key_async(library_key).get_result()
     if version is None:
       return self.error('no versions for %s' % Library.id(owner, repo))
 
@@ -684,9 +683,9 @@ class UpdateIndexes(RequestHandler):
     if library.kind == 'collection':
       self.update_collection_dependencies(version_key, bower)
 
-    latest_version = Library.latest_version_for_key_async(library_key).get_result()
-    if latest_version is not None and latest_version != version:
-      return self.retry('latest version changed while updating indexes')
+    default_version = Library.default_version_for_key_async(library_key).get_result()
+    if default_version is not None and default_version != version:
+      return self.retry('default version changed while updating indexes')
 
   def update_collection_dependencies(self, collection_version_key, bower):
     dependencies = bower.get('dependencies', {})
@@ -781,7 +780,7 @@ class IngestAnalysis(RequestHandler):
 
     content.put()
 
-    if version_key.id() == Library.latest_version_for_key_async(version_key.parent()).get_result():
+    if version_key.id() == Library.default_version_for_key_async(version_key.parent()).get_result():
       task_url = util.update_indexes_task(owner, repo)
       util.new_task(task_url, target='manage')
 
