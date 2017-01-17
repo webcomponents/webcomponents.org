@@ -46,7 +46,7 @@
         font-size: 24px;
         line-height: 33px;
         display: inline-block;
-        max-width: 150px;
+        max-width: 200px;
         text-overflow: ellipsis;
         overflow: hidden;
         color: hsl(0, 0%, 45%);
@@ -485,9 +485,9 @@
             <div id="version-sha">[[data.version]]</div>
           </template>
           <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
-            <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.latest_version)]]">
+            <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.default_version)]]">
               <template is="dom-repeat" items="[[_reverse(data.versions)]]">
-                <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.latest_version)]]">[[item]]</option>
+                <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.default_version)]]">[[item]]</option>
               </template>
             </select>
           </template>
@@ -756,7 +756,7 @@
         this.owner = split.shift();
         this.repo = split.shift();
 
-        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+$/))
+        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+(-[^/]+)?$/))
           this.versionRoute = '/' + split.shift();
         else if (split.length && split[0].match(/^[0-9a-f]{20,}$/))
           this.versionRoute = '/' + split.shift();
@@ -1113,7 +1113,7 @@
       _versionChanged: function(event) {
         var newVersion = event.target.value;
         var path = '/element/' + this.owner + '/' + this.repo;
-        if (newVersion != this.data.latest_version)
+        if (newVersion != this.data.default_version)
           path += '/' + newVersion;
         if (this.subElement)
           path += '/' + this.subElement;
