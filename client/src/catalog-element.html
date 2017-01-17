@@ -40,10 +40,11 @@
         stroke: #f3b70b;
       }
 
-      #version-select {
+      #version-select, #version-sha {
         margin-left: 8px;
         margin-bottom: 1px;
         font-size: 24px;
+        line-height: 33px;
         display: inline-block;
         max-width: 150px;
         text-overflow: ellipsis;
@@ -480,11 +481,16 @@
             <use xlink:href="/sprite.octicons.svg#star"></use>
           </svg>
           <h1 class="page-title">[[repo]]</h1>
-          <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.latest_version)]]">
-            <template is="dom-repeat" items="[[data.versions]]">
-              <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.latest_version)]]">[[item]]</option>
-            </template>
-          </select>
+          <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
+            <div id="version-sha">[[data.version]]</div>
+          </template>
+          <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
+            <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.latest_version)]]">
+              <template is="dom-repeat" items="[[_reverse(data.versions)]]">
+                <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.latest_version)]]">[[item]]</option>
+              </template>
+            </select>
+          </template>
           <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
             <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
           </a>
@@ -1113,6 +1119,14 @@
           path += '/' + this.subElement;
         window.history.pushState({}, null, path);
         this.fire('location-changed');
+      },
+
+      _contains: function(list, item) {
+        return list && list.indexOf(item) != -1;
+      },
+
+      _reverse: function(a) {
+        return a && a.reverse();
       },
 
     });
