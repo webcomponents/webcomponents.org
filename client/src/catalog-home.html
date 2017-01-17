@@ -223,7 +223,7 @@
           <h1>Featured elements</h1>
           <a href="/elements">Browse elements</a>
         </div>
-        <div class="featured-row loader fixed-featured" role="navigation" loading="[[_elementsLoading]]">
+        <div class="featured-row loader" role="navigation" loading="[[_elementsLoading]]">
           <template is="dom-repeat" items="[[_filterFeatured(_elementSearch)]]">
             <collection-card class="box" data="[[item]]"></collection-card>
           </template>
