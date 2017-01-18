@@ -1,10 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="../bower_components/progress-bar/progress-bar.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="mark-down.html">
-<link rel="import" href="progress-bar.html">
 <link rel="import" href="author-profile.html">
 <link rel="import" href="catalog-community-item.html">
 
@@ -75,7 +75,7 @@
           <template is="dom-repeat" items="[[_resources.results]]">
             <catalog-community-item data="[[item]]"></catalog-community-item>
           </template>
-          <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
+          <progress-bar hidden$="[[!_resourcesLoading]]"></progress-bar>
         </div>
 
       </div>
