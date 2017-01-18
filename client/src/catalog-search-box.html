@@ -222,7 +222,7 @@
     </form>
 
     <progress-bar id="progress" indeterminate hidden></progress-bar>
-    <div id="results" on-click="_close">
+    <div id="results" on-click="_maybeClose">
       <div class="header" hidden="[[!_collections.count]]">Collections<a href="/search/[[_query]]">More collections ([[_collections.count]])</a></div>
       <div id="collections" role="navigation" aria-label="collections">
         <template is="dom-repeat" items="[[_collections.results]]">
@@ -291,8 +291,11 @@
         this.$['search-input'].focus();
       },
 
-      _close: function() {
-        this._onBlur();
+      _maybeClose: function(event) {
+        // If the meta key is depressed this will open in a new tab
+        if(!event.metaKey) {
+          this._onBlur();
+        }
       },
 
       _onFocus: function() {
