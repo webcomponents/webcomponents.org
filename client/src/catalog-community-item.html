@@ -52,7 +52,7 @@
         <template is="dom-if" if="[[data.authors]]">
           <span>By</span>
           <template is="dom-repeat" items="[[data.authors]]" as="author">
-            <a href="https://twitter.com/[[author.twitter]]">[[author.name]]</a>[[_separator(index, data.authors.length)]]
+            <a href="/community/author/[[author.id]]">[[author.name]]</a>[[_separator(index, data.authors.length)]]
           </template>
           <span>on </span>
         </template>
