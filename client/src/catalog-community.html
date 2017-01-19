@@ -53,6 +53,7 @@
       id="contentAjax"
       handle-as="json"
       loading="{{_contentLoading}}"
+      on-response="_contentLoaded"
       last-response="{{_content}}"></iron-ajax>
 
     <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
@@ -209,6 +210,12 @@
         }
         author.login = '';
         return author;
+      },
+
+      _contentLoaded: function() {
+        if (!this._content || !this._content.metadata || !this._content.metadata.link)
+          return;
+        window.location = this._content.metadata.link;
       },
 
     });
