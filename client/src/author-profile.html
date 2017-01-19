@@ -135,7 +135,9 @@
     </style>
 
     <div class="box">
-      <div id="avatar" type$="[[author.type]]"><img src="[[author.avatar_url]]" role="presentation"></div>
+      <template is="dom-if" if="[[author.avatar_url]]">
+        <div id="avatar" type$="[[author.type]]"><img src="[[_emptyOrValid(author.avatar_url)]]" role="presentation"></div>
+      </template>
       <div id="header">
         <h1>[[_nameOrLogin(author.name, author.login)]]</h1>
         <div id="subtitle" hidden="[[!author.bio]]">[[author.bio]]</div>
@@ -212,6 +214,10 @@
         if (url && url.match(/^https?/))
           return url;
         return 'https://' + url;
+      },
+
+      _emptyOrValid: function(img) {
+        return img || '';
       },
     });
   </script>

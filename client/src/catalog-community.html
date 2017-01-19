@@ -50,6 +50,12 @@
       on-response="_onResourcesResponse"></iron-ajax>
 
     <iron-ajax
+      id="authorAjax"
+      url="https://web-components-resources.appspot.com/author/[[_authorFilter]]"
+      handle-as="json"
+      last-response="{{_authorProfile}}"></iron-ajax>
+
+    <iron-ajax
       id="contentAjax"
       handle-as="json"
       loading="{{_contentLoading}}"
@@ -62,6 +68,10 @@
 
       <div class="body">
         <div class="sidebar">
+          <template is="dom-if" if="[[_authorProfile]]">
+            <author-profile author="[[_formatAuthor(_authorProfile)]]"></author-profile>
+          </template>
+
           <h1>Show</h1>
           <div class="sidebar-nav box">
             <a href="/community">All</a>
@@ -158,10 +168,17 @@
 
       _pathChanged: function(path) {
         var filters = ['', '/podcasts', '/presentations', '/articles'];
-        if (filters.indexOf(path) != -1) {
+        var authorMatch = path && path.match(/^\/author\/(.*)$/);
+        this._authorFilter = authorMatch && authorMatch[1];
+        this._authorProfile = '';
+
+        if (filters.indexOf(path) != -1 || this._authorFilter) {
           this._content = null;
           this._setFilter(path);
           this._visibilityChanged(this.visible);
+
+          if (this._authorFilter)
+            this.$.authorAjax.generateRequest();
           return;
         }
 
@@ -200,6 +217,8 @@
       },
 
       _formatAuthor: function(author) {
+        if (!author)
+          return;
         if (author.gravatar) {
           // eslint-disable-next-line camelcase
           author.avatar_url = 'https://www.gravatar.com/avatar/' + author.gravatar + '?s=270';
