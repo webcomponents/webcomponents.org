@@ -1,10 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/progress-bar/progress-bar.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-item.html">
 <link rel="import" href="collection-card.html">
+<link rel="import" href="progress-bar.html">
 
 <dom-module id="catalog-search-box">
   <template>
@@ -68,7 +68,13 @@
       }
 
       progress-bar {
+        position: absolute;
+        width: 100%;
         margin-top: -10px;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 3s;
+        --paper-progress-transition-transition-delay: 250ms;
+        height: 2px;
       }
 
       #collections, #elements {
@@ -215,7 +221,7 @@
       <input type="search" role="search" title="Search query" id="search-input" autocomplete="off" on-input="_triggerSearch" placeholder="Search custom elements" aria-label="Search web components .org">
     </form>
 
-    <progress-bar id="progress" hidden></progress-bar>
+    <progress-bar id="progress" indeterminate hidden></progress-bar>
 
     <div id="results" on-click="_maybeClose">
       <div class="header" hidden="[[!_collections.count]]">Collections<a href="/search/[[_query]]">More collections ([[_collections.count]])</a></div>
@@ -314,7 +320,7 @@
       },
 
       _hideProgress: function() {
-        this.$.progress.setAttribute('hidden', '');
+        this.$.progress.hidden = true;
       },
 
       _updateExpandedState: function() {
@@ -346,7 +352,7 @@
           return;
 
         if (query)
-          this.$.progress.removeAttribute('hidden');
+          this.$.progress.hidden = false;
         this._query = query;
         this._elements = null;
         this._collections = null;

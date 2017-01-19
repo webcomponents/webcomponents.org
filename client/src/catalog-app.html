@@ -5,13 +5,13 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/progress-bar/progress-bar.html">
 
 <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:400,600" rel="stylesheet">
 
 <link rel="import" href="catalog-search-box.html">
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="lazy-block.html">
+<link rel="import" href="progress-bar.html">
 <link rel="import" href="syntax-highlighter.html">
 
 <dom-module id="catalog-app">
@@ -75,10 +75,6 @@
         --syntax-accent: hsl(var(--syntax-hue), 100%, 67%); /* AA */
         --syntax-gutter: hsl(var(--syntax-hue), 14%, 45%);
         --syntax-guide: hsla(var(--syntax-hue), 14%, 71%, 0.85);
-
-        /* Base properties */
-        --progress-bar-duration: 3s;
-        --progress-bar-delay: 250ms;
       }
 
       :host[page=home] {
@@ -102,6 +98,9 @@
         top: 160px;
         left: 0px;
         width: 100vw;
+        --paper-progress-active-color: var(--theme-blue);
+        --paper-progress-indeterminate-cycle-duration: 3s;
+        --paper-progress-transition-transition-delay: 250ms;
         height: 2px;
         margin-top: 1px;
       }
@@ -467,7 +466,7 @@
       </app-toolbar>
     </app-header>
 
-    <progress-bar id="progress"></progress-bar>
+    <progress-bar id="progress" indeterminate></progress-bar>
 
     <paper-toast id="toast">
       <a id="toastAction" on-click="_handleToast" href="#"></a>
