@@ -86,6 +86,7 @@
           <template is="dom-repeat" items="[[_resources.results]]">
             <catalog-community-item data="[[item]]"></catalog-community-item>
           </template>
+          <div id="load-more" hidden$="[[_hideLoadMoreButton]]" class="soft-button-bold" on-click="_loadMoreClick">Load more</div>
           <progress-bar indeterminate hidden$="[[!_resourcesLoading]]"></progress-bar>
         </div>
 
@@ -133,6 +134,16 @@
 
         // Article content
         _content: Object,
+
+        _hideLoadMoreButton: {
+          type: Boolean,
+          value: true,
+        },
+
+        _preventManyScrollLoads: {
+          type: Boolean,
+          value: true,
+        },
       },
 
       ready: function() {
@@ -144,13 +155,26 @@
         if (visible) {
           this.$.threshold.clearTriggers();
           this.$.threshold.checkScrollThesholds();
+          this._preventManyScrollLoads = true;
         }
       },
 
       _loadMore: function() {
         if (!this.visible || (this.path && !this._filterPath) || !this._resources || this._resources.results.length >= this._resources.count)
           return;
+
+        if (this._resources.results.length >= 10 && this._preventManyScrollLoads) {
+          this._hideLoadMoreButton = false;
+          return;
+        }
+
         this.$.ajax.params = {offset: this._resources.results.length};
+      },
+
+      _loadMoreClick: function() {
+        this._hideLoadMoreButton = true;
+        this._preventManyScrollLoads = false;
+        this._loadMore();
       },
 
       _onResourcesResponse: function() {

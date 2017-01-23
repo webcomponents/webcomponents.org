@@ -41,6 +41,10 @@
         position: relative;
         overflow: visible;
       }
+
+      .soft-button-bold {
+        margin-top: 16px;
+      }
     </style>
 
 
@@ -90,6 +94,7 @@
       </template>
     </div>
     <progress-bar indeterminate hidden$="[[!_and(_elementsLoading, _elements)]]"></progress-bar>
+    <div class="soft-button-bold" hidden$="[[_hideLoadMore]]" on-click="_loadMoreClick">Load more</div>
     <iron-scroll-threshold on-lower-threshold="_loadMore" id="threshold" scroll-target="document" lower-threshold="800"></iron-scroll-threshold>
   </template>
 
@@ -128,6 +133,14 @@
         },
         _collections: Object,
         _elements: Object,
+        _hideLoadMore: {
+          value: true,
+          type: Boolean,
+        },
+        _preventManyScrollLoads: {
+          value: true,
+          type: Boolean,
+        },
       },
 
       observers: [
@@ -152,9 +165,19 @@
           // Only keep adding collections if there's no elements.
           this._loadMoreCollections();
         } else if (this._elements && this._elements.cursor) {
+          if (this._elements.results.length >= 20 && this._preventManyScrollLoads) {
+            this._hideLoadMore = false;
+            return;
+          }
           this._elementRequestParams.cursor = this._elements.cursor;
           this.$.elementsAjax.generateRequest();
         }
+      },
+
+      _loadMoreClick: function() {
+        this._hideLoadMore = true;
+        this._preventManyScrollLoads = false;
+        this._loadMore();
       },
 
       _loadMoreCollections: function() {
@@ -179,6 +202,7 @@
 
       _queryChanged: function(query, disabled) {
         var active = !disabled && query;
+        this._preventManyScrollLoads = true;
         this.$.threshold.toggleScrollListener(active);
         if (!active || this._currentQuery == query)
           return;
