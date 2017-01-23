@@ -239,15 +239,14 @@
         font-size: 14px;
         height: 44px;
         display: flex;
-        justify-content: space-between;
         padding: 0 !important;
       }
 
-      #info-footer a {
-        margin-right: 16px;
+      #info-license {
+        flex: 0 0 auto;
       }
 
-      #info-tags {
+      #info-license, #info-tags {
         padding: 10px 16px;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -255,7 +254,15 @@
         overflow: hidden;
       }
 
-      #info-tags h3 {
+      #info-tags {
+        flex-grow: 1;
+      }
+
+      #info-tags a {
+        margin-right: 16px;
+      }
+
+      #info-footer h3 {
         display: inline;
         margin-right: 12px;
       }
@@ -546,6 +553,10 @@
           </div>
 
           <div id="info-footer">
+            <div id="info-license">
+              <h3>License</h3>
+              <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>
+            </div>
             <div id="info-tags">
               <h3>Tags</h3>
               <template is="dom-repeat" items="[[data.bower.keywords]]">
