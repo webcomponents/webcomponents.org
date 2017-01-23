@@ -24,7 +24,7 @@
       loading="{{loading}}"
       last-response="{{_markdown}}"></iron-ajax>
 
-    <h1 class="page-title">[[title]]</h1>
+    <h1 class="page-title">[[pageTitle]]</h1>
 
     <div class="body">
       <div class="sidebar" hidden="[[!_headings.length]]">
@@ -52,7 +52,7 @@
       properties: {
         name: String,
 
-        title: String,
+        pageTitle: String,
 
         visible: {
           type: Boolean,
