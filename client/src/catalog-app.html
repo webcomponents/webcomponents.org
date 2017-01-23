@@ -482,18 +482,18 @@
       <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
       <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
       <catalog-search name="search" query="[[_filter('/search', subroute.prefix, subroute.path, '^\/')]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="elements" title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="collections" title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="elements" page-title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search name="collections" page-title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
       <catalog-error name="error" id="error"></catalog-error>
 
-      <catalog-static name="about" title="About webcomponents.org"></catalog-static>
-      <catalog-static name="assets" title="webcomponents.org assets"></catalog-static>
-      <catalog-static name="introduction" title="Introduction"></catalog-static>
-      <catalog-static name="polyfills" title="Polyfills"></catalog-static>
-      <catalog-static name="resources" title="Resources"></catalog-static>
-      <catalog-static name="specs" title="Specifications"></catalog-static>
-      <catalog-static name="libraries" title="Libraries"></catalog-static>
-      <catalog-static name="launch-announcement" title="Introducing the new element registry"></catalog-static>
+      <catalog-static name="about" page-title="About webcomponents.org"></catalog-static>
+      <catalog-static name="assets" page-title="webcomponents.org assets"></catalog-static>
+      <catalog-static name="introduction" page-title="Introduction"></catalog-static>
+      <catalog-static name="polyfills" page-title="Polyfills"></catalog-static>
+      <catalog-static name="resources" page-title="Resources"></catalog-static>
+      <catalog-static name="specs" page-title="Specifications"></catalog-static>
+      <catalog-static name="libraries" page-title="Libraries"></catalog-static>
+      <catalog-static name="launch-announcement" page-title="Introducing the new element registry"></catalog-static>
 
       <catalog-community name="community" path="[[_filter('/community', subroute.prefix, subroute.path)]]"></catalog-community>
     </iron-pages>

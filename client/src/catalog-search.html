@@ -8,7 +8,7 @@
   <template>
     <style include="catalog-styles"></style>
 
-    <h1 class="page-title">[[_title(query, title)]]</h1>
+    <h1 class="page-title">[[_title(query, pageTitle)]]</h1>
 
     <div id="header-main" class="main-content">
       <catalog-list id="list" query="[[query]]" base-urls="[[baseUrls]]" loading="{{loading}}" disabled="[[!visible]]"></catalog-list>
@@ -34,7 +34,7 @@
           value: false,
         },
         author: String,
-        title: {
+        pageTitle: {
           value: '',
           type: String,
         },
