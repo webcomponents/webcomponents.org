@@ -791,7 +791,7 @@
         if (prefix == '/preview' && path == '')
           return;
 
-        if (path == this._currentPath)
+        if (this._currentPath == path && (this._metaLoading || this.data))
           return;
 
         this._currentPath = path;
@@ -803,7 +803,7 @@
         this._repoStarred = this._isStarred();
 
         // Generate requests
-        if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+        if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           this._currentOwner = this.owner;
           this._currentRepo = this.repo;
           this._currentVersionRoute = this.versionRoute;
