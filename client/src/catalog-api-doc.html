@@ -184,7 +184,7 @@
           this._methods = methods;
           this._events = this.descriptor.events || [];
           this._events.forEach(function(event) {
-            event.desc = event.jsdoc.description;
+            event.desc = event.jsdoc && event.jsdoc.description || event.description;
           });
           this._behaviors = this.descriptor.behaviors || [];
 

@@ -465,7 +465,7 @@
     <iron-ajax
       id="docsAjax"
       loading="{{_docsLoading}}"
-      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?use_analyzer_data"
+      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?[[_useAnalyzer(queryParams)]]"
       handle-as="json"
       last-response="{{docs}}"
       on-error="_docsError"
@@ -722,6 +722,10 @@
           this._starRepo();
       },
 
+      _useAnalyzer: function(queryParams) {
+        return 'use_analyzer_data' in queryParams ? 'use_analyzer_data' : '';
+      },
+
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
       },
@@ -734,10 +738,16 @@
         return Object.keys(content.elementsByTagName).map(function(elem) {
           var el = content.elementsByTagName[elem];
           el.is = el.is || el.tagName;
+          el.desc = el.desc || el.description;
           if (el.properties) {
             el.properties.forEach(function(prop) {
               prop.desc = prop.desc || prop.description;
               prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          if (el.behaviorAssignments && !el.behaviors) {
+            el.behaviors = el.behaviorAssignments.map(function(item) {
+              return item.name;
             });
           }
           return el;
@@ -751,11 +761,17 @@
         var content = this.docs.content.analyzerData || this.docs.content;
         return Object.keys(content.behaviorsByName).map(function(elem) {
           var be = content.behaviorsByName[elem];
-          be.is = be.is || be.behaviorName;
+          be.is = be.is || be.className;
+          be.desc = be.desc || be.description;
           if (be.properties) {
             be.properties.forEach(function(prop) {
               prop.desc = prop.desc || prop.description;
               prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          if (be.behaviorAssignments && !be.behaviors) {
+            be.behaviors = be.behaviorAssignments.map(function(item) {
+              return item.name;
             });
           }
           return be;
