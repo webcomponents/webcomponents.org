@@ -605,7 +605,7 @@
       },
 
       _filter: function(value, test, result, strip) {
-        if (strip) {
+        if (strip && result) {
           result = result.replace(new RegExp(strip), '');
         }
         return value == test ? result : undefined;
