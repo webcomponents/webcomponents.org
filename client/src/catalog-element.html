@@ -798,7 +798,7 @@
 
         this._splitRoute();
         this._updateActiveLinks();
-        document.title = this.owner + '/' + this.repo;
+        this.fire('document-title', this.owner + '/' + this.repo);
 
         this._repoStarred = this._isStarred();
 
@@ -892,7 +892,7 @@
         if (this.data.homepage && this.data.homepage.indexOf('elements.polymer-project.org') != -1)
           this.set('data.homepage', '');
 
-        document.title = this.data.owner + '/' + this.data.repo;
+        this.fire('document-title', this.data.owner + '/' + this.data.repo);
         if (this.demo)
           this._showDemo();
       },

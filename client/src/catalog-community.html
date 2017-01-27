@@ -260,8 +260,7 @@
         if (!this._content || !this._content.metadata)
           return;
         var metadata = this._content.metadata;
-        // there is no link, so set the title.
-        if(!metadata.link) {
+        if (!metadata.link) {
           this.fire('document-title', metadata.title);
           return;
         }

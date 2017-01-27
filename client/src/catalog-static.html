@@ -80,7 +80,7 @@
 
         window.addEventListener('hashchange', this._hashChangeHandler);
         this.$.ajax.generateRequest();
-        if(this.pageTitle)
+        if (this.pageTitle)
           this.fire('document-title', this.pageTitle);
       },
 
