@@ -1,0 +1,46 @@
+<!doctype html>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
+
+<!-- Import the element to test -->
+<!-- <link rel="import" href="mock-app-location.html"> -->
+<link rel="import" href="../src/catalog-app.html">
+
+<test-fixture id="app">
+  <template>
+     <catalog-app unresolved page="home"></catalog-app>
+  </template>
+</test-fixture>
+
+<script>
+  suite('Basic smoke test', function() {
+    var appElement;
+
+    setup(function() {
+      replace('app-location').with('mock-app-location');
+
+      stub('lazy-block', {
+        _forceLoad: function() {
+          // Disabled in tests
+        },
+
+        _loadResources: function() {
+          this._cancelForcedLoader();
+          this.fire('lazy-resources-requested');
+        },
+      });
+
+      appElement = fixture('app');
+    });
+
+    test('Sanity test for code being loaded', function(done) {
+      assert(appElement);
+      appElement.addEventListener('lazy-resources-requested', function() {
+        assert.isFalse(appElement.$.pages.classList.contains('loading'));
+        done();
+      })
+    });
+
+  });
+</script>
