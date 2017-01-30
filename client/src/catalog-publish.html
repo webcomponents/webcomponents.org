@@ -153,7 +153,7 @@
         <p>To create an inline demo, you need to modify your README.md. Wrapping your code in <code>&lt;custom-element-demo&gt;</code> and a <code>&lt;template&gt;</code> tag will render this demo. You can hide this extra code, including any setup code, like importing dependencies in a comment. This keeps your demo snippet concise.<p>
 
         <p>For the following raw markdown:</p>
-   
+
 <pre class="annotated">
 &lt;!--
 ```
@@ -235,6 +235,11 @@
         baseUrls: Object,
 
         path: String,
+
+        visible: {
+          type: Boolean,
+          observer: '_visibilityChanged',
+        }
       },
 
       behaviors: [
@@ -308,6 +313,12 @@
       _trim: function(path) {
         return path.replace(/^\//, '');
       },
+
+      _visibilityChanged: function(visible) {
+        if (visible) {
+          this.fire('document-title', 'Publish');
+        }
+      }
 
     });
   </script>
