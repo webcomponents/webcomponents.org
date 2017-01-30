@@ -1,0 +1,251 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="github-info">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+        color: var(--theme-blue-grey);
+      }
+
+      section {
+        padding: 12px 16px;
+      }
+
+      section:not(:first-child) {
+        border-top: 1px solid #ededed;
+      }
+
+      section.collapsed {
+        background: hsl(0, 0%, 99%);
+      }
+
+      section.expanded {
+        display: none;
+        flex-direction: column;
+      }
+
+      section.expanded h3:not(:first-of-type) {
+        margin: 16px 0 8px;
+      }
+
+      #container[expanded] section.collapsed {
+        display: none;
+      }
+
+      #container[expanded] section.expanded {
+        display: flex;
+      }
+
+      a {
+        color: var(--theme-blue-small);
+        text-decoration: none;
+      }
+
+      svg {
+        display: inline-block;
+        vertical-align: text-top;
+        fill: currentColor;
+      }
+
+      h3 {
+        text-transform: uppercase;
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      section.collapsible h3 {
+        display: inline;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        margin-right: 8px;
+      }
+
+      #author {
+        line-height: 40px;
+        white-space: nowrap;
+        vertical-align: top;
+        display: flex;
+      }
+
+      #stats {
+        display: flex;
+        justify-content: space-between;
+        padding-right: 16px;
+        color: #9eadbb;
+      }
+
+      #stats div {
+        display: flex;
+        align-items: center;
+      }
+
+      #stats svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 5px;
+      }
+
+      .octicon-star {
+        color: #f3b70b;
+      }
+
+      #tags {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 14px;
+      }
+
+      #download-command {
+        border: 0;
+        color: var(--theme-font-color);
+        display: block;
+        font-family: var(--monospace-font);
+        font-size: 12px;
+        outline: 0;
+        padding: 4px 0;
+      }
+
+      #info-view-github {
+        display: flex;
+        border-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        padding: 16px;
+        font-weight: 600;
+      }
+
+      #info-view-github svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--syntax-bg);
+        margin-right: 16px;
+      }
+
+
+
+    </style>
+
+    <template is="dom-if" if="[[data]]">
+      <div id="container" expanded$="[[_expanded]]">
+        <section id="author">
+          <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]" role="presentation">
+          <span>by <a href="/author/[[data.owner]]">[[data.owner]]</a></span>
+        </section>
+
+        <section id="stats">
+          <div title="[[data.stars]] users starred this repository">
+            <svg viewBox="0 0 100 100" class="octicon octicon-star">
+             <use xlink:href="/sprite.octicons.svg#star"></use>
+            </svg>
+            [[data.stars]]
+          </div>
+          <div title="[[data.forks]] users forked this repository">
+            <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+             <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
+            </svg>
+            [[data.forks]]
+          </div>
+          <div title="[[data.subscribers]] users are watching this repository">
+            <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+             <use xlink:href="/sprite.octicons.svg#eye"></use>
+            </svg>
+            [[data.subscribers]]
+          </div>
+          <div title="[[data.open_issues]] open issues and pull requests in this repository">
+            <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+             <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
+            </svg>
+            [[data.open_issues]]
+          </div>
+        </section>
+
+        <section class="collapsed" on-tap="_toggleExpand">
+          <h3>
+            License
+            <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
+            [[data.contributors.length]] contributor[[_s(data.contributors.length)]], 
+            [[_lastUpdated(data.activity)]], 
+            [[data.bower.keywords.length]] tags
+          </h3>
+        </section>
+
+        <section class="expanded">
+          <h3 class="always-visible">License
+            <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>
+          </h3>
+          <h3 class="always-visible">[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
+          <contributors-list contributors="[[data.contributors]]"></contributors-list>
+          <h3 class="always-visible">[[_lastUpdated(data.activity)]]</h3>
+          <activity-graph activity="[[data.activity]]"></activity-graph>
+          <h3>Tags</h3>
+          <div id="tags">
+            <template is="dom-repeat" items="[[data.bower.keywords]]">
+              <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
+            </template>
+          </div>
+
+          <h3>Download</h3>
+          <input id="download-command" title="Download command" readonly value="bower i [[data.owner]]/[[data.repo]] --save" on-tap="_selectAllInfoDownload"/>
+          <a id="info-view-github" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
+            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+            <div>View on GitHub</div>
+          </a>
+        </section>
+      </div>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'github-info',
+
+      properties: {
+        data: Object,
+      },
+
+      _dpr: function(value) {
+        return value * (window.devicePixelRatio || 1);
+      },
+
+      _s: function(n) {
+        return n == 1 ? '' : 's';
+      },
+
+      _lastUpdated: function(activity) {
+        if (!activity)
+          return;
+        var i = 0;
+        for (i = 0; i < activity.length; i++) {
+          if (activity[activity.length - 1 - i])
+            break;
+        }
+        if (i == 0)
+          return 'Updated recently';
+        if (i == activity.length)
+          return '';
+        if (i < 8)
+          return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
+        var months = Math.round(i / 4);
+        return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
+      },
+
+      _toggleExpand: function() {
+        this._expanded = true;
+      },
+
+      _selectAllInfoDownload: function(event) {
+        event.currentTarget.select();
+      },
+
+    });
+  </script>
+</dom-module>

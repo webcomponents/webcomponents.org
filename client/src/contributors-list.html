@@ -37,7 +37,7 @@
     </style>
 
     <div id="container">
-      <template is="dom-repeat" items="[[_contributors]]"><img class="avatar" src="[[item.avatar_url]]&s=60" role="presentation"></template>
+      <template is="dom-repeat" items="[[_contributors]]"><img class="avatar" src="[[item.avatar_url]]&s=60" role="presentation" title$="[[item.login]]"></template>
       <template is="dom-if" if="[[_overflowCount]]">
         <div class="overflow">+[[_overflowCount]]</div>
       </template>
