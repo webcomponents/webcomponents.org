@@ -729,6 +729,7 @@
       _elements: function() {
         if (!this.docs || !this.docs.content)
           return [];
+        delete this.docs.content.elementsByTagName[undefined];
         return Object.keys(this.docs.content.elementsByTagName).map(function(elem) {
           return this.docs.content.elementsByTagName[elem];
         }.bind(this));
