@@ -4,21 +4,42 @@
   <template>
     <style>
       :host {
-        display: flex;
-        flex-direction: column;
+        display: block;
         color: var(--theme-blue-grey);
       }
 
       section {
         padding: 12px 16px;
+        border-top: 1px solid #ededed;
+        display: flex;
+        flex: 1 0;
       }
 
-      section:not(:first-child) {
-        border-top: 1px solid #ededed;
+      #container > section:first-child {
+        border-top: none;
       }
 
       section.collapsed {
-        background: hsl(0, 0%, 99%);
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      section.dark {
+        background: hsl(0, 0%, 98%);
+      }
+
+      #plus-button, #minus-button {
+        width: 16px;
+        height: 16px;
+        margin-left: 16px;
+        flex: 0 0 16px;
+      }
+
+      #container:not([expanded]) #minus-button,
+      #container[expanded] #plus-button {
+        display: none;
       }
 
       section.expanded {
@@ -26,16 +47,26 @@
         flex-direction: column;
       }
 
-      section.expanded h3:not(:first-of-type) {
-        margin: 16px 0 8px;
+      section.expanded h3 {
+        margin-bottom: 8px;
       }
 
-      #container[expanded] section.collapsed {
-        display: none;
+      section.expanded h3:not(:first-of-type) {
+        margin-top: 16px;
       }
 
       #container[expanded] section.expanded {
         display: flex;
+        animation: fade 300ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       a {
@@ -57,10 +88,6 @@
         margin: 0;
       }
 
-      section.collapsible h3 {
-        display: inline;
-      }
-
       .avatar {
         width: 40px;
         height: 40px;
@@ -80,6 +107,9 @@
         justify-content: space-between;
         padding-right: 16px;
         color: #9eadbb;
+        border-top: none;
+        padding-top: 0;
+        padding-bottom: 16px;
       }
 
       #stats div {
@@ -110,27 +140,26 @@
         font-family: var(--monospace-font);
         font-size: 12px;
         outline: 0;
-        padding: 4px 0;
       }
 
-      #info-view-github {
-        display: flex;
-        border-top: 0;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-        padding: 16px;
+      #container > a section {
         font-weight: 600;
+        flex-direction: row;
+        font-weight: 600;
+        justify-content: center;
+        padding: 16px;
       }
 
-      #info-view-github svg {
+      #github-link > a section {
+        margin-left: -12px;
+      }
+
+      #github-link svg {
         width: 24px;
         height: 24px;
-        fill: var(--syntax-bg);
+        fill: black;
         margin-right: 16px;
       }
-
-
-
     </style>
 
     <template is="dom-if" if="[[data]]">
@@ -142,50 +171,54 @@
 
         <section id="stats">
           <div title="[[data.stars]] users starred this repository">
-            <svg viewBox="0 0 100 100" class="octicon octicon-star">
+            <svg viewBox="0 0 100 100" class="octicon-star">
              <use xlink:href="/sprite.octicons.svg#star"></use>
             </svg>
             [[data.stars]]
           </div>
           <div title="[[data.forks]] users forked this repository">
-            <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
+            <svg viewBox="0 0 100 100">
              <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
             </svg>
             [[data.forks]]
           </div>
           <div title="[[data.subscribers]] users are watching this repository">
-            <svg viewBox="0 0 100 100" class="octicon octicon-eye">
+            <svg viewBox="0 0 100 100">
              <use xlink:href="/sprite.octicons.svg#eye"></use>
             </svg>
             [[data.subscribers]]
           </div>
           <div title="[[data.open_issues]] open issues and pull requests in this repository">
-            <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
+            <svg viewBox="0 0 100 100">
              <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
             </svg>
             [[data.open_issues]]
           </div>
         </section>
 
-        <section class="collapsed" on-tap="_toggleExpand">
+        <section class="collapsed dark" on-tap="_toggleExpand">
           <h3>
-            License
+            Licensed under 
             <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
-            [[data.contributors.length]] contributor[[_s(data.contributors.length)]], 
-            [[_lastUpdated(data.activity)]], 
-            [[data.bower.keywords.length]] tags
+            [[_lastUpdated(data.activity)]]
           </h3>
+
+          <svg id="plus-button" viewBox="0 0 100 100">
+            <use xlink:href="/sprite.octicons.svg#plus"></use>
+          </svg>
+          <svg id="minus-button" viewBox="0 0 100 100">
+            <use xlink:href="/sprite.octicons.svg#dash"></use>
+          </svg>
         </section>
 
-        <section class="expanded">
-          <h3 class="always-visible">License
-            <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>
-          </h3>
-          <h3 class="always-visible">[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
+        <section class="expanded dark">
+          <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
           <contributors-list contributors="[[data.contributors]]"></contributors-list>
-          <h3 class="always-visible">[[_lastUpdated(data.activity)]]</h3>
+
+          <h3>[[_lastUpdated(data.activity)]]</h3>
           <activity-graph activity="[[data.activity]]"></activity-graph>
-          <h3>Tags</h3>
+
+          <h3 hidden$="[[!data.bower.keywords.length]]">Tags</h3>
           <div id="tags">
             <template is="dom-repeat" items="[[data.bower.keywords]]">
               <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
@@ -193,12 +226,19 @@
           </div>
 
           <h3>Download</h3>
-          <input id="download-command" title="Download command" readonly value="bower i [[data.owner]]/[[data.repo]] --save" on-tap="_selectAllInfoDownload"/>
-          <a id="info-view-github" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
+          <div id="download-command" title="Download command" value="" on-tap="_selectAllInfoDownload">bower i [[data.owner]]/[[data.repo]] --save</div>
+        </section>
+
+        <a id="github-link" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
+          <section class="expanded">
             <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
             <div>View on GitHub</div>
-          </a>
-        </section>
+          </section>
+        </a>
+
+        <a href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
+          <section class="expanded">Flag element</section>
+        </a>
       </div>
     </template>
   </template>
@@ -231,7 +271,7 @@
         if (i == 0)
           return 'Updated recently';
         if (i == activity.length)
-          return '';
+          return 'Last updated unknown';
         if (i < 8)
           return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
         var months = Math.round(i / 4);
@@ -239,11 +279,25 @@
       },
 
       _toggleExpand: function() {
-        this._expanded = true;
+        this._expanded = !this._expanded;
       },
 
       _selectAllInfoDownload: function(event) {
-        event.currentTarget.select();
+        var range;
+        if (document.body.createTextRange) {
+          range = document.body.createTextRange();
+          range.moveToElementText(event.currentTarget);
+          range.select();
+        } else if (window.getSelection) {
+          range = document.createRange();
+          range.selectNodeContents(event.currentTarget);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+        }
+      },
+
+      _searchTag: function(event) {
+        this.fire('triggerSearch', {query: event.target.tag});
       },
 
     });
