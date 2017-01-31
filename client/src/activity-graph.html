@@ -24,22 +24,11 @@
       #today {
         float: right;
       }
-
-      #today-9 {
-        display: none;
-      }
-
-      @media (max-width: 700px) {
-        .date {
-          display: none;
-        }
-      }
     </style>
 
     <div id="container" aria-hidden="true">
-      <svg id="svg" height="86"></svg>
+      <svg id="svg" height="86" width="100%"></svg>
       <div id="today" class="date">[[_date(0)]]</div>
-      <div id="today-9" class="date">[[_date(9)]]</div>
       <div id="startDate" class="date">[[_date(44)]]</div>
     </div>
   </template>
@@ -69,6 +58,10 @@
       },
 
       _activityChanged: function(activity) {
+        function toPercent(n, max) {
+          return n / max * 100 + '%';
+        }
+
         if (!activity)
           return;
 
@@ -76,31 +69,30 @@
         var columnWidth = 18;
         var spacing = 4;
         var width = (columnWidth + spacing) * 11 - spacing;
-        this.$.svg.setAttribute('width', width);
-
         var buckets = [];
         var maxCommits = 20;
+        var weeksPerBucket = 4;
 
         // Use the 44 most recent weeks
         activity = activity.slice(52 - 44);
         var i;
         for (i = 0; i < activity.length; i++) {
-          var bucket = Math.floor(i / 4);
+          var bucket = Math.floor(i / weeksPerBucket);
           buckets[bucket] = (buckets[bucket] || 0) + activity[i];
           maxCommits = Math.max(buckets[bucket], maxCommits);
         }
 
         var xmlns = "http://www.w3.org/2000/svg";
         for (i = 0; i < buckets.length; i++) {
-          var height = Math.max(1, buckets[i] / maxCommits * 100);
+          var height = Math.max(2, buckets[i] / maxCommits * 100);
           var rect = document.createElementNS(xmlns, 'rect');
-          rect.setAttribute('x', (columnWidth + spacing) * i);
+          rect.setAttribute('x', toPercent((columnWidth + spacing) * i, width));
           rect.setAttribute('y', 100 - height + '%');
-          rect.setAttribute('width', columnWidth);
+          rect.setAttribute('width', toPercent(columnWidth, width));
           rect.setAttribute('height', height + '%');
           var title = document.createElementNS(xmlns, 'title');
           var options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
-          title.textContent = buckets[i] + ' commits in period starting ' + this._computeDate((buckets.length - i) * 3).toLocaleString('en-us', options);
+          title.textContent = buckets[i] + ' commits in period starting ' + this._computeDate((buckets.length - i) * weeksPerBucket).toLocaleString('en-us', options);
           rect.appendChild(title);
           // Normalise alpha values to 10, 30, 50, 70
           var alpha = Math.round(height / 25) * 20 + 10;
