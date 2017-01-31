@@ -731,10 +731,10 @@
       },
 
       _elements: function() {
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || !this.docs.content || !this.docs.analysis)
           return [];
 
-        var content = this.docs.content.analyzerData || this.docs.content;
+        var content = this.docs.analysis || this.docs.content;
         return Object.keys(content.elementsByTagName).map(function(elem) {
           var el = content.elementsByTagName[elem];
           el.is = el.is || el.tagName;
@@ -755,10 +755,10 @@
       },
 
       _behaviors: function() {
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || !this.docs.content || !this.docs.analysis)
           return [];
 
-        var content = this.docs.content.analyzerData || this.docs.content;
+        var content = this.docs.analysis || this.docs.content;
         return Object.keys(content.behaviorsByName).map(function(elem) {
           var be = content.behaviorsByName[elem];
           be.is = be.is || be.className;
