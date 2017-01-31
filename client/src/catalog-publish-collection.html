@@ -58,6 +58,11 @@
 
       properties: {
         baseUrls: Object,
+
+        visible: {
+          type: Boolean,
+          observer: '_visibilityChanged',
+        }
       },
 
       behaviors: [
@@ -109,6 +114,12 @@
         this.fire('error', {title: 'error', message: 'An error occured. Please try again.'});
         this.$.submit.removeAttribute('disabled');
       },
+
+      _visibilityChanged: function(visible) {
+        if (visible) {
+          this.fire('document-title', 'Publish collection');
+        }
+      }
 
     });
   </script>

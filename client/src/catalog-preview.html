@@ -56,6 +56,11 @@
         baseUrls: Object,
 
         _sha: String,
+
+        visible: {
+          type: Boolean,
+          observer: '_visibilityChanged',
+        }
       },
 
       behaviors: [
@@ -107,6 +112,11 @@
         this.$.submit.removeAttribute('disabled');
       },
 
+      _visibilityChanged: function(visible) {
+        if (visible) {
+          this.fire('document-title', 'Preview element');
+        }
+      }
     });
   </script>
 </dom-module>

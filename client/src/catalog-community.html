@@ -156,6 +156,7 @@
           this.$.threshold.clearTriggers();
           this.$.threshold.checkScrollThesholds();
           this._preventManyScrollLoads = true;
+          this.fire('document-title', 'Community');
         }
       },
 
@@ -256,10 +257,16 @@
       },
 
       _contentLoaded: function() {
-        if (!this._content || !this._content.metadata || !this._content.metadata.link)
+        if (!this._content || !this._content.metadata)
           return;
+        var metadata = this._content.metadata;
+        if (!metadata.link) {
+          this.fire('document-title', metadata.title);
+          return;
+        }
+
         window.location = this._content.metadata.link;
-      },
+      }
 
     });
   </script>

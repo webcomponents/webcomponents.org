@@ -19,7 +19,7 @@
           '_resolvedChanged(resolved)'
         ],
 
-        created: function() {
+        attached: function() {
           blockers.set(this, false);
         },
 
@@ -47,6 +47,10 @@
           this._loadResources();
         },
 
+        _cancelForcedLoader: function() {
+          this.cancelAsync(asyncLoader);
+        },
+
         _resolvedChanged: function(resolved) {
           if (!resolved)
             return;
@@ -63,7 +67,7 @@
           if (loaded)
             return;
           loaded = true;
-          this.cancelAsync(asyncLoader);
+          this._cancelForcedLoader();
 
           Polymer.RenderStatus.afterNextRender(this, function() {
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.

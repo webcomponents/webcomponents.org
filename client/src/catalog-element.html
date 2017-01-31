@@ -532,7 +532,7 @@
                 </svg>
                 [[data.subscribers]]
               </div>
-              <div title="[[data.open_issues]] open issues in this repository">
+              <div title="[[data.open_issues]] open issues and pull requests in this repository">
                 <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
                  <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
                 </svg>
@@ -734,6 +734,7 @@
         if (!this.docs || !this.docs.content || !this.docs.analysis)
           return [];
 
+        delete this.docs.content.elementsByTagName[undefined];
         var content = this.docs.analysis || this.docs.content;
         return Object.keys(content.elementsByTagName).map(function(elem) {
           var el = content.elementsByTagName[elem];
@@ -827,19 +828,19 @@
         if (prefix == '/preview' && path == '')
           return;
 
-        if (path == this._currentPath)
+        if (this._currentPath == path && (this._metaLoading || this.data))
           return;
 
         this._currentPath = path;
 
         this._splitRoute();
         this._updateActiveLinks();
-        document.title = this.owner + '/' + this.repo;
+        this.fire('document-title', this.owner + '/' + this.repo);
 
         this._repoStarred = this._isStarred();
 
         // Generate requests
-        if (this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+        if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           this._currentOwner = this.owner;
           this._currentRepo = this.repo;
           this._currentVersionRoute = this.versionRoute;
@@ -928,7 +929,7 @@
         if (this.data.homepage && this.data.homepage.indexOf('elements.polymer-project.org') != -1)
           this.set('data.homepage', '');
 
-        document.title = this.data.owner + '/' + this.data.repo;
+        this.fire('document-title', this.data.owner + '/' + this.data.repo);
         if (this.demo)
           this._showDemo();
       },
