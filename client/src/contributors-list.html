@@ -4,44 +4,47 @@
   <template>
     <style>
       #container {
-        position: relative;
-        max-height: 110px;
-        line-height: 0;
+        max-height: 112px;
+        display: flex;
+        flex-wrap: wrap;
       }
 
-      img.avatar {
+      #container > * {
         border-radius: 4px;
-        width: 30px;
-        height: 30px;
-        margin: 0 10px 10px 0;
+        width: 32px;
+        height: 32px;
+        margin: 0 7px 7px 0;
+        animation: fade 150ms backwards cubic-bezier(0, 0, 0.2, 1);
       }
 
-      img.avatar:nth-of-type(7n) {
-        margin-right: 0;
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       div.overflow {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         color: white;
         background: hsla(0, 0%, 0%, 0.6);
         font-weight: 600;
+        animation-delay: 170ms !important;
       }
     </style>
 
     <div id="container">
-      <template is="dom-repeat" items="[[_contributors]]"><img class="avatar" src="[[item.avatar_url]]&s=60" role="presentation"></template>
+      <template is="dom-repeat" items="[[_contributors]]">
+        <img class="avatar" src="[[item.avatar_url]]&s=64" role="presentation" title$="[[item.login]]" style="animation-delay: [[_computeDelay(index)]]">
+      </template>
       <template is="dom-if" if="[[_overflowCount]]">
         <div class="overflow">+[[_overflowCount]]</div>
       </template>
-    <div>
+    </div>
   </template>
 
   <script>
@@ -63,8 +66,12 @@
           this._overflowCount = 0;
           return;
         }
-        this._overflowCount = Math.max(contributors.length - 21, 0);
-        this._contributors = contributors.slice(0, 21);
+        this._overflowCount = Math.max(contributors.length - 18, 0);
+        this._contributors = contributors.slice(0, 17);
+      },
+
+      _computeDelay: function(i) {
+        return i * 10 + 'ms';
       },
 
     });

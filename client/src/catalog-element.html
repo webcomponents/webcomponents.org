@@ -7,6 +7,7 @@
 <link rel="import" href="catalog-api-doc.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="collection-card.html">
+<link rel="import" href="github-info.html">
 <link rel="import" href="page-loading-behavior.html">
 <link rel="import" href="lazy-block.html">
 
@@ -15,29 +16,48 @@
     <style include="catalog-styles"></style>
     <style>
       #title {
-        display: flex;
         align-items: flex-end;
         margin-bottom: 8px;
-        margin-left: -36px;
+      }
+
+      .sidebar {
+        order: 0;
+        margin: 0 40px 0 0;
       }
 
       h1.page-title {
         margin-bottom: 0;
       }
 
-      #star {
+      #star-button {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      #star-button svg {
         width: 24px;
         height: 24px;
         stroke: hsl(0, 0%, 45%);
         fill: transparent;
         margin-right: 12px;
-        margin-bottom: 6px;
         cursor: pointer;
+        transition: fill 150ms, stroke 150ms;
       }
 
-      #star:hover, #star[starred] {
+      #star-button:hover svg, #star-button[starred] svg {
         fill: #f3b70b;
         stroke: #f3b70b;
+      }
+
+      #star-button > div:after {
+        content: 'Requires authentication';
+        display: block;
+        font-weight: normal;
+        color: var(--theme-blue-grey);
+        font-size: 14px;
       }
 
       #version-select, #version-sha {
@@ -74,128 +94,7 @@
         margin: 0;
       }
 
-      /* Header */
-      #header {
-        margin-bottom: 40px;
-        align-items: flex-start;
-      }
-
-      #header-main {
-        color: var(--theme-blue-grey);
-      }
-
-      h3 {
-        text-transform: uppercase;
-        font-size: 13px;
-        line-height: 16px;
-        font-weight: 600;
-        margin: 0;
-        margin-bottom: 8px;
-      }
-
-      #header-main > div {
-        padding: 12px 16px;
-      }
-
-      #header-main > div:not(:first-child) {
-        border-top: 1px solid #ededed;
-      }
-
       /* Repo info */
-
-      #info-header {
-        display: flex;
-      }
-
-      #info-header > div:first-child, #info-body > div:first-child {
-        flex: 0 0 270px;
-        margin-right: 32px;
-      }
-
-      #repo-author {
-        line-height: 40px;
-        white-space: nowrap;
-        vertical-align: top;
-        display: flex;
-      }
-
-      #header .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 4px;
-        margin-right: 8px;
-      }
-
-      #info-download {
-        max-width: 270px;
-        padding: 12px 16px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        background: white;
-        border-bottom: 1px solid #ededed;
-      }
-
-      #info-download h3 {
-        margin-top: 0;
-        margin-bottom: 4px;
-        color: var(--theme-blue-grey);
-      }
-
-      #info-download-command {
-        border: 0;
-        color: var(--theme-font-color);
-        display: block;
-        font-family: var(--monospace-font);
-        font-size: 12px;
-        outline: 0;
-        padding: 4px 0;
-        width: 100%;
-      }
-
-      #info-stats {
-        display: flex;
-        flex: 1 0 200px;
-        justify-content: space-between;
-        padding-right: 16px;
-        color: #9eadbb;
-      }
-
-      #info-stats div {
-        display: flex;
-        align-items: center;
-      }
-
-      #info-stats svg {
-        width: 24px;
-        height: 24px;
-        margin-right: 5px;
-      }
-
-      .octicon-star {
-        color: #f3b70b;
-      }
-
-      #info-view-github {
-        display: flex;
-        border-top: 0;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-        padding: 16px;
-        font-weight: 600;
-      }
-
-      #info-view-github svg {
-        width: 24px;
-        height: 24px;
-        fill: var(--syntax-bg);
-        margin-right: 16px;
-      }
-
-      #info-contributors {
-        flex: 0 0 270px !important;
-      }
-
       #info-dependencies {
         line-height: 32px;
       }
@@ -204,86 +103,9 @@
         display: none;
       }
 
-      #info-body {
-        display: flex;
-        background: hsl(0, 0%, 99%);
-        transition: height 200ms cubic-bezier(0, 0, 0.2, 1);
-        overflow: hidden;
-        height: 167px;
-      }
-
-      #info-body h3 {
-        margin-bottom: 0;
-      }
-
-      #info-body[body-collapsed] {
-        height: 41px;
-        transition-delay: 75ms;
-      }
-
-      #info-body contributors-list, #info-body activity-graph {
-        display: block;
-        margin-top: 16px;
-        transition: opacity 300ms 50ms cubic-bezier(0, 0, 0.2, 1);
-      }
-
-      #info-body[body-collapsed] contributors-list,
-      #info-body[body-collapsed] activity-graph {
-        opacity: 0;
-        transition-delay: 0ms;
-      }
-
-      #info-footer {
-        text-transform: uppercase;
-        font-weight: 600;
-        font-size: 14px;
-        height: 44px;
-        display: flex;
-        padding: 0 !important;
-      }
-
-      #info-license {
-        flex: 0 0 auto;
-      }
-
-      #info-license, #info-tags {
-        padding: 10px 16px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 55px);
-        overflow: hidden;
-      }
-
-      #info-tags {
-        flex-grow: 1;
-      }
-
-      #info-tags a {
-        margin-right: 16px;
-      }
-
-      #info-footer h3 {
-        display: inline;
-        margin-right: 12px;
-      }
-
-      #expand-collapse {
-        padding: 12px 16px;
-        height: 100%;
-        border-left: 1px solid #ededed;
-        text-align: center;
-        cursor: pointer;
-        background: hsl(0, 0%, 99%);;
-      }
-
-      #expand-collapse svg {
-        width: 16px;
-        height: 16px;
-      }
-
       /* Sidebar */
-      .body > .sidebar > div {
-        margin-bottom: 40px;
+      .body > .sidebar > * {
+        margin-bottom: 24px;
       }
 
       #sidebar-spinner {
@@ -401,6 +223,11 @@
       @media (max-width: 500px) {
         #title {
           margin-left: 16px;
+          display: flex;
+        }
+
+        .sidebar {
+          margin: 0 16px;
         }
 
         h1.page-title {
@@ -410,33 +237,6 @@
           overflow: hidden;
           white-space: nowrap;
           max-width: calc(100% - 120px);
-        }
-
-        #header-main {
-          margin: 0 16px;
-          padding: 0;
-        }
-
-        #info-header {
-          flex-wrap: wrap;
-        }
-
-        #github-mobile-link {
-          margin-left: 8px;
-        }
-
-        #github-mobile-link svg {
-          width: 22px;
-          fill: var(--theme-black);
-        }
-
-        #info-stats {
-          margin-top: 8px;
-        }
-
-        #info-body, #info-download, #info-view-github,
-        #info-footer, #info-header h3, #info-dependencies {
-          display: none;
         }
 
         #demo-dialog {
@@ -481,127 +281,20 @@
 
     <div id="container">
 
-      <!-- Header -->
-      <div>
-        <div id="title">
-          <svg id="star" class="desktop-only" viewBox="0 0 100 100" class="octicon octicon-star" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
-            <use xlink:href="/sprite.octicons.svg#star"></use>
-          </svg>
-          <h1 class="page-title">[[repo]]</h1>
-          <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
-            <div id="version-sha">[[data.version]]</div>
-          </template>
-          <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
-            <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.default_version)]]">
-              <template is="dom-repeat" items="[[_reverse(data.versions)]]">
-                <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.default_version)]]">[[item]]</option>
-              </template>
-            </select>
-          </template>
-          <a id="github-mobile-link" href="https://github.com/[[owner]]/[[repo]]" class="mobile-only">
-            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-          </a>
-        </div>
-        <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
+      <div id="title" class="mobile-only">
+        <h1 class="page-title">[[repo]]</h1>
+        <div id="version-sha">[[data.version]]</div>
       </div>
-
-      <div id="header" class="body">
-        <div id="header-main" class="main-content box">
-          <!-- Repo info -->
-          <div id="info-header">
-            <div id="repo-author">
-              <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]" role="presentation">
-              <span>by <a href="/author/[[owner]]">[[owner]]</a></span>
-            </div>
-            <div id="info-stats">
-              <div title="[[data.stars]] users starred this repository">
-                <svg viewBox="0 0 100 100" class="octicon octicon-star">
-                 <use xlink:href="/sprite.octicons.svg#star"></use>
-                </svg>
-                [[data.stars]]
-              </div>
-              <div title="[[data.forks]] users forked this repository">
-                <svg viewBox="0 0 100 100" class="octicon octicon-repo-forked">
-                 <use xlink:href="/sprite.octicons.svg#repo-forked"></use>
-                </svg>
-                [[data.forks]]
-              </div>
-              <div title="[[data.subscribers]] users are watching this repository">
-                <svg viewBox="0 0 100 100" class="octicon octicon-eye">
-                 <use xlink:href="/sprite.octicons.svg#eye"></use>
-                </svg>
-                [[data.subscribers]]
-              </div>
-              <div title="[[data.open_issues]] open issues and pull requests in this repository">
-                <svg viewBox="0 0 100 100" class="octicon octicon-issue-opened">
-                 <use xlink:href="/sprite.octicons.svg#issue-opened"></use>
-                </svg>
-                [[data.open_issues]]
-              </div>
-            </div>
-          </div>
-
-          <div id="info-body" body-collapsed$="[[_infoBodyCollapsed]]">
-            <div id="info-contributors">
-              <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
-              <contributors-list contributors="[[data.contributors]]"></contributors-list>
-            </div>
-            <div id="info-graph">
-              <h3>[[_lastUpdated(data.activity)]]</h3>
-              <activity-graph activity="[[data.activity]]"></activity-graph>
-            </div>
-          </div>
-
-          <div id="info-footer">
-            <div id="info-license">
-              <h3>License</h3>
-              <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>
-            </div>
-            <div id="info-tags">
-              <h3>Tags</h3>
-              <template is="dom-repeat" items="[[data.bower.keywords]]">
-                <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
-              </template>
-            </div>
-            <div id="expand-collapse" on-tap="_toggleExpand" body-collapsed$="[[_infoBodyCollapsed]]">
-              <template is="dom-if" if="[[_infoBodyCollapsed]]">
-                <svg viewBox="0 0 100 100" class="octicon octicon-plus">
-                  <use xlink:href="/sprite.octicons.svg#plus"></use>
-                </svg>
-              </template>
-              <template is="dom-if" if="[[!_infoBodyCollapsed]]">
-                <svg viewBox="0 0 100 100" class="octicon octicon-dash">
-                 <use xlink:href="/sprite.octicons.svg#dash"></use>
-                </svg>
-              </template>
-            </div>
-          </div>
-        </div>
-
-        <div id="header-sidebar" class="sidebar desktop-only">
-          <div class="box">
-            <div id="info-download">
-              <h3>Download</h3>
-              <input id="info-download-command" title="Download command" readonly value="bower i [[owner]]/[[repo]] --save" on-tap="_selectAllInfoDownload"/>
-            </div>
-            <a id="info-view-github" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
-              <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-              <div>View on GitHub</div>
-            </a>
-          </div>
-
-          <a href="/publish/[[owner]]/[[repo]]" class="soft-button" hidden$="[[!_isPreview(route.prefix)]]">Publish</a>
-        </div>
-      </div>
+      <h2 class="page-subtitle mobile-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
       <div class="body">
         <!-- Repository contents sidebar -->
         <div class="sidebar">
-          <h1 hidden$="[[!_hasRepoContents]]">Repository contents</h1>
+          <github-info data="[[data]]" class="box"></github-info>
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]" hidden$="[[!_hasRepoContents]]">
+          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
@@ -627,6 +320,13 @@
                 </template>
               </div>
             </template>
+          </div>
+
+          <div id="star-button" class="box" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+            <svg class="desktop-only" viewBox="0 0 100 100">
+              <use xlink:href="/sprite.octicons.svg#star"></use>
+            </svg>
+            <div><div>Star on GitHub</div></div>
           </div>
 
           <div class="loader" loading$="[[!docs]]" hidden$="[[!collections.count]]">
@@ -655,14 +355,29 @@
                 </template>
               </div>
             </template>
-            <a id="report-link" class="soft-button desktop-only" href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
-              Flag element
-            </a>
           </div>
         </div>
 
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
+
+          <div id="title">
+            <h1 class="page-title">[[repo]]</h1>
+            <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
+              <div id="version-sha">[[data.version]]</div>
+            </template>
+            <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
+              <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.default_version)]]">
+                <template is="dom-repeat" items="[[_reverse(data.versions)]]">
+                  <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.default_version)]]">[[item]]</option>
+                </template>
+              </select>
+            </template>
+          </div>
+          <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
+
+
+
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">
             <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
@@ -703,11 +418,6 @@
         baseUrls: Object,
 
         queryParams: Object,
-
-        _infoBodyCollapsed: {
-          type: Boolean,
-          value: true,
-        },
       },
 
       observers: [
@@ -1055,14 +765,6 @@
         return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
       },
 
-      _toggleExpand: function() {
-        this._infoBodyCollapsed = !this._infoBodyCollapsed;
-      },
-
-      _searchTag: function(event) {
-        this.fire('triggerSearch', {query: event.target.tag});
-      },
-
       _or: function(a, b) {
         return a || b;
       },
@@ -1078,20 +780,12 @@
         }
       },
 
-      _dpr: function(value) {
-        return value * (window.devicePixelRatio || 1);
-      },
-
       _s: function(n) {
         return n == 1 ? '' : 's';
       },
 
       _shouldCollapseNav: function(elements) {
         return elements && elements.length > 5;
-      },
-
-      _isPreview: function(prefix) {
-        return prefix == '/preview';
       },
 
       _authenticateStar: function() {
@@ -1141,10 +835,6 @@
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();
-      },
-
-      _selectAllInfoDownload: function(event) {
-        event.currentTarget.select();
       },
 
       _docTitle: function(subElement, descriptor) {
