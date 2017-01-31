@@ -465,7 +465,7 @@
     <iron-ajax
       id="docsAjax"
       loading="{{_docsLoading}}"
-      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?[[_useAnalyzer(queryParams)]]"
       handle-as="json"
       last-response="{{docs}}"
       on-error="_docsError"
@@ -722,25 +722,61 @@
           this._starRepo();
       },
 
+      _useAnalyzer: function(queryParams) {
+        return 'use_analyzer_data' in queryParams ? 'use_analyzer_data' : '';
+      },
+
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
       },
 
       _elements: function() {
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return [];
-        delete this.docs.content.elementsByTagName[undefined];
-        return Object.keys(this.docs.content.elementsByTagName).map(function(elem) {
-          return this.docs.content.elementsByTagName[elem];
-        }.bind(this));
+
+        var content = this.docs.analysis || this.docs.content;
+        delete content.elementsByTagName[undefined];
+        return Object.keys(content.elementsByTagName).map(function(elem) {
+          var el = content.elementsByTagName[elem];
+          el.is = el.is || el.tagName;
+          el.desc = el.desc || el.description;
+          if (el.properties) {
+            el.properties.forEach(function(prop) {
+              prop.desc = prop.desc || prop.description;
+              prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          if (el.behaviorAssignments && !el.behaviors) {
+            el.behaviors = el.behaviorAssignments.map(function(item) {
+              return item.name;
+            });
+          }
+          return el;
+        });
       },
 
       _behaviors: function() {
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return [];
-        return Object.keys(this.docs.content.behaviorsByName).map(function(elem) {
-          return this.docs.content.behaviorsByName[elem];
-        }.bind(this));
+
+        var content = this.docs.analysis || this.docs.content;
+        return Object.keys(content.behaviorsByName).map(function(elem) {
+          var be = content.behaviorsByName[elem];
+          be.is = be.is || be.className;
+          be.desc = be.desc || be.description;
+          if (be.properties) {
+            be.properties.forEach(function(prop) {
+              prop.desc = prop.desc || prop.description;
+              prop.function = prop.function || prop.type === "Function";
+            });
+          }
+          if (be.behaviorAssignments && !be.behaviors) {
+            be.behaviors = be.behaviorAssignments.map(function(item) {
+              return item.name;
+            });
+          }
+          return be;
+        });
       },
 
       onload: function(metaLoading) {
@@ -937,14 +973,15 @@
 
       _updateDescriptor: function() {
         this._hasRepoContents = false;
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         if (!this.dupedDemos || !this.dupedDemos.length)
           this.dupedDemos = this._demos();
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
-        this.descriptor = this.docs.content.elementsByTagName[this.subElement] || this.docs.content.behaviorsByName[this.subElement];
+        var content = this.docs.analysis || this.docs.content;
+        this.descriptor = content.elementsByTagName[this.subElement] || content.behaviorsByName[this.subElement];
       },
 
       _demos: function() {

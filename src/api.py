@@ -342,16 +342,18 @@ class GetDocs(webapp2.RequestHandler):
     result = {}
     result['status'] = analysis.status
     if analysis.status == Status.ready:
-      result['content'] = json.loads(analysis.content)
-      has_analyzer_data = result['content'].get('analyzerData', None) is not None
+      content = json.loads(analysis.content)
+
+      has_analyzer_data = content.get('analyzerData', None) is not None
 
       if use_analyzer_data and has_analyzer_data:
-        # Delete the fields used for hydrolysis data
-        del result['content']['elementsByTagName']
-        del result['content']['behaviorsByName']
-      elif has_analyzer_data:
-        # Delete the field used for analyzer data
-        del result['content']['analyzerData']
+        # Use the analyzer data fields
+        result['analysis'] = content['analyzerData']
+      else:
+        # Use the hydrolysis fields and delete the analyzer ones
+        if has_analyzer_data:
+          del content['analyzerData']
+        result['content'] = content
 
     if analysis.status == Status.error:
       result['error'] = analysis.error
