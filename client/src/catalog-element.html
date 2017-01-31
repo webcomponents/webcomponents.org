@@ -734,8 +734,8 @@
         if (!this.docs || !this.docs.content || !this.docs.analysis)
           return [];
 
-        delete this.docs.content.elementsByTagName[undefined];
         var content = this.docs.analysis || this.docs.content;
+        delete content.elementsByTagName[undefined];
         return Object.keys(content.elementsByTagName).map(function(elem) {
           var el = content.elementsByTagName[elem];
           el.is = el.is || el.tagName;
