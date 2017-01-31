@@ -731,7 +731,7 @@
       },
 
       _elements: function() {
-        if (!this.docs || !this.docs.content || !this.docs.analysis)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return [];
 
         var content = this.docs.analysis || this.docs.content;
@@ -756,7 +756,7 @@
       },
 
       _behaviors: function() {
-        if (!this.docs || !this.docs.content || !this.docs.analysis)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return [];
 
         var content = this.docs.analysis || this.docs.content;
@@ -973,14 +973,14 @@
 
       _updateDescriptor: function() {
         this._hasRepoContents = false;
-        if (!this.docs || !this.docs.content)
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         if (!this.dupedDemos || !this.dupedDemos.length)
           this.dupedDemos = this._demos();
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
-        var content = this.docs.content.analyzerData || this.docs.content;
+        var content = this.docs.analysis || this.docs.content;
         this.descriptor = content.elementsByTagName[this.subElement] || content.behaviorsByName[this.subElement];
       },
 
