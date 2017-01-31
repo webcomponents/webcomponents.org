@@ -271,7 +271,7 @@
         if (i == 0)
           return 'Updated recently';
         if (i == activity.length)
-          return 'Last updated unknown';
+          return 'Last update unknown';
         if (i < 8)
           return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
         var months = Math.round(i / 4);
