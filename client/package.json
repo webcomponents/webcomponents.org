@@ -5,6 +5,7 @@
     "test": "wct --skip-plugin sauce"
   },
   "dependencies": {
-    "codemirror": "^5.20.0"
+    "codemirror": "^5.20.0",
+    "web-component-tester": "^5.0.0"
   }
 }

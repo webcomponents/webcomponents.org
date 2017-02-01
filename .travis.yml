@@ -1,5 +1,5 @@
 language: python
-node_js: stable
+node_js: 6
 dist: trusty
 sudo: required
 addons:
@@ -26,8 +26,8 @@ env:
 before_install:
 - mkdir -p lib
 install:
+- yarn
 - npm install -g bower
-- npm install -g web-component-tester
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"
 - pip install -r requirements.txt -t lib/
@@ -36,6 +36,7 @@ install:
   && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
   fi
 - printf '\ny\n' | $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
+- alias wct="$TRAVIS_BUILD_DIR/client/node_modules/web-component-tester/bin/wct"
 script:
 - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
