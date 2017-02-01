@@ -27,7 +27,6 @@ before_install:
 - mkdir -p lib
 install:
 - npm install -g bower
-- npm install -g web-component-tester
 - yarn
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"
@@ -37,6 +36,7 @@ install:
   && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
   fi
 - printf '\ny\n' | $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
+- alias wct="$HOME/client/node_modules/web-component-tester/bin/wct"
 script:
 - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
