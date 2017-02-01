@@ -27,7 +27,7 @@ before_install:
 - mkdir -p lib
 install:
 - yarn
-- npm install -g bower
+- yarn global add bower
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"
 - pip install -r requirements.txt -t lib/
