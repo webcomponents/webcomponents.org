@@ -28,6 +28,7 @@ before_install:
 install:
 - yarn
 - yarn global add bower
+- yarn global add web-component-tester
 - "(cd client; yarn)"
 - "(cd analysis; yarn)"
 - pip install -r requirements.txt -t lib/
@@ -36,12 +37,11 @@ install:
   && printf '\ny\n\ny\ny\n' | ./google-cloud-sdk/install.sh && cd $TRAVIS_BUILD_DIR;
   fi
 - printf '\ny\n' | $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
-- alias wct="$TRAVIS_BUILD_DIR/client/node_modules/web-component-tester/bin/wct"
 script:
 # Failing 2/2/12 on cached builds
 # - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
-- xvfb-run $TRAVIS_BUILD_DIR/client/node_modules/web-component-tester/bin/wct --skip-plugin sauce
+- xvfb-run wct --skip-plugin sauce
 - "(cd analysis; npm test)"
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct; fi
 before_deploy:
