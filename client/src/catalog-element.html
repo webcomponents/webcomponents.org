@@ -15,7 +15,7 @@
   <template>
     <style include="catalog-styles"></style>
     <style>
-      #title {
+      .title {
         align-items: flex-end;
         margin-bottom: 8px;
       }
@@ -60,7 +60,7 @@
         font-size: 14px;
       }
 
-      #version-select, #version-sha {
+      #version-select, .version-sha {
         margin-left: 8px;
         margin-bottom: 1px;
         font-size: 24px;
@@ -221,7 +221,7 @@
       }
 
       @media (max-width: 500px) {
-        #title {
+        .title {
           margin-left: 16px;
           display: flex;
         }
@@ -281,9 +281,9 @@
 
     <div id="container">
 
-      <div id="title" class="mobile-only">
+      <div class="title mobile-only">
         <h1 class="page-title">[[repo]]</h1>
-        <div id="version-sha">[[data.version]]</div>
+        <div class="version-sha">[[data.version]]</div>
       </div>
       <h2 class="page-subtitle mobile-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
@@ -323,7 +323,7 @@
           </div>
 
           <div id="star-button" class="box" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
-            <svg class="desktop-only" viewBox="0 0 100 100">
+            <svg viewBox="0 0 100 100">
               <use xlink:href="/sprite.octicons.svg#star"></use>
             </svg>
             <div><div>Star on GitHub</div></div>
@@ -343,7 +343,7 @@
 
           <div class="loader" loading$="[[!docs]]">
             <template is="dom-if" if="[[_dependencies(data).count]]">
-              <div id="info-dependencies">
+              <div id="info-dependencies" class="desktop-only">
                 <h1>Dependencies</h1>
                 <template is="dom-repeat" items="[[_dependencies(data)]]">
                   <div class="dependency">
@@ -360,11 +360,10 @@
 
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
-
-          <div id="title">
+          <div class="title desktop-only">
             <h1 class="page-title">[[repo]]</h1>
             <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
-              <div id="version-sha">[[data.version]]</div>
+              <div class="version-sha">[[data.version]]</div>
             </template>
             <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
               <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.default_version)]]">
@@ -374,9 +373,7 @@
               </select>
             </template>
           </div>
-          <h2 class="page-subtitle">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
-
-
+          <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
           <h1 hidden="[[subElement]]">README.md</h1>
           <template is="dom-if" if="[[data]]">

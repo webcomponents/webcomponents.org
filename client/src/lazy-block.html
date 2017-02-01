@@ -73,10 +73,10 @@
             // TODO: Should use this.resolveURL once https://github.com/Polymer/polymer-cli/issues/356 is fixed.
             this.importHref('/src/lazy-resources.html', this._loadCodeEditor.bind(this), null, true);
           });
-          this.fire('lazy-loaded');
         },
 
         _loadCodeEditor: function() {
+          this.fire('lazy-loaded');
           var parentElement = this.parentElement;
           Polymer.RenderStatus.afterNextRender(this, function() {
             // Polymer's subtree scoping doesn't work synchronously which codemirror requires
