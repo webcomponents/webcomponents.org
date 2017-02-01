@@ -2,9 +2,10 @@
   "name": "client",
   "scripts": {
     "install": "bower install",
-    "test": "wct --skip-plugin sauce"
+    "test": "node_modules/web-component-tester/bin/wct --skip-plugin sauce"
   },
   "dependencies": {
-    "codemirror": "^5.20.0"
+    "codemirror": "^5.20.0",
+    "web-component-tester": "^5.0.0"
   }
 }
