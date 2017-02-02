@@ -200,7 +200,8 @@
           <h3>
             Licensed under 
             <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
-            [[_lastUpdated(data.activity)]]
+            [[_lastUpdated(data.activity)]], 
+            installed via <a>Bower</a> & sourced from <a>GitHub</a>
           </h3>
 
           <svg id="plus-button" viewBox="0 0 100 100">
@@ -226,7 +227,7 @@
           </div>
 
           <h3>Download</h3>
-          <div id="download-command" title="Download command" value="" on-tap="_selectAllInfoDownload">bower i [[data.owner]]/[[data.repo]] --save</div>
+          <div id="download-command" title="Download command" value="" on-tap="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
         </section>
 
         <a id="github-link" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
@@ -280,6 +281,7 @@
 
       _toggleExpand: function() {
         this._expanded = !this._expanded;
+        this.fire('event', {category: 'GitHub info expand', action: 'Clicked', label: this._expanded});
       },
 
       _selectAllInfoDownload: function(event) {
