@@ -548,16 +548,21 @@
 
         // Generate requests
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
-          this._currentOwner = this.owner;
-          this._currentRepo = this.repo;
-          this._currentVersionRoute = this.versionRoute;
-          this.docs = null;
-          this.$.metaAjax.generateRequest();
-          this.$.docsAjax.generateRequest();
-          this.$.collectionsAjax.generateRequest();
+          // Trigger a microtask to ensure change notifications are completed.
+          this.debounce('update', this._updatePath);
         }
 
         this._updateDescriptor();
+      },
+
+      _updatePath: function() {
+        this._currentOwner = this.owner;
+        this._currentRepo = this.repo;
+        this._currentVersionRoute = this.versionRoute;
+        this.docs = null;
+        this.$.metaAjax.generateRequest();
+        this.$.docsAjax.generateRequest();
+        this.$.collectionsAjax.generateRequest();
       },
 
       _demoChanged: function(demo, visible) {
