@@ -549,7 +549,7 @@
         // Generate requests
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
-          this.debounce('update', this._updatePath);
+          this.debounce('_updatePath', this._updatePath);
         }
 
         this._updateDescriptor();

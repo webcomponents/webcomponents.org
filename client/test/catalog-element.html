@@ -79,6 +79,7 @@
       elementPage.baseUrls = {api: '', userContent: ''};
       elementPage.route = {path: '/owner/repo', prefix: '/element'};
       elementPage.setAttribute('visible', '');
+      elementPage.flushDebouncer('_updatePath');
       server.respond();
       elementPage.$.metaAjax.addEventListener('response', function() {
         flush(function() {
@@ -95,6 +96,7 @@
       elementPage.baseUrls = {api: '', userContent: ''};
       elementPage.route = {path: '/owner/repo', prefix: '/element'};
       elementPage.setAttribute('visible', '');
+      elementPage.flushDebouncer('_updatePath');
       server.respond();
       assert(!elementPage._isStarred(), 'should not be starred');
       elementPage._setStarred(false);
@@ -107,6 +109,7 @@
       elementPage.route = {path: '/owner/repo', prefix: '/element'};
       elementPage.setAttribute('visible', '');
       elementPage.queryParams = {code: 'fakeCode'};
+      elementPage.flushDebouncer('_updatePath');
       server.respond();
 
       elementPage.$.metaAjax.addEventListener('response', function() {
