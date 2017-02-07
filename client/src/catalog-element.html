@@ -600,8 +600,7 @@
         if (!(this.versionRoute || this.data))
           return;
 
-        var isMobile = window.matchMedia("(max-width: 500px)").matches;
-        if (isMobile) {
+        if (window.matchMedia('max-width: 500px').matches) {
           this._hideMainContent = true;
           this.fire('fullscreen-start');
         }
