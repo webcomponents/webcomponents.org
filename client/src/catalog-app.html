@@ -359,6 +359,14 @@
         #footer-content section {
           margin: 16px 0;
         }
+
+        :host[fullscreen] footer {
+          display: none;
+        }
+
+        :host[fullscreen] #pages {
+          margin: 0;
+        }
       }
 
       /* Footer */
@@ -567,7 +575,9 @@
         'event': '_onEvent',
         'lazy-loaded': '_onLazyLoaded',
         'notify': '_notifyUser',
-        'document-title': '_changeTitle'
+        'document-title': '_changeTitle',
+        'fullscreen-start': '_fullscreenStart',
+        'fullscreen-end': '_fullscreenEnd',
       },
 
       created: function() {
@@ -830,7 +840,15 @@
       _changeTitle: function(event) {
         var title = event.detail + ' - webcomponents.org';
         this.ownerDocument.title = title;
-      }
+      },
+
+      _fullscreenStart: function() {
+        this.setAttribute('fullscreen', '');
+      },
+
+      _fullscreenEnd: function() {
+        this.removeAttribute('fullscreen');
+      },
 
     });
   </script>
