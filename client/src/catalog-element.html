@@ -240,13 +240,29 @@
         }
 
         #demo-dialog {
-          width: calc(100vw - 50px);
-          height: calc(100vh - 50px);
+          position: absolute;
+          top: 70px;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: calc(100vh - 70px);
         }
 
         .sidebar-nav a {
           border: 0;
           background: inherit;
+        }
+
+        #close-dialog {
+          left: calc(50% - 25px);
+          top: -60px;
+          width: 50px;
+          height: 50px;
+        }
+
+        #demo-frame {
+          margin-bottom: -4px; /* This seems to prevent the page from scrolling an extra 4px */
         }
       }
     </style>
@@ -279,7 +295,7 @@
 
     <lazy-block id="block"></lazy-block>
 
-    <div id="container">
+    <div id="container" hidden$="[[_hideMainContent]]">
 
       <div class="title mobile-only">
         <h1 class="page-title">[[repo]]</h1>
@@ -583,6 +599,12 @@
         // Either from the route, or from the metadata.
         if (!(this.versionRoute || this.data))
           return;
+
+        if (window.matchMedia('max-width: 500px').matches) {
+          this._hideMainContent = true;
+          this.fire('fullscreen-start');
+        }
+
         var demoVersionRoute = this.versionRoute || '/' + this.data.version;
         var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + demoVersionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
@@ -595,6 +617,8 @@
 
       _closeDemo: function() {
         this._navigatedToDemo = false;
+        this._hideMainContent = false;
+        this.fire('fullscreen-end');
         if (!this.$['demo-dialog'].opened)
           return;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
