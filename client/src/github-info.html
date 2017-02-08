@@ -201,7 +201,7 @@
             Licensed under 
             <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
             [[_lastUpdated(data.activity)]], 
-            installed via <a>Bower</a> & sourced from <a>GitHub</a>
+            & installed via <a>Bower</a>
           </h3>
 
           <svg id="plus-button" viewBox="0 0 100 100">
@@ -213,6 +213,9 @@
         </section>
 
         <section class="expanded dark">
+          <h3>Download</h3>
+          <div id="download-command" title="Download command" on-tap="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
+
           <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
           <contributors-list contributors="[[data.contributors]]"></contributors-list>
 
@@ -225,17 +228,7 @@
               <a href="#" tag="[[item]]" on-click="_searchTag">[[item]]</a>
             </template>
           </div>
-
-          <h3>Download</h3>
-          <div id="download-command" title="Download command" value="" on-tap="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
         </section>
-
-        <a id="github-link" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
-          <section class="expanded">
-            <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
-            <div>View on GitHub</div>
-          </section>
-        </a>
 
         <a href="https://github.com/webcomponents/beta/issues/new?title=Remove%20element%20[[owner]]/[[repo]]&body=This%20element%20should%20be%20removed%20because...&labels=User%20reports">
           <section class="expanded">Flag element</section>
