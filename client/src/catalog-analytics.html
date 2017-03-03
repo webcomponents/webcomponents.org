@@ -29,17 +29,6 @@
         })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
       },
 
-      ready: function() {
-        var polymerRedirect = 'https://elements.polymer-project.org/?redirect=' + window.location.hostname;
-        if (document.referrer == polymerRedirect) {
-          ga('send', 'event', {
-            eventCategory: 'Optin',
-            eventAction: 'Optin',
-            eventLabel: 'Polymer Elements redirect'
-          });
-        }
-      },
-
       recordEvent: function(event) {
         ga('send', 'event', {
           eventCategory: event.category,

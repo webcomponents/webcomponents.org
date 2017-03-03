@@ -586,17 +586,6 @@
         this.removeAttribute('unresolved');
       },
 
-      ready: function() {
-        if (document.referrer.indexOf("https://elements.polymer-project.org") == 0) {
-          this.fire('notify', {
-            message: 'Redirected from Polymer Element catalog',
-            buttonText: 'Take me back',
-            buttonTapHandler: this._optOut.bind(this),
-            duration: 5000,
-          });
-        }
-      },
-
       _notifyUser: function(event) {
         var options = event.detail;
         this.$.toast.text = options.message;
@@ -791,32 +780,6 @@
           for (var i = 0; i < this._eventRecords.length; i++)
             this.$.analytics.recordEvent(this._eventRecords[i]);
           delete this._eventRecords;
-        }
-      },
-
-      _optOut: function() {
-        this._navigated = false;
-        function navigate() {
-          if (!this._navigated) {
-            this._navigated = true;
-            window.location.href = 'https://elements.polymer-project.org?redirect=';
-          }
-        }
-
-        /* global ga */
-        if (window.ga) {
-          clearTimeout(this._optOutTimerId);
-          this._optOutTimerId = setTimeout(navigate.bind(this), 500);
-
-          ga('send', 'event', {
-            eventCategory: 'Optout',
-            eventAction: 'Toast',
-            eventLabel: 'Polymer Elements redirect',
-            transport: 'beacon',
-            hitCallback: navigate.bind(this),
-          });
-        } else {
-          navigate();
         }
       },
 
