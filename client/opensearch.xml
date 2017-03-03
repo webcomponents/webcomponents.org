@@ -2,5 +2,5 @@
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>Search Web Components</ShortName>
   <Description>Search Web Components</Description>
-  <Url type="text/html" method="get" template="https://beta.webcomponents.org/search/{searchTerms}"/>
+  <Url type="text/html" method="get" template="https://www.webcomponents.org/search/{searchTerms}"/>
 </OpenSearchDescription>

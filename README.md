@@ -3,7 +3,7 @@
   <img alt="webcomponents.org" src="https://web-components-resources.appspot.com/static/logo.svg" width="161">
 </p>
 <p align="center">
-  <a href="https://travis-ci.org/webcomponents/webcomponents.org"><img src="https://img.shields.io/travis/webcomponents/beta.svg?maxAge=2592000&style=flat-square"></a>
+  <a href="https://travis-ci.org/webcomponents/webcomponents.org"><img src="https://img.shields.io/travis/webcomponents/webcomponents.org.svg?maxAge=2592000&style=flat-square"></a>
   <img src="https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000&style=flat-square">
   <a href="https://gitter.im/webcomponents/community"><img src="https://img.shields.io/gitter/room/webcomponents/community.svg?maxAge=2592000&style=flat-square"></a>
 </p>
