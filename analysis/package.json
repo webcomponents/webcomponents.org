@@ -3,16 +3,16 @@
   "version": "1.0.1",
   "private": true,
   "dependencies": {
-    "@google-cloud/pubsub": "0.1.1",
-    "@google/cloud-debug": "0.8.4",
-    "@google/cloud-trace": "0.5.7",
+    "@google-cloud/debug-agent": "^0.10.2",
+    "@google-cloud/pubsub": "^0.8.2",
+    "@google/cloud-trace": "^0.6.2",
     "body-parser": "1.14.2",
     "bower": "1.7.9",
     "command-line-args": "3.0.1",
     "express": "4.13.4",
     "hydrolysis": "1.24.1",
     "lockfile": "1.0.1",
-    "polymer-analyzer": "^2.0.0-alpha.21",
+    "polymer-analyzer": "2.0.0-alpha.30",
     "stream-buffers": "3.0.1"
   },
   "engines": {
