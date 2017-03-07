@@ -25,6 +25,9 @@ env:
   - TRAVIS_NODE_VERSION="6"
 before_install:
 - mkdir -p lib
+- echo ${TRAVIS_NODE_VERSION} > ~/.nvmrc
+- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh
+- nvm install $TRAVIS_NODE_VERSION
 - node --version
 install:
 - npm install
