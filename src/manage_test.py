@@ -465,6 +465,8 @@ class IngestLibraryTest(ManageTestBase):
     library = Library.get_by_id('org/repo')
     self.assertIsNotNone(library)
     self.assertIsNotNone(library.error)
+    self.assertIsNotNone(json.loads(library.error).get('code', None))
+
     self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, [])

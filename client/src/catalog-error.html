@@ -6,12 +6,24 @@
   <template>
     <style include="catalog-styles"></style>
 
-    <h3>Error [[error.status]]</h3>
+    <h3>Error [[error.status]] - [[_code]]</h3>
     <h1 class="page-title">[[error.title]]</h1>
     <h2 class="page-subtitle">[[error.message]]</h2>
 
     <template is="dom-if" if="[[error.githubPath]]">
       <div>Would you like to view <a href="https://github.com/[[error.githubPath]]">[[error.githubPath]]</a> on Github instead?</div>
+    </template>
+
+    <template is="dom-if" if="[[_codedError(_code, 5)]]">
+      <h2 class="page-subtitle">Invalid license</h2>
+
+      The GitHub repository must be licensed under an <a href="https://opensource.org/licenses/alphabetical">Open Source Inititative (OSI) approved license</a>. Please include a valid license or alternatively include an OSI approved license as an SPDX identifier (eg. "Apache-2.0") in the license field in the bower.json.
+    </template>
+
+    <template is="dom-if" if="[[_codedError(_code, 9)]]">
+      <h2 class="page-subtitle">No tagged versions found</h2>
+
+      No valid GitHub tags could be found for this repository. Please tag a release in GitHub and try again. Note these tags must be <a href="http://semver.org/">valid semver</a>. Example of a valid semver tag: "v1.0.0". Examples of invalid semver tag: "v1.0", "1".
     </template>
   </template>
   <script>
@@ -20,7 +32,29 @@
       is: 'catalog-error',
 
       properties: {
-        error: Object,
+        error: {
+          type: Object,
+          observer: '_errorChanged',
+        },
+
+        _code: Number,
+      },
+
+      _errorChanged: function(error) {
+        this._code = -1;
+        try {
+          var parse = JSON.parse(error.message);
+          this._code = parse.code;
+          this.error.message = parse.message;
+        } catch (e) {
+        }
+      },
+
+      _codedError: function(code, match) {
+        // If there's a special message instead, hide the main message.
+        if (code == match)
+          this.set('error.message', '');
+        return code == match;
       },
 
     });

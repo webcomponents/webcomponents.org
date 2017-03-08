@@ -50,6 +50,21 @@ def validate_mutation_request(handler):
   handler.response.set_status(403)
   return False
 
+class ErrorCodes(object):
+  # Static class of error codes. Never delete or reuse values.
+  Library_parse_metadata = 1
+  Library_parse_contributors = 2
+  Library_parse_stats = 3
+  Library_parse_bower = 4
+  Library_license = 5
+  Library_collection_parse_tags = 6
+  Library_collection_master = 7
+  Library_element_parse_tags = 8
+  Library_no_version = 9
+  Version_utf = 10
+  Version_parse_bower = 11
+  Version_missing_bower = 12
+
 class RequestAborted(Exception):
   pass
 
@@ -129,7 +144,8 @@ class RequestHandler(webapp2.RequestHandler):
     except RequestAborted:
       pass
 
-  def error(self, message):
+  def error(self, message, code=None):
+    assert not code
     logging.warning(message)
     self.commit()
     self.response.set_status(200)
@@ -181,9 +197,9 @@ class LibraryTask(RequestHandler):
       self.library.status = Status.ready
       self.library_dirty = True
 
-  def error(self, message):
+  def error(self, message, code=None):
     self.library.status = Status.error
-    self.library.error = message
+    self.library.error = json.dumps({'code': code, 'message': message})
     self.library_dirty = True
     super(LibraryTask, self).error(message)
 
@@ -198,7 +214,7 @@ class LibraryTask(RequestHandler):
       try:
         metadata = json.loads(response.content)
       except ValueError:
-        return self.error("could not parse metadata")
+        return self.error("could not parse metadata", ErrorCodes.Library_parse_metadata)
 
       repo = metadata.get('name', '').lower()
       owner = metadata.get('owner', {}).get('login', '').lower()
@@ -225,7 +241,7 @@ class LibraryTask(RequestHandler):
       try:
         json.loads(response.content)
       except ValueError:
-        return self.error("could not parse contributors")
+        return self.error("could not parse contributors", ErrorCodes.Library_parse_contributors)
       self.library.contributors = response.content
       self.library.contributors_etag = response.headers.get('ETag', None)
       self.library.contributors_updated = datetime.datetime.now()
@@ -238,7 +254,7 @@ class LibraryTask(RequestHandler):
       try:
         json.loads(response.content)
       except ValueError:
-        return self.error("could not parse stats/participation")
+        return self.error("could not parse stats/participation", ErrorCodes.Library_parse_stats)
       self.library.participation = response.content
       self.library.participation_etag = response.headers.get('ETag', None)
       self.library.participation_updated = datetime.datetime.now()
@@ -259,7 +275,7 @@ class LibraryTask(RequestHandler):
       try:
         bower_json = json.loads(response.content)
       except ValueError:
-        return self.error("Could not parse master/bower.json")
+        return self.error("Could not parse master/bower.json", ErrorCodes.Library_parse_bower)
     elif response.status_code == 404:
       bower_json = None
     else:
@@ -288,7 +304,7 @@ class LibraryTask(RequestHandler):
       self.library_dirty = True
 
     if self.library.spdx_identifier is None:
-      return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch)
+      return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch, ErrorCodes.Library_license)
 
   def trigger_version_deletion(self, tag):
     task_url = util.delete_task(self.owner, self.repo, tag)
@@ -341,10 +357,10 @@ class LibraryTask(RequestHandler):
     try:
       data = json.loads(response.content)
     except ValueError:
-      return self.error("could not parse git/refs/heads/master")
+      return self.error("could not parse git/refs/heads/master", ErrorCodes.Library_collection_parse_tags)
 
     if data.get('ref', None) != 'refs/heads/master':
-      return self.error('could not find master branch')
+      return self.error('could not find master branch', ErrorCodes.Library_collection_master)
 
     master_sha = data['object']['sha']
 
@@ -382,7 +398,7 @@ class LibraryTask(RequestHandler):
     try:
       data = json.loads(response.content)
     except ValueError:
-      return self.error("could not parse tags")
+      return self.error("could not parse tags", ErrorCodes.Library_element_parse_tags)
 
     tag_map = dict((tag['name'], tag['commit']['sha']) for tag in data
                    if versiontag.is_valid(tag['name']))
@@ -437,7 +453,7 @@ class LibraryTask(RequestHandler):
       self.trigger_version_deletion(tags_to_delete[0])
 
     if len(new_tags) is 0:
-      return self.error("couldn't find any tagged versions")
+      return self.error("couldn't find any tagged versions", ErrorCodes.Library_no_version)
 
 class IngestLibrary(LibraryTask):
   def is_transactional(self):
@@ -619,10 +635,10 @@ class IngestVersion(RequestHandler):
       task_url = util.update_indexes_task(self.owner, self.repo)
       util.new_task(task_url, target='manage', transactional=True)
 
-  def error(self, error_string):
+  def error(self, error_string, code=None):
     if self.version_object is not None:
       self.version_object.status = Status.error
-      self.version_object.error = error_string
+      self.version_object.error = json.dumps({'code': code, 'message': error_string})
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self):
@@ -633,7 +649,7 @@ class IngestVersion(RequestHandler):
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()
       except db.BadValueError:
-        return self.error("Could not store README.md as a utf-8 string")
+        return self.error("Could not store README.md as a utf-8 string", ErrorCodes.Version_utf)
     elif response.status_code == 404:
       readme = None
     else:
@@ -653,12 +669,12 @@ class IngestVersion(RequestHandler):
       try:
         bower_json = json.loads(response.content)
       except ValueError:
-        return self.error("could not parse bower.json")
+        return self.error("could not parse bower.json", ErrorCodes.Version_parse_bower)
       Content(parent=self.version_key, id='bower', content=response.content,
               status=Status.ready, etag=response.headers.get('ETag', None)).put()
       return bower_json
     elif response.status_code == 404:
-      return self.error("missing bower.json")
+      return self.error("missing bower.json", ErrorCodes.Version_missing_bower)
     else:
       return self.retry('could not access bower.json (%d)' % response.status_code)
 
