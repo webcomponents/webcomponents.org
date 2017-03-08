@@ -25,6 +25,12 @@
 
       No valid GitHub tags could be found for this repository. Please tag a release in GitHub and try again. Note these tags must be <a href="http://semver.org/">valid semver</a>. Example of a valid semver tag: "v1.0.0". Examples of invalid semver tag: "v1.0", "1".
     </template>
+
+    <template is="dom-if" if="[[_codedError(_code, 12)]]">
+      <h2 class="page-subtitle">Missing bower.json</h2>
+
+      Currently, only Bower is supported. In the latest tagged version of this repository, ensure there is a valid bower.json.
+    </template>
   </template>
   <script>
     Polymer({
