@@ -3,7 +3,7 @@
 const Ana = require('./ana_log');
 
 const Analyzer = require('polymer-analyzer').Analyzer;
-const Elements = require('polymer-analyzer/lib/elements-format');
+const Analysis = require('polymer-analyzer/lib/analysis-format');
 const generateAnalysis = require('polymer-analyzer/lib/generate-analysis').generateAnalysis;
 const Feature = require('polymer-analyzer/lib/model/model');
 const FSUrlLoader = require('polymer-analyzer/lib/url-loader/fs-url-loader').FSUrlLoader;

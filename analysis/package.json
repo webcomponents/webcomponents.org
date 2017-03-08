@@ -12,7 +12,7 @@
     "express": "4.13.4",
     "hydrolysis": "1.24.1",
     "lockfile": "1.0.1",
-    "polymer-analyzer": "2.0.0-alpha.30",
+    "polymer-analyzer": "2.0.0-alpha.31",
     "stream-buffers": "3.0.1"
   },
   "engines": {
