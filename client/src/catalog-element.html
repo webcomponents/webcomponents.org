@@ -621,7 +621,7 @@
         if (!(this.versionRoute || this.data))
           return;
 
-        if (window.matchMedia('max-width: 500px').matches) {
+        if (window.matchMedia('(max-width: 500px)').matches) {
           this._hideMainContent = true;
           this.fire('fullscreen-start');
         }
