@@ -26,10 +26,14 @@ class AnalyzerRunner {
       if (inputs == null || inputs.length === 0) {
         analyzer.analyzePackage().then(function(_package) {
           resolve(generateAnalysis(_package, '', isNotTest));
+        }).catch(function() {
+          Ana.fail('analyzer/analyze', inputs);
         });
       } else {
         Promise.all(inputs.map((i) => analyzer.analyze(i))).then(function(documents) {
           resolve(generateAnalysis(documents, '', isNotTest));
+        }).catch(function() {
+          Ana.fail('analyzer/analyze', inputs);
         });
       }
 
