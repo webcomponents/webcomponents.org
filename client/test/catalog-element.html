@@ -71,7 +71,8 @@
 
     teardown(function() {
       server.restore();
-      window.localStorage.starredRepos = stashedStars;
+      if (stashedStars)
+        window.localStorage.starredRepos = stashedStars;
     });
 
     test('api/meta readme displayed on page', function(done) {

@@ -54,6 +54,8 @@
           this.error.message = parse.message;
         } catch (e) {
         }
+
+        this.fire('event', {category: 'Client error', action: this._code, label: JSON.stringify(this._error)});
       },
 
       _codedError: function(code, match) {
