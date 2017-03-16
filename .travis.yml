@@ -39,7 +39,7 @@ install:
 script:
 - grunt lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
-- "(cd client; npm test)"
+- "(cd client; xvfb-run npm test)"
 - "(cd analysis; npm test)"
 - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then "(cd client; npm run test-sauce)"; fi
 before_deploy:
