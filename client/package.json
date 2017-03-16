@@ -2,7 +2,8 @@
   "name": "client",
   "scripts": {
     "install": "bower install",
-    "test": "node_modules/web-component-tester/bin/wct --skip-plugin sauce"
+    "test": "node_modules/web-component-tester/bin/wct --skip-plugin sauce",
+    "test-sauce": "node_modules/web-component-tester/bin/wct"
   },
   "dependencies": {
     "codemirror": "^5.20.0",
