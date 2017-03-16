@@ -6,6 +6,6 @@
   },
   "dependencies": {
     "codemirror": "^5.20.0",
-    "web-component-tester": "^5.0.0"
+    "web-component-tester": "^5.0.1"
   }
 }
