@@ -64,7 +64,7 @@
       params="[[_elementRequestParams]]"></iron-ajax>
     <iron-ajax
       id="collectionsAjax"
-      url="[[baseUrls.api]]/api/search/[[query]] kind:collection[[_params(4, noscore)]]"
+      url="[[baseUrls.api]]/api/search/[[query]] kind:collection"
       handle-as="json"
       loading="{{_collectionsLoading}}"
       on-response="_onCollectionsResponse"
@@ -181,6 +181,7 @@
       },
 
       _loadMoreCollections: function() {
+        this._collectionRequestParams.limit = 20;
         this._collectionRequestParams.cursor = this._collections.cursor;
         this.$.collectionsAjax.generateRequest();
       },
@@ -193,7 +194,7 @@
         if (disabled || !collection || this._currentCollection == collection)
           return;
         this._currentCollection = collection;
-        this._collectionRequestParams = {};
+        this._collectionRequestParams = {limit: 4, noscore: '', count: ''};
         this._elements = null;
         this._collections = null;
         this.$.dependenciesAjax.generateRequest();
@@ -209,7 +210,7 @@
         this.$.threshold.clearTriggers();
         this._currentQuery = query;
         this._elementRequestParams = {};
-        this._collectionRequestParams = {};
+        this._collectionRequestParams = {limit: 4, noscore: '', count: ''};
         this._elements = null;
         this._collections = null;
         this.$.elementsAjax.generateRequest();
