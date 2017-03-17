@@ -528,16 +528,21 @@ class IngestWebhookLibrary(LibraryTask):
 class AnalyzeLibrary(LibraryTask):
   def is_transactional(self):
     return True
-  def handle_get(self, owner, repo):
+  def handle_get(self, owner, repo, latest=False):
     self.init_library(owner, repo)
     if self.library is None:
       self.response.set_status(404)
       self.response.write('could not find library: %s' % Library.id(owner, repo))
       return
 
-    versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
-    for version in versions:
-      self.trigger_analysis(version.key.id(), version.sha, transactional=False)
+    if latest:
+      version = Library.default_version_for_key_async(self.library.key).get_result()
+      if version is not None:
+        self.trigger_analysis(version.key.id(), version.sha, transactional=False)
+    else:
+      versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
+      for version in versions:
+        self.trigger_analysis(version.key.id(), version.sha, transactional=False)
 
 class AuthorTask(RequestHandler):
   def __init__(self, request, response):
@@ -816,6 +821,7 @@ class EnsureAuthor(RequestHandler):
 
 class AnalyzeAll(RequestHandler):
   def handle_get(self):
+    latest = self.request.get('latest', None) is not None
     query = Library.query()
     cursor = None
     more = True
@@ -825,7 +831,7 @@ class AnalyzeAll(RequestHandler):
       for key in keys:
         task_count = task_count + 1
         owner, repo = key.id().split('/', 1)
-        task_url = util.analyze_library_task(owner, repo)
+        task_url = util.analyze_library_task(owner, repo, latest)
         util.new_task(task_url, target='manage')
 
     logging.info('triggered %d analyses', task_count)
@@ -1001,6 +1007,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
+    webapp2.Route(r'/task/analyze/<owner>/<repo>/<latest>', handler=AnalyzeLibrary),
     webapp2.Route(r'/task/ensure/<name>', handler=EnsureAuthor),
     webapp2.Route(r'/task/ensure/<owner>/<repo>', handler=EnsureLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
