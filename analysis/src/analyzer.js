@@ -11,7 +11,7 @@ const PackageUrlResolver = require('polymer-analyzer/lib/url-loader/package-url-
 
 class AnalyzerRunner {
   analyze(inputs) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       Ana.log('analyzer/analyze', inputs);
 
       const analyzer = new Analyzer({
@@ -28,12 +28,14 @@ class AnalyzerRunner {
           resolve(generateAnalysis(_package, ''));
         }).catch(function() {
           Ana.fail('analyzer/analyze', inputs, isNotTest);
+          reject({retry: true, error: error});
         });
       } else {
         Promise.all(inputs.map((i) => analyzer.analyze(i))).then(function(documents) {
           resolve(generateAnalysis(documents, ''));
-        }).catch(function() {
+        }).catch(function(error) {
           Ana.fail('analyzer/analyze', inputs);
+          reject({retry: true, error: error});
         });
       }
 
