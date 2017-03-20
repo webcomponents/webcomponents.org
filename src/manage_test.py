@@ -28,6 +28,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/manage/delete/org/repo', status=403)
     self.app.get('/manage/delete_everything/yes_i_know_what_i_am_doing', status=403)
     self.app.get('/task/analyze/owner/repo', status=403)
+    self.app.get('/task/analyze/owner/repo/True', status=403)
     self.app.get('/task/update/owner', status=403)
     self.app.get('/task/update/owner/repo', status=403)
     self.app.get('/task/ensure/owner', status=403)
@@ -58,6 +59,17 @@ class AnalyzeAllTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.analyze_library_task('owner', 'repo')
+    ], [task.url for task in tasks])
+
+  def test_analyze_all_latest(self):
+    Library(id='owner/repo').put()
+
+    response = self.app.get('/manage/analyze-all', headers={'X-AppEngine-QueueName': 'default'}, params={'latest': ''})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.analyze_library_task('owner', 'repo', True)
     ], [task.url for task in tasks])
 
 class UpdateAllTest(ManageTestBase):
