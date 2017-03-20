@@ -143,6 +143,25 @@ class AnalyzeTest(ManageTestBase):
         util.ingest_analysis_task('owner', 'repo', 'v1.1.1'),
     ], [task.url for task in tasks])
 
+  def test_analyze_latest(self):
+    library_key = Library(id='owner/repo').put()
+    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+    version_key = Version(id='v1.1.2', parent=library_key, sha='sha', status='ready').put()
+    VersionCache.update(library_key)
+
+    response = self.app.get('/task/analyze/owner/repo/True', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    content = Content.get_by_id('analysis', parent=version_key)
+    self.assertEqual(content.content, None)
+    self.assertEqual(content.status, Status.pending)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('owner', 'repo', 'v1.1.2'),
+    ], [task.url for task in tasks])
+
+
 class DeleteVersionTest(ManageTestBase):
   def test_delete_version(self):
     library_key = ndb.Key(Library, 'owner/repo')
