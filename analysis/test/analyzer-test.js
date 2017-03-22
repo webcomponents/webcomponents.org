@@ -23,4 +23,12 @@ describe('AnalyzerRunner', function() {
       expect(result.elements[0]).to.have.property('classname', 'ShopImage');
     });
   });
+
+  it('ignores unknown files', function(done) {
+    var analyzer = new AnalyzerRunner();
+    analyzer.analyze([path.resolve(__dirname, 'resources/does-not-exist.not-found')]).catch(function() {
+      // Successfully rejected promise.
+      done();
+    });
+  });
 });
