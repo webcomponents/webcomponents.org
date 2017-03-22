@@ -32,7 +32,6 @@ class AnalyzerRunner {
         Promise.all(inputs.map((i) => analyzer.analyze(i))).then(function(documents) {
           resolve(generateAnalysis(documents, ''));
         }).catch(function(error) {
-          debugger;
           Ana.fail('analyzer/analyze', inputs, error);
           var fatal = error.code && fatalErrorCodes.indexOf(error.code) != -1;
           reject({retry: !fatal, error: error});
