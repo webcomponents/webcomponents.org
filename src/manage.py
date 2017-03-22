@@ -536,9 +536,11 @@ class AnalyzeLibrary(LibraryTask):
       return
 
     if latest:
-      version = Library.default_version_for_key_async(self.library.key).get_result()
-      if version is not None:
-        self.trigger_analysis(version.key.id(), version.sha, transactional=False)
+      version_id = Library.default_version_for_key_async(self.library.key).get_result()
+      if version_id:
+        version = Version.get_by_id(version_id, parent=self.library.key)
+        if version is not None:
+          self.trigger_analysis(version_id, version.sha, transactional=False)
     else:
       versions = Version.query(Version.status == Status.ready, ancestor=self.library.key).fetch()
       for version in versions:
