@@ -195,12 +195,13 @@ class LibraryMetadata(object):
     bower = yield bower_future
     if bower is not None:
       bower_json = json.loads(bower.content)
-      dependencies = bower_json.get('dependencies', [])
+      dependencies = bower_json.get('dependencies', {})
       result['dependency_count'] = len(dependencies)
       result['bower'] = {
           'license': bower_json.get('license', ''),
           'dependencies': dependencies,
           'keywords': bower_json.get('keywords', []),
+          'demos': bower_json.get('demos', {}),
       }
       if result.get('description', '') == '':
         result['description'] = bower_json.get('description', '')

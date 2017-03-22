@@ -328,6 +328,10 @@
           <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
+            <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.title]]</span></a>
+            </template>
+
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
               <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
@@ -538,6 +542,7 @@
         this.dupedDemos = [];
         this.collections = null;
         this.docs = null;
+        this._bowerDemos = [];
       },
 
       _splitRoute: function() {
@@ -693,6 +698,13 @@
         this.fire('document-title', this.data.owner + '/' + this.data.repo);
         if (this.demo)
           this._showDemo();
+
+        var demos = [];
+        var bowerDemosNames = Object.keys(this.data.bower.demos || {});
+        for (var i = 0; i < bowerDemosNames.length; i++) {
+          demos.push({title: bowerDemosNames[i], path: this.data.bower.demos[bowerDemosNames[i]]});
+        }
+        this.set('_bowerDemos', demos);
       },
 
       _metaError: function(event, error) {
@@ -774,6 +786,11 @@
         var paths = Object.keys(demoCounts);
         if (paths.length == 1)
           demoCounts[paths[0]] = 2;
+
+        // Bower demos are already shown, mark them as dupes.
+        this._bowerDemos.forEach(function(demo) {
+          demoCounts[demo.path] = -1;
+        });
 
         this.bundledElements.forEach(dedupeDemos);
         this.bundledBehaviors.forEach(dedupeDemos);
