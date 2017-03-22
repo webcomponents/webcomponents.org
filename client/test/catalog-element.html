@@ -126,5 +126,35 @@
       });
     });
 
+    test('dedupeDemos()', function() {
+      elementPage = fixture('element-page');
+
+      function gen() {
+        var result = [];
+        for (var i = 0; i < arguments.length; i++)
+          result.push({path: arguments[i] + '.html'})
+        return result;
+      }
+
+      function genElement() {
+        return [{demos: gen.apply(null, arguments)}];
+      }
+
+      expect(elementPage._dedupeDemos([], [], [])).to.be.empty;
+      expect(elementPage._dedupeDemos(gen('a'), genElement('b'), genElement('c'))).to.be.empty;
+
+      var elements = genElement('b', 'c');
+      var behaviors = genElement('b');
+      expect(elementPage._dedupeDemos(gen('a'), elements, behaviors)).to.eql(gen('b'));
+      expect(elements).to.eql(genElement('c'));
+      expect(behaviors).to.eql(genElement());
+
+      elements = genElement('element', 'shared');
+      behaviors = genElement('bowera', 'shared', 'behavior');
+      expect(elementPage._dedupeDemos(gen('bowera', 'bowerb'), elements, behaviors)).to.eql(gen('shared'));
+      expect(elements).to.eql(genElement('element'));
+      expect(behaviors).to.eql(genElement('behavior'));
+    });
+
   });
 </script>
