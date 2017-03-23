@@ -328,6 +328,10 @@
           <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
+            <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.title]]</span></a>
+            </template>
+
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
               <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
             </template>
@@ -538,6 +542,7 @@
         this.dupedDemos = [];
         this.collections = null;
         this.docs = null;
+        this._bowerDemos = [];
       },
 
       _splitRoute: function() {
@@ -693,6 +698,13 @@
         this.fire('document-title', this.data.owner + '/' + this.data.repo);
         if (this.demo)
           this._showDemo();
+
+        var demos = [];
+        var bowerDemosNames = Object.keys(this.data.bower.demos || {});
+        for (var i = 0; i < bowerDemosNames.length; i++) {
+          demos.push({title: bowerDemosNames[i], path: this.data.bower.demos[bowerDemosNames[i]]});
+        }
+        this.set('_bowerDemos', demos);
       },
 
       _metaError: function(event, error) {
@@ -739,13 +751,13 @@
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         if (!this.dupedDemos || !this.dupedDemos.length)
-          this.dupedDemos = this._demos();
+          this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
         var content = this.docs.analysis || this.docs.content;
         this.descriptor = content.elementsByTagName[this.subElement] || content.behaviorsByName[this.subElement];
       },
 
-      _demos: function() {
+      _dedupeDemos: function(bowerDemos, elements, behaviors) {
         var demoCounts = {};
         var dupedDemos = [];
 
@@ -756,27 +768,35 @@
         }
 
         function dedupeDemos(element) {
-          for (var j = 0; j < element.demos.length; j++) {
+          var j = 0;
+          while (j < element.demos.length) {
             var demo = element.demos[j];
             if (demoCounts[demo.path] > 1) {
               dupedDemos.push(element.demos.splice(j, 1)[0]);
               demoCounts[demo.path] = -1;
             } else if (demoCounts[demo.path] == -1) {
               element.demos.splice(j, 1);
+            } else {
+              j++;
             }
           }
         }
 
-        this.bundledElements.forEach(countDemos);
-        this.bundledBehaviors.forEach(countDemos);
+        elements.forEach(countDemos);
+        behaviors.forEach(countDemos);
 
         // Show single demos at the top by marking them as a dupe.
         var paths = Object.keys(demoCounts);
         if (paths.length == 1)
           demoCounts[paths[0]] = 2;
 
-        this.bundledElements.forEach(dedupeDemos);
-        this.bundledBehaviors.forEach(dedupeDemos);
+        // Bower demos are already shown, mark them as dupes.
+        bowerDemos.forEach(function(demo) {
+          demoCounts[demo.path] = -1;
+        });
+
+        elements.forEach(dedupeDemos);
+        behaviors.forEach(dedupeDemos);
         return dupedDemos;
       },
 

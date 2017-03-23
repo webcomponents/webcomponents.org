@@ -253,10 +253,10 @@
       _initExample: function(example, data) {
         if (!example || !data)
           return;
-        var endScript = '/script>';
+        var endScript = 'script>';
         var source = [
           '<!-- START-HIDDEN-SECTION: Add imports and styling here. -->',
-          '<script src="../webcomponentsjs/webcomponents-lite.js"><' + endScript,
+          '<script src="../webcomponentsjs/webcomponents-lite.js"><' + '/'.toString() + endScript,
           '<link rel="import" href="' + data.repo + '.html">',
           '<!-- END-HIDDEN-SECTION: Add the visible part of the demo below. -->',
           '<' + data.repo + '>...</' + data.repo + '>',
