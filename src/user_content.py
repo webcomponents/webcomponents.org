@@ -12,9 +12,14 @@ class RedirectResource(webapp2.RequestHandler):
     self.redirect('/%s/%s/%s/%s' % (owner, repo, tag, path), permanent=True)
 
 class GetResource(webapp2.RequestHandler):
-  def get(self, owner, repo, tag, name, path):
+  def get(self, owner, repo, tag, name=None, path=None):
     self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.headers['Content-Type'] = 'application/json'
+
+    if name is None and path is None:
+      self.response.write('Invalid request. Try using a relative path if you are using an absolute path.')
+      self.response.set_status(400)
+      return
 
     owner = owner.lower()
     repo = repo.lower()
