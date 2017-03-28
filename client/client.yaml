@@ -50,14 +50,20 @@ handlers:
   upload: index.html
   static_files: index.html
   secure: always
+  application_readable: true
+- url: /elements?(/.*)?
+  script: bot-filter.app
+  secure: always
 - url: /(about|introduction|community|assets|polyfills|resources|libraries|specs|launch-announcement)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
-- url: /(author|collections?|elements?|search|preview|preview-integration|publish|publish-collection)(/.*)?
+  application_readable: true
+- url: /(author|collections?|search|preview|preview-integration|publish|publish-collection)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
+  application_readable: true
   # Legacy pathing redirects
 - url: /(articles|podcasts|presentations)(.*)
   script: client.app
