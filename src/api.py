@@ -202,6 +202,7 @@ class LibraryMetadata(object):
           'dependencies': dependencies,
           'keywords': bower_json.get('keywords', []),
           'demos': bower_json.get('demos', {}),
+          'pages': bower_json.get('pages', {}),
       }
       if result.get('description', '') == '':
         result['description'] = bower_json.get('description', '')

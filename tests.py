@@ -36,7 +36,8 @@ def main(sdk_path):
 
   test_path = os.path.dirname(sys.modules[__name__].__file__)
 
-  logging.disable(logging.CRITICAL)
+  logging.getLogger().setLevel(20)
+  # logging.disable(logging.CRITICAL)
 
   from colour_runner import runner
 

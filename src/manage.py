@@ -629,6 +629,8 @@ class IngestVersion(RequestHandler):
 
     self.update_readme()
     self.update_bower()
+    self.update_pages()
+    logging.error('trying to update pages')
     self.set_ready()
 
   def commit(self):
@@ -684,6 +686,31 @@ class IngestVersion(RequestHandler):
       return self.error("missing bower.json", ErrorCodes.Version_missing_bower)
     else:
       return self.retry('could not access bower.json (%d)' % response.status_code)
+
+  def update_pages(self):
+    bower = Content.get_by_id('bower', parent=self.version_key)
+    if bower is None:
+      return
+
+    bower_json = json.loads(bower.content)
+
+    for title, path in bower_json.get('pages', {}).iteritems():
+      id = 'page-' + path
+      response = util.github_get('repos', self.owner, self.repo, 'contents', params={'path': path, 'ref': self.sha})
+      if response.status_code == 200:
+        raw = base64.b64decode(json.loads(response.content)['content'])
+      elif response.status_code == 404:
+        raw = None
+      else:
+        return self.retry('error fetching page %s (%d)' % (path, response.status_code))
+
+      if raw is not None:
+        response = util.github_markdown(raw)
+        if response.status_code == 200:
+          Content(parent=self.version_key, id='page-' + path, content=response.content,
+                  status=Status.ready, etag=response.headers.get('ETag', None)).put()
+        else:
+          return self.retry('error converting page to markdown %s (%d)' % (path, response.status_code))
 
   def set_ready(self):
     self.version_object.status = Status.ready
