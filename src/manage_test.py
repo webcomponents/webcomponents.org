@@ -641,7 +641,7 @@ class IngestLibraryTest(ManageTestBase):
     self.respond_to_github(r'https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
     self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{"pages":{"custom doc":"doc.md"}}')
     self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
-    self.respond_to_github(r'https://api.github.com/repos/org/repo/contents\?path=doc\.md&ref=sha', '{"content":"%s"}' % b64encode('doc.md'))
+    self.respond_to_github(r'https://api.github.com/repos/org/repo/contents/doc.md\?ref=sha', '{"content":"%s", "type":"file"}' % b64encode('doc.md'))
     self.respond_to_github('https://api.github.com/markdown', '<html>doc.md</html>')
 
     response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})

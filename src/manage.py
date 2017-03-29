@@ -630,7 +630,6 @@ class IngestVersion(RequestHandler):
     self.update_readme()
     self.update_bower()
     self.update_pages()
-    logging.error('trying to update pages')
     self.set_ready()
 
   def commit(self):
@@ -696,16 +695,21 @@ class IngestVersion(RequestHandler):
 
     for title, path in bower_json.get('pages', {}).iteritems():
       id = 'page-' + path
-      response = util.github_get('repos', self.owner, self.repo, 'contents', params={'path': path, 'ref': self.sha})
+      response = util.github_get('repos', self.owner, self.repo, 'contents/' + path, params={'ref': self.sha})
+
       if response.status_code == 200:
-        raw = base64.b64decode(json.loads(response.content)['content'])
+        response_json = json.loads(response.content)
+        markdown = None
+        # Ensure a file was returned
+        if type(response_json) is dict and response_json.get('type') == 'file':
+          markdown = base64.b64decode(response_json.get('content'))
       elif response.status_code == 404:
-        raw = None
+        markdown = None
       else:
         return self.retry('error fetching page %s (%d)' % (path, response.status_code))
 
-      if raw is not None:
-        response = util.github_markdown(raw)
+      if markdown is not None:
+        response = util.github_markdown(markdown)
         if response.status_code == 200:
           Content(parent=self.version_key, id='page-' + path, content=response.content,
                   status=Status.ready, etag=response.headers.get('ETag', None)).put()
