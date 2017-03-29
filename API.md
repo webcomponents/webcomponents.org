@@ -28,6 +28,12 @@ Optionally, you can specify a specific version:
 GET /api/docs/:owner/:repo/:version
 ```
 
+## Get custom page for a component
+In cases where a component specificies custom markdown files, the corresponding HTML is served via this API. Note version is not optional. The paths can be discovered from the `meta` response.
+```
+GET /api/page/:owner/:repo/:version/:path
+```
+
 ## Get collection dependencies
 ```
 GET /api/dependencies/:owner/:repo

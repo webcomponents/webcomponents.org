@@ -435,7 +435,7 @@
             <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           </template>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" hidden="[[!_or(subElement, pagePath)]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -730,7 +730,7 @@
 
         this.set('_bowerDemos', objectToArray(this.data.bower.demos));
         this.set('_customPages', objectToArray(this.data.bower.pages));
-        // Can only trigger to ensure version is known & specified.
+        // Can only triggered after meta to ensure version is known & specified.
         if (this.pagePath)
           this.$.pageAjax.generateRequest();
       },
