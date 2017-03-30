@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 
+import re
 import versiontag
 
 class CollectionReference(ndb.Model):
@@ -167,6 +168,8 @@ class Dependency(object):
 
   @staticmethod
   def from_string(dep_string):
+    # Strip fully qualified URLs.
+    dep_string = re.sub(r'https://github\.com/(.*)\.git', r'\1', dep_string)
     bits = dep_string.split('#', 1)
     if len(bits) == 1:
       bits.append('*')
