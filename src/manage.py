@@ -693,15 +693,14 @@ class IngestVersion(RequestHandler):
 
     bower_json = json.loads(bower.content)
 
-    for title, path in bower_json.get('pages', {}).iteritems():
-      id = 'page-' + path
+    for _, path in bower_json.get('pages', {}).iteritems():
       response = util.github_get('repos', self.owner, self.repo, 'contents/' + path, params={'ref': self.sha})
 
       if response.status_code == 200:
         response_json = json.loads(response.content)
         markdown = None
         # Ensure a file was returned
-        if type(response_json) is dict and response_json.get('type') == 'file':
+        if isinstance(response_json, dict) and response_json.get('type') == 'file':
           markdown = base64.b64decode(response_json.get('content'))
       elif response.status_code == 404:
         markdown = None

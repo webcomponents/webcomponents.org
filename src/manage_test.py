@@ -647,7 +647,6 @@ class IngestLibraryTest(ManageTestBase):
     response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
-    version = Version.get_by_id('v1.0.0', parent=library_key)
     page = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'page-doc.md').get()
     self.assertEqual(page.content, '<html>doc.md</html>')
 

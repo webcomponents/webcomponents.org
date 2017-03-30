@@ -383,7 +383,7 @@ class GetPage(webapp2.RequestHandler):
 
     if page is None:
       self.response.set_status(404)
-      self.response.write('Cannot find page %s' % path);
+      self.response.write('Cannot find page %s' % path)
       return
 
     self.response.write(page.content)
