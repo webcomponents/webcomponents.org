@@ -1,4 +1,4 @@
-from datamodel import Library, Version, Status, VersionCache, CollectionReference
+from datamodel import Library, Version, Status, VersionCache, CollectionReference, Dependency
 
 from google.appengine.ext import ndb
 
@@ -78,3 +78,15 @@ class CollectionReferenceTests(TestBase):
     self.assertEqual(collection_keys, [
         collection_v2,
     ])
+
+class DependencyTests(TestBase):
+  def test_from_string(self):
+    dependency = Dependency.from_string('owner/repo')
+    self.assertEqual(dependency.owner, 'owner')
+    self.assertEqual(dependency.repo, 'repo')
+    self.assertEqual(dependency.version, '*')
+
+    dependency = Dependency.from_string('https://github.com/owner/repo.git#master')
+    self.assertEqual(dependency.owner, 'owner')
+    self.assertEqual(dependency.repo, 'repo')
+    self.assertEqual(dependency.version, 'master')
