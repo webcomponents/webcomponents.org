@@ -155,7 +155,7 @@
         text-transform: capitalize;
       }
 
-      .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after {
+      .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after, .sidebar-nav a.page-link:after {
         content: 'demo';
         text-transform: uppercase;
         font-weight: normal;
@@ -166,6 +166,10 @@
 
       .sidebar-nav a.api-link:after {
         content: 'api';
+      }
+
+      .sidebar-nav a.page-link:after {
+        content: 'doc';
       }
 
       collection-card {
@@ -308,6 +312,12 @@
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
+    <iron-ajax
+      id="pageAjax"
+      url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
+      handle-as="text"
+      last-response="{{_customPage}}"></iron-ajax>
+
     <lazy-block id="block"></lazy-block>
 
     <div id="container" hidden$="[[_hideMainContent]]">
@@ -334,6 +344,10 @@
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
               <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>[[demo.desc]]</span></a>
+            </template>
+
+            <template is="dom-repeat" items="[[_customPages]]" as="page">
+              <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.path]]"><span>[[page.title]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
@@ -416,9 +430,12 @@
           </div>
           <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
-          <h1 hidden="[[subElement]]">README.md</h1>
+          <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[subElement]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
+          </template>
+          <template is="dom-if" if="[[pagePath]]">
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -543,12 +560,14 @@
         this.collections = null;
         this.docs = null;
         this._bowerDemos = [];
+        this._customPages = [];
       },
 
       _splitRoute: function() {
         this.versionRoute = '';
         this.subElement = null;
         this.demo = null;
+        this.pagePath = null;
 
         var split = this.route.path.split('/');
         // Bug in app-route doesn't always have a leading /
@@ -567,6 +586,10 @@
           if (split[split.length - 1] == '')
             split[split.length - 1] = 'index.html';
           this.demo = split.join('/');
+          split = [];
+        } else if (split.length && split[0] == 'page') {
+          split.shift();
+          this.pagePath = split.join('/');
           split = [];
         }
 
@@ -682,6 +705,12 @@
       },
 
       _metaResponse: function() {
+        function objectToArray(object) {
+          return Object.keys(object || {}).map(function(title) {
+            return {title: title, path: object[title]};
+          });
+        }
+
         if (this.data.status == 'pending') {
           this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 500);
           return;
@@ -699,12 +728,22 @@
         if (this.demo)
           this._showDemo();
 
-        var demos = [];
-        var bowerDemosNames = Object.keys(this.data.bower.demos || {});
-        for (var i = 0; i < bowerDemosNames.length; i++) {
-          demos.push({title: bowerDemosNames[i], path: this.data.bower.demos[bowerDemosNames[i]]});
+        this.set('_bowerDemos', objectToArray(this.data.bower.demos));
+        this.set('_customPages', objectToArray(this.data.bower.pages));
+        // Can only triggered after meta to ensure version is known & specified.
+        if (this.pagePath)
+          this.$.pageAjax.generateRequest();
+      },
+
+      _pageTitle: function(pages, pagePath) {
+        if (!pagePath)
+          return 'README.md';
+        for (var i = 0; i < pages.length; i++) {
+          if (pages[i].path == pagePath) {
+            return pages[i].title;
+          }
         }
-        this.set('_bowerDemos', demos);
+        return pagePath;
       },
 
       _metaError: function(event, error) {

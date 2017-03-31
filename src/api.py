@@ -202,6 +202,7 @@ class LibraryMetadata(object):
           'dependencies': dependencies,
           'keywords': bower_json.get('keywords', []),
           'demos': bower_json.get('demos', {}),
+          'pages': bower_json.get('pages', {}),
       }
       if result.get('description', '') == '':
         result['description'] = bower_json.get('description', '')
@@ -364,6 +365,28 @@ class GetDocs(webapp2.RequestHandler):
 
     self.response.headers['Content-Type'] = 'application/json'
     self.response.write(json.dumps(result))
+
+
+class GetPage(webapp2.RequestHandler):
+  @ndb.toplevel
+  def get(self, owner, repo, ver, path):
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+
+    version_key = ndb.Key(Library, Library.id(owner, repo), Version, ver)
+
+    if version_key is None:
+      self.response.set_status(404)
+      self.response.write('Invalid repo/version')
+      return
+
+    page = Content.get_by_id('page-' + path, parent=version_key, read_policy=ndb.EVENTUAL_CONSISTENCY)
+
+    if page is None:
+      self.response.set_status(404)
+      self.response.write('Cannot find page %s' % path)
+      return
+
+    self.response.write(page.content)
 
 class GetAuthor(webapp2.RequestHandler):
   @ndb.toplevel
@@ -642,6 +665,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/api/meta/<owner>/<repo>/<ver>', handler=GetMetadata),
     webapp2.Route(r'/api/docs/<owner>/<repo>', handler=GetDocs),
     webapp2.Route(r'/api/docs/<owner>/<repo>/<ver>', handler=GetDocs),
+    webapp2.Route(r'/api/page/<owner>/<repo>/<ver>/<path:.*>', handler=GetPage),
     webapp2.Route(r'/api/dependencies/<owner>/<repo>', handler=GetDependencies),
     webapp2.Route(r'/api/dependencies/<owner>/<repo>/<version>', handler=GetDependencies),
     webapp2.Route(r'/api/collections/<owner>/<repo>', handler=GetCollections),

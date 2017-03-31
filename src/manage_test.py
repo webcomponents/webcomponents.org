@@ -634,6 +634,22 @@ class IngestLibraryTest(ManageTestBase):
     self.assertIsNotNone(library.error)
     self.assertEqual(library.status, Status.error)
 
+  def test_ingest_version_pages(self):
+    library_key = Library(id='org/repo', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
+    Version(id='v1.0.0', parent=library_key, sha='sha').put()
+
+    self.respond_to_github(r'https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
+    self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{"pages":{"custom doc":"doc.md"}}')
+    self.respond_to_github('https://api.github.com/markdown', '<html>README</html>')
+    self.respond_to_github(r'https://api.github.com/repos/org/repo/contents/doc.md\?ref=sha', '{"content":"%s", "type":"file"}' % b64encode('doc.md'))
+    self.respond_to_github('https://api.github.com/markdown', '<html>doc.md</html>')
+
+    response = self.app.get(util.ingest_version_task('org', 'repo', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    page = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'page-doc.md').get()
+    self.assertEqual(page.content, '<html>doc.md</html>')
+
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):
     metadata = """{
