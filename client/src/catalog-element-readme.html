@@ -254,6 +254,21 @@
           links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/' + defaultBranch + '/$1'));
       },
 
+      attached: function() {
+        if (this.data && this.readme)
+          this._setMetaImage();
+      },
+
+      _setMetaImage: function() {
+        var images = Polymer.dom(this.$.contents).querySelectorAll('img');
+        for (var i = 0; i < images.length; i++) {
+          if (images[i].src.match(/(png|jpg|jpeg)/)) {
+            this.fire('meta-set', {property: 'og:image', content: images[i].src});
+            return;
+          }
+        }
+      },
+
       _loadDemos: function(docsPending) {
         if (docsPending)
           return;

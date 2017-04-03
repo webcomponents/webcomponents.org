@@ -26,6 +26,7 @@
     "third_party/octicons/sprite.octicons.svg",
     "client.yaml",
     "client.py",
-    "robots.txt"
+    "robots.txt",
+    "bot-filter.py"
   ]
 }
