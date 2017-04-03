@@ -817,10 +817,12 @@
       },
 
       _onMetaSet: function(event) {
-        var element = document.head.querySelector('meta[property="' + event.detail.property + '"]');
+        var key = event.detail.key;
+        var value = event.detail.value;
+        var element = document.head.querySelector('meta[' + key + '="' + value + '"]');
         if (!element) {
           element = document.createElement('meta');
-          element.setAttribute('property', event.detail.property);
+          element.setAttribute(key, value);
           document.head.appendChild(element);
         }
         element.setAttribute('content', event.detail.content);

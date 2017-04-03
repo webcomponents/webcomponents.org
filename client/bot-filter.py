@@ -6,8 +6,8 @@ import re
 
 class FilterUserAgent(webapp2.RequestHandler):
   def get(self, path):
-    filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator';
-    filter = re.search(filtered, str(self.request.headers['User-Agent']))
+    filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|slackbot';
+    filter = re.search(filtered, str(self.request.headers['User-Agent']), flags=re.IGNORECASE)
 
     if filter:
       try:
