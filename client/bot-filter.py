@@ -6,21 +6,14 @@ import re
 
 class FilterUserAgent(webapp2.RequestHandler):
   def get(self, path):
-    filtered = ['Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)']
-    agent = str(self.request.headers['User-Agent'])
-    filter = False
-    for filter in filtered:
-      if agent.find(filter) is not -1:
-        filter = True
+    filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator';
+    filter = re.search(filtered, str(self.request.headers['User-Agent']))
 
-    ## TODO
-    filter = True
     if filter:
       try:
         # Set deadline for fetch to 10 seconds
         urlfetch.set_default_fetch_deadline(20)
-        url = 'https://dynamic-meta.appspot.com'
-        result = urlfetch.fetch('https://bot-render.appspot.com/?url=%s' % url)
+        result = urlfetch.fetch('https://bot-render.appspot.com/?url=%s' % self.request.url)
         if result.status_code == 200:
           self.response.write(result.content)
         else:
@@ -37,4 +30,4 @@ class FilterUserAgent(webapp2.RequestHandler):
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/<:.*>', handler=FilterUserAgent),
-], debug=True)
+], debug=False)
