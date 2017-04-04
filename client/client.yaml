@@ -51,7 +51,7 @@ handlers:
   static_files: index.html
   secure: always
   application_readable: true
-- url: /elements?(/.*)?
+- url: /(elements?|author|collections?)(/.*)?
   script: bot-filter.app
   secure: always
 - url: /(about|introduction|community|assets|polyfills|resources|libraries|specs|launch-announcement)(/.*)?
@@ -59,7 +59,7 @@ handlers:
   static_files: index.html
   secure: always
   application_readable: true
-- url: /(author|collections?|search|preview|preview-integration|publish|publish-collection)(/.*)?
+- url: /(search|preview|preview-integration|publish|publish-collection)(/.*)?
   upload: index.html
   static_files: index.html
   secure: always
