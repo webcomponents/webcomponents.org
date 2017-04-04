@@ -39,7 +39,7 @@ wct --skip-plugin sauce
 ```
 
 ### Deploying to staging
-Staging is automatically updated by travis on a successful build.
+After a PR is merged for a client change, staging is automatically updated by travis on a successful build.
 
 ### Deploying to prod
 ```bash

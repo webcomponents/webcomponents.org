@@ -27,7 +27,7 @@ The following dependencies are required to develop, test and/or deploy www.webco
 - bower ("npm install -g bower") - required for Client
 - grunt ("npm install -g grunt") - required for running lint
 
-# Dependencies
+## Installing dependencies
 ```bash
 npm install
 ```
