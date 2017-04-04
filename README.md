@@ -8,14 +8,14 @@
   <a href="https://gitter.im/webcomponents/community"><img src="https://img.shields.io/gitter/room/webcomponents/community.svg?maxAge=2592000&style=flat-square"></a>
 </p>
 
-# Publishing elements
+## Publishing elements
 Please refer to the publishing guide on how to [submit elements](https://www.webcomponents.org/publish) & [collections](https://www.webcomponents.org/publish-collection).
 
-# Publishing articles
+## Publishing articles
 For publishing community content like articles & presentations, see [webcomponents/community](https://github.com/webcomponents/community).
 
-# Using the webcomponents.org API
+## Using the webcomponents.org API
 Please read the [documentation and guide](API.md) on using the API.
 
-# Contributing
+## Contributing
 Please refer to the [contributing guide](CONTRIBUTING.md).

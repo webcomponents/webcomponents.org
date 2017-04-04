@@ -1,6 +1,6 @@
 ## Front-end client
 
-Please also refer to the main [contributing guide](../contributing.md).
+Please also refer to the main [contributing guide](/CONTRIBUTING.md).
 
 ### Installing
 Running the client requires Google App Engine, which can be installed using the [Google Cloud SDK](https://cloud.google.com/sdk/docs/).
