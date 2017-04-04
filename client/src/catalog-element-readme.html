@@ -262,9 +262,14 @@
       _setMetaImage: function() {
         var images = Polymer.dom(this.$.contents).querySelectorAll('img');
         for (var i = 0; i < images.length; i++) {
-          if (images[i].src.match(/(png|jpg|jpeg)/)) {
-            this.fire('meta-set', {property: 'og:image', content: images[i].src});
+          var src = images[i].getAttribute('data-canonical-src') || images[i].getAttribute('src');
+          if (src.match(/\.(png|jpg|jpeg)/)) {
+            this.fire('meta-set', {key: 'property', value: 'og:image', content: src});
+            this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary_large_image'});
             return;
+          } else if (src.match(/\.(gif|webp)/)) {
+            this.fire('meta-set', {key: 'name', value: 'twitter:image', content: src});
+            this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary_large_image'});
           }
         }
       },

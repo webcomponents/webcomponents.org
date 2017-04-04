@@ -734,11 +734,12 @@
         if (this.pagePath)
           this.$.pageAjax.generateRequest();
 
-        this.fire('meta-set', {property: 'og:title', content: this.data.owner + '/' + this.data.repo + ' (' + this.data.version + ')'});
-        this.fire('meta-set', {property: 'og:type', content: 'website'});
-        this.fire('meta-set', {property: 'og:description', content: this.data.description});
-        this.fire('meta-set', {property: 'og:url', content: document.location.href});
-        this.fire('meta-set', {property: 'og:image', content: this.data.avatar_url});
+        this.fire('meta-set', {key: 'property', value: 'og:title', content: this.data.owner + '/' + this.data.repo + ' (' + this.data.version + ')'});
+        this.fire('meta-set', {key: 'property', value: 'og:type', content: 'website'});
+        this.fire('meta-set', {key: 'property', value: 'og:description', content: this.data.description});
+        this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
+        this.fire('meta-set', {key: 'property', value: 'og:image', content: this.data.avatar_url});
+        this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
       },
 
       _pageTitle: function(pages, pagePath) {
