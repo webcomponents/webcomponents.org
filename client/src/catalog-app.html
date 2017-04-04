@@ -817,6 +817,8 @@
       },
 
       _onMetaSet: function(event) {
+        if (!event.detail.content)
+          return;
         var key = event.detail.key;
         var value = event.detail.value;
         var element = document.head.querySelector('meta[' + key + '="' + value + '"]');
