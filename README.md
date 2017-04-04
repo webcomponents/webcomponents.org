@@ -10,18 +10,30 @@
 ---
 
 
+# Publishing elements
+Please refer to the publishing guide on how to [submit elements](https://www.webcomponents.org/publish) & [collections](https://www.webcomponents.org/publish-collection).
 
-The webcomponents.org site.
+# Publishing articles
+For publishing community content like articles & presentations, see [webcomponents/community](https://github.com/webcomponents/community).
 
+# Using the webcomponents.org API
+Please read the [documentation and guide](/API.md) on using the API.
+
+# Contributing
+
+
+## Architecture
 It consists of multiple Appengine services and requires gcloud for most development.
 
-At a high-level, the services are
+At a high-level, the services are:
+- Client, a Polymer web app that provides the user interface and consumes data from Api.
 - Manage, a Python service dealing with ingestion and management of ingested data from Bower, Github and Analysis.
 - Api, a Python service providing a REST api used by Client to access data from Manage.
-- Client, a Polymer web app that provides the user interface and consumes data from Api.
 - Analysis, a node.js service that performs slower analysis on ingested elements, using Bower and Hydrolysis.
 
-# System-level dependencies
+## Installing
+
+### System-level dependencies
 The following dependencies are required to develop, test and/or deploy www.webcomponents.org
 - gcloud SDK (https://cloud.google.com/sdk/downloads#versioned) - needed for ALL services
 - node.js (and npm) (https://nodejs.org/en/download/) - needed for ALL services

@@ -1,5 +1,7 @@
 # Analysis
 
+Please also refer to the main [contributing guide](../contributing.md).
+
 ## Setup
 Install the gcloud SDK from https://cloud.google.com/sdk/downloads#versioned
 
