@@ -467,7 +467,7 @@
 
           <div id="tag-list">
             <template is="dom-repeat" items="[[_tagList(7)]]">
-              <a href="#" on-click="_searchTag">[[item]]</a>
+              <a href$="/search/[[item]]" on-click="_searchTag">[[item]]</a>
             </template>
           </div>
         </div>
@@ -760,6 +760,8 @@
       _searchTag: function(event) {
         this.fire('event', {category: 'Search', action: 'tag'});
         this.fire('triggerSearch', {query: event.target.textContent});
+        if (!event.metaKey)
+          event.preventDefault();
       },
 
       _openSearch: function() {
