@@ -7,7 +7,7 @@ import re
 class FilterUserAgent(webapp2.RequestHandler):
   def get(self, path):
     filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|slackbot';
-    filter = re.search(filtered, str(self.request.headers['User-Agent']), flags=re.IGNORECASE)
+    filter = re.search(filtered, str(self.request.headers.get('User-Agent', '')), flags=re.IGNORECASE)
 
     if filter:
       try:
@@ -16,9 +16,9 @@ class FilterUserAgent(webapp2.RequestHandler):
         result = urlfetch.fetch('https://bot-render.appspot.com/?url=%s' % self.request.url)
         if result.status_code == 200:
           self.response.write(result.content)
+          return
         else:
-          self.response.status_code = result.status_code
-        return
+          logging.error('Bot-render failed with status %d and content %s', result.status_code, result.content)
       except urlfetch.Error:
         logging.exception('Caught exception fetching url')
 
