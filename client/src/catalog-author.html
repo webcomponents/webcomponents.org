@@ -17,7 +17,7 @@
       url="[[baseUrls.api]]/api/meta/[[author]]"
       handle-as="json"
       last-response="{{_metadata}}"
-      on-response="_updateLoading"
+      on-response="_metaResponse"
       on-error="_metaError"></iron-ajax>
 
     <div>
@@ -76,6 +76,18 @@
 
       _updateLoading: function() {
         this.loading = this.$.metaAjax.loading;
+      },
+
+      _metaResponse: function() {
+        this._updateLoading();
+        this.fire('meta-set', {key: 'property', value: 'og:title', content: this._metadata.name + ' @' + this._metadata.login});
+        this.fire('meta-set', {key: 'property', value: 'og:type', content: 'profile'});
+        this.fire('meta-set', {key: 'property', value: 'og:description', content: this._metadata.bio});
+        this.fire('meta-set', {key: 'property', value: 'profile:first_name', content: this._metadata.name});
+        this.fire('meta-set', {key: 'property', value: 'profile:username', content: this._metadata.login});
+        this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
+        this.fire('meta-set', {key: 'property', value: 'og:image', content: this._metadata.avatar_url});
+        this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
       },
 
       _metaError: function(event, error) {

@@ -152,6 +152,13 @@
           this.fire('error', {title: 'Invalid request', message: 'Not an collection, appears to be a ' + this._metadata.kind});
           return;
         }
+
+        this.fire('meta-set', {key: 'property', value: 'og:title', content: this._metadata.owner + '/' + this._metadata.repo});
+        this.fire('meta-set', {key: 'property', value: 'og:type', content: 'website'});
+        this.fire('meta-set', {key: 'property', value: 'og:description', content: this._metadata.description});
+        this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
+        this.fire('meta-set', {key: 'property', value: 'og:image', content: this._metadata.avatar_url});
+        this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
       },
     });
   </script>
