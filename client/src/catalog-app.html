@@ -481,18 +481,18 @@
     </paper-toast>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" on-loading="_updateLoading" on-loaded="_updateLoading" role="main">
-      <catalog-home name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
-      <catalog-author name="author" base-urls="[[baseUrls(queryParams)]]" author="[[_filter('/author', subroute.prefix, subroute.path, '^\/')]]"></catalog-author>
-      <catalog-collection name="collection" base-urls="[[baseUrls(queryParams)]]" collection="[[_filter('/collection', subroute.prefix, subroute.path, '^\/')]]"></catalog-collection>
-      <catalog-element name="element" route="{{subroute}}" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
-      <catalog-preview-integration name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
-      <catalog-preview name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
-      <catalog-publish name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
-      <catalog-publish-collection name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
-      <catalog-search name="search" query="[[_filter('/search', subroute.prefix, subroute.path, '^\/')]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="elements" page-title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-search name="collections" page-title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
-      <catalog-error name="error" id="error"></catalog-error>
+      <catalog-home unresolved name="home" base-urls="[[baseUrls(queryParams)]]"></catalog-home>
+      <catalog-author unresolved name="author" base-urls="[[baseUrls(queryParams)]]" author="[[_filter('/author', subroute.prefix, subroute.path, '^\/')]]"></catalog-author>
+      <catalog-collection unresolved name="collection" base-urls="[[baseUrls(queryParams)]]" collection="[[_filter('/collection', subroute.prefix, subroute.path, '^\/')]]"></catalog-collection>
+      <catalog-element unresolved name="element" route="{{subroute}}" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-element>
+      <catalog-preview-integration unresolved name="preview-integration" query-params="{{queryParams}}" base-urls="[[baseUrls(queryParams)]]"></catalog-preview-integration>
+      <catalog-preview unresolved name="preview" base-urls="[[baseUrls(queryParams)]]"></catalog-preview>
+      <catalog-publish unresolved name="publish" path="[[subroute.path]]" base-urls="[[baseUrls(queryParams)]]"></catalog-publish>
+      <catalog-publish-collection unresolved name="publish-collection" base-urls="[[baseUrls(queryParams)]]"></catalog-publish-collection>
+      <catalog-search unresolved name="search" query="[[_filter('/search', subroute.prefix, subroute.path, '^\/')]]" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search unresolved name="elements" page-title="Browse elements" query="kind:element" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-search unresolved name="collections" page-title="Browse collections" query="kind:collection" base-urls="[[baseUrls(queryParams)]]"></catalog-search>
+      <catalog-error unresolved name="error" id="error"></catalog-error>
 
       <catalog-static name="about" page-title="About webcomponents.org"></catalog-static>
       <catalog-static name="assets" page-title="webcomponents.org assets"></catalog-static>
@@ -669,7 +669,18 @@
           var selectedItem = this.$.pages.selectedItem;
           if (!selectedItem)
             selectedItem = Polymer.dom(this.$.pages).querySelector('[name=' + page + ']');
+
+          if (selectedItem.getAttribute('unresolved') == null) {
+            this._pageReady();
+            return;
+          }
+
           var element = selectedItem.tagName.toLowerCase();
+          selectedItem.removeAttribute('unresolved');
+          // TODO(samli): Remove once switch is complete
+          if (element == 'catalog-element' && this.queryParams && 'analyzer' in this.queryParams)
+            element = 'catalog-element-analyzer';
+
           this.importHref(
             this.resolveUrl(element + '.html'), this._pageReady, null, true);
         }

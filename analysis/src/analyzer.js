@@ -28,9 +28,14 @@ class AnalyzerRunner {
 
       if (inputs == null || inputs.length === 0) {
         resolve({});
+        // TODO: fall back to package analysis
       } else {
         Promise.all(inputs.map((i) => analyzer.analyze(i))).then(function(documents) {
-          resolve(generateAnalysis(documents, ''));
+          var allDocuments = [];
+          documents.forEach(function(doc) {
+            allDocuments = allDocuments.concat(Array.from(doc.getByKind('document', {imported: true, externalPackages: false})));
+          });
+          resolve(generateAnalysis(allDocuments, ''));
         }).catch(function(error) {
           Ana.fail('analyzer/analyze', inputs, error);
           var fatal = error.code && fatalErrorCodes.indexOf(error.code) != -1;
