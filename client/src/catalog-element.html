@@ -432,10 +432,10 @@
 
           <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
           <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!_dependenciesReady(docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           </template>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!_dependenciesReady(docs)]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -768,6 +768,10 @@
           return;
         this.$.block.unblock();
         this._lazyUnblocked = true;
+      },
+
+      _dependenciesReady: function(docs) {
+        return docs && docs.status == 'ready';
       },
 
       _docsResponse: function() {
