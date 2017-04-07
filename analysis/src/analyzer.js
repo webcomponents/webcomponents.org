@@ -13,12 +13,12 @@ const PackageUrlResolver = require('polymer-analyzer/lib/url-loader/package-url-
 const fatalErrorCodes = ['ENOENT'];
 
 class AnalyzerRunner {
-  analyze(inputs) {
+  analyze(root, inputs) {
     return new Promise((resolve, reject) => {
       Ana.log('analyzer/analyze', inputs);
 
       const analyzer = new Analyzer({
-        urlLoader: new FSUrlLoader('/'),
+        urlLoader: new FSUrlLoader(root),
         urlResolver: new PackageUrlResolver(),
       });
 

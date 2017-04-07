@@ -1,6 +1,7 @@
 'use strict';
 
 const Ana = require('./ana_log');
+const path = require('path');
 
 /**
  * Encapsulates the processing of each task.
@@ -46,9 +47,11 @@ class Analysis {
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
       }).then(mainHtmlPaths => {
+        const root = path.resolve(process.cwd(), 'bower_components', attributes.repo);
+        var relativePaths = mainHtmlPaths.map(x => path.relative(root, x));
         return Promise.all([
           this.hydrolysis.analyze(mainHtmlPaths),
-          this.analyzer.analyze(mainHtmlPaths),
+          this.analyzer.analyze(root, relativePaths),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = results[0];
