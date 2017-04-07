@@ -352,7 +352,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.is]]"><span>&lt;[[element.is]]&gt;</span></a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
 
               <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
@@ -743,8 +743,7 @@
         if (!this.dupedDemos || !this.dupedDemos.length)
           this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
         this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
-        // var content = this.docs.analysis || this.docs.content;
-        // this.descriptor = content.elementsByTagName[this.subElement] || content.behaviorsByName[this.subElement];
+        // TODO(samli): find matching descriptor for this.subElement
       },
 
       _elements: function() {
