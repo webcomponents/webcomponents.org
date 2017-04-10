@@ -34,16 +34,16 @@ describe('AnalyzerRunner', function() {
 
   it('includes imported files but not external packages', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/app-layout'), ['app-layout.html']).then(function(result) {
+    return analyzer.analyze(path.resolve(__dirname, 'resources/meta-repo'), ['import-more.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
-      expect(result.elements).to.have.lengthOf(8);
+      expect(result.elements).to.have.lengthOf(2);
 
       expect(result).to.have.property('metadata');
       expect(result.metadata).to.have.property('polymer');
       expect(result.metadata.polymer).to.have.property('behaviors');
       expect(result.metadata.polymer.behaviors).to.have.lengthOf(1);
-      expect(result.metadata.polymer.behaviors[0]).to.have.property('name', 'Polymer.AppScrollEffectsBehavior');
+      expect(result.metadata.polymer.behaviors[0]).to.have.property('name', 'Polymer.MyBehavior');
     });
   });
 });
