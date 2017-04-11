@@ -314,6 +314,7 @@
 
     <iron-ajax
       id="pageAjax"
+      loading="{{_customPageLoading}}"
       url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
       handle-as="text"
       last-response="{{_customPage}}"></iron-ajax>
@@ -431,11 +432,9 @@
           <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
           <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
-          <template is="dom-if" if="[[data]]">
             <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!_dependenciesReady(docs)]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
-          </template>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!_dependenciesReady(docs)]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+            <catalog-element-readme data="[[data]]" docs-pending="[[!_dependenciesReady(docs)]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading$="[[_customPageLoading]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -619,7 +618,11 @@
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
           this.debounce('_updatePath', this._updatePath);
+        } else {
+          if (this.pagePath)
+            this.$.pageAjax.generateRequest();
         }
+
 
         this._updateDescriptor();
       },

@@ -5,6 +5,10 @@
   <link rel="import" type="css" href="../bower_components/github-markdown-css/github-markdown.css">
   <template>
     <style>
+      :host {
+        display: block;
+      }
+
       /** Readme.md override */
       .markdown-body .anchor {
         margin-left: 0;
@@ -179,6 +183,11 @@
         shorten: {
           type: Boolean,
           reflectToAttribute: true,
+          value: false,
+        },
+
+        _showExpand: {
+          type: Boolean,
           value: false,
         },
       },
