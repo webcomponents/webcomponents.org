@@ -618,9 +618,8 @@
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
           this.debounce('_updatePath', this._updatePath);
-        } else {
-          if (this.pagePath)
-            this.$.pageAjax.generateRequest();
+        } else if (this.pagePath) {
+          this.$.pageAjax.generateRequest();
         }
 
         this._updateDescriptor();
