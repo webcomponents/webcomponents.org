@@ -1,18 +1,24 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="catalog-styles.html">
-
 <dom-module id="browser-table">
   <template>
-    <style include="catalog-styles"></style>
     <style>
+      a {
+        text-decoration: none;
+      }
+
       #container {
         display: flex;
         flex-direction: column;
         text-transform: uppercase;
         padding: 0 24px;
-        color: var(--theme-blue-grey);
+        color: var(--theme-blue-grey, #697785);
         font-size: 14px;
+        width: 100%;
+        border-radius: 4px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 1px 4px 0 var(--shadow-color, hsla(0, 0%, 0%, 0.1)), 0 0px 4px 0 var(--shadow-color, hsla(0, 0%, 0%, 0.1));
       }
 
       /* Header row */
@@ -34,9 +40,11 @@
 
       .header h1 {
         flex: 0 0 170px;
-        margin-right: 16px;
-        margin-bottom: 0;
         text-transform: none;
+        font-size: 24px;
+        font-weight: normal;
+        margin: 0 16px 0 0;
+        color: var(--theme-black, #2D2F31);
       }
 
       .header img {
@@ -56,7 +64,7 @@
       div[label] svg {
         width: 26px;
         margin-right: 8px;
-        fill: var(--theme-blue-grey);
+        fill: var(--theme-blue-grey, #697785);
       }
 
       div[label]:after {
@@ -192,7 +200,7 @@
       }
     </style>
 
-    <div id="container" class="box">
+    <div id="container">
       <div class="header">
         <h1 label>Browser support</h1>
         <div class="row">
@@ -206,12 +214,12 @@
             <span>Opera</span>
           </div>
           <div>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Mozilla_Firefox_logo_2013.svg/48px-Mozilla_Firefox_logo_2013.svg.png">
-            <span>Firefox</span>
-          </div>
-          <div>
             <img src="https://upload.wikimedia.org/wikipedia/en/6/61/Apple_Safari.png">
             <span>Safari</span>
+          </div>
+          <div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Mozilla_Firefox_logo_2013.svg/48px-Mozilla_Firefox_logo_2013.svg.png">
+            <span>Firefox</span>
           </div>
           <div>
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Microsoft_Edge_logo.svg/48px-Microsoft_Edge_logo.svg.png">
@@ -223,36 +231,19 @@
         <div label="Templates"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#template"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/5207287069147136"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5207287069147136"></a>
-        <a title="Stable" href="https://platform-status.mozilla.org/#html-templates"></a>
         <a title="Stable" href="https://webkit.org/status/#feature-template-element"></a>
+        <a title="Stable" href="https://platform-status.mozilla.org/#html-templates"></a>
         <a title="Stable" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/templateelement/"></a>
-      </div>
-      <div class="row">
-        <div label="Imports"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
-        <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
-        <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
-        <a href="https://platform-status.mozilla.org/#html-imports">
-          <div title="Polyfill"></div>
-          <div title="On hold"></div>
-        </a>
-        <div>
-          <div title="Polyfill"></div>
-          <div title="On hold"></div>
-        </div>
-        <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/htmlimports/">
-          <div title="Polyfill"></div>
-          <div title="Under consideration"></div>
-        </a>
       </div>
       <div class="row">
         <div label="Custom elements"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#element"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/4696261944934400"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4696261944934400"></a>
+        <a title="Stable" href="https://webkit.org/status/#feature-custom-elements"></a>
         <a href="https://platform-status.mozilla.org/#custom-elements">
           <div title="Polyfill"></div>
           <div title="Developing"></div>
         </a>
-        <a title="Stable" href="https://webkit.org/status/#feature-custom-elements"></a>
         <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/customelements/">
           <div title="Polyfill"></div>
           <div title="Under consideration"></div>
@@ -262,12 +253,29 @@
         <div label="Shadow DOM"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#shadow"></use></svg></div>
         <a title="Stable" href="https://www.chromestatus.com/feature/4667415417847808"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4667415417847808"></a>
+        <a title="Stable" href="https://webkit.org/status/#feature-shadow-dom"></a>
         <a href="https://platform-status.mozilla.org/#shadow-dom">
           <div title="Polyfill"></div>
           <div title="Developing"></div>
         </a>
-        <a title="Stable" href="https://webkit.org/status/#feature-shadow-dom"></a>
         <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/shadowdom/">
+          <div title="Polyfill"></div>
+          <div title="Under consideration"></div>
+        </a>
+      </div>
+      <div class="row">
+        <div label="Imports"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
+        <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
+        <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
+        <a href="https://webkit.org/status/#feature-html-imports">
+          <div title="Polyfill"></div>
+          <div title="On hold"></div>
+        </a>
+        <a href="https://platform-status.mozilla.org/#html-imports">
+          <div title="Polyfill"></div>
+          <div title="On hold"></div>
+        </a>
+        <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/htmlimports/">
           <div title="Polyfill"></div>
           <div title="Under consideration"></div>
         </a>
