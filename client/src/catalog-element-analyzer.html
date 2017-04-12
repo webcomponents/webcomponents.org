@@ -1,0 +1,954 @@
+<!-- Replacement for <catalog-element> to be compatible with analyzer -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="catalog-styles.html">
+<link rel="import" href="catalog-api-doc.html">
+<link rel="import" href="catalog-element-readme.html">
+<link rel="import" href="collection-card.html">
+<link rel="import" href="github-info.html">
+<link rel="import" href="page-loading-behavior.html">
+<link rel="import" href="lazy-block.html">
+
+<dom-module id="catalog-element">
+  <template>
+    <style include="catalog-styles"></style>
+    <style>
+      .title {
+        align-items: flex-end;
+        margin-bottom: 8px;
+      }
+
+      .sidebar {
+        order: 0;
+        margin: 0 40px 0 0;
+      }
+
+      h1.page-title {
+        margin-bottom: 0;
+      }
+
+      #github-action-group > * {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      #github-action-group > *:hover {
+        background: hsl(0, 0%, 98%);
+      }
+
+      #github-action-group svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+      }
+
+      #github-view-button svg {
+        fill: hsl(0, 0%, 20%);
+      }
+
+      #star-button {
+        line-height: 1em;
+      }
+
+      #star-button svg {
+        stroke: hsl(0, 0%, 45%);
+        fill: transparent;
+        cursor: pointer;
+        transition: fill 150ms, stroke 50ms;
+      }
+
+      #star-button:hover svg, #star-button[starred] svg {
+        fill: #f3b70b;
+        stroke: #f3b70b;
+      }
+
+      #star-button > div:after {
+        content: 'Requires authentication';
+        display: block;
+        font-weight: normal;
+        color: var(--theme-blue-grey);
+        font-size: 14px;
+      }
+
+      #version-select, .version-sha {
+        margin-left: 8px;
+        margin-bottom: 1px;
+        font-size: 24px;
+        line-height: 33px;
+        display: inline-block;
+        max-width: 200px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: hsl(0, 0%, 45%);
+        word-wrap: normal;
+        border: none;
+        background: transparent;
+        font-family: 'Source Sans Pro', sans-serif;
+      }
+
+      #version-select:not([latest]) {
+        color: hsl(355, 65%, 54%);
+      }
+
+      #version-select:not([latest]) option {
+        color: var(--theme-black);
+      }
+
+      #version-select option[latest] {
+        color: hsl(95, 38%, 37%);
+      }
+
+      #repo-desc {
+        font-size: 24px;
+        line-height: 24px;
+        margin: 0;
+      }
+
+      /* Repo info */
+      #info-dependencies {
+        line-height: 32px;
+      }
+
+      #info-dependencies .owner {
+        display: none;
+      }
+
+      /* Sidebar */
+      .body > .sidebar > * {
+        margin-bottom: 24px;
+      }
+
+      #sidebar-spinner {
+        position: absolute;
+        margin: 14px 0 0 20px;
+        z-index: 10;
+      }
+
+      .sidebar-nav a span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 185px;
+      }
+
+      .sidebar-nav[collapse] .element-demos {
+        overflow: hidden;
+        display: none;
+      }
+
+      .sidebar-nav[collapse] a[active] + .element-demos {
+        display: block;
+      }
+
+      .sidebar-nav a span {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sidebar-nav a.demo-link {
+        text-transform: capitalize;
+      }
+
+      .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after, .sidebar-nav a.page-link:after {
+        content: 'demo';
+        text-transform: uppercase;
+        font-weight: normal;
+        float: right;
+        color: var(--theme-blue-grey);
+        font-size: 12px;
+      }
+
+      .sidebar-nav a.api-link:after {
+        content: 'api';
+      }
+
+      .sidebar-nav a.page-link:after {
+        content: 'doc';
+      }
+
+      collection-card {
+        display: block;
+      }
+
+      collection-card:not(first-of-type) {
+        margin-top: 16px;
+      }
+
+      #report-link {
+        margin-top: 24px;
+      }
+
+      /* Demo frame */
+
+      #demo-dialog {
+        width: calc(100vw - 100px);
+        height: calc(100vh - 100px);
+        margin: 0;
+        padding: 0;
+      }
+
+      #demo-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      #demo-spinner {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
+        margin-left: -30px;
+        margin-top: -30px;
+        --paper-spinner-stroke-width: 4px;
+      }
+
+      #close-dialog {
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        left: -16px;
+        top: -16px;
+        background: white;
+        border: 1px solid #ededed;
+        border-radius: 50%;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                  0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                  0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      }
+
+      #close-dialog svg {
+        height: 20px;
+        width: 20px;
+        color: hsl(0, 0%, 40%);
+      }
+
+      @media (max-width: 500px) {
+        .title {
+          margin-left: 16px;
+          display: flex;
+        }
+
+        .sidebar {
+          margin: 0 16px;
+        }
+
+        h1.page-title {
+          margin-left: 0;
+          margin-bottom: -4px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          max-width: calc(100% - 120px);
+        }
+
+        #demo-dialog {
+          position: absolute;
+          top: 70px;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: calc(100vh - 70px);
+        }
+
+        .sidebar-nav a {
+          border: 0;
+          background: inherit;
+        }
+
+        #close-dialog {
+          left: calc(50% - 25px);
+          top: -60px;
+          width: 50px;
+          height: 50px;
+        }
+
+        #demo-frame {
+          margin-bottom: -4px; /* This seems to prevent the page from scrolling an extra 4px */
+        }
+      }
+    </style>
+
+    <app-location route="{{routeLocation}}"></app-location>
+
+    <iron-ajax
+      id="metaAjax"
+      loading="{{_metaLoading}}"
+      url="[[baseUrls.api]]/api/meta/[[owner]]/[[repo]][[versionRoute]]"
+      handle-as="json"
+      last-response="{{data}}"
+      on-response="_metaResponse"
+      on-error="_metaError"></iron-ajax>
+
+    <iron-ajax
+      id="docsAjax"
+      loading="{{_docsLoading}}"
+      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?use_analyzer_data"
+      handle-as="json"
+      last-response="{{docs}}"
+      on-error="_docsError"
+      on-response="_docsResponse"></iron-ajax>
+
+    <iron-ajax
+      id="collectionsAjax"
+      url="[[baseUrls.api]]/api/collections/[[owner]]/[[repo]][[versionRoute]]"
+      handle-as="json"
+      last-response="{{collections}}"></iron-ajax>
+
+    <iron-ajax
+      id="pageAjax"
+      url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
+      handle-as="text"
+      last-response="{{_customPage}}"></iron-ajax>
+
+    <lazy-block id="block"></lazy-block>
+
+    <div id="container" hidden$="[[_hideMainContent]]">
+
+      <div class="title mobile-only">
+        <h1 class="page-title">[[repo]]</h1>
+        <div class="version-sha">[[data.version]]</div>
+      </div>
+      <h2 class="page-subtitle mobile-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
+
+      <div class="body">
+        <!-- Repository contents sidebar -->
+        <div class="sidebar">
+          <github-info data="[[data]]" class="box"></github-info>
+
+          <spinner-lite id="sidebar-spinner"></spinner-lite>
+
+          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
+            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
+
+            <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+            </template>
+
+            <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+            </template>
+
+            <template is="dom-repeat" items="[[_customPages]]" as="page">
+              <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.path]]"><span>[[page.title]]</span></a>
+            </template>
+
+            <template is="dom-repeat" items="[[bundledElements]]" as="element">
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
+
+              <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
+                <template is="dom-repeat" items="[[element.demos]]" as="demo">
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+                </template>
+              </div>
+            </template>
+
+            <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[behavior.name]]"><span>[[behavior.name]]</span></a>
+
+              <div class="element-demos">
+                <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <div id="github-action-group" class="box">
+            <a id="github-view-button" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
+              <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
+              <div>View on GitHub</div>
+            </a>
+            <a id="star-button" on-click="_authenticateStar" title="Star this repository" starred$="[[_repoStarred]]">
+              <svg viewBox="0 0 100 100">
+                <use xlink:href="/sprite.octicons.svg#star"></use>
+              </svg>
+              <div><div>Star on GitHub</div></div>
+            </a>
+          </div>
+
+          <div class="loader" loading$="[[!docs]]" hidden$="[[!collections.count]]">
+            <template is="dom-if" if="[[collections.count]]">
+              <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
+
+              <div class="horizontal-scroll">
+                <template is="dom-repeat" items="[[collections.results]]">
+                  <collection-card class="box" data="[[item]]"></collection-card>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <div class="loader" loading$="[[!docs]]">
+            <template is="dom-if" if="[[_dependencies(data).count]]">
+              <div id="info-dependencies" class="desktop-only">
+                <h1>Dependencies</h1>
+                <template is="dom-repeat" items="[[_dependencies(data)]]">
+                  <div class="dependency">
+                    <a href="/element/[[item.owner]]/[[item.repo]]">
+                      <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
+                    </a>
+                    <span>[[item.version]]</span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Main content pane -->
+        <div id="main-content" class="main-content">
+          <div class="title desktop-only">
+            <h1 class="page-title">[[repo]]</h1>
+            <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
+              <div class="version-sha">[[data.version]]</div>
+            </template>
+            <template is="dom-if" if="[[_contains(data.versions, data.version)]]">
+              <select id="version-select" on-change="_versionChanged" latest$="[[_equal(data.version, data.default_version)]]">
+                <template is="dom-repeat" items="[[_reverse(data.versions)]]">
+                  <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.default_version)]]">[[item]]</option>
+                </template>
+              </select>
+            </template>
+          </div>
+          <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
+
+          <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
+          <template is="dom-if" if="[[data]]">
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
+          </template>
+          <template is="dom-if" if="[[pagePath]]">
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+          </template>
+
+          <div hidden="[[!subElement]]">
+            <h1>[[_docTitle(subElement, descriptor)]]</h1>
+            <catalog-api-doc descriptor="[[descriptor]]"></catalog-api-doc>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <spinner-lite id="demo-spinner" active="[[_dialogDemoLoading]]"></spinner-lite>
+    <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
+      <div id="close-dialog" on-tap="_cancelDemo">
+        <svg viewBox="0 0 100 100" class="octicon octicon-x">
+          <use xlink:href="/sprite.octicons.svg#x"></use>
+        </svg>
+      </div>
+      <iframe id="demo-frame" on-load="_demoLoaded" hidden="[[_dialogDemoLoading]]"></iframe>
+    </catalog-dialog>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'catalog-element',
+
+      behaviors: [window.PageLoadingBehavior],
+
+      properties: {
+        visible: Boolean,
+
+        route: Object,
+
+        baseUrls: Object,
+
+        queryParams: Object,
+      },
+
+      observers: [
+        '_demoChanged(demo, visible)',
+        '_routeChanged(route.path, route.prefix, visible)',
+        '_updateLoading(_metaLoading, data)',
+        'onload(_metaLoading)',
+      ],
+
+      ready: function() {
+        if (this.queryParams && this.queryParams.code)
+          this._starRepo();
+      },
+
+      _shouldShowEditor: function(queryParams, prefix) {
+        return 'editing' in queryParams || prefix == '/preview';
+      },
+
+      onload: function(metaLoading) {
+        if (!this.visible || !metaLoading)
+          return;
+
+        this.data = null;
+        delete this.descriptor;
+        this.bundledElements = [];
+        this.bundledBehaviors = [];
+        this.dupedDemos = [];
+        this.collections = null;
+        this.docs = null;
+        this._bowerDemos = [];
+        this._customPages = [];
+      },
+
+      _splitRoute: function() {
+        this.versionRoute = '';
+        this.subElement = null;
+        this.demo = null;
+        this.pagePath = null;
+
+        var split = this.route.path.split('/');
+        // Bug in app-route doesn't always have a leading /
+        if (!split[0])
+          split.shift(); // Skip first /
+        this.owner = split.shift();
+        this.repo = split.shift();
+
+        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+(-[^/]+)?$/))
+          this.versionRoute = '/' + split.shift();
+        else if (split.length && split[0].match(/^[0-9a-f]{20,}$/))
+          this.versionRoute = '/' + split.shift();
+
+        if (split.length && split[0].indexOf('demo') != -1) {
+          split.shift();
+          if (split[split.length - 1] == '')
+            split[split.length - 1] = 'index.html';
+          this.demo = split.join('/');
+          split = [];
+        } else if (split.length && split[0] == 'page') {
+          split.shift();
+          this.pagePath = split.join('/');
+          split = [];
+        }
+
+        if (split.length)
+          this.subElement = split.shift();
+      },
+
+      _routeChanged: function(path, prefix, visible) {
+        if (!visible || !(prefix == '/element' || prefix == '/preview'))
+          return;
+
+        if (prefix == '/preview' && path == '')
+          return;
+
+        if (this._currentPath == path && (this._metaLoading || this.data))
+          return;
+
+        this._currentPath = path;
+
+        this._splitRoute();
+        this._updateActiveLinks();
+        this.fire('document-title', this.owner + '/' + this.repo);
+
+        this._repoStarred = this._isStarred();
+
+        // Generate requests
+        if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+          // Trigger a microtask to ensure change notifications are completed.
+          this.debounce('_updatePath', this._updatePath);
+        }
+
+        this._updateDescriptor();
+      },
+
+      _updatePath: function() {
+        this._currentOwner = this.owner;
+        this._currentRepo = this.repo;
+        this._currentVersionRoute = this.versionRoute;
+        this.docs = null;
+        this.$.metaAjax.generateRequest();
+        this.$.docsAjax.generateRequest();
+        this.$.collectionsAjax.generateRequest();
+      },
+
+      _demoChanged: function(demo, visible) {
+        if (demo && visible)
+          this._showDemo();
+        else
+          this._closeDemo();
+      },
+
+      _demoClicked: function() {
+        this._navigatedToDemo = true;
+      },
+
+      _showDemo: function() {
+        if (this.$['demo-dialog'].opened)
+          return;
+        // We can't start loading the demo until we have a version number.
+        // Either from the route, or from the metadata.
+        if (!(this.versionRoute || this.data))
+          return;
+
+        if (window.matchMedia('(max-width: 500px)').matches) {
+          this._hideMainContent = true;
+          this.fire('fullscreen-start');
+        }
+
+        var demoVersionRoute = this.versionRoute || '/' + this.data.version;
+        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + demoVersionRoute + '/' + this.repo + '/' + this.demo;
+        this.$['demo-frame'].src = demoUrl;
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          this.$['demo-dialog'].opened = true;
+        else
+          this.$['demo-dialog'].open();
+        this._dialogDemoLoading = true;
+      },
+
+      _closeDemo: function() {
+        this._navigatedToDemo = false;
+        this._hideMainContent = false;
+        this.fire('fullscreen-end');
+        if (!this.$['demo-dialog'].opened)
+          return;
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          this.$['demo-dialog'].opened = false;
+        else
+          this.$['demo-dialog'].close();
+      },
+
+      _demoLoaded: function() {
+        this._dialogDemoLoading = false;
+      },
+
+      _cancelDemo: function() {
+        if (this.$['demo-dialog'].hasAttribute('unresolved'))
+          return;
+        this.$['demo-dialog'].cancel();
+      },
+
+      _demoCanceled: function() {
+        if (this._navigatedToDemo) {
+          history.back();
+        } else {
+          history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
+          this.fire('location-changed');
+        }
+        this._dialogDemoLoading = false;
+      },
+
+      _updateLoading: function(metaLoading, data) {
+        this.loading = metaLoading || !data || data.status == 'pending';
+      },
+
+      _metaResponse: function() {
+        function objectToArray(object) {
+          return Object.keys(object || {}).map(function(title) {
+            return {title: title, path: object[title]};
+          });
+        }
+
+        if (this.data.status == 'pending') {
+          this.async(this.$.metaAjax.generateRequest.bind(this.$.metaAjax), 500);
+          return;
+        }
+
+        if (this.data.kind != 'element') {
+          this.fire('error', {title: 'Invalid request', message: 'Not an element, appears to be a ' + this.data.kind});
+          return;
+        }
+
+        if (this.data.homepage && this.data.homepage.indexOf('elements.polymer-project.org') != -1)
+          this.set('data.homepage', '');
+
+        this.fire('document-title', this.data.owner + '/' + this.data.repo);
+        if (this.demo)
+          this._showDemo();
+
+        this.set('_bowerDemos', objectToArray(this.data.bower.demos));
+        this.set('_customPages', objectToArray(this.data.bower.pages));
+        // Can only triggered after meta to ensure version is known & specified.
+        if (this.pagePath)
+          this.$.pageAjax.generateRequest();
+
+        this.fire('meta-set', {key: 'property', value: 'og:title', content: this.data.owner + '/' + this.data.repo + ' (' + this.data.version + ')'});
+        this.fire('meta-set', {key: 'property', value: 'og:type', content: 'website'});
+        this.fire('meta-set', {key: 'property', value: 'og:description', content: this.data.description});
+        this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
+        this.fire('meta-set', {key: 'property', value: 'og:image', content: this.data.avatar_url});
+        this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
+      },
+
+      _pageTitle: function(pages, pagePath) {
+        if (!pagePath)
+          return 'README.md';
+        for (var i = 0; i < pages.length; i++) {
+          if (pages[i].path == pagePath) {
+            return pages[i].title;
+          }
+        }
+        return pagePath;
+      },
+
+      _metaError: function(event, error) {
+        if (error.request.response && error.request.response.error) {
+          this.fire('error', {title: 'Unable to process element', message: error.request.response.error});
+        } else if (error.request.status == 404) {
+          this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
+        } else {
+          this.fire('error', {status: error.request.status, title: 'Unable to load element'});
+        }
+      },
+
+      _unblockLazy: function() {
+        if (this._lazyUnblocked)
+          return;
+        this.$.block.unblock();
+        this._lazyUnblocked = true;
+      },
+
+      _docsResponse: function() {
+        this._unblockLazy();
+        this.$['sidebar-spinner'].removeAttribute('active');
+        this._updateDescriptor();
+        this.async(this._updateActiveLinks);
+      },
+
+      _docsError: function(event, error) {
+        this._unblockLazy();
+        if (error.request.response && error.request.response.status == 'pending') {
+          this.$['sidebar-spinner'].setAttribute('active', '');
+          this.async(function() {
+            this.$.docsAjax.generateRequest();
+          }, 500);
+        } else {
+          this.docs = {};
+          this.$['sidebar-spinner'].removeAttribute('active');
+        }
+      },
+
+      _updateDescriptor: function() {
+        this._hasRepoContents = false;
+        if (!this.docs || (!this.docs.content && !this.docs.analysis))
+          return;
+        this.bundledElements = this._elements();
+        this.bundledBehaviors = this._behaviors();
+        if (!this.dupedDemos || !this.dupedDemos.length)
+          this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
+        this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
+        // TODO(samli): find matching descriptor for this.subElement
+      },
+
+      _elements: function() {
+        if (!this.docs || !this.docs.analysis || !this.docs.analysis.elements)
+          return [];
+
+        return this.docs.analysis.elements.sort(function(x, y) {
+          return x.tagname < y.tagname ? -1 : 1;
+        });
+      },
+
+      _behaviors: function() {
+        if (!this.docs || !this.docs.analysis)
+          return [];
+        var metadata = this.docs.analysis.metadata;
+        if (!metadata || !metadata.polymer || !metadata.polymer.behaviors)
+          return [];
+
+        return metadata.polymer.behaviors.sort(function(x, y) {
+          return x[name] < y[name] ? -1 : 1;
+        });
+      },
+
+      _dedupeDemos: function(bowerDemos, elements, behaviors) {
+        var demoCounts = {};
+        var dupedDemos = [];
+
+        function countDemos(element) {
+          element.demos.forEach(function(demo) {
+            demoCounts[demo.path] = (demoCounts[demo.path] || 0) + 1;
+          });
+        }
+
+        function dedupeDemos(element) {
+          var j = 0;
+          while (j < element.demos.length) {
+            var demo = element.demos[j];
+            if (demoCounts[demo.path] > 1) {
+              dupedDemos.push(element.demos.splice(j, 1)[0]);
+              demoCounts[demo.path] = -1;
+            } else if (demoCounts[demo.path] == -1) {
+              element.demos.splice(j, 1);
+            } else {
+              j++;
+            }
+          }
+        }
+
+        elements.forEach(countDemos);
+        behaviors.forEach(countDemos);
+
+        // Show single demos at the top by marking them as a dupe.
+        var paths = Object.keys(demoCounts);
+        if (paths.length == 1)
+          demoCounts[paths[0]] = 2;
+
+        // Bower demos are already shown, mark them as dupes.
+        bowerDemos.forEach(function(demo) {
+          demoCounts[demo.path] = -1;
+        });
+
+        elements.forEach(dedupeDemos);
+        behaviors.forEach(dedupeDemos);
+        return dupedDemos;
+      },
+
+      _dependencies: function() {
+        if (!this.data || !this.data.bower || !this.data.bower.dependencies)
+          return [];
+        var results = [];
+        var names = Object.keys(this.data.bower.dependencies);
+        var i;
+        for (i = 0; i < names.length; i++) {
+          var name = names[i];
+          var parts = this.data.bower.dependencies[name].split(/[/#]/g);
+          results.push({
+            owner: parts[0],
+            repo: parts[1],
+            version: parts[2],
+          });
+        }
+        return results;
+      },
+
+      _lastUpdated: function(activity) {
+        if (!activity)
+          return;
+        var i = 0;
+        for (i = 0; i < activity.length; i++) {
+          if (activity[activity.length - 1 - i])
+            break;
+        }
+        if (i == 0)
+          return 'Updated recently';
+        if (i == activity.length)
+          return '';
+        if (i < 8)
+          return ['Last updated ', i, ' week', this._s(i), ' ago'].join('');
+        var months = Math.round(i / 4);
+        return ['Last updated ', months, ' month', this._s(months), ' ago'].join('');
+      },
+
+      _or: function(a, b) {
+        return a || b;
+      },
+
+      _updateActiveLinks: function() {
+        var currentPath = this.route.prefix + this.route.path;
+        var links = this.querySelectorAll('.sidebar-nav a');
+        for (var i = 0; i < links.length; i++) {
+          if (links[i].getAttribute('href') == currentPath)
+            links[i].setAttribute('active', '');
+          else
+            links[i].removeAttribute('active');
+        }
+      },
+
+      _s: function(n) {
+        return n == 1 ? '' : 's';
+      },
+
+      _shouldCollapseNav: function(elements) {
+        return elements && elements.length > 5;
+      },
+
+      _authenticateStar: function() {
+        if (this._isStarred())
+          return;
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Start'});
+        window.location = "https://github.com/login/oauth/authorize?client_id=54fc42e15038794b7011&scope=public_repo&redirect_uri=" + window.location.href;
+      },
+
+      _isStarred: function() {
+        if (!window.localStorage.starredRepos)
+          return false;
+        var starred = JSON.parse(window.localStorage.starredRepos);
+        return this._inflightStar || starred.indexOf(this.owner + '/' + this.repo) != -1;
+      },
+
+      _setStarred: function(increment) {
+        if (this.data && increment) {
+          this.data.stars++;
+          this.notifyPath('data.stars');
+        }
+        var starred = JSON.parse(window.localStorage.starredRepos || '[]');
+        starred.push(this.owner + '/' + this.repo);
+        window.localStorage.starredRepos = JSON.stringify(starred);
+        this._repoStarred = true;
+      },
+
+      _starRepo: function() {
+        if (!this.queryParams || !this.queryParams.code || this._isStarred())
+          return;
+
+        // Pre-emptively set starred, so UI updates while the request is in flight.
+        this._inflightStar = true;
+        this._repoStarred = this._isStarred();
+        this.fire('event', {category: 'Star', action: 'Element star', label: 'Requesting star'});
+
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(event) {
+          this._inflightStar = false;
+          var newStar = event.target.status == 204;
+          this._setStarred(newStar);
+          this.fire('event', {category: 'Star', action: 'Element star', label: newStar ? 'Success - New star' : 'Success - Already starred'});
+        }.bind(this));
+        xhr.addEventListener('error', function() {
+          this._inflightStar = false;
+        }.bind(this));
+
+        xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
+        xhr.send();
+      },
+
+      _docTitle: function(subElement, descriptor) {
+        return descriptor && descriptor.type == 'element' ? '<' + subElement + '>' : subElement;
+      },
+
+      _redundantLink: function(link) {
+        return link && link.match(/.*\.webcomponents\.org\/element\//);
+      },
+
+      _equal: function(a, b) {
+        return a == b;
+      },
+
+      _versionChanged: function(event) {
+        var newVersion = event.target.value;
+        var path = '/element/' + this.owner + '/' + this.repo;
+        if (newVersion != this.data.default_version)
+          path += '/' + newVersion;
+        if (this.subElement)
+          path += '/' + this.subElement;
+        window.history.pushState({}, null, path);
+        this.fire('location-changed');
+      },
+
+      _contains: function(list, item) {
+        return list && list.indexOf(item) != -1;
+      },
+
+      _reverse: function(a) {
+        return a && a.reverse();
+      },
+
+    });
+  </script>
+</dom-module>
