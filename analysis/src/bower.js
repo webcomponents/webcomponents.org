@@ -73,7 +73,7 @@ class Bower {
             mainHtmls = [mainHtmls];
           }
 
-          resolve(mainHtmls.map(mainHtml => [canonicalDir, mainHtml].join("/"))); // eslint-disable-line no-loop-func
+          resolve({root: canonicalDir, mainHtmls: mainHtmls});
           return;
         }
         Ana.fail("bower/install", "Couldn't find package after installing [", packageToInstall, "] found [" + JSON.stringify(installed) + "]");

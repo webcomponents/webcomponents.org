@@ -6,7 +6,7 @@
     "src/catalog-community.html",
     "src/catalog-collection.html",
     "src/catalog-element.html",
-    "src/catalog-elements-analyzer.html",
+    "src/catalog-element-analyzer.html",
     "src/catalog-error.html",
     "src/catalog-preview-integration.html",
     "src/catalog-preview.html",

@@ -212,11 +212,29 @@
         // Only scope once so inline demos don't have conflicting styles.
         this.scopeSubtree(this.$.contents, false);
 
-        var codeBlocks = [].slice.call(Polymer.dom(this.root).querySelectorAll('pre'));
+        this._codeBlocks = [].slice.call(Polymer.dom(this.root).querySelectorAll('pre'));
+        this._updateCodeBlocks();
+
+        var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
+        var relativeRegex = /^(?!http|#|\/\/)\/?(.*$)/;
+        var i;
+
+        var links = Polymer.dom(this.$.contents).querySelectorAll('[href]');
+        var defaultBranch = data.default_branch || 'master';
+        for (i = 0; i < links.length; i++)
+          links[i].setAttribute('href', links[i].getAttribute('href').replace(relativeRegex, githubBase + '/blob/' + defaultBranch + '/$1'));
+
+        links = Polymer.dom(this.$.contents).querySelectorAll('[src]');
+        for (i = 0; i < links.length; i++)
+          links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/' + defaultBranch + '/$1'));
+      },
+
+      _updateCodeBlocks: function() {
+        var t = performance.now();
 
         // Find and replace all inline demos.
-        while (codeBlocks.length) {
-          var block = codeBlocks.shift();
+        while (this._codeBlocks.length && performance.now() - t < 50) {
+          var block = this._codeBlocks.shift();
           var demoMatch = block.textContent.match(/<custom-element-demo[^]*?>[^]*<\/custom-element-demo>/);
           if (!demoMatch)
             continue;
@@ -239,8 +257,8 @@
           code = code.replace(/^\n/, "").replace(/^ {4}/gm, '').replace(/\n\s*$/, '');
           var nextBlockRegex = /<next-code-block><\/next-code-block>/;
           var snippet = '';
-          if (code.match(nextBlockRegex) && codeBlocks.length) {
-            var nextBlock = codeBlocks.shift();
+          if (code.match(nextBlockRegex) && this._codeBlocks.length) {
+            var nextBlock = this._codeBlocks.shift();
             snippet = nextBlock.textContent;
             if (nextBlock.parentNode)
               nextBlock.parentNode.removeChild(nextBlock);
@@ -252,18 +270,8 @@
           demoElement.code = code;
         }
 
-        var githubBase = 'https://github.com/' + data.owner + '/' + data.repo;
-        var relativeRegex = /^(?!http|#|\/\/)\/?(.*$)/;
-        var i;
-
-        var links = Polymer.dom(this.$.contents).querySelectorAll('[href]');
-        var defaultBranch = data.default_branch || 'master';
-        for (i = 0; i < links.length; i++)
-          links[i].setAttribute('href', links[i].getAttribute('href').replace(relativeRegex, githubBase + '/blob/' + defaultBranch + '/$1'));
-
-        links = Polymer.dom(this.$.contents).querySelectorAll('[src]');
-        for (i = 0; i < links.length; i++)
-          links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/' + defaultBranch + '/$1'));
+        if (this._codeBlocks.length)
+          this.async(this._updateCodeBlocks);
       },
 
       attached: function() {

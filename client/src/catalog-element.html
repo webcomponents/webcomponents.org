@@ -741,6 +741,8 @@
         this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
         this.fire('meta-set', {key: 'property', value: 'og:image', content: this.data.avatar_url});
         this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
+
+        this.async(this._updateActiveLinks);
       },
 
       _pageTitle: function(pages, pagePath) {
