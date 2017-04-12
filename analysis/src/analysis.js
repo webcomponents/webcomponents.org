@@ -49,9 +49,9 @@ class Analysis {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
       }).then(mainHtmlPaths => {
         const root = path.resolve(process.cwd(), 'bower_components', attributes.repo);
-        if (!fs.existsSynnc(path)) {
+        if (!fs.existsSync(root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
-          reject("Installed package not found");
+          reject({retry: false, erorr: Error("Installed package not found")});
           return;
         }
         var relativePaths = mainHtmlPaths.map(x => path.relative(root, x));
