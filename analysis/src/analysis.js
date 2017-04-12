@@ -2,6 +2,7 @@
 
 const Ana = require('./ana_log');
 const path = require('path');
+const fs = require('fs');
 
 /**
  * Encapsulates the processing of each task.
@@ -48,6 +49,11 @@ class Analysis {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
       }).then(mainHtmlPaths => {
         const root = path.resolve(process.cwd(), 'bower_components', attributes.repo);
+        if (!fs.existsSynnc(path)) {
+          Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
+          reject("Installed package not found");
+          return;
+        }
         var relativePaths = mainHtmlPaths.map(x => path.relative(root, x));
         return Promise.all([
           this.hydrolysis.analyze(mainHtmlPaths),
