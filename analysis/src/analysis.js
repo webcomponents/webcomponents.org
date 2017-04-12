@@ -47,17 +47,16 @@ class Analysis {
       var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
-      }).then(mainHtmlPaths => {
-        const root = path.resolve(process.cwd(), 'bower_components', attributes.repo);
-        if (!fs.existsSync(root)) {
+      }).then(result => {
+        if (!fs.existsSync(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
           reject({retry: false, erorr: Error("Installed package not found")});
           return;
         }
-        var relativePaths = mainHtmlPaths.map(x => path.relative(root, x));
+        var absolutePaths = result.mainHtmls.map(x => path.resolve(result.root, x));
         return Promise.all([
-          this.hydrolysis.analyze(mainHtmlPaths),
-          this.analyzer.analyze(root, relativePaths),
+          this.hydrolysis.analyze(absolutePaths),
+          this.analyzer.analyze(result.root, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = results[0];
