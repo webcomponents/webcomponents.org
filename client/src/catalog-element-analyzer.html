@@ -794,14 +794,13 @@
           if (parts.length < 2) {
             return undefined;
           }
-          parts = parts.slice(0, parts.length - 1);
           var namespace = descriptor;
-          for (var part of parts) {
+          for (var i = 0; i < parts.length - 1; i++) {
             if (!namespace.namespaces) {
               return undefined;
             }
             var matches = namespace.namespaces.filter(function(n) {
-              return n.name === part;
+              return n.name === parts[i];
             });
             if (matches.length === 0) {
               return undefined;
