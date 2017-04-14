@@ -790,21 +790,21 @@
         // Walks through the tree of namespaces to find the namespace
         // containing `name`.
         function getNamespace(descriptor, name) {
-          var parts = name.split('.');
-          if (parts.length < 2) {
-            return undefined;
+          function match(name, namespace) {
+            return namespace.name == name;
           }
+
+          var parts = name.split('.');
+          if (parts.length < 2)
+            return undefined;
+
           var namespace = descriptor;
           for (var i = 0; i < parts.length - 1; i++) {
-            if (!namespace.namespaces) {
+            if (!namespace.namespaces)
               return undefined;
-            }
-            var matches = namespace.namespaces.filter(function(n) {
-              return n.name === parts[i];
-            });
-            if (matches.length === 0) {
+            var matches = namespace.namespaces.filter(match.bind(null, parts[i]));
+            if (!matches.length)
               return undefined;
-            }
             namespace = matches[0];
           }
           return namespace;
