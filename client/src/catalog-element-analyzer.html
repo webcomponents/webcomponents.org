@@ -949,7 +949,7 @@
       },
 
       _hasActiveLink: function() {
-        return !!this.querySelector('.sidebar-nav a[active]');
+        return Boolean(this.querySelector('.sidebar-nav a[active]'));
       },
 
       _updateActiveLinks: function() {
