@@ -317,6 +317,7 @@
 
     <iron-ajax
       id="pageAjax"
+      loading="{{_customPageLoading}}"
       url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
       handle-as="text"
       last-response="{{_customPage}}"></iron-ajax>
@@ -355,18 +356,12 @@
 
             <template is="dom-repeat" items="[[docs.analysis.namespaces]]" as="namespace">
               <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/namespaces/[[namespace.name]]"><span>[[namespace.name]]</span></a>
-
-              <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
-                <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
-                </template>
-              </div>
             </template>
 
             <template is="dom-repeat" items="[[bundledElements]]" as="element">
               <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/elements/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
 
-              <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
+              <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
                   <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
                 </template>
@@ -448,7 +443,7 @@
             <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           </template>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="_customPageLoading"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
@@ -524,7 +519,7 @@
           return;
 
         this.data = null;
-        delete this.descriptor;
+        delete this._descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
         this.dupedDemos = [];
@@ -594,6 +589,8 @@
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
           this.debounce('_updatePath', this._updatePath);
+        } else if (this.pagePath) {
+          this.$.pageAjax.generateRequest();
         }
 
         this._updateDescriptor();
@@ -715,6 +712,8 @@
         this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
         this.fire('meta-set', {key: 'property', value: 'og:image', content: this.data.avatar_url});
         this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
+
+        this.async(this._updateActiveLinks);
       },
 
       _pageTitle: function(pages, pagePath) {
@@ -770,7 +769,8 @@
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
-        this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
+        // TODO: Support deduping of demos. Analyzer currently doesn't support demo titles.
+        // this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
 
         var map = new Map();
         this.bundledElements.forEach(function(element) {
@@ -823,15 +823,9 @@
           return;
         }
 
-        var name = this.subElement;
-        var namespace = getNamespace(this.docs.analysis, name) || this.docs.analysis;
-        if (this._descriptorType == 'namespaces') {
-          this._descriptor = getByName(namespace.namespaces, this.subElement);
-        } else if (this._descriptorType == 'elements') {
-          this._descriptor = getByName(namespace.elements, this.subElement);
-        } else if (this._descriptorType == 'mixins') {
-          this._descriptor = getByName(namespace.mixins, this.subElement);
-        }
+        var namespace = getNamespace(this.docs.analysis, this.subElement) || this.docs.analysis;
+        if (this._descriptorType)
+          this._descriptor = getByName(namespace[this._descriptorType], this.subElement);
 
         // Support legacy pathing and find descriptor type. Also necessary for
         // behaviors in a different path to mixins.
@@ -845,6 +839,9 @@
 
         if (!this._descriptor)
           console.error('No descriptor found!');
+
+        if (!this._hasActiveLink() && Polymer.AppLayout)
+          Polymer.AppLayout.scroll(0);
       },
 
       _elements: function() {
@@ -949,6 +946,10 @@
 
       _or: function(a, b) {
         return a || b;
+      },
+
+      _hasActiveLink: function() {
+        return !!this.querySelector('.sidebar-nav a[active]');
       },
 
       _updateActiveLinks: function() {
