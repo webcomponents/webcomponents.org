@@ -18,7 +18,7 @@
     "src/code-editor.html",
     "src/lazy-resources.html"
   ],
-  "includeDependencies": [
+  "extraDependencies": [
     "assets/**/*",
     "service-worker-runtime.js",
     "manifest.json",
