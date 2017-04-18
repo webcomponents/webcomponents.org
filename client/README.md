@@ -45,5 +45,5 @@ After a PR is merged for a client change, staging is automatically updated by tr
 ```bash
 cd client
 polymer build
-gcloud app deploy --no-promote build/bundled/client.yaml
+gcloud app deploy --no-promote build/client.yaml
 ```
