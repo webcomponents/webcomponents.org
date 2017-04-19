@@ -290,7 +290,7 @@
           window.getSelection().addRange(range);
         }
 
-        if (document.execCommand('copy')){
+        if (document.execCommand('copy')) {
           this.fire('notify', {
             message: 'Install command copied to clipboard'
           });
