@@ -592,7 +592,11 @@
       _notifyUser: function(event) {
         var options = event.detail;
         this.$.toast.text = options.message;
-        this.$.toastAction.textContent = options.buttonText;
+        if (options.hasOwnProperty('buttonText')) {
+          this.$.toastAction.textContent = options.buttonText;
+        } else {
+          this.$.toastAction.setAttribute('hidden', '')
+        }
         this.$.toast.duration = options.duration == null ? 5000 : options.duration;
         this.$.toast.removeAttribute('opened'); // In case it was previously set
         this.$.toast.setAttribute('opened', '');
