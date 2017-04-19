@@ -594,6 +594,7 @@
         this.$.toast.text = options.message;
         this.$.toastAction.textContent = options.buttonText;
         this.$.toast.duration = options.duration == null ? 5000 : options.duration;
+        this.$.toast.removeAttribute('opened'); // In case it was previously set
         this.$.toast.setAttribute('opened', '');
 
         this._currentToast = options;
