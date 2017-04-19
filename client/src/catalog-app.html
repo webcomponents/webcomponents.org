@@ -593,6 +593,7 @@
         var options = event.detail;
         this.$.toast.text = options.message;
         if (options.hasOwnProperty('buttonText')) {
+          this.$.toastAction.removeAttribute('hidden');
           this.$.toastAction.textContent = options.buttonText;
         } else {
           this.$.toastAction.setAttribute('hidden', '');
