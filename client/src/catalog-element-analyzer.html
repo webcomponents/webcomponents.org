@@ -3,9 +3,11 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-element.html">
+<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-namespace.html">
+<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-mixin.html">
 
 <link rel="import" href="catalog-styles.html">
-<link rel="import" href="catalog-api-doc.html">
 <link rel="import" href="catalog-element-readme.html">
 <link rel="import" href="collection-card.html">
 <link rel="import" href="github-info.html">
@@ -315,6 +317,7 @@
 
     <iron-ajax
       id="pageAjax"
+      loading="{{_customPageLoading}}"
       url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
       handle-as="text"
       last-response="{{_customPage}}"></iron-ajax>
@@ -351,10 +354,14 @@
               <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.path]]"><span>[[page.title]]</span></a>
             </template>
 
-            <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
+            <template is="dom-repeat" items="[[docs.analysis.namespaces]]" as="namespace">
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/namespaces/[[namespace.name]]"><span>[[namespace.name]]</span></a>
+            </template>
 
-              <div class="element-demos" role="navigation" aria-label$="[[element.is]] demos">
+            <template is="dom-repeat" items="[[bundledElements]]" as="element">
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/elements/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
+
+              <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
                   <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
                 </template>
@@ -362,7 +369,7 @@
             </template>
 
             <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/[[behavior.name]]"><span>[[behavior.name]]</span></a>
+              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/mixins/[[behavior.name]]"><span>[[behavior.name]]</span></a>
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
@@ -436,12 +443,27 @@
             <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           </template>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]"></catalog-element-readme>
+            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="_customPageLoading"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
-            <h1>[[_docTitle(subElement, descriptor)]]</h1>
-            <catalog-api-doc descriptor="[[descriptor]]"></catalog-api-doc>
+            <template is="dom-if" if="[[_equal(_descriptorType,'namespaces')]]" restamp="true">
+              <iron-doc-namespace
+                  base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
+                  descriptor="[[_descriptor]]"
+                  root-namespace="[[rootNamespace]]">
+              </iron-doc-namespace>
+            </template>
+            <template is="dom-if" if="[[_equal(_descriptorType,'elements')]]" restamp="true">
+              <iron-doc-element
+                base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
+                descriptor="[[_descriptor]]"></iron-doc-element>
+            </template>
+            <template is="dom-if" if="[[_equal(_descriptorType,'mixins')]]" restamp="true">
+              <iron-doc-mixin
+                base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
+                descriptor="[[_descriptor]]"></iron-doc-mixin>
+            </template>
           </div>
         </div>
       </div>
@@ -497,7 +519,7 @@
           return;
 
         this.data = null;
-        delete this.descriptor;
+        delete this._descriptor;
         this.bundledElements = [];
         this.bundledBehaviors = [];
         this.dupedDemos = [];
@@ -537,6 +559,10 @@
           split = [];
         }
 
+        var descriptorTypes = ['namespaces', 'elements', 'mixins'];
+        if (split.length && descriptorTypes.indexOf(split[0]) != -1)
+          this._descriptorType = split.shift();
+
         if (split.length)
           this.subElement = split.shift();
       },
@@ -563,6 +589,8 @@
         if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
           this.debounce('_updatePath', this._updatePath);
+        } else if (this.pagePath) {
+          this.$.pageAjax.generateRequest();
         }
 
         this._updateDescriptor();
@@ -684,6 +712,8 @@
         this.fire('meta-set', {key: 'property', value: 'og:url', content: document.location.href});
         this.fire('meta-set', {key: 'property', value: 'og:image', content: this.data.avatar_url});
         this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
+
+        this.async(this._updateActiveLinks);
       },
 
       _pageTitle: function(pages, pagePath) {
@@ -717,7 +747,7 @@
       _docsResponse: function() {
         this._unblockLazy();
         this.$['sidebar-spinner'].removeAttribute('active');
-        this._updateDescriptor();
+        this._populateDocs();
         this.async(this._updateActiveLinks);
       },
 
@@ -734,16 +764,84 @@
         }
       },
 
-      _updateDescriptor: function() {
-        this._hasRepoContents = false;
-        if (!this.docs || (!this.docs.content && !this.docs.analysis))
+      _populateDocs: function() {
+        if (!this.docs || !this.docs.analysis)
           return;
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
-        if (!this.dupedDemos || !this.dupedDemos.length)
-          this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
-        this._hasRepoContents = this.bundledElements.length || this.bundledBehaviors.length || this.dupedDemos.length;
-        // TODO(samli): find matching descriptor for this.subElement
+        // TODO: Support deduping of demos. Analyzer currently doesn't support demo titles.
+        // this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
+
+        var map = new Map();
+        this.bundledElements.forEach(function(element) {
+          map.set(element.tagname, element);
+        });
+        this._elementMap = map;
+        map = new Map();
+        this.bundledBehaviors.forEach(function(behavior) {
+          map.set(behavior.name, behavior);
+        });
+        this._behaviorMap = map;
+
+        this._updateDescriptor();
+      },
+
+      _updateDescriptor: function() {
+        // Walks through the tree of namespaces to find the namespace
+        // containing `name`.
+        function getNamespace(descriptor, name) {
+          function match(name, namespace) {
+            return namespace.name == name;
+          }
+
+          var parts = name.split('.');
+          if (parts.length < 2)
+            return undefined;
+
+          var namespace = descriptor;
+          for (var i = 0; i < parts.length - 1; i++) {
+            if (!namespace.namespaces)
+              return undefined;
+            var matches = namespace.namespaces.filter(match.bind(null, parts[i]));
+            if (!matches.length)
+              return undefined;
+            namespace = matches[0];
+          }
+          return namespace;
+        }
+
+        function getByName(list, value) {
+          var match = list && list.filter(function(x) {
+            return x.name == value || x.classname == value || x.tagname == value;
+          });
+          return match && match.length && match[0];
+        }
+
+        Polymer.dom.flush();
+        if (!this.subElement || !this.docs || !this.docs.analysis) {
+          delete this._descriptor;
+          return;
+        }
+
+        var namespace = getNamespace(this.docs.analysis, this.subElement) || this.docs.analysis;
+        if (this._descriptorType)
+          this._descriptor = getByName(namespace[this._descriptorType], this.subElement);
+
+        // Support legacy pathing and find descriptor type. Also necessary for
+        // behaviors in a different path to mixins.
+        if (!this._descriptor && this._elementMap.has(this.subElement)) {
+          this._descriptorType = 'elements';
+          this._descriptor = this._elementMap.get(this.subElement);
+        } else if (!this._descriptor && this._behaviorMap.has(this.subElement)) {
+          this._descriptorType = 'mixins';
+          this._descriptor = this._behaviorMap.get(this.subElement);
+        }
+
+        if (!this._descriptor)
+          console.error('No descriptor found!');
+
+        if (!this._hasActiveLink() && Polymer.AppLayout)
+          Polymer.AppLayout.scroll(0);
       },
 
       _elements: function() {
@@ -850,6 +948,10 @@
         return a || b;
       },
 
+      _hasActiveLink: function() {
+        return Boolean(this.querySelector('.sidebar-nav a[active]'));
+      },
+
       _updateActiveLinks: function() {
         var currentPath = this.route.prefix + this.route.path;
         var links = this.querySelectorAll('.sidebar-nav a');
@@ -916,10 +1018,6 @@
 
         xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
         xhr.send();
-      },
-
-      _docTitle: function(subElement, descriptor) {
-        return descriptor && descriptor.type == 'element' ? '<' + subElement + '>' : subElement;
       },
 
       _redundantLink: function(link) {
