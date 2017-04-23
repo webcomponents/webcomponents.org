@@ -18,7 +18,7 @@
         {
           "browserName":  "chrome",
           "platform":     "Linux",
-          "version":      ""
+          "version":      "56"
         },
 
         {
