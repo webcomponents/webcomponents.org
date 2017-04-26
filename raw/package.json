@@ -1,0 +1,24 @@
+{
+  "name": "raw",
+  "private": true,
+  "engines": {
+    "node": ">7"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "ava -t --tap test.js | tap-dot"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^1.0.0",
+    "@google/cloud-debug": "^0.9.2",
+    "@google/cloud-trace": "^0.6.3",
+    "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "ava": "^0.19.1",
+    "proxyquire": "^1.7.11",
+    "sinon": "^2.1.0",
+    "supertest": "^3.0.0",
+    "tap-dot": "^1.0.5"
+  }
+}
