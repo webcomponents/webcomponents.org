@@ -1,3 +1,5 @@
+/* Whenever this file is modified, run `npm install` or `bash portIronDocViewer.sh` */
+
 .member, iron-doc-summary, iron-doc-property-2, iron-doc-function {
   @apply --paper-font-body1;
   box-sizing: border-box;

@@ -1,3 +1,5 @@
+/* Whenever this file is modified, run `npm install` or `bash portIronDocViewer.sh` */
+
 :host {
   padding: initial;
 }
