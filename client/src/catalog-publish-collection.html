@@ -69,6 +69,10 @@
         Polymer.PollingMetaBehavior,
       ],
 
+      created: function() {
+        this.importHref(this.resolveUrl('re-captcha.html'), null, null, true);
+      },
+
       onSubmit: function() {
         if (this.$.submit.hasAttribute('disabled') || !this.$.recaptcha.getResponse())
           return;
