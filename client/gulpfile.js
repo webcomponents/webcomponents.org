@@ -48,7 +48,7 @@ function build() {
     console.log(`Deleting ${buildDirectory} directory...`);
     del([buildDirectory])
       .then(() => {
-        let htmlMinifyOptions = {collapseWhitespace: true, removeComments: true};
+        let htmlMinifyOptions = {collapseWhitespace: true, removeComments: true, conservativeCollapse: true};
 
         // Let's start by getting your source files. These are all the files
         // in your `src/` directory, or those that match your polymer.json
