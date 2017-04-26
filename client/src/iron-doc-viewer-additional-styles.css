@@ -37,3 +37,8 @@ nav > header {
   -webkit-margin-end: 0px;
   font-weight: bold;
 }
+
+#signature {
+  font-weight: 600;
+  font-family: var(--monospace-font);
+}
