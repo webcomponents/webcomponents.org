@@ -1,5 +1,6 @@
 #!/usr/bin/sh
 
+# Set of files which are to be forked into the client/src directory.
 files=(
   "iron-doc-behavior.html"
   "iron-doc-element.html"
@@ -12,6 +13,7 @@ files=(
   "iron-doc-viewer-2-styles.html"
 )
 
+# This strips the files of some dependencies and makes some rote changes.
 for i in "${files[@]}"
 do
   cat 'bower_components/iron-doc-viewer/'$i \
@@ -26,6 +28,7 @@ do
   > 'src/'$i
 done
 
+# Add additional styles to style sheets.
 additonalStyles="$(<src/iron-doc-viewer-additional-styles.css)"
 awk --assign=additonalStyles="$additonalStyles" '/<\/style>/{print additonalStyles;print;next}1' src/iron-doc-viewer-2-styles.html > .tmp_file
 mv .tmp_file src/iron-doc-viewer-2-styles.html
