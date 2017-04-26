@@ -398,7 +398,7 @@
           </div>
 
           <div class="loader" loading$="[[!docs]]">
-            <template is="dom-if" if="[[_dependencies(data).count]]">
+            <template is="dom-if" if="[[_dependencies(data)]]">
               <div id="info-dependencies" class="desktop-only">
                 <h1>Dependencies</h1>
                 <template is="dom-repeat" items="[[_dependencies(data)]]">

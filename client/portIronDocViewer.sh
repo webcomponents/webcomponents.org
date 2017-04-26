@@ -25,6 +25,7 @@ do
   | sed '/import.*prism-/d' \
   | sed '/prism-highlighter/d' \
   | sed 's/\s*prism-theme-default\s*//' \
+  | sed 's/\(\s*\)\(Polymer.IronDocBehavior = {\)/\1\/\/ @polymerBehavior\n\1\2/' \
   > 'src/'$i
 done
 

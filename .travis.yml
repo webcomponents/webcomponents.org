@@ -46,12 +46,12 @@ before_deploy:
 - openssl aes-256-cbc -K $encrypted_ab98d8519375_key -iv $encrypted_ab98d8519375_iv
   -in custom-elements-staging-af6bde73b1eb.json.enc -out custom-elements-staging-af6bde73b1eb.json
   -d
-- "(cd client; $TRAVIS_BUILD_DIR/node_modules/polymer-cli/bin/polymer.js build)"
+- "(cd client; npm run build)"
 deploy:
   provider: gae
   skip_cleanup: true
   keyfile: custom-elements-staging-af6bde73b1eb.json
   project: custom-elements-staging
-  config: client/build/bundled/client.yaml
+  config: client/build/client.yaml
   version: 1
   default: true
