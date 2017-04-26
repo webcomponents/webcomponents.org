@@ -3,9 +3,10 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-element.html">
-<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-namespace.html">
-<link rel="import" href="../bower_components/iron-doc-viewer/iron-doc-mixin.html">
+
+<link rel="import" href="iron-doc-element.html">
+<link rel="import" href="iron-doc-namespace.html">
+<link rel="import" href="iron-doc-mixin.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
@@ -286,6 +287,18 @@
         #demo-frame {
           margin-bottom: -4px; /* This seems to prevent the page from scrolling an extra 4px */
         }
+      }
+
+      /* Doc styles */
+      :host {
+        --paper-font-code1: {
+          font-family: var(--monospace-font);
+          font-weight: 600;
+        };
+        --paper-font-code2: {
+          font-family: var(--monospace-font);
+          font-weight: 600;
+        };
       }
     </style>
 

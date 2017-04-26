@@ -1,0 +1,25 @@
+/* Whenever this file is modified, run `npm install` or `bash portIronDocViewer.sh` */
+
+:host {
+  padding: initial;
+}
+
+.name {
+  height: initial;
+  line-height: 30px;
+}
+
+a {
+  font-size: 16px;
+  color: inherit;
+  color: var(--theme-blue-small);
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--theme-blue);
+}
+
+a[href^="#"] {
+  color: currentColor;
+}
