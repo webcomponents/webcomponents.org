@@ -1,0 +1,196 @@
+<script>
+  (function() {
+
+    // TODO(justinfagnani): rename, since this sounds like it renders a behavior
+    Polymer.IronDocBehavior = {
+
+      properties: {
+        /**
+         * The [Hydrolysis](https://github.com/PolymerLabs/hydrolysis)-generated
+         * element descriptor to display details for.
+         *
+         * Alternatively, the element descriptor can be provided as JSON via the text content
+         * of this element.
+         */
+        descriptor: {
+          type: Object,
+        },
+
+        /** 
+         * The base href where this doc viewer is located
+         */
+        baseHref: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Prefix for fragment identifiers used in anchors.
+         * For static routing `iron-component-page` can
+         * set this to a string identifying the current component.
+         */
+        prefix: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Whether private members should be hidden or shown.
+         */
+        _showPrivate: {
+          type:     Boolean,
+          value:    false,
+        },
+
+        /**
+         * Whether inherited members should be hidden or shown.
+         */
+        _showInherited: {
+          type:     Boolean,
+          value:    true,
+        },
+      },
+
+      ready: function() {
+        var jsonDescriptor = this._loadJson();
+        // Note that this is only an error during element creation. You are free
+        // to stomp over the descriptor after it is ready.
+        if (jsonDescriptor && this.descriptor) {
+          Polymer.Base._error(
+              this,
+              'received both a bound descriptor:', this.descriptor,
+              'and JSON descriptor:', this._jsonDescriptor,
+              'Please provide only one');
+          throw new Error(
+              '<iron-doc-viewer> accepts either a bound or JSON descriptor; not both');
+        }
+
+        if (jsonDescriptor) {
+          this.descriptor = jsonDescriptor;
+        }
+      },
+
+      /**
+       * Loads a hydrolysis element descriptor (as JSON) from the text content of
+       * this element, if present.
+       */
+      _loadJson: function() {
+        var textContent = '';
+        Array.prototype.forEach.call(Polymer.dom(this).childNodes, function(node) {
+          textContent = textContent + node.textContent;
+        });
+        textContent = textContent.trim();
+        if (textContent === '') return null;
+
+        try {
+          return JSON.parse(textContent);
+        } catch(error) {
+          Polymer.Base._error('Failure when parsing JSON:', textContent, error);
+          throw error;
+        }
+      },
+
+      _filterMembers: function(items, showPrivate, showInherited) {
+        return items.filter(function(i) {
+          return (showPrivate || !(i.privacy === 'private' || i.privacy === 'protected'))
+              && (showInherited || (i.inheritedFrom == null));
+        });
+      },
+
+      _noneToShow: function(showPrivate, showInherited, descriptor, name) {
+        var items = descriptor[name];
+        if (!items) {
+          return true;
+        }
+        var filteredItems = this._filterMembers(items, showPrivate, showInherited);
+        return filteredItems.length === 0;
+      },
+
+      _formatAnchor: function(prefix, type, membername) {
+        var suffix = membername ? '-' + membername : '';
+        return prefix + type + suffix;
+      },
+
+      /**
+       * Scroll to the descriptor (element, function, etc.) with an `anchor-id`
+       * matching the given URL hash (including the `#`). If no hash is
+       * specified, uses `window.location.hash`.
+       *
+       * Whichever element or script is in charge of routing should call this
+       * method on initial page load and on `hashchange` events.
+       */
+      scrollToAnchor: function(hash) {
+        hash = hash || window.location.hash;
+        if (hash && hash.length > 0) {
+          // Ensure all dom-repeats have rendered.
+          Polymer.dom.flush();
+          var anchorId = hash.slice(1);
+          var elementToFocus = this.$$('[anchor-id="' + anchorId + '"]');
+          if (elementToFocus) {
+            elementToFocus.scrollIntoView();
+          }
+        }
+      },
+
+      _getElementName: function(element) {
+        var name = '';
+        if (element.tagname) {
+          name += '<' + element.tagname + '>';
+          if (element.classname) {
+            name += ' (' + element.classname + ')';
+          }
+        } else if (element.classname) {
+          name += element.classname;
+        }
+        return name;
+      },
+
+      _getNamespaceName: function(name) {
+        if (name == null) {
+          return undefined;
+        }
+        var lastDotIndex = name.lastIndexOf('.');
+        if (lastDotIndex === -1) {
+          return undefined;
+        }
+        return name.substring(0, lastDotIndex);
+      },
+
+      _getName: function(name) {
+        if (name == null) {
+          return undefined;
+        }
+        var lastDotIndex = name.lastIndexOf('.');
+        if (lastDotIndex === -1) {
+          return name;
+        }
+        return name.substring(lastDotIndex, name.length);
+      },
+
+      _getElementId: function(element) {
+        return element.classname || element.tagname;
+      },
+
+      /**
+       * Compare two analysis descriptors (elements, functions, etc.) by
+       * display name.
+       */
+      _compareDescriptors: function(a, b) {
+        // Elements display as "<tagname> (classname)" or "classname", while
+        // everything else displays as "name".
+        if (a.name != b.name) {
+          return (a.name || '').localeCompare(b.name || '');
+        }
+        if (a.tagname != b.tagname) {
+          return (a.tagname || '').localeCompare(b.tagname || '');
+        }
+        if (a.classname != b.classname) {
+          return (a.classname || '').localeCompare(b.classname || '');
+        }
+        return 0;
+      },
+
+    };
+
+  })();
+</script>

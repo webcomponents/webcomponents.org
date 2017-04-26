@@ -1,0 +1,135 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="mark-down.html">
+
+<link rel="import" href="iron-doc-behavior.html">
+<link rel="import" href="iron-doc-function.html">
+<link rel="import" href="iron-doc-property-2.html">
+<link rel="import" href="iron-doc-viewer-2-styles.html">
+
+<dom-module id="iron-doc-element">
+  <template>
+    <style include="iron-doc-viewer-2-styles"></style>
+
+
+    <h1>Element [[_getElementName(descriptor)]]</h1>
+    <p hidden$="[[!descriptor.summary]]">[[descriptor.summary]]</p>
+
+    <div class="metadata code">
+      class <span class="name">[[descriptor.classname]]</span>
+      extends
+      <a class="name deeplink"
+          target$="[[_superclassTarget(descriptor.superclass)]]"
+          href$="[[_superclassUrl(descriptor.superclass)]]">[[descriptor.superclass]]</a>
+      <span hidden$="[[!descriptor.mixins]]">
+        with <template is="dom-repeat" items="[[descriptor.mixins]]" sort="_compareDescriptors">
+          <a class="name deeplink" href$="[[baseHref]]/mixins/[[item]]">[[item]]</a>
+        </template>
+      </span>
+    </div>
+
+    <div class="metadata">Path: <span class="code">[[descriptor.path]]</span></div>
+    <div class="metadata" hidden$="[[!descriptor.behaviors]]">Behaviors:
+      <template is="dom-repeat" items="[[descriptor.behaviors]]" sort="_compareDescriptors">
+        <a class="name deeplink" href$="[[baseHref]]/behaviors/[[item]]">[[item]]</a>
+      </template>
+    </div>
+
+    <section id="description" class="card" hidden$="[[!descriptor.description]]">
+      <mark-down markdown="[[descriptor.description]]">
+        <div slot="markdown-html" class="markdown-html"></div>
+      </mark-down>
+    </section>
+
+    <nav id="api">
+      <header>API Reference</header>
+      <paper-checkbox checked="{{_showInherited}}">Show Inherited</paper-checkbox>
+      <paper-checkbox checked="{{_showPrivate}}">Show Private</paper-checkbox>
+    </nav>
+
+    <section anchor-id$="[[_formatAnchor(prefix,'properties')]]" class="card" hidden$="[[_noneToShow(_showPrivate,_showInherited,descriptor,'properties')]]">
+      <header><a href$="#[[_formatAnchor(prefix,'properties')]]" class="deeplink">Properties</a></header>
+      <div hidden$="[[!descriptor.properties.length]]">
+        <template is="dom-repeat" items="[[_filterMembers(descriptor.properties,_showPrivate,_showInherited)]]" sort="_compareDescriptors">
+          <iron-doc-property-2 anchor-id$="[[_formatAnchor(prefix,'property',item.name)]]" descriptor="[[item]]"></iron-doc-property-2>
+        </template>
+      </div>
+    </section>
+
+    <section anchor-id$="[[_formatAnchor(prefix,'methods')]]" class="card"  hidden$="[[_noneToShow(_showPrivate,_showInherited,descriptor,'methods')]]">
+      <header><a href$="#[[_formatAnchor(prefix,'methods')]]" class="deeplink">Methods</a></header>
+      <template is="dom-repeat" items="[[_filterMembers(descriptor.methods,_showPrivate,_showInherited)]]" sort="_compareDescriptors">
+        <iron-doc-function anchor-id$="[[_formatAnchor(prefix,'method',item.name)]]" descriptor="[[item]]"></iron-doc-function>
+      </template>
+    </section>
+
+    <section anchor-id$="[[_formatAnchor(prefix,'events')]]" class="card" hidden$="[[_noneToShow(_showPrivate,_showInherited,descriptor,'events')]]">
+      <header><a href$="#[[_formatAnchor(prefix,'events')]]" class="deeplink">Events</a></header>
+      <template is="dom-repeat" items="[[_filterMembers(descriptor.events,_showPrivate,_showInherited)]]" sort="_compareDescriptors">
+        <iron-doc-property-2 anchor-id$="[[_formatAnchor(prefix,'event',item.name)]]" descriptor="[[item]]"></iron-doc-property-2>
+      </template>
+    </section>
+
+  </template>
+
+  <script>
+    (function() {
+      /**
+       * Renders documentation describing an element's API.
+       *
+       * `iron-doc-viewer` renders element and behavior descriptions as extracted by
+       * [Polymer Analyzer](https://github.com/Polymer/polymer-analyzer). You can provide them
+       * either via binding...
+       *
+       *     <iron-doc-element descriptor="[[elementDescriptor]]"></iron-doc-element>
+       *
+       * ...or by placing the element descriptor in JSON as the text content of an
+       * `iron-doc-element`:
+       *
+       *     <iron-doc-element>
+       *       {
+       *         "is": "awesome-sauce",
+       *         "properties": [
+       *           {"name": "isAwesome", "type": "boolean", "desc": "Is it awesome?"},
+       *         ]
+       *       }
+       *     </iron-doc-element>
+       *
+       * However, be aware that due to current limitations in Polymer, _changes_ to
+       * the text content will not be respected, only the initial value will be loaded.
+       * If you wish to update the documented element, please set it via the `descriptor`
+       * property.
+       *
+       * @demo demo/index.html Basic Demo
+      */
+      Polymer({
+        is: 'iron-doc-element',
+
+        behaviors: [Polymer.IronDocBehavior],
+
+        _superclassUrl: function(superclass) {
+          if (superclass === 'HTMLElement') {
+            return 'https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement';
+          }
+          return  this.baseHref + '/mixins/' + superclass;
+        },
+
+        _superclassTarget: function(superclass) {
+          if (superclass === 'HTMLElement') {
+            return '_blank';
+          }
+          return '';
+        },
+      });
+    })();
+  </script>
+</dom-module>
