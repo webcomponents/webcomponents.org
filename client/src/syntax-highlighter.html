@@ -62,7 +62,7 @@
       if (map[lang])
         lang = map[lang];
 
-      return lang || 'htmlmixed';
+      return lang;
     },
 
     _highlightElement: function(element) {
@@ -76,7 +76,11 @@
       element.innerHTML = '';
 
       /* global CodeMirror */
-      CodeMirror.runMode(text, lang, element);
+      CodeMirror.runMode(text, lang || 'htmlmixed', element);
+
+      // Try javascript highlighting instead
+      if (!lang || !element.firstElementChild)
+        CodeMirror.runMode(text, 'javascript', element);
       element.classList.add('cm-s-default');
     },
 

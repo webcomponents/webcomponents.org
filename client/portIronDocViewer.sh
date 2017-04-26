@@ -24,3 +24,11 @@ do
   | sed 's/\s*prism-theme-default\s*//' \
   > 'src/'$i
 done
+
+additonalStyles="$(<src/iron-doc-viewer-additional-styles.css)"
+awk --assign=additonalStyles="$additonalStyles" '/<\/style>/{print additonalStyles;print;next}1' src/iron-doc-viewer-2-styles.html > .tmp_file
+mv .tmp_file src/iron-doc-viewer-2-styles.html
+
+additonalStyles="$(<src/iron-doc-summary-additional-styles.css)"
+awk --assign=additonalStyles="$additonalStyles" '/<\/style>/{print additonalStyles;print;next}1' src/iron-doc-summary-styles.html > .tmp_file
+mv .tmp_file src/iron-doc-summary-styles.html
