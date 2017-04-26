@@ -44,6 +44,6 @@ After a PR is merged for a client change, staging is automatically updated by tr
 ### Deploying to prod
 ```bash
 cd client
-gulp build
+npm run build
 gcloud app deploy --no-promote build/client.yaml
 ```
