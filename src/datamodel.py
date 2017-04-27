@@ -2,6 +2,7 @@ from google.appengine.ext import ndb
 
 import re
 import versiontag
+import zlib
 
 class CollectionReference(ndb.Model):
   semver = ndb.StringProperty(indexed=False)
@@ -154,11 +155,17 @@ class Version(ndb.Model):
 
 class Content(ndb.Model):
   content = ndb.TextProperty(indexed=False)
+  content_compressed = ndb.BlobProperty(indexed=False)
 
   etag = ndb.StringProperty(indexed=False)
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
+
+  def get_content(self):
+    if self.content_compressed:
+      return zlib.decompress(self.content_compressed)
+    return self.content
 
 class Dependency(object):
   def __init__(self, owner, repo, version):

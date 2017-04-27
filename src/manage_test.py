@@ -95,7 +95,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, None)
+    self.assertEqual(content.get_content(), None)
     self.assertEqual(content.status, Status.pending)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -116,7 +116,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, 'existing data')
+    self.assertEqual(content.get_content(), 'existing data')
     self.assertEqual(content.status, Status.ready)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -153,7 +153,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, None)
+    self.assertEqual(content.get_content(), None)
     self.assertEqual(content.status, Status.pending)
 
     tasks = self.tasks.get_filtered_tasks()

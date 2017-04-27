@@ -13,6 +13,7 @@ import logging
 import os
 import urllib
 import webapp2
+import zlib
 
 from datamodel import Author, Status, Library, Version, Content, CollectionReference, Dependency, VersionCache, Sitemap
 import licenses
@@ -691,7 +692,7 @@ class IngestVersion(RequestHandler):
     if bower is None:
       return
 
-    bower_json = json.loads(bower.content)
+    bower_json = json.loads(bower.get_content())
 
     for _, path in bower_json.get('pages', {}).iteritems():
       response = util.github_get('repos', self.owner, self.repo, 'contents/' + path, params={'ref': self.sha})
@@ -773,7 +774,7 @@ class UpdateIndexes(RequestHandler):
 
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
-      analysis = json.loads(analysis.content)
+      analysis = json.loads(analysis.get_content())
       elements = analysis.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
@@ -813,16 +814,18 @@ class IngestAnalysis(RequestHandler):
     version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
 
     content = Content.get_by_id('analysis', parent=version_key)
+    compressed = zlib.compress(data)
     if content is None:
       return
     if data == '':
       content.content = None
-    elif len(data) > 500000:
+      content.content_compressed = None
+    elif len(compressed) > 500000:
       # Max entity size is only 1MB.
-      logging.error('content was too large: %d %s %s', len(data), Library.id(owner, repo), version)
-      error = 'content was too large: %d' % len(data)
+      logging.error('content was too large: %d %s %s', len(compressed), Library.id(owner, repo), version)
+      error = 'content was too large: %d' % len(compressed)
     else:
-      content.content = data
+      content.content_compressed = compressed
 
     if error is None:
       content.status = Status.ready

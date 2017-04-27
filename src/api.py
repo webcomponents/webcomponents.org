@@ -344,7 +344,7 @@ class GetDocs(webapp2.RequestHandler):
     result = {}
     result['status'] = analysis.status
     if analysis.status == Status.ready:
-      content = json.loads(analysis.content)
+      content = json.loads(analysis.get_content())
 
       has_analyzer_data = content.get('analyzerData', None) is not None
 
