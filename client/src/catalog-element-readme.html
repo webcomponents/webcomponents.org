@@ -202,6 +202,9 @@
         if (!data)
           return;
 
+        // Fix titles since GitHub broke this.
+        if (readme)
+          readme = readme.replace(/##&lt;(.*?)&gt;/gim, "<h2>$1</h2>");
         this.$.contents.innerHTML = readme || 'Empty README.md';
 
         if (!readme)
