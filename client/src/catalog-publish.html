@@ -246,6 +246,10 @@
         Polymer.PollingMetaBehavior,
       ],
 
+      created: function() {
+        this.importHref(this.resolveUrl('re-captcha.html'), null, null, true);
+      },
+
       ready: function() {
         var sample = this.$['sample-demo'];
         sample.data = {

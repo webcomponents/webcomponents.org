@@ -16,7 +16,8 @@
     "src/catalog-static.html",
     "src/catalog-home.html",
     "src/code-editor.html",
-    "src/lazy-resources.html"
+    "src/lazy-resources.html",
+    "src/re-captcha.html"
   ],
   "extraDependencies": [
     "assets/**/*",
