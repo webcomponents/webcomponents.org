@@ -79,7 +79,7 @@
       CodeMirror.runMode(text, lang || 'htmlmixed', element);
 
       // Try javascript highlighting instead
-      if (!lang || !element.firstElementChild)
+      if (!lang && !element.firstElementChild)
         CodeMirror.runMode(text, 'javascript', element);
       element.classList.add('cm-s-default');
     },
