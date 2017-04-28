@@ -5,7 +5,6 @@ import webtest
 from datamodel import Library, Version, Content, Status
 from api import app
 import util
-import zlib
 
 from test_base import TestBase
 
@@ -155,7 +154,7 @@ class DocsTest(ApiTestBase):
     version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
 
     content = Content(id='analysis', parent=version_key, status=Status.pending)
-    content.content_compressed = zlib.compress(json.dumps({"analyzerData":"some data"}))
+    content.json = dict({"analyzerData": "some data"})
     content.status = Status.ready
     content.put()
 
