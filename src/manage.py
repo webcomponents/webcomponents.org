@@ -774,14 +774,24 @@ class UpdateIndexes(RequestHandler):
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
       data = analysis.get_json()
-      elements = data.get('elementsByTagName', {}).keys()
-      if elements != []:
-        fields.append(search.TextField(name='element', value=' '.join(elements)))
-        weights.append((' '.join(elements), 5))
-      behaviors = data.get('behaviorsByName', {}).keys()
-      if behaviors != []:
-        fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
-        weights.append((' '.join(behaviors), 5))
+      if data.get('analyzerData', None) is not None:
+        # Use analyzer data for search index
+        elements = list(map(lambda x: x.get('tagname') or x.get('classname'), data.get('analyzerData').get('elements')))
+        if elements != []:
+          fields.append(search.TextField(name='element', value=' '.join(elements)))
+          weights.append((' '.join(elements), 5))
+
+
+      else:
+        # Use hydrolysis data for search index
+        elements = data.get('elementsByTagName', {}).keys()
+        if elements != []:
+          fields.append(search.TextField(name='element', value=' '.join(elements)))
+          weights.append((' '.join(elements), 5))
+        behaviors = data.get('behaviorsByName', {}).keys()
+        if behaviors != []:
+          fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
+          weights.append((' '.join(behaviors), 5))
 
     weighted = []
     for value, weight in weights:
