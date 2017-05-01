@@ -818,7 +818,7 @@ class IngestAnalysis(RequestHandler):
     if data == '':
       content.set_json(None)
     else:
-      content.set_json(data)
+      content.set_json(json.loads(data))
 
     if error is None:
       content.status = Status.ready
