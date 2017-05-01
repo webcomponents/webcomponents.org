@@ -95,7 +95,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, None)
+    self.assertEqual(content.get_json(), None)
     self.assertEqual(content.status, Status.pending)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -108,7 +108,8 @@ class AnalyzeTest(ManageTestBase):
     version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
 
     content = Content(id='analysis', parent=version_key, status=Status.pending)
-    content.content = 'existing data'
+    data = {"data": "existing data"}
+    content.json = data
     content.status = Status.ready
     content.put()
 
@@ -116,7 +117,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, 'existing data')
+    self.assertEqual(content.get_json(), data)
     self.assertEqual(content.status, Status.ready)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -153,7 +154,7 @@ class AnalyzeTest(ManageTestBase):
     self.assertEqual(response.status_int, 200)
 
     content = Content.get_by_id('analysis', parent=version_key)
-    self.assertEqual(content.content, None)
+    self.assertEqual(content.get_json(), None)
     self.assertEqual(content.status, Status.pending)
 
     tasks = self.tasks.get_filtered_tasks()
@@ -565,7 +566,7 @@ class IngestLibraryTest(ManageTestBase):
     readme_html = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'readme.html').get()
     self.assertEqual(readme_html.content, '<html>README</html>')
     bower = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'bower').get()
-    self.assertEqual(bower.content, '{}')
+    self.assertEqual(bower.get_json(), {})
 
   def test_ingest_preview(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')

@@ -2,7 +2,7 @@ import json
 import unittest
 import webtest
 
-from datamodel import Library
+from datamodel import Library, Version, Content, Status
 from api import app
 import util
 
@@ -144,6 +144,23 @@ class StarTest(ApiTestBase):
   def test_bad_code(self):
     self.respond_to('https://github.com/login/oauth/access_token', '{"error": "error"}')
     self.app.post('/api/star/owner/repo', params={'code': 'code'}, status=401)
+
+class DocsTest(ApiTestBase):
+  def setUp(self):
+    ApiTestBase.setUp(self)
+
+  def test_compressed(self):
+    library_key = Library(id='owner/repo').put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    content.json = dict({"analyzerData": "some data"})
+    content.status = Status.ready
+    content.put()
+
+    response = self.app.get('/api/docs/owner/repo/v1.1.1?use_analyzer_data')
+    self.assertEqual(response.status_int, 200)
+    self.assertEqual(json.loads(response.normal_body).get('analysis'), "some data")
 
 if __name__ == '__main__':
   unittest.main()

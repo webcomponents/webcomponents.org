@@ -678,7 +678,7 @@ class IngestVersion(RequestHandler):
         bower_json = json.loads(response.content)
       except ValueError:
         return self.error("could not parse bower.json", ErrorCodes.Version_parse_bower)
-      Content(parent=self.version_key, id='bower', content=response.content,
+      Content(parent=self.version_key, id='bower', json=bower_json,
               status=Status.ready, etag=response.headers.get('ETag', None)).put()
       return bower_json
     elif response.status_code == 404:
@@ -691,7 +691,7 @@ class IngestVersion(RequestHandler):
     if bower is None:
       return
 
-    bower_json = json.loads(bower.content)
+    bower_json = bower.get_json()
 
     for _, path in bower_json.get('pages', {}).iteritems():
       response = util.github_get('repos', self.owner, self.repo, 'contents/' + path, params={'ref': self.sha})
@@ -727,7 +727,7 @@ class UpdateIndexes(RequestHandler):
 
     bower_key = ndb.Key(Library, Library.id(owner, repo), Version, version, Content, 'bower')
     bower_object = bower_key.get()
-    bower = {} if bower_object is None else json.loads(bower_object.content)
+    bower = {} if bower_object is None else bower_object.get_json()
     version_key = bower_key.parent()
     library = version_key.parent().get()
 
@@ -773,12 +773,12 @@ class UpdateIndexes(RequestHandler):
 
     analysis = Content.get_by_id('analysis', parent=version_key)
     if analysis is not None and analysis.status == Status.ready:
-      analysis = json.loads(analysis.content)
-      elements = analysis.get('elementsByTagName', {}).keys()
+      data = analysis.get_json()
+      elements = data.get('elementsByTagName', {}).keys()
       if elements != []:
         fields.append(search.TextField(name='element', value=' '.join(elements)))
         weights.append((' '.join(elements), 5))
-      behaviors = analysis.get('behaviorsByName', {}).keys()
+      behaviors = data.get('behaviorsByName', {}).keys()
       if behaviors != []:
         fields.append(search.TextField(name='behavior', value=' '.join(behaviors)))
         weights.append((' '.join(behaviors), 5))
@@ -816,13 +816,9 @@ class IngestAnalysis(RequestHandler):
     if content is None:
       return
     if data == '':
-      content.content = None
-    elif len(data) > 500000:
-      # Max entity size is only 1MB.
-      logging.error('content was too large: %d %s %s', len(data), Library.id(owner, repo), version)
-      error = 'content was too large: %d' % len(data)
+      content.set_json(None)
     else:
-      content.content = data
+      content.set_json(json.loads(data))
 
     if error is None:
       content.status = Status.ready

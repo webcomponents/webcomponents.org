@@ -194,7 +194,7 @@ class LibraryMetadata(object):
 
     bower = yield bower_future
     if bower is not None:
-      bower_json = json.loads(bower.content)
+      bower_json = bower.get_json()
       dependencies = bower_json.get('dependencies', {})
       result['dependency_count'] = len(dependencies)
       result['bower'] = {
@@ -262,7 +262,7 @@ class GetDependencies(webapp2.RequestHandler):
       self.response.set_status(404)
       return
 
-    bower_json = json.loads(bower.content)
+    bower_json = bower.get_json()
     bower_dependencies = bower_json.get('dependencies', {})
 
     dependencies = []
@@ -344,7 +344,7 @@ class GetDocs(webapp2.RequestHandler):
     result = {}
     result['status'] = analysis.status
     if analysis.status == Status.ready:
-      content = json.loads(analysis.content)
+      content = analysis.get_json()
 
       has_analyzer_data = content.get('analyzerData', None) is not None
 

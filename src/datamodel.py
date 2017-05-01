@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 
+import json
 import re
 import versiontag
 
@@ -154,11 +155,24 @@ class Version(ndb.Model):
 
 class Content(ndb.Model):
   content = ndb.TextProperty(indexed=False)
+  json = ndb.JsonProperty(indexed=False, compressed=True)
 
   etag = ndb.StringProperty(indexed=False)
   status = ndb.StringProperty(default=Status.pending)
   error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
+
+  def get_json(self):
+    if self.json is not None:
+      return self.json
+    if self.content is not None:
+      return json.loads(self.content)
+    return self.content
+
+  def set_json(self, data):
+    if self.content:
+      self.content = None
+    self.json = data
 
 class Dependency(object):
   def __init__(self, owner, repo, version):
