@@ -34,7 +34,7 @@ class GetResource(webapp2.RequestHandler):
       self.response.set_status(404)
       return
 
-    dependencies = json.loads(analysis.content).get('bowerDependencies', None)
+    dependencies = analysis.get_json().get('bowerDependencies', None)
     if dependencies is None:
       self.response.write('could not find dependencies for %s in %s/%s' % (tag, owner, repo))
       self.response.set_status(404)
