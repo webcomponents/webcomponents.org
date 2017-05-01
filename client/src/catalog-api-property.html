@@ -194,7 +194,7 @@
         <span id="type" class="type">{{descriptor.type}}</span>
         <span class="annotation">[[_getAnnotation(descriptor)]]</span>
       </div>
-      <ol id="params" hidden$="{{_computeHideParams(descriptor.return)}}">
+      <ol id="params" hidden$="{{_computeHideParams(descriptor, descriptor.return)}}">
         <template is="dom-repeat" items="{{descriptor.params}}">
           <li hidden$="{{!item.type}}">
             <span class="name">{{item.name}}</span>
