@@ -8,6 +8,7 @@ from manage import app
 import util
 
 from google.appengine.ext import ndb
+from google.appengine.api import search
 
 from test_base import TestBase
 
@@ -681,7 +682,105 @@ class UpdateIndexesTest(ManageTestBase):
     ref2 = CollectionReference.get_by_id(id="my/collection/v1.0.0", parent=ndb.Key(Library, "org/element-2"))
     self.assertIsNotNone(ref2)
 
-    # TODO: Validate search index is updated correctly.
+    # Validate search index
+    index = search.Index('repo')
+    document = index.get('my/collection')
+    self.assertIsNotNone(document)
+    self.assertTrue(len(document.fields) > 0)
+
+  def test_hydrolysis_index(self):
+    metadata = """{
+      "full_name": "full-name"
+    }"""
+    library_key = Library(id='owner/repo', metadata=metadata).put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    data = {"elementsByTagName": {"my-element": "some data"}}
+    content.json = data
+    content.status = Status.ready
+    content.put()
+
+    VersionCache.update(library_key)
+
+    response = self.app.get(util.update_indexes_task('owner', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    index = search.Index('repo')
+    document = index.get('owner/repo')
+    self.assertIsNotNone(document)
+    self.assertTrue(len(document.fields) > 0)
+
+    elements = [field for field in document.fields if field.name == 'element']
+    self.assertEqual(len(elements), 1)
+    self.assertEqual(len(elements[0].value.split(' ')), 1)
+
+  def test_analyzer_index(self):
+    metadata = """{
+      "full_name": "full-name"
+    }"""
+    library_key = Library(id='owner/repo', metadata=metadata).put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    data = {
+        "analyzerData": {
+            "elements": [{"tagname": "my-element"}, {"classname": "another-element"}],
+            "metadata": {
+                "polymer": {"behaviors": [{"name": "polymer-behavior"}]}
+            }
+        }
+    }
+    content.json = data
+    content.status = Status.ready
+    content.put()
+
+    VersionCache.update(library_key)
+
+    response = self.app.get(util.update_indexes_task('owner', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    index = search.Index('repo')
+    document = index.get('owner/repo')
+    self.assertIsNotNone(document)
+    self.assertTrue(len(document.fields) > 0)
+
+    elements = [field for field in document.fields if field.name == 'element']
+    self.assertEqual(len(elements), 1)
+    self.assertEqual(len(elements[0].value.split(' ')), 2)
+
+    behaviors = [field for field in document.fields if field.name == 'behavior']
+    self.assertEqual(len(behaviors), 1)
+    self.assertEqual(len(behaviors[0].value.split(' ')), 1)
+
+  def test_analyzer_index_empty(self):
+    metadata = """{
+      "full_name": "full-name"
+    }"""
+    library_key = Library(id='owner/repo', metadata=metadata).put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    content = Content(id='analysis', parent=version_key, status=Status.pending)
+    data = {"analyzerData": {}}
+    content.json = data
+    content.status = Status.ready
+    content.put()
+
+    VersionCache.update(library_key)
+
+    response = self.app.get(util.update_indexes_task('owner', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    index = search.Index('repo')
+    document = index.get('owner/repo')
+    self.assertIsNotNone(document)
+    self.assertTrue(len(document.fields) > 0)
+
+    elements = [field for field in document.fields if field.name == 'element']
+    self.assertEqual(len(elements), 0)
+
+    behaviors = [field for field in document.fields if field.name == 'behavior']
+    self.assertEqual(len(behaviors), 0)
 
 if __name__ == '__main__':
   unittest.main()
