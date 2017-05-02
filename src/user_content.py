@@ -1,7 +1,6 @@
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
-import json
 import webapp2
 
 from datamodel import Library, Version, Content, Status
