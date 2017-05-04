@@ -2,6 +2,7 @@
 
 const test = require('ava');
 const proxyquire = require('proxyquire').noCallThru();
+const nock = require('nock');
 
 const datastoreStub = function() {
   return {
@@ -30,7 +31,7 @@ const datastoreStub = function() {
           }
         ]
       };
-      return Promise.resolve([{content: JSON.stringify(data)}]);
+      return Promise.resolve([{content: JSON.stringify(data), status: 'ready'}]);
     }
   }
 };
@@ -55,13 +56,28 @@ test.cb('bower_components should redirect paths', (t) => {
 });
 
 test.cb('acts sanely', (t) => {
+  var scope = nock('https://cdn.rawgit.com')
+    .get('depOwner/depRepo/v2.0.0/parent/file.html')
+    .reply(200, 'my resource');
+
   request.get('/owner/repo/tag/depRepo/parent/file.html')
-    .expect(200)
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
     .end(t.end);
 });
 
 test.cb('analysis doesnt exist', (t) => {
   request.get('/this/does/notexist/depRepo/parent/file.html')
     .expect(404)
+    .end(t.end);
+});
+
+test.cb('throws invalid dependency', (t) => {
+  request.get('/owner/repo/tag/nodep/blah/file.html')
+    .expect(400)
     .end(t.end);
 });
