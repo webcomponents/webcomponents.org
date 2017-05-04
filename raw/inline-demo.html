@@ -1,0 +1,110 @@
+<!doctype html>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body:before {
+    border: 2px solid #ededed;
+    border-left: none;
+    border-bottom: none;
+    position: absolute;
+    content: '';
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: absolute;
+    top: 0;
+    opacity: 1;
+    transition: -webkit-filter 500ms, opacity 300ms;
+  }
+
+  iframe.grey {
+    -webkit-filter: grayscale(100%);
+    z-index: 1;
+  }
+
+  iframe.fade {
+    opacity: 0;
+  }
+</style>
+<div id="container"></div>
+<script>
+  window.addEventListener('message', receiveMessage, false);
+  var currentFrame;
+  var loadingFrame;
+  var sourceWindow;
+  var timeoutId;
+  var numberOfMeasures = 0;
+  var demoId;
+
+  function receiveMessage(event) {
+    if (!event || !event.data || event.data.id == undefined || !event.data.source)
+      return;
+
+    // Allow messaging back to original window.
+    sourceWindow = event.source;
+    demoId = event.data.id;
+
+    var container = document.getElementById('container');
+    if (currentFrame)
+      currentFrame.classList.add('grey');
+
+    if (loadingFrame) {
+      loadingFrame.onload = null;
+      container.removeChild(loadingFrame);
+    }
+
+    if (timeoutId)
+      clearTimeout(timeoutId);
+    numberOfMeasures = 0;
+
+    loadingFrame = document.createElement('iframe');
+    loadingFrame.setAttribute('role', 'none');
+    container.appendChild(loadingFrame);
+
+    loadingFrame.contentDocument.open();
+    loadingFrame.contentDocument.write('<!doctype html>');
+    loadingFrame.contentDocument.write(event.data.source);
+    loadingFrame.contentDocument.close();
+
+    if (loadingFrame.contentDocument.readyState == 'loading') {
+      loadingFrame.onload = iframeLoaded;
+    } else {
+      iframeLoaded();
+    }
+  }
+
+  function iframeLoaded() {
+    var oldFrame = currentFrame;
+    currentFrame = loadingFrame;
+    loadingFrame = null;
+
+    postHeight();
+
+    if (oldFrame) {
+      oldFrame.classList.add('fade');
+      setTimeout(removeFrame.bind(null, oldFrame), 500);
+    }
+  }
+
+  function removeFrame(frame) {
+    if (frame && frame.parentElement)
+      frame.parentElement.removeChild(frame);
+  }
+
+  function postHeight() {
+    if (sourceWindow && currentFrame && currentFrame.contentDocument)
+      sourceWindow.postMessage({id: demoId, height: currentFrame.contentDocument.documentElement.offsetHeight}, '*');
+    numberOfMeasures++;
+    timeoutId = setTimeout(postHeight, Math.min(1000, 100 * numberOfMeasures));
+  }
+</script>

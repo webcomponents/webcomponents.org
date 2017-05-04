@@ -57,7 +57,7 @@ test.cb('bower_components should redirect paths', (t) => {
 
 test.cb('acts sanely', (t) => {
   var scope = nock('https://cdn.rawgit.com')
-    .get('depOwner/depRepo/v2.0.0/parent/file.html')
+    .get('/depOwner/depRepo/v2.0.0/parent/file.html')
     .reply(200, 'my resource');
 
   request.get('/owner/repo/tag/depRepo/parent/file.html')
@@ -79,5 +79,11 @@ test.cb('analysis doesnt exist', (t) => {
 test.cb('throws invalid dependency', (t) => {
   request.get('/owner/repo/tag/nodep/blah/file.html')
     .expect(400)
+    .end(t.end);
+});
+
+test.cb('fetches inline demos', (t) => {
+  request.get('/owner/repo/tag/repo/')
+    .expect(200)
     .end(t.end);
 });

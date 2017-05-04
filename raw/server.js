@@ -9,6 +9,7 @@ const express = require('express');
 const datastore = require('@google-cloud/datastore')();
 const https = require('https');
 const app = express();
+const zlib = require('zlib');
 
 // Error on absolute path values.
 app.get('/:owner/:repo/:tag', (request, response) => {
@@ -21,6 +22,10 @@ app.get('/:owner/:repo/:tag/:before([\\s\\S]*)/bower_components/:after([\\s\\S]*
   response.set('cache-control', 'max-age=315569000');
   var url = [req.params.owner, req.params.repo, req.params.tag, req.params.after].join('/');
   response.redirect(301, url);
+});
+
+app.get('/[^/]+/[^/]+/[^/]+/[^/]+/', (request, response) => {
+  response.sendFile(__dirname + '/inline-demo.html');
 });
 
 app.get('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)', async (req, res) => {
@@ -39,9 +44,14 @@ app.get('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)', async (req, res) => {
     return;
   }
 
-  var content = analysis[0].json;
-  if (!content && analysis[0].content)
+  var content = null;
+  if (analysis[0].json) {
+    // Decompress and parse.
+    var decompressed = zlib.unzipSync(analysis[0].json);
+    content = JSON.parse(decompressed.toString());
+  } else if (analysis[0].content) {
     content = JSON.parse(analysis[0].content);
+  }
 
   if (!content || !content['bowerDependencies']) {
     res.status(404).send(`Could not find dependencies for ${tag} in ${owner}/${repo}`);
@@ -67,8 +77,7 @@ app.get('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)', async (req, res) => {
   // Fetch resource from rawgit
   const options = {
     hostname: 'cdn.rawgit.com',
-    path: configMap.get(req.params.name) + path,
-    rejectUnauthorized: true,
+    path: '/' + configMap.get(req.params.name) + path,
   }
 
   https.get(options, (result) => {
