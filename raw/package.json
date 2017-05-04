@@ -2,7 +2,7 @@
   "name": "raw",
   "private": true,
   "engines": {
-    "node": ">7"
+    "node": ">=7"
   },
   "scripts": {
     "start": "node server.js",
@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.0.0",
-    "@google/cloud-debug": "^0.9.2",
-    "@google/cloud-trace": "^0.6.3",
+    "@google-cloud/debug-agent": "^1.0.0",
+    "@google-cloud/trace-agent": "^1.1.0",
     "express": "^4.15.2"
   },
   "devDependencies": {
