@@ -78,7 +78,7 @@ app.get('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)', async (req, res) => {
   const options = {
     hostname: 'cdn.rawgit.com',
     path: '/' + configMap.get(req.params.name) + path,
-  }
+  };
 
   https.get(options, (result) => {
     if (result.statusCode != 200) {
