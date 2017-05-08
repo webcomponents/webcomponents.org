@@ -39,7 +39,7 @@ install:
   fi
 - printf '\ny\n' | $HOME/gcloud/google-cloud-sdk/bin/gcloud components install app-engine-python
 script:
-- grunt lint
+- npm run lint
 - python tests.py $HOME/gcloud/google-cloud-sdk
 - "(cd client; xvfb-run npm test)"
 - "(cd analysis; npm test)"
