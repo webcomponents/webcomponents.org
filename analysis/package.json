@@ -16,7 +16,7 @@
     "stream-buffers": "3.0.1"
   },
   "engines": {
-    "node": "4.4.5"
+    "node": "6"
   },
   "scripts": {
     "start": "node src/main.js --responseTopic analysis-responses",
