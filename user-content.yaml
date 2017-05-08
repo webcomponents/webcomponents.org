@@ -16,6 +16,7 @@ skip_files:
 - scripts
 - client
 - node_modules
+- raw
 
 handlers:
 - url: /[^/]+/[^/]+/[^/]+/[^/]+/
