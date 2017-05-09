@@ -702,6 +702,18 @@
       },
 
       baseUrls: function(queryParams) {
+        function supportsEs6() {
+          'use strict';
+          if (typeof Symbol == 'undefined') return false;
+          try {
+              eval('class Foo {}');
+              eval('var bar = (x) => x+1');
+          } catch (e) {
+            return false;
+          }
+          return true;
+        }
+
         var isLocalhost = window.location.hostname == 'localhost';
         var result = {api: ''};
 
@@ -709,14 +721,18 @@
           result.api = 'https://www.webcomponents.org';
 
         if (isLocalhost || this.isProduction()) {
-          result.userContent = 'https://user-content-dot-custom-elements.appspot.com';
+          result.userContent = 'https://raw-dot-custom-elements.appspot.com';
         } else {
-          result.userContent = 'https://user-content-dot-custom-elements-staging.appspot.com';
+          result.userContent = 'https://raw-dot-custom-elements-staging.appspot.com';
         }
         if (queryParams.instance) {
           result.api = 'https://' + queryParams.instance;
-          result.userContent = 'https://user-content-dot-' + queryParams.instance;
+          result.userContent = 'https://raw-dot-' + queryParams.instance;
         }
+
+        if (!supportsEs6())
+          result.userContent += '/transpile';
+
         return result;
       },
 
