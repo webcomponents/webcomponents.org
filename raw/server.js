@@ -10,9 +10,20 @@ const datastore = require('@google-cloud/datastore')();
 const https = require('https');
 const app = express();
 const zlib = require('zlib');
+const path = require('path');
+const polyservePath = path.dirname(require.resolve('polyserve'));
+const babelCompile = require(path.resolve(polyservePath, 'compile-middleware')).babelCompile;
+const injectCustomElementsEs5Adapter = require(path.resolve(polyservePath, 'custom-elements-es5-adapter-middleware')).injectCustomElementsEs5Adapter;
+
+app.use('/transpile/*', injectCustomElementsEs5Adapter(true));
+app.use('/transpile/*', babelCompile(true));
+
+function optionalTranspile(path) {
+  return ['/transpile' + path, path];
+}
 
 // Error on absolute path values.
-app.get('/:owner/:repo/:tag', (request, response) => {
+app.get(optionalTranspile('/:owner/:repo/:tag'), (request, response) => {
   response.set('Access-Control-Allow-Origin', '*');
   response.status(400).send('Error: Invalid request. Try using a relative path if you are using an absolute path.');
 });
@@ -28,7 +39,7 @@ app.get('/[^/]+/[^/]+/[^/]+/[^/]+/', (request, response) => {
   response.sendFile(__dirname + '/inline-demo.html');
 });
 
-app.get('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)', async (req, res) => {
+app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (req, res) => {
   var owner = req.params.owner.toLowerCase();
   var repo = req.params.repo.toLowerCase();
   var tag = req.params.tag;

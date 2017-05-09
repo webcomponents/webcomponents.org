@@ -3,6 +3,7 @@
 const test = require('ava');
 const proxyquire = require('proxyquire').noCallThru();
 const nock = require('nock');
+const fs = require('fs');
 
 const datastoreStub = function() {
   return {
@@ -85,5 +86,46 @@ test.cb('throws invalid dependency', t => {
 test.cb('fetches inline demos', t => {
   request.get('/owner/repo/tag/repo/')
     .expect(200)
+    .end(t.end);
+});
+
+test.cb('does not transpile', t => {
+  var classElement = fs.readFileSync('resources/class-element.html', 'utf8');
+  var scope = nock('https://cdn.rawgit.com')
+    .get('/depOwner/depRepo/v2.0.0/parent/file.html')
+    .reply(200, classElement, {
+      'Content-Type': 'text/html;charset=utf-8'
+    });
+
+  request.get('/owner/repo/tag/depRepo/parent/file.html')
+    .expect(200, classElement)
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('transpiles when requested', t => {
+  var classElement = fs.readFileSync('resources/class-element.html', 'utf8');
+  var scope = nock('https://cdn.rawgit.com')
+    .get('/depOwner/depRepo/v2.0.0/parent/file.html')
+    .reply(200, classElement, {
+      'Content-Type': 'text/html;charset=utf-8'
+    });
+
+  request.get('/transpile/owner/repo/tag/depRepo/parent/file.html')
+    .expect(200)
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect((response) => {
+      if (response.text == classElement) {
+        throw new Error('Did not transpile result');
+      }
+    })
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
     .end(t.end);
 });
