@@ -704,10 +704,13 @@
       baseUrls: function(queryParams) {
         function supportsEs6() {
           'use strict';
-          if (typeof Symbol == 'undefined') return false;
+          if (typeof Symbol == 'undefined')
+            return false;
           try {
-              eval('class Foo {}');
-              eval('var bar = (x) => x+1');
+            // eslint-disable-next-line no-eval
+            eval('class Foo {}');
+            // eslint-disable-next-line no-eval
+            eval('var bar = (x) => x+1');
           } catch (e) {
             return false;
           }
