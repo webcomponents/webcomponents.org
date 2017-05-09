@@ -49,8 +49,24 @@ test.cb('absolute paths result in error', t => {
     .end(t.end);
 });
 
+test.cb('absolute paths result in error - transpiled', t => {
+  request.get('/transpile/owner/repo/tag')
+    .expect(400)
+    .expect(response => {
+      t.regex(response.text, /Error/);
+    })
+    .end(t.end);
+});
+
 test.cb('bower_components should redirect paths', t => {
   request.get('/owner/repo/tag/my/path/bower_components/my/real/path.html')
+    .expect('Location', 'owner/repo/tag/my/real/path.html')
+    .expect(301)
+    .end(t.end);
+});
+
+test.cb('bower_components should redirect paths - transpiled', t => {
+  request.get('/transpile/owner/repo/tag/my/path/bower_components/my/real/path.html')
     .expect('Location', 'owner/repo/tag/my/real/path.html')
     .expect(301)
     .end(t.end);
@@ -85,6 +101,12 @@ test.cb('throws invalid dependency', t => {
 
 test.cb('fetches inline demos', t => {
   request.get('/owner/repo/tag/repo/')
+    .expect(200)
+    .end(t.end);
+});
+
+test.cb('fetches inline demos - transpiled', t => {
+  request.get('/transpile/owner/repo/tag/repo/')
     .expect(200)
     .end(t.end);
 });

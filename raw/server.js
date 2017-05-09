@@ -29,13 +29,13 @@ app.get(optionalTranspile('/:owner/:repo/:tag'), (request, response) => {
 });
 
 // Redirect requests with incorrectly specified bower_components path.
-app.get('/:owner/:repo/:tag/:before([\\s\\S]*)/bower_components/:after([\\s\\S]*)', (req, response) => {
+app.get(optionalTranspile('/:owner/:repo/:tag/:before([\\s\\S]*)/bower_components/:after([\\s\\S]*)'), (req, response) => {
   response.set('cache-control', 'max-age=315569000');
   var url = [req.params.owner, req.params.repo, req.params.tag, req.params.after].join('/');
   response.redirect(301, url);
 });
 
-app.get('/[^/]+/[^/]+/[^/]+/[^/]+/', (request, response) => {
+app.get(optionalTranspile('/[^/]+/[^/]+/[^/]+/[^/]+/'), (request, response) => {
   response.sendFile(__dirname + '/inline-demo.html');
 });
 
