@@ -96,6 +96,8 @@ function processTasks() {
           Ana.fail("main/processTasks");
           attributes.error = "true";
           error.consoleOutput = Ana.readBuffer();
+          if (error.error)
+            delete error.error.picks;
           catalog.postResponse(error, attributes)
               .then(() => res.sendStatus(200))
               .catch(() => res.sendStatus(500));
