@@ -683,8 +683,7 @@
 
           var element = selectedItem.tagName.toLowerCase();
           selectedItem.removeAttribute('unresolved');
-          // TODO(samli): Remove once switch is complete
-          if (element == 'catalog-element' && this.queryParams && 'analyzer' in this.queryParams)
+          if (element == 'catalog-element')
             element = 'catalog-element-analyzer';
 
           this.importHref(
