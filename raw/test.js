@@ -140,7 +140,7 @@ test.cb('transpiles when requested', t => {
   request.get('/transpile/owner/repo/tag/depRepo/parent/file.html')
     .expect(200)
     .expect('Access-Control-Allow-Origin', '*')
-    .expect((response) => {
+    .expect(response => {
       if (response.text == classElement) {
         throw new Error('Did not transpile result');
       }

@@ -24,7 +24,8 @@
   "eslintConfig": {
     "extends": "google",
     "env": {
-      "browser": true
+      "browser": true,
+      "node": true
     },
     "plugins": [
       "html"
@@ -44,6 +45,10 @@
       "eqeqeq": 0,
       "no-eq-null": 0,
       "require-jsdoc": 0
+    },
+    "parserOptions": {
+      "ecmaVersion": 8,
+      "sourceType": "module"
     }
   }
 }
