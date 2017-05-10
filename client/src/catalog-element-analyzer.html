@@ -159,6 +159,10 @@
         text-transform: capitalize;
       }
 
+      .sidebar-nav a.demo-link span:empty:before {
+        content: 'Demo';
+      }
+
       .sidebar-nav a.demo-link:after, .sidebar-nav a.api-link:after, .sidebar-nav a.page-link:after {
         content: 'demo';
         text-transform: uppercase;
@@ -356,11 +360,11 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
-              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[_customPages]]" as="page">
@@ -376,7 +380,7 @@
 
               <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
                 </template>
               </div>
             </template>
@@ -386,7 +390,7 @@
 
               <div class="element-demos">
                 <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.path]]" on-click="_demoClicked"><span>Demo</span></a>
+                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
                 </template>
               </div>
             </template>
@@ -783,7 +787,7 @@
         this.bundledElements = this._elements();
         this.bundledBehaviors = this._behaviors();
         // TODO: Support deduping of demos. Analyzer currently doesn't support demo titles.
-        // this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
+        this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
 
         var map = new Map();
         this.bundledElements.forEach(function(element) {
@@ -884,7 +888,7 @@
 
         function countDemos(element) {
           element.demos.forEach(function(demo) {
-            demoCounts[demo.path] = (demoCounts[demo.path] || 0) + 1;
+            demoCounts[demo.url] = (demoCounts[demo.url] || 0) + 1;
           });
         }
 
@@ -892,10 +896,10 @@
           var j = 0;
           while (j < element.demos.length) {
             var demo = element.demos[j];
-            if (demoCounts[demo.path] > 1) {
+            if (demoCounts[demo.url] > 1) {
               dupedDemos.push(element.demos.splice(j, 1)[0]);
-              demoCounts[demo.path] = -1;
-            } else if (demoCounts[demo.path] == -1) {
+              demoCounts[demo.url] = -1;
+            } else if (demoCounts[demo.url] == -1) {
               element.demos.splice(j, 1);
             } else {
               j++;
@@ -913,7 +917,7 @@
 
         // Bower demos are already shown, mark them as dupes.
         bowerDemos.forEach(function(demo) {
-          demoCounts[demo.path] = -1;
+          demoCounts[demo.url] = -1;
         });
 
         elements.forEach(dedupeDemos);

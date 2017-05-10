@@ -7,6 +7,7 @@
   },
   "scripts": {
     "install": "pip install -t lib -r requirements.txt",
+    "lint": "grunt lint",
     "client": "cd client && npm install && dev_appserver.py client.yaml"
   },
   "devDependencies": {

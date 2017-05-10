@@ -61,14 +61,7 @@ class Bower {
           }
 
           var canonicalDir = installed[bowerPackage].canonicalDir;
-          var mainHtmls = installed[bowerPackage].pkgMeta.main;
-          if (!mainHtmls) {
-            // TODO: Look in the directory and see what .html files we might be able to consume.
-            Ana.log("bower/install", "Couldn't find main.html after installing", packageToInstall);
-            resolve([]);
-            return;
-          }
-
+          var mainHtmls = installed[bowerPackage].pkgMeta.main || [];
           if (!Array.isArray(mainHtmls)) {
             mainHtmls = [mainHtmls];
           }
