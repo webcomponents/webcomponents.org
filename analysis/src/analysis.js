@@ -9,22 +9,20 @@ const fs = require('fs');
  */
 class Analysis {
   /**
-   * Creates an Analysis using the given bower, hydrolysis and catalog services.
+   * Creates an Analysis using the given bower, analyzer and catalog services.
    * @param {Bower} bower - The Bower service.
-   * @param {Hydrolysis} hydrolysis - The Hydrolysis service.
    * @param {Analyzer} analyzer - The Analyzer service.
    * @param {Catalog} catalog - The Catalog service.
    */
-  constructor(bower, hydrolysis, analyzer, catalog) {
+  constructor(bower, analyzer, catalog) {
     this.bower = bower;
-    this.hydrolysis = hydrolysis;
     this.analyzer = analyzer;
     this.catalog = catalog;
   }
 
   /**
    * Processes the next received task.
-   * Gets the task, installs and pulls dependencies from Bower, runs Hydrolysis over it,
+   * Gets the task, installs and pulls dependencies from Bower, runs Analyzer over it,
    * gathers all data, posts it back to Catalog and acks the task.
    * @param {Object} attributes - The task to be processed
    * @return {Promise} A promise that handles the next task.
@@ -55,13 +53,12 @@ class Analysis {
         }
         var absolutePaths = result.mainHtmls.map(x => path.resolve(result.root, x));
         return Promise.all([
-          this.hydrolysis.analyze(absolutePaths),
           this.analyzer.analyze(result.root, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
-        var data = results[0];
-        data.analyzerData = results[1];
-        data.bowerDependencies = results[2];
+        var data = {};
+        data.analyzerData = results[0];
+        data.bowerDependencies = results[1];
         return this.catalog.postResponse(data, attributes);
       }).then(() => {
         Ana.success("analysis/processNextTask", taskAsString);
