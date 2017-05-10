@@ -3,8 +3,8 @@
   "version": "1.0.1",
   "private": true,
   "dependencies": {
-    "@google/cloud-debug": "0.8.4",
     "@google-cloud/pubsub": "0.1.1",
+    "@google/cloud-debug": "0.8.4",
     "@google/cloud-trace": "0.5.7",
     "body-parser": "1.14.2",
     "bower": "1.7.9",

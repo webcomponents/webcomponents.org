@@ -16,7 +16,7 @@ At a high-level, the services are:
 - Analysis, a node.js service that performs slower analysis on ingested elements, using Bower and Hydrolysis.
 
 ## Additional documentation for client & analysis services
-For more detailed guides refer to [client](client) & [analysis](analysis).
+For more detailed guides refer to [client](client), [analysis](analysis) & [raw](raw).
 
 ## System-level dependencies
 The following dependencies are required to develop, test and/or deploy www.webcomponents.org:
