@@ -108,7 +108,7 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (r
       res.end();
     });
   }).on('error', () => {
-    res.status(400).send(`Error fetching from rawgit. Attempted to fetch ${options.hostname}/${options.path}.`);
+    res.status(400).send(`Error fetching from rawgit. Attempted to fetch ${url}.`);
   });
 });
 
