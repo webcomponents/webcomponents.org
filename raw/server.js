@@ -8,7 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const express = require('express');
 const datastore = require('@google-cloud/datastore')();
-const https = require('https');
+const request = require('request');
 const app = express();
 const zlib = require('zlib');
 const path = require('path');
@@ -87,14 +87,10 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (r
   }
 
   // Fetch resource from rawgit
-  const options = {
-    hostname: 'cdn.rawgit.com',
-    path: '/' + configMap.get(req.params.name) + path,
-  };
-
-  https.get(options, result => {
+  const url = 'https://cdn.rawgit.com/' + configMap.get(req.params.name) + path;
+  request.get(url).on('response', result => {
     if (result.statusCode != 200) {
-      res.status(400).send(`Invalid response from rawgit. Received ${result.statusCode} for ${options.hostname}/${options.path}.`);
+      res.status(400).send(`Invalid response from rawgit. Received ${result.statusCode} for ${url}`);
       return;
     }
 
@@ -104,7 +100,6 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (r
       'Cache-Control': result.headers['cache-control'] || 'max-age=315569000'
     });
 
-    result.setEncoding('utf8');
     result.on('data', d => {
       res.write(d);
     });
