@@ -456,11 +456,9 @@
           <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
           <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
-          <template is="dom-if" if="[[data]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
-          </template>
+          <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="_customPageLoading"></catalog-element-readme>
+            <catalog-element-readme data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="[[_customPageLoading]]"></catalog-element-readme>
           </template>
 
           <div hidden="[[!subElement]]">
