@@ -368,7 +368,7 @@
             </template>
 
             <template is="dom-repeat" items="[[_customPages]]" as="page">
-              <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.path]]"><span>[[page.title]]</span></a>
+              <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.url]]"><span>[[page.description]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[docs.analysis.namespaces]]" as="namespace">
@@ -696,7 +696,7 @@
       _metaResponse: function() {
         function objectToArray(object) {
           return Object.keys(object || {}).map(function(title) {
-            return {title: title, path: object[title]};
+            return {description: title, url: object[title]};
           });
         }
 
