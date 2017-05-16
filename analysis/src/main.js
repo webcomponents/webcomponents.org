@@ -11,7 +11,6 @@ const AnalyzerRunner = require('./analyzer');
 const Bower = require('./bower');
 const Catalog = require('./catalog');
 const DebugCatalog = require('./debug_catalog');
-const Hydrolysis = require('./hydrolysis');
 
 const bodyParser = require('body-parser');
 const express = require('express');
@@ -49,7 +48,6 @@ function processTasks() {
 
   var analysis = new Analysis(
       new Bower(),
-      new Hydrolysis(),
       new AnalyzerRunner(),
       catalog);
 
