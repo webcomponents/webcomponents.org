@@ -51,7 +51,7 @@ class Analysis {
           reject({retry: false, erorr: Error("Installed package not found")});
           return;
         }
-        var absolutePaths = result.mainHtmls.map(x => path.resolve(result.root, x));
+
         return Promise.all([
           this.analyzer.analyze(result.root, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
