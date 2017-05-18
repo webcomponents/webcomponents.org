@@ -841,21 +841,24 @@
         }
 
         var namespace = getNamespace(this.docs.analysis, this.subElement) || this.docs.analysis;
+        var descriptor;
         if (this._descriptorType)
-          this._descriptor = getByName(namespace[this._descriptorType], this.subElement);
+          descriptor = getByName(namespace[this._descriptorType], this.subElement);
 
         // Support legacy pathing and find descriptor type. Also necessary for
         // behaviors in a different path to mixins.
-        if (!this._descriptor && this._elementMap.has(this.subElement)) {
+        if (!descriptor && this._elementMap.has(this.subElement)) {
           this._descriptorType = 'elements';
-          this._descriptor = this._elementMap.get(this.subElement);
-        } else if (!this._descriptor && this._behaviorMap.has(this.subElement)) {
+          descriptor = this._elementMap.get(this.subElement);
+        } else if (!descriptor && this._behaviorMap.has(this.subElement)) {
           this._descriptorType = 'mixins';
-          this._descriptor = this._behaviorMap.get(this.subElement);
+          descriptor = this._behaviorMap.get(this.subElement);
         }
 
-        if (!this._descriptor)
+        if (!descriptor)
           console.error('No descriptor found!');
+
+        this._descriptor = descriptor;
 
         if (!this._hasActiveLink() && Polymer.AppLayout)
           Polymer.AppLayout.scroll(0);
