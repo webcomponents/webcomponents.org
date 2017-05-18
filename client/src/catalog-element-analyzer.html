@@ -360,11 +360,17 @@
             <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
 
             <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
-              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+              <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+              </template>
+              <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+              <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+              </template>
+              <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
             </template>
 
             <template is="dom-repeat" items="[[_customPages]]" as="page">
@@ -380,7 +386,10 @@
 
               <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
                 <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+                  <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                    <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+                  </template>
+                  <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
                 </template>
               </div>
             </template>
@@ -1060,6 +1069,10 @@
 
       _reverse: function(a) {
         return a && a.reverse();
+      },
+
+      _absolutePath: function(url) {
+        return url.startsWith('http');
       },
 
     });
