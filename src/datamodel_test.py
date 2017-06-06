@@ -90,3 +90,8 @@ class DependencyTests(TestBase):
     self.assertEqual(dependency.owner, 'owner')
     self.assertEqual(dependency.repo, 'repo')
     self.assertEqual(dependency.version, 'master')
+
+    dependency = Dependency.from_string('https://github.com/owner/repo')
+    self.assertEqual(dependency.owner, 'owner')
+    self.assertEqual(dependency.repo, 'repo')
+    self.assertEqual(dependency.version, '*')
