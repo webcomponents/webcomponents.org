@@ -174,6 +174,8 @@ class AddLibrary(RequestHandler):
 class LibraryTask(RequestHandler):
   def __init__(self, request, response):
     super(LibraryTask, self).__init__(request, response)
+    self.scope = None
+    self.package = None
     self.owner = None
     self.repo = None
     self.library = None
@@ -181,19 +183,19 @@ class LibraryTask(RequestHandler):
     self.is_new = False
     self.is_npm_package = False
 
-  def init_library(self, owner, repo, create=True):
-    self.owner = owner.lower()
-    self.repo = repo.lower()
+  def init_library(self, scope, package, create=True):
+    self.scope = scope.lower()
+    self.package = package.lower()
 
     # Check if there's a NPM scope of the default scope @@npm.
-    if owner.startswith('@'):
+    if scope.startswith('@'):
       self.is_npm_package = True
 
     if create:
-      self.library = Library.get_or_insert(Library.id(owner, repo))
+      self.library = Library.get_or_insert(Library.id(self.scope, self.package))
       self.is_new = self.library.metadata is None and self.library.error is None
     else:
-      self.library = Library.get_by_id(Library.id(owner, repo))
+      self.library = Library.get_by_id(Library.id(self.scope, self.package))
     if self.library.status == Status.suppressed:
       raise RequestAborted('library is suppressed')
 
@@ -216,40 +218,44 @@ class LibraryTask(RequestHandler):
 
   def update_metadata(self):
     # Query NPM registry API for packages
-    if False:
+    if self.is_npm_package:
       headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
-      response = urlfetch.fetch(util.npm_registry_url(self.owner, self.repo), headers=headers, validate_certificate=True)
+      response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
       # TODO(samli): Handle 404
       try:
         package = json.loads(response.content)
       except ValueError:
         return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
-      github_owner, github_repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
+
+      # TODO(samli): Save registry metadata with dirty check
+      self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
       # TODO(samli): Error on no URL
     else:
-      github_owner = self.owner
-      github_repo = self.repo
+      self.owner = self.scope
+      self.repo = self.package
 
     # Fetch GitHub metadata
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
-    response = util.github_get('repos', github_owner, github_repo, etag=self.library.metadata_etag, headers=headers)
+    response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag, headers=headers)
     if response.status_code == 200:
       try:
         metadata = json.loads(response.content)
       except ValueError:
         return self.error("could not parse metadata", ErrorCodes.Library_parse_metadata)
 
-      github_repo = metadata.get('name', '').lower()
-      github_owner = metadata.get('owner', {}).get('login', '').lower()
-      if not self.is_npm_package and github_repo != '' and github_owner != '' and (github_repo != self.repo or github_owner != self.owner):
+      self.owner = metadata.get('owner', {}).get('login', '').lower()
+      self.repo = metadata.get('name', '').lower()
+
+      # Deleting is only necessary if Library entity is a GitHub repo
+      if self.is_npm_package == False and self.repo != '' and self.owner != '' and (self.repo != self.package or self.owner != self.scope):
         logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
         delete_library(self.library.key)
-        task_url = util.ensure_library_task(github_owner, github_repo)
+        task_url = util.ensure_library_task(self.owner, self.repo)
         util.new_task(task_url, target='manage')
-        raise RequestAborted('repo has been renamed to %s', Library.id(github_owner, github_repo))
+        raise RequestAborted('repo has been renamed to %s', Library.id(self.owner, self.repo))
 
-      self.library.github_owner = github_owner
-      self.library.github_repo = github_repo
+      self.library.github_owner = self.owner
+      self.library.github_repo = self.repo
 
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
@@ -262,7 +268,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update repo metadata (%d)' % response.status_code)
 
-    response = util.github_get('repos', github_owner, github_repo, 'contributors', etag=self.library.contributors_etag)
+    response = util.github_get('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
       try:
         json.loads(response.content)
@@ -275,7 +281,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update contributors (%d)' % response.status_code)
 
-    response = util.github_get('repos', github_owner, github_repo, 'stats/participation ', etag=self.library.participation_etag)
+    response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
     if response.status_code == 200:
       try:
         json.loads(response.content)
@@ -359,7 +365,7 @@ class LibraryTask(RequestHandler):
     if content is None or content.status == Status.error:
       Content(id='analysis', parent=version_key, status=Status.pending).put()
 
-    task_url = util.ingest_analysis_task(self.owner, self.repo, tag, analysis_sha)
+    task_url = util.ingest_analysis_task(self.scope, self.package, tag, analysis_sha)
     util.new_task(task_url, target='analysis', transactional=transactional, queue_name='analysis')
 
   def trigger_author_ingestion(self):
@@ -554,11 +560,11 @@ class IngestWebhookLibrary(LibraryTask):
 class AnalyzeLibrary(LibraryTask):
   def is_transactional(self):
     return True
-  def handle_get(self, owner, repo, latest=False):
-    self.init_library(owner, repo)
+  def handle_get(self, scope, package, latest=False):
+    self.init_library(scope, package)
     if self.library is None:
       self.response.set_status(404)
-      self.response.write('could not find library: %s' % Library.id(owner, repo))
+      self.response.write('could not find library: %s' % Library.id(scope, package))
       return
 
     if latest:
@@ -1075,8 +1081,8 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
     webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
-    webapp2.Route(r'/task/analyze/<owner>/<repo>', handler=AnalyzeLibrary),
-    webapp2.Route(r'/task/analyze/<owner>/<repo>/<latest>', handler=AnalyzeLibrary),
+    webapp2.Route(r'/task/analyze/<scope>/<package>', handler=AnalyzeLibrary),
+    webapp2.Route(r'/task/analyze/<scope>/<package>/<latest>', handler=AnalyzeLibrary),
     webapp2.Route(r'/task/ensure/<name>', handler=EnsureAuthor),
     webapp2.Route(r'/task/ensure/<owner>/<repo>', handler=EnsureLibrary),
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
