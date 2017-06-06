@@ -457,6 +457,26 @@ class AddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo'))
 
+  def test_add_scope(self):
+    token = self.app.get('/manage/token').normal_body
+    response = self.app.get('/manage/add/@scope/package', params={'token': token})
+    self.assertEqual(response.status_int, 200)
+    self.assertEqual(response.normal_body, 'OK')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@scope', 'package'))
+
+  def test_add_no_scope(self):
+    token = self.app.get('/manage/token').normal_body
+    response = self.app.get('/manage/add/@@npm/package', params={'token': token})
+    self.assertEqual(response.status_int, 200)
+    self.assertEqual(response.normal_body, 'OK')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@@npm', 'package'))
+
 class IngestLibraryTest(ManageTestBase):
   def test_ingest_element(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
