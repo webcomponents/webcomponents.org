@@ -31,6 +31,9 @@ def github_url(prefix, owner=None, repo=None, detail=None, params=None):
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
+def npm_registry_url(scope, repo):
+  return 'https://registry.npmjs.org/%s/%s' % (scope, repo)
+
 def analyze_library_task(owner, repo, latest=False):
   return '/task/analyze/%s/%s/%s' % (owner, repo, latest)
 

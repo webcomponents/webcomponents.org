@@ -64,6 +64,7 @@ class ErrorCodes(object):
   Version_utf = 10
   Version_parse_bower = 11
   Version_missing_bower = 12
+  Library_parse_registry = 13
 
 class RequestAborted(Exception):
   pass
@@ -178,10 +179,16 @@ class LibraryTask(RequestHandler):
     self.library = None
     self.library_dirty = False
     self.is_new = False
+    self.is_npm_package = False
 
   def init_library(self, owner, repo, create=True):
     self.owner = owner.lower()
     self.repo = repo.lower()
+
+    # Check if there's a NPM scope of the default scope @@npm.
+    if owner.startswith('@'):
+      self.is_npm_package = True
+
     if create:
       self.library = Library.get_or_insert(Library.id(owner, repo))
       self.is_new = self.library.metadata is None and self.library.error is None
@@ -208,22 +215,41 @@ class LibraryTask(RequestHandler):
       self.library.put()
 
   def update_metadata(self):
+    # Query NPM registry API for packages
+    if False:
+      headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
+      response = urlfetch.fetch(util.npm_registry_url(self.owner, self.repo), headers=headers, validate_certificate=True)
+      # TODO(samli): Handle 404
+      try:
+        package = json.loads(response.content)
+      except ValueError:
+        return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
+      github_owner, github_repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
+      # TODO(samli): Error on no URL
+    else:
+      github_owner = self.owner
+      github_repo = self.repo
+
+    # Fetch GitHub metadata
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
-    response = util.github_get('repos', self.owner, self.repo, etag=self.library.metadata_etag, headers=headers)
+    response = util.github_get('repos', github_owner, github_repo, etag=self.library.metadata_etag, headers=headers)
     if response.status_code == 200:
       try:
         metadata = json.loads(response.content)
       except ValueError:
         return self.error("could not parse metadata", ErrorCodes.Library_parse_metadata)
 
-      repo = metadata.get('name', '').lower()
-      owner = metadata.get('owner', {}).get('login', '').lower()
-      if repo != '' and owner != '' and (repo != self.repo or owner != self.owner):
+      github_repo = metadata.get('name', '').lower()
+      github_owner = metadata.get('owner', {}).get('login', '').lower()
+      if not self.is_npm_package and github_repo != '' and github_owner != '' and (github_repo != self.repo or github_owner != self.owner):
         logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
         delete_library(self.library.key)
-        task_url = util.ensure_library_task(owner, repo)
+        task_url = util.ensure_library_task(github_owner, github_repo)
         util.new_task(task_url, target='manage')
-        raise RequestAborted('repo has been renamed to %s', Library.id(owner, repo))
+        raise RequestAborted('repo has been renamed to %s', Library.id(github_owner, github_repo))
+
+      self.library.github_owner = github_owner
+      self.library.github_repo = github_repo
 
       self.library.metadata = response.content
       self.library.metadata_etag = response.headers.get('ETag', None)
@@ -236,7 +262,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update repo metadata (%d)' % response.status_code)
 
-    response = util.github_get('repos', self.owner, self.repo, 'contributors', etag=self.library.contributors_etag)
+    response = util.github_get('repos', github_owner, github_repo, 'contributors', etag=self.library.contributors_etag)
     if response.status_code == 200:
       try:
         json.loads(response.content)
@@ -249,7 +275,7 @@ class LibraryTask(RequestHandler):
     elif response.status_code != 304:
       return self.retry('could not update contributors (%d)' % response.status_code)
 
-    response = util.github_get('repos', self.owner, self.repo, 'stats/participation ', etag=self.library.participation_etag)
+    response = util.github_get('repos', github_owner, github_repo, 'stats/participation ', etag=self.library.participation_etag)
     if response.status_code == 200:
       try:
         json.loads(response.content)
