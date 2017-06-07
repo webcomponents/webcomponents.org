@@ -75,7 +75,11 @@ class Library(ndb.Model):
 
   @staticmethod
   def github_from_url(path):
-    return (path, path)
+    path = re.sub('git://github.com/', '', path)
+    path = re.sub(r'(git\+)?https?:\/\/github.com\/', '', path)
+    path = re.sub(r'\.git$', '', path)
+    split = path.split('/')
+    return (split[0], split[1])
 
   @staticmethod
   def maybe_create_with_kind(owner, repo, kind):

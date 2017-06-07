@@ -65,6 +65,8 @@ class ErrorCodes(object):
   Version_parse_bower = 11
   Version_missing_bower = 12
   Library_parse_registry = 13
+  Library_no_package = 14
+  Library_no_github = 15
 
 class RequestAborted(Exception):
   pass
@@ -216,20 +218,29 @@ class LibraryTask(RequestHandler):
     if self.library_dirty:
       self.library.put()
 
+  def pull_registry_info(self):
+    assert self.is_npm_package
+
+    headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
+    response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
+    try:
+      package = json.loads(response.content)
+    except ValueError:
+      return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
+
+    # TODO(samli): Save registry metadata with dirty check
+    if response.status_code == 200:
+      self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
+
+      if self.owner == '' or self.repo == '':
+        self.error('No github URL associated with package', ErrorCodes.Library_no_github)
+    elif response.status_code == 404:
+      return self.error('Package not found in registry', ErrorCodes.Library_no_package)
+
   def update_metadata(self):
     # Query NPM registry API for packages
     if self.is_npm_package:
-      headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
-      response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
-      # TODO(samli): Handle 404
-      try:
-        package = json.loads(response.content)
-      except ValueError:
-        return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
-
-      # TODO(samli): Save registry metadata with dirty check
-      self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
-      # TODO(samli): Error on no URL
+      self.pull_registry_info()
     else:
       self.owner = self.scope
       self.repo = self.package
@@ -339,7 +350,7 @@ class LibraryTask(RequestHandler):
       return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch, ErrorCodes.Library_license)
 
   def trigger_version_deletion(self, tag):
-    task_url = util.delete_task(self.owner, self.repo, tag)
+    task_url = util.delete_task(self.scope, self.package, tag)
     util.new_task(task_url, target='manage', transactional=True)
 
   def trigger_version_ingestion(self, tag, sha, url=None, preview=False):
@@ -350,7 +361,7 @@ class LibraryTask(RequestHandler):
 
     Version(id=tag, parent=self.library.key, sha=sha, url=url, preview=preview).put()
 
-    task_url = util.ingest_version_task(self.owner, self.repo, tag)
+    task_url = util.ingest_version_task(self.scope, self.package, tag)
     util.new_task(task_url, target='manage', transactional=True)
     self.trigger_analysis(tag, sha, transactional=True)
     return True
@@ -371,6 +382,7 @@ class LibraryTask(RequestHandler):
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
       return
+    # TODO(samli): unsure how author ingestion is going to work
     task_url = util.ensure_author_task(self.owner)
     util.new_task(task_url, target='manage', transactional=True)
 
@@ -490,8 +502,8 @@ class LibraryTask(RequestHandler):
 class IngestLibrary(LibraryTask):
   def is_transactional(self):
     return True
-  def handle_get(self, owner, repo):
-    self.init_library(owner, repo)
+  def handle_get(self, scope, package):
+    self.init_library(scope, package)
     if self.library.shallow_ingestion:
       self.library.shallow_ingestion = False
       self.library_dirty = True
@@ -628,12 +640,12 @@ class UpdateAuthor(AuthorTask):
     self.update_metadata()
 
 class DeleteVersion(RequestHandler):
-  def handle_get(self, owner, repo, version):
+  def handle_get(self, scope, package, version):
     # FIXME: Make deletion transactional with check on library that tag is excluded.
-    version_key = ndb.Key(Library, Library.id(owner, repo), Version, version)
+    version_key = ndb.Key(Library, Library.id(scope, package), Version, version)
     ndb.delete_multi(ndb.Query(ancestor=version_key).iter(keys_only=True))
     if VersionCache.update(version_key.parent()):
-      task_url = util.update_indexes_task(owner, repo)
+      task_url = util.update_indexes_task(scope, package)
       util.new_task(task_url, target='manage')
 
 class IngestVersion(RequestHandler):
@@ -1088,9 +1100,9 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
-    webapp2.Route(r'/task/delete/<owner>/<repo>/<version>', handler=DeleteVersion),
+    webapp2.Route(r'/task/delete/<scope>/<package>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/<name>', handler=IngestAuthor),
-    webapp2.Route(r'/task/ingest/<owner>/<repo>', handler=IngestLibrary),
+    webapp2.Route(r'/task/ingest/<scope>/<package>', handler=IngestLibrary),
     webapp2.Route(r'/task/ingest/<owner>/<repo>/<version>', handler=IngestVersion),
     webapp2.Route(r'/task/ingest-preview/<owner>/<repo>', handler=IngestPreview),
     webapp2.Route(r'/task/ingest-webhook/<owner>/<repo>', handler=IngestWebhookLibrary),
