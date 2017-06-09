@@ -674,7 +674,7 @@ class IngestLibraryTest(ManageTestBase):
 
 class IngestNPMLibraryTest(ManageTestBase):
   def test_ingest_element(self):
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": { "url": "git+https://github.com/org/repo.git"}}');
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": { "url": "git+https://github.com/org/repo.git"}}')
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
@@ -703,7 +703,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     ], [task.url for task in tasks])
 
   def test_ingest_no_package(self):
-    self.respond_to('https://registry.npmjs.org/nopackage', {'status': 404});
+    self.respond_to('https://registry.npmjs.org/nopackage', {'status': 404})
     response = self.app.get(util.ingest_library_task('@@npm', 'nopackage'), headers={'X-AppEngine-QueueName': 'default'})
 
     self.assertEqual(response.status_int, 200)

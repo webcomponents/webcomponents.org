@@ -183,15 +183,10 @@ class LibraryTask(RequestHandler):
     self.library = None
     self.library_dirty = False
     self.is_new = False
-    self.is_npm_package = False
 
   def init_library(self, scope, package, create=True):
     self.scope = scope.lower()
     self.package = package.lower()
-
-    # Check if there's a NPM scope of the default scope @@npm.
-    if scope.startswith('@'):
-      self.is_npm_package = True
 
     if create:
       self.library = Library.get_or_insert(Library.id(self.scope, self.package))
@@ -219,7 +214,8 @@ class LibraryTask(RequestHandler):
       self.library.put()
 
   def pull_registry_info(self):
-    assert self.is_npm_package
+    # Check if there's a NPM scope or the default scope @@npm.
+    assert self.scope.startswith('@')
 
     headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
     response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
@@ -239,7 +235,8 @@ class LibraryTask(RequestHandler):
 
   def update_metadata(self):
     # Query NPM registry API for packages
-    if self.is_npm_package:
+    is_npm_package = self.scope.startswith('@')
+    if is_npm_package:
       self.pull_registry_info()
     else:
       self.owner = self.scope
@@ -258,7 +255,7 @@ class LibraryTask(RequestHandler):
       self.repo = metadata.get('name', '').lower()
 
       # Deleting is only necessary if Library entity is a GitHub repo
-      if self.is_npm_package == False and self.repo != '' and self.owner != '' and (self.repo != self.package or self.owner != self.scope):
+      if not is_npm_package and self.repo != '' and self.owner != '' and (self.repo != self.package or self.owner != self.scope):
         logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
         delete_library(self.library.key)
         task_url = util.ensure_library_task(self.owner, self.repo)

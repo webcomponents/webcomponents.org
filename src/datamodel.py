@@ -37,8 +37,8 @@ class Author(ndb.Model):
   updated = ndb.DateTimeProperty(auto_now=True)
 
 class Library(ndb.Model):
-  github_owner = ndb.StringProperty(indexed = False)
-  github_repo = ndb.StringProperty(indexed = False)
+  github_owner = ndb.StringProperty(indexed=False)
+  github_repo = ndb.StringProperty(indexed=False)
   github_access_token = ndb.StringProperty(indexed=False)
 
   kind = ndb.StringProperty(default='element')
