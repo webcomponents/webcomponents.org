@@ -217,8 +217,7 @@ class LibraryTask(RequestHandler):
     # Check if there's a NPM scope or the default scope @@npm.
     assert self.scope.startswith('@')
 
-    headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
-    response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
+    response = util.registry_get(self.scope, self.package)
     try:
       package = json.loads(response.content)
     except ValueError:
@@ -230,6 +229,14 @@ class LibraryTask(RequestHandler):
 
       if self.owner == '' or self.repo == '':
         self.error('No github URL associated with package', ErrorCodes.Library_no_github)
+
+        new_metadata = json.loads(response.content)
+        old_metadata = self.library.registry_metadata
+        if old_metadata is not None or new_metadata.get('_rev') != old_metadata.get('_rev'):
+          self.library.registry_metadata = new_metadata
+          self.library.registry_metadata_updated = datetime.datetime.now()
+          self.library_dirty = True
+
     elif response.status_code == 404:
       return self.error('Package not found in registry', ErrorCodes.Library_no_package)
     else:
@@ -669,7 +676,9 @@ class IngestVersion(RequestHandler):
     self.sha = self.version_object.sha
     self.version_key = self.version_object.key
 
-    self.update_readme()
+    is_npm_package = self.owner.startswith('@')
+
+    self.update_readme(is_npm_package)
     self.update_bower()
     self.update_pages()
     self.set_ready()
@@ -691,10 +700,18 @@ class IngestVersion(RequestHandler):
       self.version_object.error = json.dumps({'code': code, 'message': error_string})
     super(IngestVersion, self).error(error_string)
 
-  def update_readme(self):
-    response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
+  def update_readme(self, is_npm_package):
+    if is_npm_package:
+      response = util.registry_get(self.owner, self.repo)
+    else:
+      response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
+
     if response.status_code == 200:
-      readme = base64.b64decode(json.loads(response.content)['content'])
+      if is_npm_package:
+        readme = json.loads(response.content).get('readme')
+      else:
+        readme = base64.b64decode(json.loads(response.content)['content'])
+
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()

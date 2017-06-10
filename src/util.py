@@ -31,10 +31,13 @@ def github_url(prefix, owner=None, repo=None, detail=None, params=None):
 def content_url(owner, repo, version, path):
   return 'https://raw.githubusercontent.com/%s/%s/%s/%s' % (owner, repo, version, path)
 
-def npm_registry_url(scope, package):
+def registry_get(scope, package):
+  headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
   if scope == '@@npm':
-    return 'https://registry.npmjs.org/%s' % package
-  return 'https://registry.npmjs.org/%s%s%s' % (scope, '%2f', package)
+    url = 'https://registry.npmjs.org/%s' % package
+  else:
+    url = 'https://registry.npmjs.org/%s%s%s' % (scope, '%2f', package)
+  return urlfetch.fetch(url, headers=headers, validate_certificate=True)
 
 def analyze_library_task(owner, repo, latest=False):
   return '/task/analyze/%s/%s/%s' % (owner, repo, latest)
