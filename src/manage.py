@@ -679,8 +679,9 @@ class IngestVersion(RequestHandler):
     is_npm_package = self.owner.startswith('@')
 
     self.update_readme(is_npm_package)
-    self.update_bower()
-    self.update_pages()
+    if not is_npm_package:
+      self.update_bower()
+      self.update_pages()
     self.set_ready()
 
   def commit(self):
