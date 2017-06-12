@@ -301,6 +301,31 @@ class UpdateLibraryTest(ManageTestBase):
         util.ingest_version_task('org', 'repo', 'v3.0.0'),
     ], [task.url for task in tasks])
 
+  def test_update_triggers_version_ingestion_npm(self):
+    library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0'], spdx_identifier='MIT').put()
+    Version(id='v0.1.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha="old", status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', """[
+        {"name": "v1.0.0", "commit": {"sha": "new"}},
+        {"name": "v2.0.0", "commit": {"sha": "old"}},
+        {"name": "v3.0.0", "commit": {"sha": "new"}}
+    ]""")
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('org', 'repo', 'v3.0.0'),
+        util.ingest_version_task('org', 'repo', 'v3.0.0'),
+    ], [task.url for task in tasks])
+
   def test_update_doesnt_ingest_older_versions(self):
     library_key = Library(id='org/repo', tags=['v0.1.0', 'v1.0.0', 'v2.0.0'], spdx_identifier='MIT').put()
     Version(id='v1.0.0', parent=library_key, sha="old", status=Status.ready).put()
@@ -697,10 +722,9 @@ class IngestLibraryTest(ManageTestBase):
 
 class IngestNPMLibraryTest(ManageTestBase):
   def test_ingest_element(self):
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause"}')
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {"_shasum": "lol"}}}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
-    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
     response = self.app.get(util.ingest_library_task('@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
 
@@ -710,18 +734,18 @@ class IngestNPMLibraryTest(ManageTestBase):
     self.assertIsNone(library.error)
     self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
-    self.assertEqual(library.tags, ['v0.5.0', 'v1.0.0'])
+    self.assertEqual(library.tags, ['1.0.0'])
 
-    version = ndb.Key(Library, '@scope/package', Version, 'v1.0.0').get()
+    version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
     self.assertIsNotNone(version)
     self.assertIsNone(version.error)
     self.assertEqual(version.sha, 'lol')
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.ingest_analysis_task('@scope', 'package', 'v1.0.0'),
+        util.ingest_analysis_task('@scope', 'package', '1.0.0'),
         util.ensure_author_task('org'),
-        util.ingest_version_task('@scope', 'package', 'v1.0.0'),
+        util.ingest_version_task('@scope', 'package', '1.0.0'),
     ], [task.url for task in tasks])
 
   def test_ingest_no_package(self):
