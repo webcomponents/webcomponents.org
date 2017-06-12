@@ -232,7 +232,6 @@ class LibraryTask(RequestHandler):
 
       new_metadata = json.loads(response.content)
       old_metadata = self.library.registry_metadata
-      print old_metadata
       if old_metadata is None or new_metadata.get('_rev') != old_metadata.get('_rev'):
         self.library.registry_metadata = response.content
         self.library.registry_metadata_updated = datetime.datetime.now()
@@ -352,7 +351,6 @@ class LibraryTask(RequestHandler):
         spdx_identifier = licenses.validate_spdx(license_name)
 
     if spdx_identifier is None and self.scope.startswith('@'):
-      print self.library.registry_metadata
       registry_metadata = json.loads(self.library.registry_metadata)
       spdx_identifier = licenses.validate_spdx(registry_metadata.get('license', ''))
 
