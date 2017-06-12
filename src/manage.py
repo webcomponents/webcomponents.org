@@ -228,14 +228,15 @@ class LibraryTask(RequestHandler):
       self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
 
       if self.owner == '' or self.repo == '':
-        self.error('No github URL associated with package', ErrorCodes.Library_no_github)
+        return self.error('No github URL associated with package', ErrorCodes.Library_no_github)
 
-        new_metadata = json.loads(response.content)
-        old_metadata = self.library.registry_metadata
-        if old_metadata is not None or new_metadata.get('_rev') != old_metadata.get('_rev'):
-          self.library.registry_metadata = new_metadata
-          self.library.registry_metadata_updated = datetime.datetime.now()
-          self.library_dirty = True
+      new_metadata = json.loads(response.content)
+      old_metadata = self.library.registry_metadata
+      print old_metadata
+      if old_metadata is None or new_metadata.get('_rev') != old_metadata.get('_rev'):
+        self.library.registry_metadata = response.content
+        self.library.registry_metadata_updated = datetime.datetime.now()
+        self.library_dirty = True
 
     elif response.status_code == 404:
       return self.error('Package not found in registry', ErrorCodes.Library_no_package)
@@ -317,22 +318,24 @@ class LibraryTask(RequestHandler):
 
   def update_license_and_kind(self):
     metadata = json.loads(self.library.metadata)
-    default_branch = metadata.get('default_branch', 'master')
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, default_branch, 'bower.json'), validate_certificate=True)
-    bower_json = None
-    if response.status_code == 200:
-      try:
-        bower_json = json.loads(response.content)
-      except ValueError:
-        return self.error("Could not parse master/bower.json", ErrorCodes.Library_parse_bower)
-    elif response.status_code == 404:
-      bower_json = None
-    else:
-      return self.retry('error fetching master/bower.json' % response.status_code)
-
     kind = 'element'
-    if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
-      kind = 'collection'
+    bower_json = None
+    default_branch = metadata.get('default_branch', 'master')
+
+    if not self.scope.startswith('@'):
+      response = urlfetch.fetch(util.content_url(self.owner, self.repo, default_branch, 'bower.json'), validate_certificate=True)
+      if response.status_code == 200:
+        try:
+          bower_json = json.loads(response.content)
+        except ValueError:
+          return self.error("Could not parse master/bower.json", ErrorCodes.Library_parse_bower)
+      elif response.status_code == 404:
+        bower_json = None
+      else:
+        return self.retry('error fetching master/bower.json' % response.status_code)
+
+      if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
+        kind = 'collection'
 
     if self.library.kind != kind:
       self.library.kind = kind
@@ -348,11 +351,18 @@ class LibraryTask(RequestHandler):
       if license_name is not None:
         spdx_identifier = licenses.validate_spdx(license_name)
 
+    if spdx_identifier is None and self.scope.startswith('@'):
+      print self.library.registry_metadata
+      registry_metadata = json.loads(self.library.registry_metadata)
+      spdx_identifier = licenses.validate_spdx(registry_metadata.get('license', ''))
+
     if self.library.spdx_identifier != spdx_identifier:
       self.library.spdx_identifier = spdx_identifier
       self.library_dirty = True
 
     if self.library.spdx_identifier is None:
+      if self.scope.startswith('@'):
+        return self.error('Could not detect an OSI approved license on GitHub or in package info', ErrorCodes.Library_license)
       return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch, ErrorCodes.Library_license)
 
   def trigger_version_deletion(self, tag):

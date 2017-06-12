@@ -700,8 +700,7 @@ class IngestLibraryTest(ManageTestBase):
 
 class IngestNPMLibraryTest(ManageTestBase):
   def test_ingest_element(self):
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": { "url": "git+https://github.com/org/repo.git"}}')
-    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause"}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
