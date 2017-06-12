@@ -632,9 +632,14 @@ class PublishLibrary(webapp2.RequestHandler):
     if len(split) is 2:
       scope = split[0]
       package = split[1]
-    else:
+    elif len(split) is 1:
       scope = '@@npm'
       package = library
+    else:
+      self.response.set_status(400)
+      self.response.write('Invalid name')
+      return
+
     # TODO: validate valid repo and return result
     task_url = util.ingest_library_task(scope, package)
     util.new_task(task_url, target='manage')
