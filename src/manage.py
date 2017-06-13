@@ -217,8 +217,7 @@ class LibraryTask(RequestHandler):
     # Check if there's a NPM scope or the default scope @@npm.
     assert self.scope.startswith('@')
 
-    headers = {'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'}
-    response = urlfetch.fetch(util.npm_registry_url(self.scope, self.package), headers=headers, validate_certificate=True)
+    response = util.registry_get(self.scope, self.package)
     try:
       package = json.loads(response.content)
     except ValueError:
@@ -229,7 +228,15 @@ class LibraryTask(RequestHandler):
       self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
 
       if self.owner == '' or self.repo == '':
-        self.error('No github URL associated with package', ErrorCodes.Library_no_github)
+        return self.error('No github URL associated with package', ErrorCodes.Library_no_github)
+
+      new_metadata = json.loads(response.content)
+      old_metadata = self.library.registry_metadata
+      if old_metadata is None or new_metadata.get('_rev') != old_metadata.get('_rev'):
+        self.library.registry_metadata = response.content
+        self.library.registry_metadata_updated = datetime.datetime.now()
+        self.library_dirty = True
+
     elif response.status_code == 404:
       return self.error('Package not found in registry', ErrorCodes.Library_no_package)
     else:
@@ -310,22 +317,24 @@ class LibraryTask(RequestHandler):
 
   def update_license_and_kind(self):
     metadata = json.loads(self.library.metadata)
-    default_branch = metadata.get('default_branch', 'master')
-    response = urlfetch.fetch(util.content_url(self.owner, self.repo, default_branch, 'bower.json'), validate_certificate=True)
-    bower_json = None
-    if response.status_code == 200:
-      try:
-        bower_json = json.loads(response.content)
-      except ValueError:
-        return self.error("Could not parse master/bower.json", ErrorCodes.Library_parse_bower)
-    elif response.status_code == 404:
-      bower_json = None
-    else:
-      return self.retry('error fetching master/bower.json' % response.status_code)
-
     kind = 'element'
-    if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
-      kind = 'collection'
+    bower_json = None
+    default_branch = metadata.get('default_branch', 'master')
+
+    if not self.scope.startswith('@'):
+      response = urlfetch.fetch(util.content_url(self.owner, self.repo, default_branch, 'bower.json'), validate_certificate=True)
+      if response.status_code == 200:
+        try:
+          bower_json = json.loads(response.content)
+        except ValueError:
+          return self.error("Could not parse master/bower.json", ErrorCodes.Library_parse_bower)
+      elif response.status_code == 404:
+        bower_json = None
+      else:
+        return self.retry('error fetching master/bower.json' % response.status_code)
+
+      if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
+        kind = 'collection'
 
     if self.library.kind != kind:
       self.library.kind = kind
@@ -341,11 +350,17 @@ class LibraryTask(RequestHandler):
       if license_name is not None:
         spdx_identifier = licenses.validate_spdx(license_name)
 
+    if spdx_identifier is None and self.scope.startswith('@'):
+      registry_metadata = json.loads(self.library.registry_metadata)
+      spdx_identifier = licenses.validate_spdx(registry_metadata.get('license', ''))
+
     if self.library.spdx_identifier != spdx_identifier:
       self.library.spdx_identifier = spdx_identifier
       self.library_dirty = True
 
     if self.library.spdx_identifier is None:
+      if self.scope.startswith('@'):
+        return self.error('Could not detect an OSI approved license on GitHub or in package info', ErrorCodes.Library_license)
       return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch, ErrorCodes.Library_license)
 
   def trigger_version_deletion(self, tag):
@@ -669,9 +684,12 @@ class IngestVersion(RequestHandler):
     self.sha = self.version_object.sha
     self.version_key = self.version_object.key
 
-    self.update_readme()
-    self.update_bower()
-    self.update_pages()
+    is_npm_package = self.owner.startswith('@')
+
+    self.update_readme(is_npm_package)
+    if not is_npm_package:
+      self.update_bower()
+      self.update_pages()
     self.set_ready()
 
   def commit(self):
@@ -691,10 +709,18 @@ class IngestVersion(RequestHandler):
       self.version_object.error = json.dumps({'code': code, 'message': error_string})
     super(IngestVersion, self).error(error_string)
 
-  def update_readme(self):
-    response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
+  def update_readme(self, is_npm_package):
+    if is_npm_package:
+      response = util.registry_get(self.owner, self.repo)
+    else:
+      response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
+
     if response.status_code == 200:
-      readme = base64.b64decode(json.loads(response.content)['content'])
+      if is_npm_package:
+        readme = json.loads(response.content).get('readme')
+      else:
+        readme = base64.b64decode(json.loads(response.content)['content'])
+
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()

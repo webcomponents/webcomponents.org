@@ -46,6 +46,9 @@ class Library(ndb.Model):
 
   spdx_identifier = ndb.StringProperty(indexed=False)
 
+  registry_metadata = ndb.TextProperty(indexed=False)
+  registry_metadata_updated = ndb.DateTimeProperty()
+
   metadata = ndb.TextProperty(indexed=False)
   metadata_etag = ndb.StringProperty(indexed=False)
   metadata_updated = ndb.DateTimeProperty()
