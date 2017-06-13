@@ -468,12 +468,32 @@ class LibraryTask(RequestHandler):
     self.library.tags_updated = datetime.datetime.now()
     return tag_map
 
+  def update_package_tags(self):
+    registry_metadata = json.loads(self.library.registry_metadata)
+    assert registry_metadata is not None
+    versions = registry_metadata.get('versions', {})
+    tags = versions.keys()
+    tags.sort(versiontag.compare)
+    # Create a tag map of tag to sha
+    tag_map = dict((tag, versions.get(tag).get('_shasum', '')) for tag in tags)
+
+    if self.library.tags is None or self.library.tags != tags:
+      self.library.library_dirty = True
+      self.library.tags = tags
+      self.library.tags_map = json.dumps(tag_map)
+      self.library.tags_updated = datetime.datetime.now()
+
+    return tag_map
+
   def update_versions(self):
     if self.library.shallow_ingestion:
       return
 
     if self.library.kind == 'collection':
       new_tag_map = self.update_collection_tags()
+    elif self.scope.startswith('@'):
+      assert self.library.kind == 'element'
+      new_tag_map = self.update_package_tags()
     else:
       assert self.library.kind == 'element'
       new_tag_map = self.update_element_tags()
