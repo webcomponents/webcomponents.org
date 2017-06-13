@@ -594,9 +594,6 @@ class IngestLibraryTest(ManageTestBase):
     Version(id='v1.0.0', parent=library_key, sha='sha').put()
 
     self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"readme": "readme as markdown"}')
-
-    # self.respond_to_github(r'https://api.github.com/repos/org/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('README'))
-    # self.respond_to('https://raw.githubusercontent.com/org/repo/sha/bower.json', '{}')
     self.respond_to_github('https://api.github.com/markdown', '<html>Converted readme</html>')
 
     response = self.app.get(util.ingest_version_task('@scope', 'package', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
