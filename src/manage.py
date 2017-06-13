@@ -213,7 +213,7 @@ class LibraryTask(RequestHandler):
     if self.library_dirty:
       self.library.put()
 
-  def pull_registry_info(self):
+  def update_registry_info(self):
     # Check if there's a NPM scope or the default scope @@npm.
     assert self.scope.startswith('@')
 
@@ -232,12 +232,14 @@ class LibraryTask(RequestHandler):
         self.error('No github URL associated with package', ErrorCodes.Library_no_github)
     elif response.status_code == 404:
       return self.error('Package not found in registry', ErrorCodes.Library_no_package)
+    else:
+      return self.retry('Could not update registry info (%d)' % response.status_code)
 
   def update_metadata(self):
     # Query NPM registry API for packages
     is_npm_package = self.scope.startswith('@')
     if is_npm_package:
-      self.pull_registry_info()
+      self.update_registry_info()
     else:
       self.owner = self.scope
       self.repo = self.package
@@ -255,7 +257,7 @@ class LibraryTask(RequestHandler):
       self.repo = metadata.get('name', '').lower()
 
       # Deleting is only necessary if Library entity is a GitHub repo
-      if not is_npm_package and self.repo != '' and self.owner != '' and (self.repo != self.package or self.owner != self.scope):
+      if (not is_npm_package) and self.repo != '' and self.owner != '' and (self.repo != self.package or self.owner != self.scope):
         logging.info('deleting renamed repo %s', Library.id(self.owner, self.repo))
         delete_library(self.library.key)
         task_url = util.ensure_library_task(self.owner, self.repo)
@@ -379,7 +381,6 @@ class LibraryTask(RequestHandler):
   def trigger_author_ingestion(self):
     if self.library.shallow_ingestion:
       return
-    # TODO(samli): unsure how author ingestion is going to work
     task_url = util.ensure_author_task(self.owner)
     util.new_task(task_url, target='manage', transactional=True)
 
