@@ -457,6 +457,26 @@ class AddTest(ManageTestBase):
     self.assertEqual(len(tasks), 1)
     self.assertEqual(tasks[0].url, util.ingest_library_task('org', 'repo'))
 
+  def test_add_scope(self):
+    token = self.app.get('/manage/token').normal_body
+    response = self.app.get('/manage/add/@scope/package', params={'token': token})
+    self.assertEqual(response.status_int, 200)
+    self.assertEqual(response.normal_body, 'OK')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@scope', 'package'))
+
+  def test_add_no_scope(self):
+    token = self.app.get('/manage/token').normal_body
+    response = self.app.get('/manage/add/@@npm/package', params={'token': token})
+    self.assertEqual(response.status_int, 200)
+    self.assertEqual(response.normal_body, 'OK')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@@npm', 'package'))
+
 class IngestLibraryTest(ManageTestBase):
   def test_ingest_element(self):
     self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
@@ -651,6 +671,48 @@ class IngestLibraryTest(ManageTestBase):
 
     page = ndb.Key(Library, 'org/repo', Version, 'v1.0.0', Content, 'page-doc.md').get()
     self.assertEqual(page.content, '<html>doc.md</html>')
+
+class IngestNPMLibraryTest(ManageTestBase):
+  def test_ingest_element(self):
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": { "url": "git+https://github.com/org/repo.git"}}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '''[{"name": "v0.5.0", "commit": {"sha": "old"}},{"name": "v1.0.0", "commit": {"sha": "lol"}}]''')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@scope/package')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['v0.5.0', 'v1.0.0'])
+
+    version = ndb.Key(Library, '@scope/package', Version, 'v1.0.0').get()
+    self.assertIsNotNone(version)
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, 'lol')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('@scope', 'package', 'v1.0.0'),
+        util.ensure_author_task('org'),
+        util.ingest_version_task('@scope', 'package', 'v1.0.0'),
+    ], [task.url for task in tasks])
+
+  def test_ingest_no_package(self):
+    self.respond_to('https://registry.npmjs.org/nopackage', {'status': 404})
+    response = self.app.get(util.ingest_library_task('@@npm', 'nopackage'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@@npm/nopackage')
+    self.assertIsNotNone(library)
+    self.assertIsNotNone(library.error)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):

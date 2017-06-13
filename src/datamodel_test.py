@@ -95,3 +95,9 @@ class DependencyTests(TestBase):
     self.assertEqual(dependency.owner, 'owner')
     self.assertEqual(dependency.repo, 'repo')
     self.assertEqual(dependency.version, '*')
+
+class LibraryGithubFromUrl(TestBase):
+  def test_from_url(self):
+    self.assertEqual(Library.github_from_url('owner/repo'), ('owner', 'repo'))
+    self.assertEqual(Library.github_from_url('git+https://github.com/owner/repo.git'), ('owner', 'repo'))
+    self.assertEqual(Library.github_from_url('git://github.com/owner/repo.git'), ('owner', 'repo'))

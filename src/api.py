@@ -624,11 +624,24 @@ class PreviewCommit(webapp2.RequestHandler):
     self.response.write('%s/%s/%s' % (owner, repo, sha))
 
 class PublishLibrary(webapp2.RequestHandler):
-  def post(self, owner, repo):
+  def post(self, library):
     if not validate_captcha(self):
       return
+
+    split = library.split('/')
+    if len(split) is 2:
+      scope = split[0]
+      package = split[1]
+    elif len(split) is 1:
+      scope = '@@npm'
+      package = library
+    else:
+      self.response.set_status(400)
+      self.response.write('Invalid name')
+      return
+
     # TODO: validate valid repo and return result
-    task_url = util.ingest_library_task(owner, repo)
+    task_url = util.ingest_library_task(scope, package)
     util.new_task(task_url, target='manage')
 
 class GetSitemap(webapp2.RequestHandler):
@@ -656,7 +669,7 @@ class GetSitemap(webapp2.RequestHandler):
 
 # pylint: disable=invalid-name
 app = webapp2.WSGIApplication([
-    webapp2.Route(r'/api/publish/<owner>/<repo>', handler=PublishLibrary),
+    webapp2.Route(r'/api/publish/<library:([^\/]+|@?[^\/]+\/[^\/]+)>', handler=PublishLibrary),
     webapp2.Route(r'/api/preview', handler=RegisterPreview),
     webapp2.Route(r'/api/preview-event', handler=PreviewEvent),
     webapp2.Route(r'/api/preview-commit', handler=PreviewCommit),

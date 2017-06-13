@@ -13,6 +13,37 @@ class ApiTestBase(TestBase):
     TestBase.setUp(self)
     self.app = webtest.TestApp(app)
 
+class PublishTest(ApiTestBase):
+  def test_add(self):
+    self.respond_to('https://www.google.com/recaptcha/api/siteverify', '{"success": true}')
+
+    response = self.app.post('/api/publish/owner/repo')
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('owner', 'repo'))
+
+  def test_add_scope(self):
+    self.respond_to('https://www.google.com/recaptcha/api/siteverify', '{"success": true}')
+
+    response = self.app.post('/api/publish/@scope/package')
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@scope', 'package'))
+
+  def test_add_no_scope(self):
+    self.respond_to('https://www.google.com/recaptcha/api/siteverify', '{"success": true}')
+
+    response = self.app.post('/api/publish/package')
+    self.assertEqual(response.status_int, 200)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 1)
+    self.assertEqual(tasks[0].url, util.ingest_library_task('@@npm', 'package'))
+
 class PreviewCommitTest(ApiTestBase):
   def setUp(self):
     ApiTestBase.setUp(self)
