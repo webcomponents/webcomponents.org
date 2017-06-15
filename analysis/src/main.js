@@ -9,6 +9,7 @@ const Ana = require('./ana_log');
 const Analysis = require('./analysis');
 const AnalyzerRunner = require('./analyzer');
 const Bower = require('./bower');
+const NPM = require('./npm');
 const Catalog = require('./catalog');
 const DebugCatalog = require('./debug_catalog');
 
@@ -48,6 +49,7 @@ function processTasks() {
 
   var analysis = new Analysis(
       new Bower(),
+      new NPM(),
       new AnalyzerRunner(),
       catalog);
 
@@ -58,7 +60,8 @@ function processTasks() {
     var attributes = {
       owner: req.params.owner,
       repo: req.params.repo,
-      version: req.params.version
+      version: req.params.version,
+      npmPackage: req.params.owner.startsWith('@')
     };
     if (req.params.sha) {
       attributes.sha = req.params.sha;

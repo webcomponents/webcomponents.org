@@ -11,11 +11,13 @@ class Analysis {
   /**
    * Creates an Analysis using the given bower, analyzer and catalog services.
    * @param {Bower} bower - The Bower service.
+   * @param {NPM} npm - The npm service.
    * @param {Analyzer} analyzer - The Analyzer service.
    * @param {Catalog} catalog - The Catalog service.
    */
-  constructor(bower, analyzer, catalog) {
+  constructor(bower, npm, analyzer, catalog) {
     this.bower = bower;
+    this.npm = npm;
     this.analyzer = analyzer;
     this.catalog = catalog;
   }
@@ -28,6 +30,8 @@ class Analysis {
    * @return {Promise} A promise that handles the next task.
    */
   processNextTask(attributes) {
+    if (attributes.npmPackage)
+      return this._processNPMTask(attributes);
     return new Promise((resolve, reject) => {
       var taskAsString = JSON.stringify(attributes);
 
@@ -64,6 +68,19 @@ class Analysis {
         Ana.success("analysis/processNextTask", taskAsString);
         resolve();
       }).catch(errorHandler);
+    });
+  }
+
+  _processNPMTask(attributes) {
+    return new Promise((resolve, reject) => {
+      Ana.log('analysis/processNextTask', taskAsString);
+
+      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.npmPackage) {
+        errorHandler({retry: false, error: 'Task attributes missing or not a package'});
+        return;
+      }
+
+      var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
     });
   }
 }
