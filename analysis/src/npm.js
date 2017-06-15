@@ -86,6 +86,10 @@ class NPM {
         cwd: path.resolve('installed')
       };
       this._exec(['install', '--loglevel=silent', '--no-save', '--only=prod', packageToInstall], opts).then((code, stdout, stderr) => {
+        if (code != 0) {
+          console.log(code);
+          reject();
+        }
         resolve();
       }).catch(error => {
         Ana.fail('npm/install', packageToInstall);
