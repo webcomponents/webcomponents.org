@@ -33,6 +33,11 @@ class NPM {
       opts = opts || {};
       opts.env = process.env;
 
+      // Writing to file seems to prevent the stdout stream from being cut off
+      // unexpectedly.
+      const out = fs.openSync('./out.log', 'w');
+      opts.stdio = ['ignore', out, null];
+
       var stdout = ''
       var stderr = ''
       var child = childProcess.spawn(nodeBin, cmd, opts);
@@ -43,15 +48,12 @@ class NPM {
         });
       }
 
-      if (child.stdout) {
-        child.stdout.on('data', function (chunk) {
-          stdout += chunk;
-        });
-      }
-
       child.on('error', reject);
 
       child.on('close', function (code) {
+        fs.close(out);
+        const stdout = fs.readFileSync('./out.log');
+        fs.unlinkSync('./out.log');
         resolve([code, stdout, stderr]);
       });
     });
@@ -79,17 +81,21 @@ class NPM {
 
   _packageToInstall(scope, packageName, version) {
     const scopePath = scope == '@@npm' ? '' : scope + '/';
-    return scopePath + packageName + '@' + version;
+    const versionPath = version ? '@'  + version : '';
+    return scopePath + packageName + versionPath;
   }
 
   install(scope, packageName, version) {
+    debugger;
     const packageToInstall = this._packageToInstall(scope, packageName, version);
+    console.log(packageToInstall);
     Ana.log('npm/install', packageToInstall);
     return new Promise((resolve, reject) => {
       let opts = {
         cwd: path.resolve('installed')
       };
-      this._exec(['install', '--loglevel=silent', '--save', '--only=prod', packageToInstall], opts).then((code, stdout, stderr) => {
+      this._exec(['install', '--loglevel=silent', '--save', '--only=prod', packageToInstall], opts).then((result) => {
+        const [code, stdout, stderr] = result;
         if (code != 0) {
           // TODO(samli): there's an error!
           // ETARGET seems to have a code of 1
@@ -139,11 +145,13 @@ class NPM {
         var info;
         try {
           info = JSON.parse(stdout || {});
-        } catch(e) {
+        } catch(error) {
           reject({retry: false, error: error});
           return;
         }
-        const deps = this._getDependencies(info.dependencies[scopePath + packageName]);
+        // No scope path to allow for testing with local paths.
+        const rootObj = info.dependencies[scopePath + packageName] || info.dependencies[packageName];
+        const deps = this._getDependencies(rootObj);
         resolve(deps);
       }).catch(error => {
         Ana.fail('npm/findDependencies', packageString);
