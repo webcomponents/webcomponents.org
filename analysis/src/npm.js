@@ -2,7 +2,6 @@
 
 const npm = require('npm');
 const childProcess = require('child_process');
-const url = require('url');
 const path = require('path');
 const fs = require('fs');
 
@@ -21,7 +20,7 @@ class NPM {
   constructor() {
     // Create a safe environment for us to install so dependencies of this app
     // aren't affected by new packages.
-    if (!fs.existsSync('installed')){
+    if (!fs.existsSync('installed')) {
       fs.mkdirSync('installed');
     }
     npm.load();
@@ -38,26 +37,25 @@ class NPM {
       const out = fs.openSync('./out.log', 'w');
       opts.stdio = ['ignore', out, null];
 
-      var stdout = ''
-      var stderr = ''
+      var stderr = '';
       var child = childProcess.spawn(nodeBin, cmd, opts);
 
       if (child.stderr) {
-        child.stderr.on('data', function (chunk) {
+        child.stderr.on('data', function(chunk) {
           stderr += chunk;
         });
       }
 
       child.on('error', reject);
 
-      child.on('close', function (code) {
+      child.on('close', function(code) {
         fs.close(out);
         const stdout = fs.readFileSync('./out.log');
         fs.unlinkSync('./out.log');
         resolve([code, stdout, stderr]);
       });
     });
-  };
+  }
 
  /**
   * Clean up (rm -rf) the working area.
@@ -81,21 +79,19 @@ class NPM {
 
   _packageToInstall(scope, packageName, version) {
     const scopePath = scope == '@@npm' ? '' : scope + '/';
-    const versionPath = version ? '@'  + version : '';
+    const versionPath = version ? '@' + version : '';
     return scopePath + packageName + versionPath;
   }
 
   install(scope, packageName, version) {
-    debugger;
     const packageToInstall = this._packageToInstall(scope, packageName, version);
-    console.log(packageToInstall);
     Ana.log('npm/install', packageToInstall);
     return new Promise((resolve, reject) => {
       let opts = {
         cwd: path.resolve('installed')
       };
-      this._exec(['install', '--loglevel=silent', '--save', '--only=prod', packageToInstall], opts).then((result) => {
-        const [code, stdout, stderr] = result;
+      this._exec(['install', '--loglevel=silent', '--save', '--only=prod', packageToInstall], opts).then(result => {
+        const [code] = result;
         if (code != 0) {
           // TODO(samli): there's an error!
           // ETARGET seems to have a code of 1
@@ -133,8 +129,8 @@ class NPM {
       let opts = {
         cwd: path.resolve('installed')
       };
-      this._exec(['list', '--json', '--loglevel', 'silent', '--prod'], opts).then((result) => {
-        const [code, stdout, stderr] = result;
+      this._exec(['list', '--json', '--loglevel', 'silent', '--prod'], opts).then(result => {
+        const [code, stdout] = result;
         // Don't reject() since NPM can return non zero codes for warnings like
         // unmet dependencies, extraneous etc.
         if (code != 0) {
@@ -145,7 +141,7 @@ class NPM {
         var info;
         try {
           info = JSON.parse(stdout || {});
-        } catch(error) {
+        } catch (error) {
           reject({retry: false, error: error});
           return;
         }
