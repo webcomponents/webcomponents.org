@@ -49,7 +49,7 @@ describe('NPM', () => {
     setup('package-with-local-paths', localWithDep);
     const npm = new NPM();
     return npm.install('.', 'package-with-local-paths', '').then(() => {
-      return npm.findDependencies('.', 'package-with-local-paths', '');
+      return npm.findDependencies('.', 'package-with-local-paths');
     }).then(deps => {
       expect(deps).to.have.length(1);
       expect(deps[0]).to.be.equal(localDependency.name + '@' + localDependency.version);

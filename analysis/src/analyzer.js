@@ -3,7 +3,7 @@
 const Ana = require('./ana_log');
 
 const {Analyzer, generateAnalysis} = require('polymer-analyzer');
-const FSUrlLoader = require('polymer-analyzer/lib/url-loader/fs-url-loader').FSUrlLoader;
+const UrlResolver = require('./url-resolver');
 const PackageUrlResolver = require('polymer-analyzer/lib/url-loader/package-url-resolver').PackageUrlResolver;
 const path = require('path');
 
@@ -12,20 +12,25 @@ class AnalyzerRunner {
     return new Promise((resolve, reject) => {
       Ana.log('analyzer/analyze', inputs);
 
-      // Move up a directory so analyzer will look at all dependencies properly.
-      var analyzerRoot = path.dirname(root);
-      var paths = inputs.map(x => path.join(path.basename(root), x));
+      var analyzerRoot = root;
+      var paths = inputs || [];
+      // Bower: Move up a directory so analyzer will look at all dependencies properly.
+      if (paths.length) {
+        var analyzerRoot = path.dirname(root);
+        var paths = inputs && inputs.map(x => path.join(path.basename(root), x));
+      }
 
       const analyzer = new Analyzer({
-        urlLoader: new FSUrlLoader(analyzerRoot),
+        urlLoader: new UrlResolver(analyzerRoot),
         urlResolver: new PackageUrlResolver(),
       });
 
       const isInPackage = feature => feature.sourceRange != null && feature.sourceRange.file.startsWith(path.basename(root));
 
       if (inputs == null || inputs.length === 0) {
-        resolve({});
-        // TODO: fall back to package analysis
+        analyzer.analyzePackage().then(analysis => {
+          resolve(generateAnalysis(analysis, root, isInPackage));
+        });
       } else {
         analyzer.analyze(paths).then(function(analysis) {
           resolve(generateAnalysis(analysis, root, isInPackage));

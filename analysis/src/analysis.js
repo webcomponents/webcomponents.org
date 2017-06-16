@@ -30,7 +30,7 @@ class Analysis {
    * @return {Promise} A promise that handles the next task.
    */
   processNextTask(attributes) {
-    if (attributes.npmPackage)
+    if (attributes.isNpmPackage)
       return this._processNPMTask(attributes);
     return new Promise((resolve, reject) => {
       var taskAsString = JSON.stringify(attributes);
@@ -52,7 +52,7 @@ class Analysis {
       }).then(result => {
         if (!fs.existsSync(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
-          reject({retry: false, erorr: Error("Installed package not found")});
+          reject({retry: false, error: Error("Installed package not found")});
           return;
         }
 
@@ -73,14 +73,34 @@ class Analysis {
 
   _processNPMTask(attributes) {
     return new Promise((resolve, reject) => {
+      var taskAsString = JSON.stringify(attributes);
       Ana.log('analysis/processNextTask', taskAsString);
 
-      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.npmPackage) {
-        errorHandler({retry: false, error: 'Task attributes missing or not a package'});
+      // SHA is ignored here.
+      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.isNpmPackage) {
+        Ana.fail('analysis/processNextTask', taskAsString, error);
+        reject({retry: false, error: 'Task attributes missing or not a package'});
         return;
       }
 
-      var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
+      this.npm.prune().then(() => {
+        return this.npm.install(attributes.owner, attributes.repo, attributes.version);
+      }).then(root => {
+        return Promise.all([
+          this.analyzer.analyze(root),
+          this.npm.findDependencies(attributes.owner, attributes.repo)]);
+      }).then(results => {
+        var data = {};
+        data.analyzerData = results[0];
+        data.npmDependencies = results[1];
+        return this.catalog.postResponse(data, attributes);
+      }).then(() => {
+        Ana.success('analysis/processNextTask', taskAsString);
+        resolve();
+      }).catch(error => {
+        Ana.fail('analysis/processNextTask', taskAsString, error);
+        reject(error);
+      });
     });
   }
 }

@@ -61,7 +61,7 @@ function processTasks() {
       owner: req.params.owner,
       repo: req.params.repo,
       version: req.params.version,
-      npmPackage: req.params.owner.startsWith('@')
+      isNpmPackage: req.params.owner.startsWith('@')
     };
     if (req.params.sha) {
       attributes.sha = req.params.sha;

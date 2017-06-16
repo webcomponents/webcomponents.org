@@ -95,17 +95,13 @@ class NPM {
         if (code != 0) {
           // TODO(samli): there's an error!
           // ETARGET seems to have a code of 1
-          reject();
+          reject({retry: false, error: code});
         }
-        resolve();
+        const scopePath = scope == '@@npm' ? '' : scope + '/';
+        resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
       }).catch(error => {
         Ana.fail('npm/install', packageToInstall);
-        var retry = true;
-        // TODO(samli): should be getting ETARGET when the package isn't found.
-        if (error.code && fatalErrorCodes.indexOf(error.code) != -1 || error instanceof TypeError) {
-          retry = false;
-        }
-        reject({retry: retry, error: error});
+        reject({retry: true, error: error});
       });
     });
   }
@@ -121,9 +117,9 @@ class NPM {
     return result;
   }
 
-  findDependencies(scope, packageName, version) {
+  findDependencies(scope, packageName) {
     const scopePath = scope == '@@npm' ? '' : scope + '/';
-    const packageString = this._packageToInstall(scope, packageName, version);
+    const packageString = this._packageToInstall(scope, packageName);
     Ana.log('npm/findDependencies', packageString);
     return new Promise((resolve, reject) => {
       let opts = {
