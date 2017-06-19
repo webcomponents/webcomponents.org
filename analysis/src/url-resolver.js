@@ -2,6 +2,9 @@ const fs = require("fs");
 const pathlib = require("path");
 const urllib = require('url');
 
+/**
+ * Loads files from file system with no restrictions on relative parent paths.
+ */
 class UrlLoader {
   constructor(root) {
     this.root = root || '';
