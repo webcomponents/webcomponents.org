@@ -11,11 +11,13 @@ class Analysis {
   /**
    * Creates an Analysis using the given bower, analyzer and catalog services.
    * @param {Bower} bower - The Bower service.
+   * @param {NPM} npm - The npm service.
    * @param {Analyzer} analyzer - The Analyzer service.
    * @param {Catalog} catalog - The Catalog service.
    */
-  constructor(bower, analyzer, catalog) {
+  constructor(bower, npm, analyzer, catalog) {
     this.bower = bower;
+    this.npm = npm;
     this.analyzer = analyzer;
     this.catalog = catalog;
   }
@@ -28,6 +30,8 @@ class Analysis {
    * @return {Promise} A promise that handles the next task.
    */
   processNextTask(attributes) {
+    if (attributes.isNpmPackage)
+      return this._processNPMTask(attributes);
     return new Promise((resolve, reject) => {
       var taskAsString = JSON.stringify(attributes);
 
@@ -48,7 +52,7 @@ class Analysis {
       }).then(result => {
         if (!fs.existsSync(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
-          reject({retry: false, erorr: Error("Installed package not found")});
+          reject({retry: false, error: Error("Installed package not found")});
           return;
         }
 
@@ -64,6 +68,39 @@ class Analysis {
         Ana.success("analysis/processNextTask", taskAsString);
         resolve();
       }).catch(errorHandler);
+    });
+  }
+
+  _processNPMTask(attributes) {
+    return new Promise((resolve, reject) => {
+      var taskAsString = JSON.stringify(attributes);
+      Ana.log('analysis/processNextTask', taskAsString);
+
+      // SHA is ignored here.
+      if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.isNpmPackage) {
+        Ana.fail('analysis/processNextTask', taskAsString, error);
+        reject({retry: false, error: 'Task attributes missing or not a package'});
+        return;
+      }
+
+      this.npm.prune().then(() => {
+        return this.npm.install(attributes.owner, attributes.repo, attributes.version);
+      }).then(root => {
+        return Promise.all([
+          this.analyzer.analyze(root),
+          this.npm.findDependencies(attributes.owner, attributes.repo)]);
+      }).then(results => {
+        var data = {};
+        data.analyzerData = results[0];
+        data.npmDependencies = results[1];
+        return this.catalog.postResponse(data, attributes);
+      }).then(() => {
+        Ana.success('analysis/processNextTask', taskAsString);
+        resolve();
+      }).catch(error => {
+        Ana.fail('analysis/processNextTask', taskAsString, error);
+        reject(error);
+      });
     });
   }
 }
