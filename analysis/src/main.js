@@ -1,8 +1,8 @@
 'use strict';
 
 if (process.env.NODE_ENV === 'production') {
-  require('@google/cloud-trace').start();
-  require('@google/cloud-debug');
+  require('@google-cloud/debug-agent').start({allowExpressions: true});
+  require('@google-cloud/trace-agent').start();
 }
 
 const Ana = require('./ana_log');
@@ -43,8 +43,8 @@ function processTasks() {
     Ana.log("main/processTasks", "Debug mode - logging catalog responses to console.");
     catalog = new DebugCatalog();
   } else {
-    Ana.log("main/processTasks", "Using project [", process.env.GAE_LONG_APP_ID, "] and response topic [", args.responseTopic, "]");
-    catalog = new Catalog(pubsub({projectId: process.env.GAE_LONG_APP_ID}), args.responseTopic);
+    Ana.log("main/processTasks", "Using project [", process.env.GCLOUD_PROJECT, "] and response topic [", args.responseTopic, "]");
+    catalog = new Catalog(pubsub({projectId: process.env.GCLOUD_PROJECT}), args.responseTopic);
   }
 
   var analysis = new Analysis(

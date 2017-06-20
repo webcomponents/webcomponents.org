@@ -223,8 +223,8 @@ class LibraryTask(RequestHandler):
     except ValueError:
       return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
 
-    # TODO(samli): Save registry metadata with dirty check
     if response.status_code == 200:
+      # TODO: support packages with no repository object and instead owner/repo.
       self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
 
       if self.owner == '' or self.repo == '':
@@ -232,7 +232,7 @@ class LibraryTask(RequestHandler):
 
       new_metadata = json.loads(response.content)
       old_metadata = self.library.registry_metadata
-      if old_metadata is None or new_metadata.get('_rev') != old_metadata.get('_rev'):
+      if old_metadata is None or new_metadata.get('_rev') != json.loads(old_metadata).get('_rev'):
         self.library.registry_metadata = response.content
         self.library.registry_metadata_updated = datetime.datetime.now()
         self.library_dirty = True
@@ -908,6 +908,9 @@ class IngestAnalysis(RequestHandler):
     message = message_json['message']
     data = base64.b64decode(str(message['data']))
     attributes = message['attributes']
+    if len(attributes) == 0:
+      logging.error(message)
+      return
     owner = attributes['owner']
     repo = attributes['repo']
     version = attributes['version']

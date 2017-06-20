@@ -29,10 +29,14 @@ class Catalog {
     return new Promise((resolve, reject) => {
       Ana.log("catalog/postResponse");
 
+      // Can only pass string values
+      delete attributes.isNpmPackage;
+
+      // 'Raw' option is required if attributes are to be set.
       this.pubsub.topic(this.responseTopic).publish({
         data: data,
         attributes: attributes
-      }, function(error) {
+      }, {raw: true}, function(error) {
         if (error) {
           Ana.fail("catalog/postResponse");
           reject(Error(error));

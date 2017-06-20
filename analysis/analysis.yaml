@@ -1,6 +1,6 @@
 service: analysis
 runtime: nodejs
-vm: true
+env: flex
 threadsafe: false
 handlers:
 - url: /task/analyze/.*
