@@ -223,8 +223,8 @@ class LibraryTask(RequestHandler):
     except ValueError:
       return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
 
-    # TODO(samli): Save registry metadata with dirty check
     if response.status_code == 200:
+      # TODO: support packages with no repository object and instead owner/repo.
       self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
 
       if self.owner == '' or self.repo == '':
