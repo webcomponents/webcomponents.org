@@ -47,14 +47,14 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:path([\\s\\S]*)'), async (req, re
   const owner = req.params.owner.toLowerCase();
   const repo = req.params.repo.toLowerCase();
   const tag = req.params.tag;
-  const match = req.params.path.match(/((?:@[^\/]+\/)?[^\/]+)(.*)/);
+  const match = req.params.path.match(/((?:@[^/]+\/)?[^/]+)(.*)/);
   if (match.length != 3) {
     req.status(400).send('Something went wrong, cant figure out the name');
     return;
   }
 
   const name = match[1];
-  const path = match[2];
+  let path = match[2];
   if (path.endsWith('/'))
     path += 'index.html';
   const key = datastore.key(['Library', owner + '/' + repo, 'Version', req.params.tag, 'Content', 'analysis']);
@@ -94,7 +94,7 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:path([\\s\\S]*)'), async (req, re
       configMap.set(dep.substring(0, dep.lastIndexOf('@')), dep);
     });
     // Ensure the repo serves its own version.
-    const ownerString = owner == '@@npm' ? '' : owner + '/'
+    const ownerString = owner == '@@npm' ? '' : owner + '/';
     configMap.set(`${ownerString}${repo}`, `${ownerString}${repo}@${tag}`);
   }
 
