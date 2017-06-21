@@ -760,6 +760,34 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
+  def test_ingest_repository_shorthand(self):
+    self.respond_to('https://registry.npmjs.org/package', '{"repository": "org/repo", "license": "BSD-3-Clause", "versions": {"1.0.0": {"_shasum": "lol"}, "0.5.0": {"_shasum": "sha"}}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('@@npm', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@@npm/package')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['0.5.0', '1.0.0'])
+
+    version = ndb.Key(Library, '@@npm/package', Version, '1.0.0').get()
+    self.assertIsNotNone(version)
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, 'lol')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('@@npm', 'package', '1.0.0'),
+        util.ensure_author_task('org'),
+        util.ingest_version_task('@@npm', 'package', '1.0.0'),
+    ], [task.url for task in tasks])
+
+
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):
     metadata = """{

@@ -224,8 +224,9 @@ class LibraryTask(RequestHandler):
       return self.error('Could not parse registry metadata', ErrorCodes.Library_parse_registry)
 
     if response.status_code == 200:
-      # TODO: support packages with no repository object and instead owner/repo.
-      self.owner, self.repo = Library.github_from_url(package.get('repository', {}).get('url', ''))
+      repository = package.get('repository', {})
+      repository_string = repository.get('url', '') if isinstance(repository, dict) else repository
+      self.owner, self.repo = Library.github_from_url(repository_string)
 
       if self.owner == '' or self.repo == '':
         return self.error('No github URL associated with package', ErrorCodes.Library_no_github)
