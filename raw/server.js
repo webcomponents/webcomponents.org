@@ -7,7 +7,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const express = require('express');
-const datastore = require('@google-cloud/datastore')();
+const datastore = require('@google-cloud/datastore')({
+  projectId: 'custom-elements-staging',
+  keyFilename: '/usr/local/google/home/samli/custom-elements-staging-6ea3a54f77ac.json'
+});
 const request = require('request');
 const app = express();
 const zlib = require('zlib');
@@ -40,11 +43,18 @@ app.get(optionalTranspile('/[^/]+/[^/]+/[^/]+/[^/]+/'), (request, response) => {
   response.sendFile(path.resolve(__dirname, 'inline-demo.html'));
 });
 
-app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (req, res) => {
+app.get(optionalTranspile('/:owner/:repo/:tag/:path([\\s\\S]*)'), async (req, res) => {
   const owner = req.params.owner.toLowerCase();
   const repo = req.params.repo.toLowerCase();
   const tag = req.params.tag;
-  let path = req.params.path;
+  const match = req.params.path.match(/((?:@[^/]+\/)?[^/]+)(.*)/);
+  if (match.length != 3) {
+    req.status(400).send('Something went wrong, cant figure out the name');
+    return;
+  }
+
+  const name = match[1];
+  let path = match[2];
   if (path.endsWith('/'))
     path += 'index.html';
   const key = datastore.key(['Library', owner + '/' + repo, 'Version', req.params.tag, 'Content', 'analysis']);
@@ -65,29 +75,37 @@ app.get(optionalTranspile('/:owner/:repo/:tag/:name:path(/[\\s\\S]*)'), async (r
     content = JSON.parse(analysis[0].content);
   }
 
-  if (!content || !content.bowerDependencies) {
+  if (!content || !(content.bowerDependencies || content.npmDependencies)) {
     res.status(404).send(`Could not find dependencies for ${tag} in ${owner}/${repo}`);
     return;
   }
 
   // Build a map of the repo's dependencies.
-  const dependencies = content.bowerDependencies;
   const configMap = new Map();
-  dependencies.forEach(x => {
-    if (x.owner != owner || x.repo != repo)
-      configMap.set(x.name, `${x.owner}/${x.repo}/${x.version}`);
-  });
+  if (content.bowerDependencies) {
+    content.bowerDependencies.forEach(x => {
+      if (x.owner != owner || x.repo != repo)
+        configMap.set(x.name, `${x.owner}/${x.repo}/${x.version}`);
+    });
+    // Ensure the repo serves its own version.
+    configMap.set(repo, `${owner}/${repo}/${tag}`);
+  } else if (content.npmDependencies) {
+    content.npmDependencies.forEach(dep => {
+      configMap.set(dep.substring(0, dep.lastIndexOf('@')), dep);
+    });
+    // Ensure the repo serves its own version.
+    const ownerString = owner == '@@npm' ? '' : owner + '/';
+    configMap.set(`${ownerString}${repo}`, `${ownerString}${repo}@${tag}`);
+  }
 
-  // Ensure the repo serves its own version.
-  configMap.set(repo, `${owner}/${repo}/${tag}`);
-
-  if (!configMap.has(req.params.name)) {
-    res.status(400).send(`${req.params.name} is not a valid dependency for ${tag} in ${owner}/${repo}`);
+  if (!configMap.has(name)) {
+    res.status(400).send(`${name} is not a valid dependency for ${tag} in ${owner}/${repo}`);
     return;
   }
 
   // Fetch resource from rawgit
-  const url = 'https://cdn.rawgit.com/' + configMap.get(req.params.name) + path;
+  const baseUrl = owner.startsWith('@') ? 'https://unpkg.com/' : 'https://cdn.rawgit.com/';
+  const url = baseUrl + configMap.get(name) + path;
   request.get(url).on('response', result => {
     if (result.statusCode != 200) {
       res.status(400).send(`Invalid response from rawgit. Received ${result.statusCode} for ${url}`);

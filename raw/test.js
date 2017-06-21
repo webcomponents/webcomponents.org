@@ -10,14 +10,20 @@ const datastoreStub = function() {
     key: function(params) {
       if (params.includes('notexist'))
         return 'notexist';
-      return '';
+      return {path: params};
     },
 
     get: function(key) {
       if (key == 'notexist')
         return Promise.resolve([undefined]);
-      var data = {
-        bowerDependencies: [
+      var data = {};
+      if (key.path[1].startsWith('@')) {
+        data.npmDependencies = [
+          '@scope/package@1.0.0',
+          'package@2.0.0',
+        ];
+      } else {
+        data.bowerDependencies = [
           {
             owner: "owner",
             repo: "repo",
@@ -30,8 +36,8 @@ const datastoreStub = function() {
             version: "v2.0.0",
             name: "depRepo"
           }
-        ]
-      };
+        ];
+      }
       return Promise.resolve([{content: JSON.stringify(data), status: 'ready'}]);
     }
   };
@@ -145,6 +151,96 @@ test.cb('transpiles when requested', t => {
         throw new Error('Did not transpile result');
       }
     })
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('scoped npm package - own dep', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/@myscope/mypackage@tag/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@myscope/mypackage/tag/@myscope/mypackage/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('scoped npm package - scoped dependency', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/@scope/package@1.0.0/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@myscope/mypackage/tag/@scope/package/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('scoped npm package - unscoped dependency', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/package@2.0.0/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@myscope/mypackage/tag/package/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('unscoped npm package - own dep', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/mypackage@tag/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@@npm/mypackage/tag/mypackage/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('unscoped npm package - scoped dependency', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/@scope/package@1.0.0/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@@npm/mypackage/tag/@scope/package/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
+    .expect(() => {
+      if (!scope.isDone())
+        throw new Error('Did not fetch rawgit');
+    })
+    .end(t.end);
+});
+
+test.cb('unscoped npm package - unscoped dependency', t => {
+  var scope = nock('https://unpkg.com')
+    .get('/package@2.0.0/parent/file.html')
+    .reply(200, 'my resource');
+
+  request.get('/@@npm/mypackage/tag/package/parent/file.html')
+    .expect(200, 'my resource')
+    .expect('Access-Control-Allow-Origin', '*')
     .expect(() => {
       if (!scope.isDone())
         throw new Error('Did not fetch rawgit');
