@@ -13,7 +13,7 @@
     "paper-spinner": "PolymerElements/paper-spinner#^1.2.0",
     "paper-toast": "PolymerElements/paper-toast#^1.3.0",
     "polymer": "Polymer/polymer#^1.4.0",
-    "iron-doc-viewer": "PolymerElements/iron-doc-viewer#1299d5db4720b8f0659b87a59c8a4d5daad83ebb"
+    "iron-doc-viewer": "PolymerElements/iron-doc-viewer#f41717c482c0f04a0f11b9e71ba83848e8fede28"
   },
   "devDependencies": {
     "web-component-tester": "^5.0.1",
