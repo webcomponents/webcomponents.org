@@ -229,7 +229,7 @@
 
         // Hide first heading if its the same as the repo name.
         var firstHeading = this.$.contents.querySelector('h1, h2');
-        if (firstHeading && firstHeading.textContent.match(this.data.repo))
+        if (firstHeading && firstHeading.textContent.indexOf(this.data.repo) != -1)
           firstHeading.style.display = 'none';
       },
 
