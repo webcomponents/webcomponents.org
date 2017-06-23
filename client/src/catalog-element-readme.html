@@ -22,10 +22,6 @@
         color: inherit;
       }
 
-      article.markdown-body > h2:first-of-type, article.markdown-body > h1:first-of-type {
-        display: none;
-      }
-
       :host[shorten] article.markdown-body > :not(:nth-child(-n+4)) {
         display: none;
       }
@@ -230,6 +226,11 @@
         links = Polymer.dom(this.$.contents).querySelectorAll('[src]');
         for (i = 0; i < links.length; i++)
           links[i].setAttribute('src', links[i].getAttribute('src').replace(relativeRegex, githubBase + '/raw/' + defaultBranch + '/$1'));
+
+        // Hide first heading if its the same as the repo name.
+        var firstHeading = this.$.contents.querySelector('h1, h2');
+        if (firstHeading && firstHeading.textContent.indexOf(this.data.repo) != -1)
+          firstHeading.style.display = 'none';
       },
 
       _updateCodeBlocks: function() {
