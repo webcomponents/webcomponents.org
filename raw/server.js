@@ -7,10 +7,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const express = require('express');
-const datastore = require('@google-cloud/datastore')({
-  projectId: 'custom-elements-staging',
-  keyFilename: '/usr/local/google/home/samli/custom-elements-staging-6ea3a54f77ac.json'
-});
+const datastore = require('@google-cloud/datastore')();
 const request = require('request');
 const app = express();
 const zlib = require('zlib');
