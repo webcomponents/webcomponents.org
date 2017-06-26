@@ -24,7 +24,7 @@
 
       .sidebar {
         order: 0;
-        margin: -30px 25px 0 -15px;
+        margin: -30px 25px -64px -15px;
       }
 
       h1.page-title {
@@ -376,40 +376,24 @@
             <template is="dom-repeat" items="[[_customPages]]" as="page">
               <a class="page-link" href="[[_baseHref]]/page/[[page.url]]"><span>[[page.description]]</span></a>
             </template>
-
-            <template is="dom-repeat" items="[[_docSections]]" as="section">
-              <template is="dom-repeat" items="[[section.items]]">
-                <a class="api-link" href="[[_baseHref]][[item.path]]" title="[[item.name]]">[[item.name]]</a>
-              </template>
-            </template>
-
-            <template is="dom-repeat" items="[[docs.analysis.namespaces]]" as="namespace">
-              <a class="api-link" href="[[_baseHref]]/namespaces/[[namespace.name]]"><span>[[namespace.name]]</span></a>
-            </template>
-
-            <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[_baseHref]]/elements/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
-
-              <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
-                <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <template is="dom-if" if="[[_absolutePath(demo.url)]]">
-                    <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
-                  </template>
-                  <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[_baseHref]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-                </template>
-              </div>
-            </template>
-
-            <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[_baseHref]]/mixins/[[behavior.name]]"><span>[[behavior.name]]</span></a>
-
-              <div class="element-demos">
-                <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[_baseHref]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-                </template>
-              </div>
-            </template>
           </div>
+
+          <template is="dom-repeat" items="[[_docSections]]" as="section">
+            <h3>[[section.heading]]</h3>
+            <div class="sidebar-nav box" role="navigation" collapse="true">
+              <template is="dom-repeat" items="[[section.items]]">
+                <a href="[[_baseHref]][[item.path]]" title="[[item.name]]">[[item.name]]</a>
+                <div class="element-demos">
+                  <template is="dom-repeat" items="[[item.demos]]" as="demo">
+                    <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                      <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+                    </template>
+                    <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[_baseHref]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
 
           <div id="github-action-group" class="box">
             <a id="github-view-button" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
@@ -477,7 +461,7 @@
 
           <iron-doc-viewer
               base-href="[[_baseHref]]"
-              descriptor="[[docs.analysis]]"
+              descriptor="[[_descriptor]]"
               root-namespace="[[rootNamespace]]">
           </iron-doc-viewer>
           <div hidden="[[!subElement]]">
@@ -784,7 +768,8 @@
       _docsResponse: function() {
         this._unblockLazy();
         this.$['sidebar-spinner'].removeAttribute('active');
-        this._populateDocs();
+        // this._updateDescriptor();
+        // this._populateDocs();
         this.async(this._updateActiveLinks);
       },
 
@@ -804,21 +789,21 @@
       _populateDocs: function() {
         if (!this.docs || !this.docs.analysis)
           return;
-        this.bundledElements = this._elements();
-        this.bundledBehaviors = this._behaviors();
+        // this.bundledElements = this._elements();
+        // this.bundledBehaviors = this._behaviors();
         // TODO: Support deduping of demos. Analyzer currently doesn't support demo titles.
-        this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
+        // this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
 
-        var map = new Map();
-        this.bundledElements.forEach(function(element) {
-          map.set(element.tagname, element);
-        });
-        this._elementMap = map;
-        map = new Map();
-        this.bundledBehaviors.forEach(function(behavior) {
-          map.set(behavior.name, behavior);
-        });
-        this._behaviorMap = map;
+        // var map = new Map();
+        // this.bundledElements.forEach(function(element) {
+        //   map.set(element.tagname, element);
+        // });
+        // this._elementMap = map;
+        // map = new Map();
+        // this.bundledBehaviors.forEach(function(behavior) {
+        //   map.set(behavior.name, behavior);
+        // });
+        // this._behaviorMap = map;
 
         this._updateDescriptor();
       },
@@ -840,11 +825,8 @@
               if (!demo.url) {
                 continue;
               }
-              var demoPath = demo.description
-                  ? demo.description.toLowerCase().replace(/\s+/g, '-')
-                  : demo.url;
               demos.push({
-                path: path + '/demos/' + demoPath,
+                url: demo.url,
                 description: demo.description || 'Demo'
               });
             }
@@ -859,12 +841,47 @@
           return {heading: heading, items: sectionItems};
         }
 
+        function _flatten(descriptor, flat) {
+          if (!flat) {
+            flat = {
+              namespaces: [],
+              elements: [],
+              metadata: {
+                polymer: {
+                  behaviors: []
+                }
+              },
+              mixins: [],
+              classes: [],
+            };
+          }
+          for (var i = 0; i < (descriptor.namespaces || []).length; i++) {
+            _flatten(descriptor.namespaces[i], flat);
+            flat.namespaces.push(descriptor.namespaces[i]);
+          }
+          for (var i = 0; i < (descriptor.classes || []).length; i++) {
+            flat.classes.push(descriptor.classes[i]);
+          }
+          for (var i = 0; i < (descriptor.elements || []).length; i++) {
+            flat.elements.push(descriptor.elements[i]);
+          }
+          var descriptorBehaviors =
+              ((descriptor.metadata || {}).polymer || {}).behaviors;
+          for (var i = 0; i < (descriptorBehaviors || []).length; i++) {
+            flat.metadata.polymer.behaviors.push(descriptorBehaviors[i]);
+          }
+          for (var i = 0; i < (descriptor.mixins || []).length; i++) {
+            flat.mixins.push(descriptor.mixins[i]);
+          }
+          return flat;
+        }
+
         if (!this.docs || !this.docs.analysis) {
           delete this._descriptor;
           return;
         }
 
-        var descriptor = this.docs.analysis;
+        var descriptor = _flatten(this.docs.analysis);
 
         this._docSections = [
           _section('Namespaces', '/namespaces/', descriptor.namespaces),
@@ -873,7 +890,9 @@
               ((descriptor.metadata || {}).polymer || {}).behaviors),
           _section('Mixins', '/mixins/', descriptor.mixins),
           _section('Classes', '/classes/', descriptor.classes),
-        ];
+        ].filter(function(section) {
+          return section.items && section.items.length;
+        });
 
         this._descriptor = descriptor;
       },
