@@ -683,8 +683,6 @@
 
           var element = selectedItem.tagName.toLowerCase();
           selectedItem.removeAttribute('unresolved');
-          if (element == 'catalog-element')
-            element = 'catalog-element-analyzer';
 
           this.importHref(
             this.resolveUrl(element + '.html'), this._pageReady, null, true);
