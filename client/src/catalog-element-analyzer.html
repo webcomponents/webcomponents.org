@@ -4,9 +4,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
-<link rel="import" href="iron-doc-element.html">
-<link rel="import" href="iron-doc-namespace.html">
-<link rel="import" href="iron-doc-mixin.html">
+<link rel="import" href="iron-doc-viewer.html">
 
 <link rel="import" href="catalog-styles.html">
 <link rel="import" href="catalog-element-readme.html">
@@ -25,8 +23,16 @@
       }
 
       .sidebar {
+        flex: 0 0 300px;
         order: 0;
-        margin: 0 40px 0 0;
+        margin: -32px 25px -64px -15px;
+        width: 300px;
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+        padding: 30px 15px;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       h1.page-title {
@@ -133,11 +139,8 @@
         z-index: 10;
       }
 
-      .sidebar-nav a span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 185px;
+      .sidebar-nav {
+        word-break: break-all;
       }
 
       .sidebar-nav[collapse] .element-demos {
@@ -150,7 +153,8 @@
       }
 
       .sidebar-nav a span {
-        max-width: 200px;
+        white-space: nowrap;
+        max-width: 180px;
         overflow: hidden;
         text-overflow: ellipsis;
       }
@@ -294,15 +298,14 @@
       }
 
       /* Doc styles */
-      :host {
-        --paper-font-code1: {
-          font-family: var(--monospace-font);
-          font-weight: 600;
+      iron-doc-viewer {
+        --iron-doc-font-body: {
+          font-family: 'Source Sans Pro', sans-serif;
         };
-        --paper-font-code2: {
+        --iron-doc-font-code: {
           font-family: var(--monospace-font);
-          font-weight: 600;
         };
+        --iron-doc-accent-color: hsl(355, 65%, 50%);
       }
     </style>
 
@@ -356,55 +359,6 @@
 
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
-          <div class="sidebar-nav box loader" role="navigation" collapse$="[[_shouldCollapseNav(bundledElements)]]" loading$="[[!docs]]">
-            <a href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]">Overview</a>
-
-            <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
-              <template is="dom-if" if="[[_absolutePath(demo.url)]]">
-                <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
-              </template>
-              <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-            </template>
-
-            <template is="dom-repeat" items="[[dupedDemos]]" as="demo">
-              <template is="dom-if" if="[[_absolutePath(demo.url)]]">
-                <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
-              </template>
-              <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-            </template>
-
-            <template is="dom-repeat" items="[[_customPages]]" as="page">
-              <a class="page-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/page/[[page.url]]"><span>[[page.description]]</span></a>
-            </template>
-
-            <template is="dom-repeat" items="[[docs.analysis.namespaces]]" as="namespace">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/namespaces/[[namespace.name]]"><span>[[namespace.name]]</span></a>
-            </template>
-
-            <template is="dom-repeat" items="[[bundledElements]]" as="element">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/elements/[[element.tagname]]"><span>&lt;[[element.tagname]]&gt;</span></a>
-
-              <div class="element-demos" role="navigation" aria-label$="[[element.tagname]] demos">
-                <template is="dom-repeat" items="[[element.demos]]" as="demo">
-                  <template is="dom-if" if="[[_absolutePath(demo.url)]]">
-                    <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
-                  </template>
-                  <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-                </template>
-              </div>
-            </template>
-
-            <template is="dom-repeat" items="[[bundledBehaviors]]" as="behavior">
-              <a class="api-link" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/mixins/[[behavior.name]]"><span>[[behavior.name]]</span></a>
-
-              <div class="element-demos">
-                <template is="dom-repeat" items="[[behavior.demos]]" as="demo">
-                  <a class="demo-link sub-item" rel="nofollow" href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
-                </template>
-              </div>
-            </template>
-          </div>
-
           <div id="github-action-group" class="box">
             <a id="github-view-button" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
@@ -418,7 +372,39 @@
             </a>
           </div>
 
-          <div class="loader" loading$="[[!docs]]" hidden$="[[!collections.count]]">
+          <div class="sidebar-nav box loader" role="navigation">
+            <a href="[[_baseHref]]">Overview</a>
+
+            <template is="dom-repeat" items="[[_bowerDemos]]" as="demo">
+              <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+              </template>
+              <a class="demo-link sub-item" rel="nofollow" hidden$="[[_absolutePath(demo.url)]]" href="[[_baseHref]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+            </template>
+
+            <template is="dom-repeat" items="[[_customPages]]" as="page">
+              <a class="page-link" href="[[_baseHref]]/page/[[page.url]]"><span>[[page.description]]</span></a>
+            </template>
+          </div>
+
+          <template is="dom-repeat" items="[[_docSections]]" as="section">
+            <h3>[[section.heading]]</h3>
+            <div class="sidebar-nav box" role="navigation" collapse$="[[_shouldCollapseNav(section.items)]]">
+              <template is="dom-repeat" items="[[section.items]]">
+                <a href="[[_baseHref]][[item.path]]" on-click="_docPageLoaded" title="[[item.name]]">[[item.name]]</a>
+                <div class="element-demos">
+                  <template is="dom-repeat" items="[[item.demos]]" as="demo">
+                    <template is="dom-if" if="[[_absolutePath(demo.url)]]">
+                      <a class="demo-link sub-item" target="_blank" rel="noopener" href="[[demo.url]]"><span>[[demo.description]]</span></a>
+                    </template>
+                    <a class="demo-link sub-item" rel="nofollow" hisdden$="[[_absolutePath(demo.url)]]" href="[[_baseHref]]/demo/[[demo.url]]" on-click="_demoClicked"><span>[[demo.description]]</span></a>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <div hidden$="[[!collections.count]]">
             <template is="dom-if" if="[[collections.count]]">
               <h1>In [[collections.count]] collection[[_s(collections.count)]]</h1>
 
@@ -430,7 +416,7 @@
             </template>
           </div>
 
-          <div class="loader" loading$="[[!docs]]">
+          <div>
             <template is="dom-if" if="[[_dependencies(data)]]">
               <div id="info-dependencies" class="desktop-only">
                 <h1>Dependencies</h1>
@@ -470,25 +456,11 @@
             <catalog-element-readme data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="[[_customPageLoading]]"></catalog-element-readme>
           </template>
 
-          <div hidden="[[!subElement]]">
-            <template is="dom-if" if="[[_equal(_descriptorType,'namespaces')]]" restamp="true">
-              <iron-doc-namespace
-                  base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
-                  descriptor="[[_descriptor]]"
-                  root-namespace="[[rootNamespace]]">
-              </iron-doc-namespace>
-            </template>
-            <template is="dom-if" if="[[_equal(_descriptorType,'elements')]]" restamp="true">
-              <iron-doc-element
-                base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
-                descriptor="[[_descriptor]]"></iron-doc-element>
-            </template>
-            <template is="dom-if" if="[[_equal(_descriptorType,'mixins')]]" restamp="true">
-              <iron-doc-mixin
-                base-href="[[route.prefix]]/[[owner]]/[[repo]][[versionRoute]]"
-                descriptor="[[_descriptor]]"></iron-doc-mixin>
-            </template>
-          </div>
+          <iron-doc-viewer
+              base-href="[[_baseHref]]"
+              descriptor="[[_descriptor]]"
+              root-namespace="[[rootNamespace]]">
+          </iron-doc-viewer>
         </div>
       </div>
     </div>
@@ -544,9 +516,6 @@
 
         this.data = null;
         delete this._descriptor;
-        this.bundledElements = [];
-        this.bundledBehaviors = [];
-        this.dupedDemos = [];
         this.collections = null;
         this.docs = null;
         this._bowerDemos = [];
@@ -583,12 +552,14 @@
           split = [];
         }
 
-        var descriptorTypes = ['namespaces', 'elements', 'mixins'];
+        var descriptorTypes = ['namespaces', 'elements', 'mixins', 'classes', 'behaviors'];
         if (split.length && descriptorTypes.indexOf(split[0]) != -1)
           this._descriptorType = split.shift();
 
         if (split.length)
           this.subElement = split.shift();
+
+        this._baseHref = [this.route.prefix, this.owner, this.repo].join('/') + this.versionRoute;
       },
 
       _routeChanged: function(path, prefix, visible) {
@@ -771,8 +742,8 @@
       _docsResponse: function() {
         this._unblockLazy();
         this.$['sidebar-spinner'].removeAttribute('active');
-        this._populateDocs();
-        this.async(this._updateActiveLinks);
+        this._updateDescriptor();
+        Polymer.RenderStatus.afterNextRender(this, this._updateActiveLinks);
       },
 
       _docsError: function(event, error) {
@@ -788,151 +759,106 @@
         }
       },
 
-      _populateDocs: function() {
-        if (!this.docs || !this.docs.analysis)
-          return;
-        this.bundledElements = this._elements();
-        this.bundledBehaviors = this._behaviors();
-        // TODO: Support deduping of demos. Analyzer currently doesn't support demo titles.
-        this.dupedDemos = this._dedupeDemos(this._bowerDemos, this.bundledElements, this.bundledBehaviors);
-
-        var map = new Map();
-        this.bundledElements.forEach(function(element) {
-          map.set(element.tagname, element);
-        });
-        this._elementMap = map;
-        map = new Map();
-        this.bundledBehaviors.forEach(function(behavior) {
-          map.set(behavior.name, behavior);
-        });
-        this._behaviorMap = map;
-
-        this._updateDescriptor();
-      },
-
       _updateDescriptor: function() {
-        // Walks through the tree of namespaces to find the namespace
-        // containing `name`.
-        function getNamespace(descriptor, name) {
-          function match(name, namespace) {
-            return namespace.name == name;
+        function _section(heading, pathPrefix, descriptorItems) {
+          var sectionItems = [];
+          for (var i = 0; i < (descriptorItems || []).length; i++) {
+            var item = descriptorItems[i];
+            var name = item.tagname ? '<' + item.tagname + '>' : item.name;
+            if (!name) {
+              continue;
+            }
+            var path = pathPrefix + (item.tagname || item.name);
+
+            var demos = [];
+            for (var d = 0; d < (item.demos || []).length; d++) {
+              var demo = item.demos[d];
+              if (!demo.url) {
+                continue;
+              }
+              demos.push({
+                url: demo.url,
+                description: demo.description || 'Demo'
+              });
+            }
+
+            sectionItems.push({name: name, path: path, demos: demos});
           }
 
-          var parts = name.split('.');
-          if (parts.length < 2)
-            return undefined;
-
-          var namespace = descriptor;
-          for (var i = 0; i < parts.length - 1; i++) {
-            if (!namespace.namespaces)
-              return undefined;
-            var matches = namespace.namespaces.filter(match.bind(null, parts[i]));
-            if (!matches.length)
-              return undefined;
-            namespace = matches[0];
-          }
-          return namespace;
-        }
-
-        function getByName(list, value) {
-          var match = list && list.filter(function(x) {
-            return x.name == value || x.classname == value || x.tagname == value;
+          sectionItems.sort(function(a, b) {
+            return a.name.localeCompare(b.name);
           });
-          return match && match.length && match[0];
+
+          return {heading: heading, items: sectionItems};
         }
 
-        Polymer.dom.flush();
-        if (!this.subElement || !this.docs || !this.docs.analysis) {
+        function _flatten(descriptor, flat) {
+          if (!flat) {
+            flat = {
+              namespaces: [],
+              elements: [],
+              metadata: {
+                polymer: {
+                  behaviors: []
+                }
+              },
+              mixins: [],
+              classes: [],
+            };
+          }
+          var i;
+          for (i = 0; i < (descriptor.namespaces || []).length; i++) {
+            _flatten(descriptor.namespaces[i], flat);
+            flat.namespaces.push(descriptor.namespaces[i]);
+          }
+          for (i = 0; i < (descriptor.classes || []).length; i++) {
+            flat.classes.push(descriptor.classes[i]);
+          }
+          for (i = 0; i < (descriptor.elements || []).length; i++) {
+            flat.elements.push(descriptor.elements[i]);
+          }
+          var descriptorBehaviors =
+              ((descriptor.metadata || {}).polymer || {}).behaviors;
+          for (i = 0; i < (descriptorBehaviors || []).length; i++) {
+            flat.metadata.polymer.behaviors.push(descriptorBehaviors[i]);
+          }
+          for (i = 0; i < (descriptor.mixins || []).length; i++) {
+            flat.mixins.push(descriptor.mixins[i]);
+          }
+          return flat;
+        }
+
+        if (!this.docs || !this.docs.analysis) {
           delete this._descriptor;
           return;
         }
 
-        var namespace = getNamespace(this.docs.analysis, this.subElement) || this.docs.analysis;
-        var descriptor;
-        if (this._descriptorType)
-          descriptor = getByName(namespace[this._descriptorType], this.subElement);
+        var descriptor = _flatten(this.docs.analysis);
 
-        // Support legacy pathing and find descriptor type. Also necessary for
-        // behaviors in a different path to mixins.
-        if (!descriptor && this._elementMap.has(this.subElement)) {
-          this._descriptorType = 'elements';
-          descriptor = this._elementMap.get(this.subElement);
-        } else if (!descriptor && this._behaviorMap.has(this.subElement)) {
-          this._descriptorType = 'mixins';
-          descriptor = this._behaviorMap.get(this.subElement);
+        this._docSections = [
+          _section('Namespaces', '/namespaces/', descriptor.namespaces),
+          _section('Elements', '/elements/', descriptor.elements),
+          _section('Behaviors', '/behaviors/',
+              ((descriptor.metadata || {}).polymer || {}).behaviors),
+          _section('Mixins', '/mixins/', descriptor.mixins),
+          _section('Classes', '/classes/', descriptor.classes),
+        ].filter(function(section) {
+          return section.items && section.items.length;
+        });
+
+        // Legacy pathing redirects, missing descriptor type.
+        if (this.subElement && !this._descriptorType) {
+          var descriptorMap = new Map();
+          this._docSections.forEach(function(section) {
+            for (var i = 0; i < section.items.length; i++) {
+              descriptorMap.set(section.items[i].name.replace(/<(.*)>/, '$1'), section.heading);
+            }
+          });
+          if (descriptorMap.get(this.subElement))
+            window.location.href = window.location.origin + this._baseHref + '/' + descriptorMap.get(this.subElement).toLowerCase() + '/' + this.subElement;
         }
-
-        if (!descriptor)
-          console.error('No descriptor found!');
 
         this._descriptor = descriptor;
-
-        if (!this._hasActiveLink() && Polymer.AppLayout)
-          Polymer.AppLayout.scroll(0);
-      },
-
-      _elements: function() {
-        if (!this.docs || !this.docs.analysis || !this.docs.analysis.elements)
-          return [];
-
-        return this.docs.analysis.elements.sort(function(x, y) {
-          return x.tagname < y.tagname ? -1 : 1;
-        });
-      },
-
-      _behaviors: function() {
-        if (!this.docs || !this.docs.analysis)
-          return [];
-        var metadata = this.docs.analysis.metadata;
-        if (!metadata || !metadata.polymer || !metadata.polymer.behaviors)
-          return [];
-
-        return metadata.polymer.behaviors.sort(function(x, y) {
-          return x[name] < y[name] ? -1 : 1;
-        });
-      },
-
-      _dedupeDemos: function(bowerDemos, elements, behaviors) {
-        var demoCounts = {};
-        var dupedDemos = [];
-
-        function countDemos(element) {
-          element.demos.forEach(function(demo) {
-            demoCounts[demo.url] = (demoCounts[demo.url] || 0) + 1;
-          });
-        }
-
-        function dedupeDemos(element) {
-          var j = 0;
-          while (j < element.demos.length) {
-            var demo = element.demos[j];
-            if (demoCounts[demo.url] > 1) {
-              dupedDemos.push(element.demos.splice(j, 1)[0]);
-              demoCounts[demo.url] = -1;
-            } else if (demoCounts[demo.url] == -1) {
-              element.demos.splice(j, 1);
-            } else {
-              j++;
-            }
-          }
-        }
-
-        elements.forEach(countDemos);
-        behaviors.forEach(countDemos);
-
-        // Show single demos at the top by marking them as a dupe.
-        var paths = Object.keys(demoCounts);
-        if (paths.length == 1)
-          demoCounts[paths[0]] = 2;
-
-        // Bower demos are already shown, mark them as dupes.
-        bowerDemos.forEach(function(demo) {
-          demoCounts[demo.url] = -1;
-        });
-
-        elements.forEach(dedupeDemos);
-        behaviors.forEach(dedupeDemos);
-        return dupedDemos;
       },
 
       _dependencies: function() {
@@ -994,8 +920,8 @@
         return n == 1 ? '' : 's';
       },
 
-      _shouldCollapseNav: function(elements) {
-        return elements && elements.length > 5;
+      _shouldCollapseNav: function(items) {
+        return items && items.length > 5;
       },
 
       _authenticateStar: function() {
@@ -1076,6 +1002,14 @@
 
       _absolutePath: function(url) {
         return url.startsWith('http');
+      },
+
+      _docPageLoaded: function(event) {
+        if (event.target.hasAttribute('active') || !Polymer.AppLayout)
+          return;
+        var topPosition = 160;
+        if (document.body.scrollTop > topPosition)
+          Polymer.AppLayout.scroll({top: topPosition});
       },
 
     });
