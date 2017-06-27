@@ -33,12 +33,3 @@ do
   | sed 's/\(\s*\)\(Polymer.IronDocViewerBehavior = {\)/\1\/\/ @polymerBehavior\'$'\n''\1\2/' \
   > 'src/'$i
 done
-
-# Add additional styles to style sheets.
-# additonalStyles="$(<src/iron-doc-viewer-additional-styles.css)"
-# awk --assign=additonalStyles="$additonalStyles" '/<\/style>/{print additonalStyles;print;next}1' src/iron-doc-viewer-2-styles.html > .tmp_file
-# mv .tmp_file src/iron-doc-viewer-2-styles.html
-
-# additonalStyles="$(<src/iron-doc-summary-additional-styles.css)"
-# awk --assign=additonalStyles="$additonalStyles" '/<\/style>/{print additonalStyles;print;next}1' src/iron-doc-summary-styles.html > .tmp_file
-# mv .tmp_file src/iron-doc-summary-styles.html
