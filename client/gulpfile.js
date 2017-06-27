@@ -19,6 +19,7 @@ const polymerBuild = require('polymer-build');
 // Additional plugins can be used to optimize your source files after splitting.
 // Before using each plugin, install with `npm i --save-dev <package-name>`
 const uglify = require('gulp-uglify');
+const gutil = require('gulp-util');
 const cssSlam = require('css-slam').gulp;
 const htmlMinifier = require('gulp-html-minifier');
 
@@ -66,6 +67,9 @@ function build() {
           // source files, but these are not included by default. For installation, see
           // the require statements at the beginning.
           .pipe(gulpif(/\.js$/, uglify())) // Install gulp-uglify to use
+          .on('error', err => {
+            gutil.log(gutil.colors.red('[Error]'), err.toString());
+          })
           .pipe(cssSlam()) // Install css-slam to use
           .pipe(gulpif(/\.html$/, htmlMinifier(htmlMinifyOptions))) // Install gulp-html-minifier to use
 
@@ -79,6 +83,9 @@ function build() {
           .pipe(dependenciesStreamSplitter.split())
           // Add any dependency optimizations here.
           .pipe(gulpif(/\.js$/, uglify())) // Install gulp-uglify to use
+          .on('error', err => {
+            gutil.log(gutil.colors.red('[Error]'), err.toString());
+          })
           .pipe(cssSlam()) // Install css-slam to use
           .pipe(gulpif(/\.html$/, htmlMinifier(htmlMinifyOptions))) // Install gulp-html-minifier to use
           .pipe(dependenciesStreamSplitter.rejoin());

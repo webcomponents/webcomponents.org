@@ -23,6 +23,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
       }
 
+      #content p:first-child:last-child {
+        margin: 0;
+      }
+
       pre code {
         background: inherit;
         color: inherit;
@@ -116,6 +120,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
     },
 
+    attached: function() {
+      this._attached = true;
+      if (this.markdown)
+        this._fireEvents();
+    },
+
     /**
      * Renders `markdown` into this element's DOM.
      *
@@ -146,6 +156,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       /* global marked */
       Polymer.dom(this.$.content).innerHTML = marked(this.markdown, {renderer: renderer});
+      if (this._attached)
+        this._fireEvents();
+    },
+
+    _fireEvents: function() {
       this.fire('marked-render-complete');
       var codeBlocks = Polymer.dom(this.root).querySelectorAll('pre');
       for (var i = 0; i < codeBlocks.length; i++)
