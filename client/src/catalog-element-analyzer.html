@@ -764,11 +764,11 @@
           var sectionItems = [];
           for (var i = 0; i < (descriptorItems || []).length; i++) {
             var item = descriptorItems[i];
-            var name = item.tagname || item.name;
+            var name = item.tagname ? '<' + item.tagname + '>' : item.name;
             if (!name) {
               continue;
             }
-            var path = pathPrefix + name;
+            var path = pathPrefix + (item.tagname || item.name);
 
             var demos = [];
             for (var d = 0; d < (item.demos || []).length; d++) {
