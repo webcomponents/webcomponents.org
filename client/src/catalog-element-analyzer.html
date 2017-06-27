@@ -143,13 +143,6 @@
         word-break: break-all;
       }
 
-      .sidebar-nav a span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 185px;
-      }
-
       .sidebar-nav[collapse] .element-demos {
         overflow: hidden;
         display: none;
@@ -160,7 +153,8 @@
       }
 
       .sidebar-nav a span {
-        max-width: 200px;
+        white-space: nowrap;
+        max-width: 180px;
         overflow: hidden;
         text-overflow: ellipsis;
       }
@@ -306,11 +300,8 @@
       /* Doc styles */
       iron-doc-viewer {
         --iron-doc-font-body: {
-          font-family: 'Source Sans Pro', sans-serif; /* TODO: Doesn't work cause it gets overriden*/
+          font-family: 'Source Sans Pro', sans-serif;
         };
-        --iron-doc-docs: {
-          padding: 0; /* TODO: doesn't work */
-        }
         --iron-doc-font-code: {
           font-family: var(--monospace-font);
         };
