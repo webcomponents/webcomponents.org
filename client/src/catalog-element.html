@@ -258,6 +258,9 @@
 
         .sidebar {
           margin: 0 16px;
+          position: initial;
+          flex: 1 0 auto;
+          max-height: none;
         }
 
         h1.page-title {
@@ -1007,7 +1010,7 @@
         if (event.target.hasAttribute('active') || !Polymer.AppLayout)
           return;
         var topPosition = 160;
-        if (document.body.scrollTop > topPosition)
+        if (document.body.scrollTop > topPosition && !window.matchMedia('(max-width: 500px)').matches)
           Polymer.AppLayout.scroll({top: topPosition});
       },
 
