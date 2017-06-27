@@ -23,8 +23,16 @@
       }
 
       .sidebar {
+        flex: 0 0 300px;
         order: 0;
         margin: -32px 25px -64px -15px;
+        width: 300px;
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+        padding: 30px 15px;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       h1.page-title {
@@ -392,7 +400,7 @@
             <h3>[[section.heading]]</h3>
             <div class="sidebar-nav box" role="navigation" collapse$="[[_shouldCollapseNav(section.items)]]">
               <template is="dom-repeat" items="[[section.items]]">
-                <a href="[[_baseHref]][[item.path]]" on-click="_scrollToTop" title="[[item.name]]">[[item.name]]</a>
+                <a href="[[_baseHref]][[item.path]]" on-click="_docPageLoaded" title="[[item.name]]">[[item.name]]</a>
                 <div class="element-demos">
                   <template is="dom-repeat" items="[[item.demos]]" as="demo">
                     <template is="dom-if" if="[[_absolutePath(demo.url)]]">
@@ -447,7 +455,8 @@
                   <option selected$="[[_equal(item, data.version)]]" latest$="[[_equal(item, data.default_version)]]">[[item]]</option>
                 </template>
               </select>
-            </template>          </div>
+            </template>
+          </div>
           <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
           <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
@@ -806,22 +815,23 @@
               classes: [],
             };
           }
-          for (var i = 0; i < (descriptor.namespaces || []).length; i++) {
+          var i;
+          for (i = 0; i < (descriptor.namespaces || []).length; i++) {
             _flatten(descriptor.namespaces[i], flat);
             flat.namespaces.push(descriptor.namespaces[i]);
           }
-          for (var i = 0; i < (descriptor.classes || []).length; i++) {
+          for (i = 0; i < (descriptor.classes || []).length; i++) {
             flat.classes.push(descriptor.classes[i]);
           }
-          for (var i = 0; i < (descriptor.elements || []).length; i++) {
+          for (i = 0; i < (descriptor.elements || []).length; i++) {
             flat.elements.push(descriptor.elements[i]);
           }
           var descriptorBehaviors =
               ((descriptor.metadata || {}).polymer || {}).behaviors;
-          for (var i = 0; i < (descriptorBehaviors || []).length; i++) {
+          for (i = 0; i < (descriptorBehaviors || []).length; i++) {
             flat.metadata.polymer.behaviors.push(descriptorBehaviors[i]);
           }
-          for (var i = 0; i < (descriptor.mixins || []).length; i++) {
+          for (i = 0; i < (descriptor.mixins || []).length; i++) {
             flat.mixins.push(descriptor.mixins[i]);
           }
           return flat;
@@ -1003,7 +1013,7 @@
         return url.startsWith('http');
       },
 
-      _scrollToTop: function(event) {
+      _docPageLoaded: function(event) {
         if (event.target.hasAttribute('active') || !Polymer.AppLayout)
           return;
         var topPosition = 160;
