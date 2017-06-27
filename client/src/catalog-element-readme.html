@@ -200,7 +200,7 @@
        * Github's rendering of the markdown.
        */
       _hashChanged: function() {
-        var hash = window.location.hash.replace('#', '');
+        var hash = window.location.hash.substring(1);
         var element = this.$.contents.querySelector('a#user-content-' + hash);
         if (element)
           element.scrollIntoView();
