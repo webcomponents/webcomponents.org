@@ -494,19 +494,20 @@
               loading="[[_customPageLoading]]"></catalog-element-readme>
           </template>
 
-          <iron-doc-viewer
-              base-href="[[_baseHref]]"
-              descriptor="[[_descriptor]]"
-              root-namespace="[[rootNamespace]]"
-              hidden$="[[!subElement]]">
-          </iron-doc-viewer>
+          <template is="dom-if" if="[[subElement]]" restamp>
+            <iron-doc-viewer
+                base-href="[[_baseHref]]"
+                descriptor="[[_descriptor]]"
+                root-namespace="[[rootNamespace]]">
+            </iron-doc-viewer>
+          </template>
         </div>
       </div>
     </div>
 
     <spinner-lite id="demo-spinner" active="[[_dialogDemoLoading]]"></spinner-lite>
     <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
-      <div id="close-dialog" on-tap="_cancelDemo">
+      <div id="close-dialog" on-click="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>

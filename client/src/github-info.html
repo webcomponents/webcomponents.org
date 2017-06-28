@@ -196,7 +196,7 @@
           </div>
         </section>
 
-        <section class="collapsed dark" on-tap="_toggleExpand">
+        <section class="collapsed dark" on-click="_toggleExpand">
           <h3>
             Licensed under 
             <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
@@ -214,7 +214,7 @@
 
         <section class="expanded dark">
           <h3>Download</h3>
-          <div id="download-command" title="Download command" on-tap="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
+          <div id="download-command" title="Download command" on-click="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
 
           <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
           <contributors-list contributors="[[data.contributors]]"></contributors-list>
