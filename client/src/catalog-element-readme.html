@@ -244,7 +244,7 @@
 
         // Hide first heading if its the same as the repo name.
         var firstHeading = this.$.contents.querySelector('h1, h2');
-        var headingContent = firstHeading.textContent.replace(/\s*<?([^>\s]*)>?\s*/, '$1');
+        var headingContent = firstHeading && firstHeading.textContent.replace(/\s*<?([^>\s]*)>?\s*/, '$1');
         if (headingContent == this.data.repo || (this.pageTitle && headingContent == this.pageTitle))
           firstHeading.style.display = 'none';
 
