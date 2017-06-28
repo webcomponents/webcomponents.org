@@ -299,6 +299,14 @@
         }
       }
 
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
       /* Doc styles */
       iron-doc-viewer {
         --iron-doc-font-body: {
@@ -308,6 +316,20 @@
           font-family: var(--monospace-font);
         };
         --iron-doc-accent-color: hsl(355, 65%, 50%);
+        --iron-doc-title: {
+          font-size: 32px;
+          font-weight: normal;
+          margin-top: 0;
+          margin-bottom: 16px;
+          color: var(--theme-black);
+          line-height: 1.2em;
+        };
+
+        --iron-doc-heading: {
+          font-size: 24px;
+          color: black;
+          font-weight: 600;
+        };
       }
     </style>
 
@@ -453,23 +475,39 @@
           <h2 class="page-subtitle desktop-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
 
           <h1 hidden="[[subElement]]">[[_pageTitle(_customPages, pagePath)]]</h1>
-          <catalog-element-readme editing="[[_shouldShowEditor(queryParams, route.prefix)]]" data="[[data]]" docs-pending="[[!docs]]" readme="[[data.readme]]" base-urls="[[baseUrls]]" hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
+          <catalog-element-readme
+            editing="[[_shouldShowEditor(queryParams, route.prefix)]]"
+            data="[[data]]"
+            docs-pending="[[!docs]]"
+            readme="[[data.readme]]"
+            base-urls="[[baseUrls]]"
+            page-title="[[_pageTitle(_customPages, pagePath)]]"
+            hidden="[[_or(subElement, pagePath)]]"></catalog-element-readme>
           <template is="dom-if" if="[[pagePath]]">
-            <catalog-element-readme data="[[data]]" docs-pending="[[!docs]]" readme="[[_customPage]]" base-urls="[[baseUrls]]" class="loader" loading="[[_customPageLoading]]"></catalog-element-readme>
+            <catalog-element-readme
+              base-urls="[[baseUrls]]"
+              data="[[data]]"
+              docs-pending="[[!docs]]"
+              page-title="[[_pageTitle(_customPages, pagePath)]]"
+              readme="[[_customPage]]"
+              class="loader"
+              loading="[[_customPageLoading]]"></catalog-element-readme>
           </template>
 
-          <iron-doc-viewer
-              base-href="[[_baseHref]]"
-              descriptor="[[_descriptor]]"
-              root-namespace="[[rootNamespace]]">
-          </iron-doc-viewer>
+          <template is="dom-if" if="[[subElement]]" restamp>
+            <iron-doc-viewer
+                base-href="[[_baseHref]]"
+                descriptor="[[_descriptor]]"
+                root-namespace="[[rootNamespace]]">
+            </iron-doc-viewer>
+          </template>
         </div>
       </div>
     </div>
 
     <spinner-lite id="demo-spinner" active="[[_dialogDemoLoading]]"></spinner-lite>
     <catalog-dialog unresolved id="demo-dialog" with-backdrop on-iron-overlay-canceled="_demoCanceled">
-      <div id="close-dialog" on-tap="_cancelDemo">
+      <div id="close-dialog" on-click="_cancelDemo">
         <svg viewBox="0 0 100 100" class="octicon octicon-x">
           <use xlink:href="/sprite.octicons.svg#x"></use>
         </svg>
@@ -717,8 +755,8 @@
         if (!pagePath)
           return 'README.md';
         for (var i = 0; i < pages.length; i++) {
-          if (pages[i].path == pagePath) {
-            return pages[i].title;
+          if (pages[i].url == pagePath) {
+            return pages[i].description;
           }
         }
         return pagePath;

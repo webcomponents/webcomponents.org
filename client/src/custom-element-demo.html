@@ -186,7 +186,7 @@
         <code-editor unresolved id="editor" on-code-change="_codeChange"></code-editor>
         <pre id="lazyEditor"></pre>
         <div id="editorBar">
-          <button id="exportSource" title="Export Markdown" on-tap="_exportSource">
+          <button id="exportSource" title="Export Markdown" on-click="_exportSource">
             <template is="dom-if" if="[[example]]">
               <svg viewBox="0 0 100 100">
                 <use xlink:href="/sprite.octicons.svg#markdown"></use>
@@ -194,7 +194,7 @@
               Markdown
             </template>
           </button>
-          <button id="expandSource" title="Expand source" on-tap="_expandSource">
+          <button id="expandSource" title="Expand source" on-click="_expandSource">
             <svg viewBox="0 0 100 100">
               <use xlink:href="/sprite.octicons.svg#gist"></use>
             </svg>
@@ -202,7 +202,7 @@
           </button>
           <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">
             <input type="hidden" id="html" name="html">
-            <button title="Export to JSFiddle" on-tap="_openAsFiddle">
+            <button title="Export to JSFiddle" on-click="_openAsFiddle">
               <svg viewBox="0 0 100 100">
                 <use xlink:href="/sprite.octicons.svg#cloud-upload"></use>
               </svg>
