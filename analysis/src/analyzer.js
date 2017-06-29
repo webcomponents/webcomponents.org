@@ -5,7 +5,6 @@ const Ana = require('./ana_log');
 const {Analyzer, generateAnalysis} = require('polymer-analyzer');
 const UrlLoader = require('./url-loader');
 const PackageUrlResolver = require('polymer-analyzer/lib/url-loader/package-url-resolver').PackageUrlResolver;
-const path = require('path');
 
 class AnalyzerRunner {
   analyze(root, inputs) {
