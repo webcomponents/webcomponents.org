@@ -351,6 +351,8 @@
       },
 
       _filterFeatured: function(search) {
+        if (!search)
+          return null;
         var candidates = search.results;
         var featured = [];
         var owners = {};

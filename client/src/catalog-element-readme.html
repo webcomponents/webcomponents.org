@@ -248,7 +248,7 @@
         // Treat space and - as interchangeable
         headingContent = headingContent.replace(/[ -]/, '[ -]');
         var headingRegex = new RegExp(headingContent, 'i');
-        if (this.data.repo.match(headingRegex) || (this.pageTitle && this.pageTitle.match(headingRegex)))
+        if (firstHeading && (this.data.repo.match(headingRegex) || (this.pageTitle && this.pageTitle.match(headingRegex))))
           firstHeading.style.display = 'none';
 
         // Loaded with a hash in URL.
