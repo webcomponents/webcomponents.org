@@ -338,7 +338,7 @@
     <iron-ajax
       id="metaAjax"
       loading="{{_metaLoading}}"
-      url="[[baseUrls.api]]/api/meta/[[owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/meta/[[_apiId]][[versionRoute]]"
       handle-as="json"
       last-response="{{data}}"
       on-response="_metaResponse"
@@ -347,7 +347,7 @@
     <iron-ajax
       id="docsAjax"
       loading="{{_docsLoading}}"
-      url="[[baseUrls.api]]/api/docs/[[owner]]/[[repo]][[versionRoute]]?use_analyzer_data"
+      url="[[baseUrls.api]]/api/docs/[[_apiId]][[versionRoute]]?use_analyzer_data"
       handle-as="json"
       last-response="{{docs}}"
       on-error="_docsError"
@@ -355,14 +355,14 @@
 
     <iron-ajax
       id="collectionsAjax"
-      url="[[baseUrls.api]]/api/collections/[[owner]]/[[repo]][[versionRoute]]"
+      url="[[baseUrls.api]]/api/collections/[[_apiId]][[versionRoute]]"
       handle-as="json"
       last-response="{{collections}}"></iron-ajax>
 
     <iron-ajax
       id="pageAjax"
       loading="{{_customPageLoading}}"
-      url="[[baseUrls.api]]/api/page/[[owner]]/[[repo]]/[[data.version]]/[[pagePath]]"
+      url="[[baseUrls.api]]/api/page/[[_apiId]]/[[data.version]]/[[pagePath]]"
       handle-as="text"
       last-response="{{_customPage}}"></iron-ajax>
 
@@ -384,7 +384,7 @@
           <spinner-lite id="sidebar-spinner"></spinner-lite>
 
           <div id="github-action-group" class="box">
-            <a id="github-view-button" href="https://github.com/[[owner]]/[[repo]]" target="_blank">
+            <a id="github-view-button" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
               <div>View on GitHub</div>
             </a>
@@ -446,6 +446,7 @@
                 <h1>Dependencies</h1>
                 <template is="dom-repeat" items="[[_dependencies(data)]]">
                   <div class="dependency">
+                    <!-- TODO(samli): these currently can't point to NPM dependencies -->
                     <a href="/element/[[item.owner]]/[[item.repo]]">
                       <span class="owner">[[item.owner]]/</span><span class="repo">[[item.repo]]</span>
                     </a>
@@ -460,7 +461,7 @@
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
           <div class="title desktop-only">
-            <h1 class="page-title">[[repo]]</h1>
+            <h1 class="page-title">[[_packageTitle]]</h1>
             <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
               <div class="version-sha">[[data.version]]</div>
             </template>
@@ -532,6 +533,10 @@
         baseUrls: Object,
 
         queryParams: Object,
+
+        _packageTitle: {
+          computed: '_computePackageTitle(_scopePackage, package)'
+        },
       },
 
       observers: [
@@ -540,6 +545,11 @@
         '_updateLoading(_metaLoading, data)',
         'onload(_metaLoading)',
       ],
+
+      created: function() {
+        this._versionRegex = /^v?\d+\.\d+\.\d+(-[^/]+)?$/;
+        this._shaRegex = /^[0-9a-f]{20,}$/;
+      },
 
       ready: function() {
         if (this.queryParams && this.queryParams.code)
@@ -562,6 +572,12 @@
         this._customPages = [];
       },
 
+      _computePackageTitle: function(scopePackage, packageName) {
+        if (scopePackage.indexOf('/') != -1 && scopePackage.indexOf('@') == -1)
+          return packageName;
+        return scopePackage;
+      },
+
       _splitRoute: function() {
         this.versionRoute = '';
         this.subElement = null;
@@ -572,12 +588,18 @@
         // Bug in app-route doesn't always have a leading /
         if (!split[0])
           split.shift(); // Skip first /
-        this.owner = split.shift();
-        this.repo = split.shift();
 
-        if (split.length && split[0].match(/^v?\d+\.\d+\.\d+(-[^/]+)?$/))
+        var unscoped = this._isUnscopedPackage(split);
+        if (!unscoped)
+          this.scope = split.shift();
+        this.package = split.shift();
+
+        this._scopePackage = unscoped ? this.package : this.scope + '/' + this.package;
+        this._apiId = unscoped ? '@@npm/' + this.package : this._scopePackage;
+
+        if (split.length && split[0].match(this._versionRegex))
           this.versionRoute = '/' + split.shift();
-        else if (split.length && split[0].match(/^[0-9a-f]{20,}$/))
+        else if (split.length && split[0].match(this._shaRegex))
           this.versionRoute = '/' + split.shift();
 
         if (split.length && split[0].indexOf('demo') != -1) {
@@ -599,7 +621,27 @@
         if (split.length)
           this.subElement = split.shift();
 
-        this._baseHref = [this.route.prefix, this.owner, this.repo].join('/') + this.versionRoute;
+        this._baseHref = [this.route.prefix, this._scopePackage].join('/') + this.versionRoute;
+      },
+
+      /**
+       * Determines if the path is referring to an unscoped package.
+       * @param {string[]} parts - array of URL parts without '/'
+       * @return {boolean} is the path referencing an unscoped package.
+       */
+      _isUnscopedPackage: function(parts) {
+        var keywords = ['demo', 'namespaces', 'elements', 'mixins', 'classes', 'behaviors'];
+
+        // Find the first part which matches a keyword or version.
+        var i = 0;
+        while (i < parts.length &&
+            keywords.indexOf(parts[i]) == -1 &&
+            !parts[i].match(this._versionRegex) &&
+            !parts[i].match(this._shaRegex)) {
+          i++;
+        }
+
+        return i == 1;
       },
 
       _routeChanged: function(path, prefix, visible) {
@@ -616,12 +658,12 @@
 
         this._splitRoute();
         this._updateActiveLinks();
-        this.fire('document-title', this.owner + '/' + this.repo);
+        this.fire('document-title', this._scopePackage);
 
         this._repoStarred = this._isStarred();
 
         // Generate requests
-        if (!this.data || this._currentOwner != this.owner || this._currentRepo != this.repo || this._currentVersionRoute != this.versionRoute) {
+        if (!this.data || this._currentScopePackage != this._scopePackage || this._currentVersionRoute != this.versionRoute) {
           // Trigger a microtask to ensure change notifications are completed.
           this.debounce('_updatePath', this._updatePath);
         } else if (this.pagePath) {
@@ -632,8 +674,7 @@
       },
 
       _updatePath: function() {
-        this._currentOwner = this.owner;
-        this._currentRepo = this.repo;
+        this._currentScopePackage = this._scopePackage;
         this._currentVersionRoute = this.versionRoute;
         this.docs = null;
         this.$.metaAjax.generateRequest();
@@ -666,7 +707,7 @@
         }
 
         var demoVersionRoute = this.versionRoute || '/' + this.data.version;
-        var demoUrl = this.baseUrls.userContent + '/' + this.owner + '/' + this.repo + demoVersionRoute + '/' + this.repo + '/' + this.demo;
+        var demoUrl = this.baseUrls.userContent + '/' + this._apiId + demoVersionRoute + '/' + this.repo + '/' + this.demo;
         this.$['demo-frame'].src = demoUrl;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
           this.$['demo-dialog'].opened = true;
@@ -701,7 +742,7 @@
         if (this._navigatedToDemo) {
           history.back();
         } else {
-          history.replaceState({}, document.title, this.route.prefix + '/' + this.owner + '/' + this.repo + this.versionRoute);
+          history.replaceState({}, document.title, this.route.prefix + '/' + this._scopePackage + this.versionRoute);
           this.fire('location-changed');
         }
         this._dialogDemoLoading = false;
@@ -735,8 +776,11 @@
         if (this.demo)
           this._showDemo();
 
-        this.set('_bowerDemos', objectToArray(this.data.bower.demos));
-        this.set('_customPages', objectToArray(this.data.bower.pages));
+        // TODO(samli): Bower demos/custom pages unsupported in NPM
+        if (this.data.bower) {
+          this.set('_bowerDemos', objectToArray(this.data.bower.demos));
+          this.set('_customPages', objectToArray(this.data.bower.pages));
+        }
         // Can only triggered after meta to ensure version is known & specified.
         if (this.pagePath)
           this.$.pageAjax.generateRequest();
@@ -766,7 +810,7 @@
         if (error.request.response && error.request.response.error) {
           this.fire('error', {title: 'Unable to process element', message: error.request.response.error});
         } else if (error.request.status == 404) {
-          this.fire('error', {status: 404, title: 'Could not find element', githubPath: this.owner + '/' + this.repo});
+          this.fire('error', {status: 404, title: 'Could not find element', githubPath: this._scopePackage});
         } else {
           this.fire('error', {status: error.request.status, title: 'Unable to load element'});
         }
@@ -975,7 +1019,7 @@
         if (!window.localStorage.starredRepos)
           return false;
         var starred = JSON.parse(window.localStorage.starredRepos);
-        return this._inflightStar || starred.indexOf(this.owner + '/' + this.repo) != -1;
+        return this._inflightStar || starred.indexOf(this._scopePackage) != -1;
       },
 
       _setStarred: function(increment) {
@@ -984,13 +1028,13 @@
           this.notifyPath('data.stars');
         }
         var starred = JSON.parse(window.localStorage.starredRepos || '[]');
-        starred.push(this.owner + '/' + this.repo);
+        starred.push(this._scopePackage);
         window.localStorage.starredRepos = JSON.stringify(starred);
         this._repoStarred = true;
       },
 
       _starRepo: function() {
-        if (!this.queryParams || !this.queryParams.code || this._isStarred())
+        if (!this.queryParams || !this.queryParams.code || this._isStarred() || !this.data)
           return;
 
         // Pre-emptively set starred, so UI updates while the request is in flight.
@@ -1009,7 +1053,7 @@
           this._inflightStar = false;
         }.bind(this));
 
-        xhr.open('POST', this.baseUrls.api + '/api/star/' + this.owner + '/' + this.repo + '?code=' + this.queryParams.code);
+        xhr.open('POST', this.baseUrls.api + '/api/star/' + this.data.owner + '/' + this.data.repo + '?code=' + this.queryParams.code);
         xhr.send();
       },
 
@@ -1023,7 +1067,7 @@
 
       _versionChanged: function(event) {
         var newVersion = event.target.value;
-        var path = '/element/' + this.owner + '/' + this.repo;
+        var path = '/element/' + this._scopePackage;
         if (newVersion != this.data.default_version)
           path += '/' + newVersion;
         if (this.subElement)

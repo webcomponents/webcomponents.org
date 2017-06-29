@@ -280,17 +280,13 @@
         repo = repo.replace(/\/$/, '');
         repo = repo.replace(/.*github.com\//, '');
 
-        if (repo.match(/[\w\d-]+\/[\w\d-]+/i) == null) {
-          this.$.error.removeAttribute('hidden');
-          return;
-        }
-
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
         this.$.recaptcha.reset();
-        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
+        var key = repo.indexOf('/') == -1 ? '@@npm/' + repo : repo;
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + key;
         this.startPolling(this.$.metaAjax);
       },
 

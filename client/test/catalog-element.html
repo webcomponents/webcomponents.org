@@ -125,5 +125,58 @@
         });
       });
     });
+
+    test('test _isUnscopedPackage()', function() {
+      function isUnscopedPackage(path) {
+        return elementPage._isUnscopedPackage(path.split('/'));
+      }
+
+      elementPage = fixture('element-page');
+
+      // Base URL
+      assert(isUnscopedPackage('package'));
+      assert(!isUnscopedPackage('@package/package'));
+      assert(!isUnscopedPackage('owner/repo'));
+
+      // With specified version
+      assert(isUnscopedPackage('package/v0.0.0'));
+      assert(!isUnscopedPackage('@package/package/v0.0.0'));
+      assert(!isUnscopedPackage('owner/repo/v0.0.0'));
+
+      // With specified sha
+      assert(isUnscopedPackage('package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5'));
+      assert(!isUnscopedPackage('@package/package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5'));
+      assert(!isUnscopedPackage('owner/repo/ea1568c3d37bc5fee55e4b96173f831af7ed82e5'));
+
+      // With demo link
+      assert(isUnscopedPackage('package/demo/path.html'));
+      assert(!isUnscopedPackage('@package/package/demo/path.html'));
+      assert(!isUnscopedPackage('owner/repo/demo/path.html'));
+
+      // With demo link & specified version
+      assert(isUnscopedPackage('package/v0.0.0/demo/path.html'));
+      assert(!isUnscopedPackage('@package/package/v0.0.0/demo/path.html'));
+      assert(!isUnscopedPackage('owner/repo/v0.0.0/demo/path.html'));
+
+      // With demo link & specified sha
+      assert(isUnscopedPackage('package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/demo/path.html'));
+      assert(!isUnscopedPackage('@package/package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/demo/path.html'));
+      assert(!isUnscopedPackage('owner/repo/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/demo/path.html'));
+
+      // With docs
+      assert(isUnscopedPackage('package/elements/element-name'));
+      assert(!isUnscopedPackage('@package/package/elements/element-name'));
+      assert(!isUnscopedPackage('owner/repo/elements/element-name'));
+
+      // With docs & specified version
+      assert(isUnscopedPackage('package/v0.0.0/elements/element-name'));
+      assert(!isUnscopedPackage('@package/package/v0.0.0/elements/element-name'));
+      assert(!isUnscopedPackage('owner/repo/v0.0.0/elements/element-name'));
+
+      // With docs & specified version
+      assert(isUnscopedPackage('package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/elements/element-name'));
+      assert(!isUnscopedPackage('@package/package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/elements/element-name'));
+      assert(!isUnscopedPackage('owner/repo/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/elements/element-name'));
+    });
   });
 </script>
