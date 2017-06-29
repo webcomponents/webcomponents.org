@@ -3,6 +3,10 @@ Before using the API, please file an issue with your intention of using the API.
 
 You can access the API at `www.webcomponents.org/api/<method>`. Example search API call: https://www.webcomponents.org/api/search/input.
 
+## NPM packages
+For relevant endpoints, owner and repo can be replaced by the NPM's scope and package
+name. For packages without a scope, specify the scope `@@npm`.
+
 ## Get data for an author
 ```
 GET /api/meta/:author

@@ -130,6 +130,14 @@ class LibraryMetadata(object):
       raise ndb.Return(None)
 
     result = {}
+    # Add NPM package fields
+    key = library_key.string_id()
+    if key.startswith('@'):
+      parts = key.split('/')
+      if parts[0] != '@@npm':
+        result['npmScope'] = parts[0]
+      result['npmPackage'] = parts[1]
+    result['apiKey'] = key
     result['kind'] = library.kind
     result['status'] = library.status
     if library.status != Status.ready:
