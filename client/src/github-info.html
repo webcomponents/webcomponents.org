@@ -197,6 +197,7 @@
         </section>
 
         <section class="collapsed dark" on-click="_toggleExpand">
+          <!-- TODO(samli): Needs to refer to correct package manager. -->
           <h3>
             Licensed under 
             <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
@@ -214,6 +215,7 @@
 
         <section class="expanded dark">
           <h3>Download</h3>
+          <!-- TODO(samli): Needs NPM install command too. -->
           <div id="download-command" title="Download command" on-click="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
 
           <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
