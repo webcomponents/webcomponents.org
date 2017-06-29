@@ -20,7 +20,7 @@ class AnalyzerRunner {
 
       if (paths.length === 0) {
         analyzer.analyzePackage().then(analysis => {
-          resolve(generateAnalysis(analysis, root));
+          resolve(generateAnalysis(analysis, ''));
         }).catch(function(error) {
           Ana.fail('analyzer/analyze', paths, error);
           reject({retry: true, error: error});

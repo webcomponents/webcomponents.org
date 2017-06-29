@@ -21,6 +21,7 @@ describe('AnalyzerRunner', function() {
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.lengthOf(1);
       expect(result.elements[0]).to.have.property('name', 'ShopImage');
+      expect(result.elements[0]).to.have.property('path', 'shop-image.html');
     });
   });
 
@@ -67,6 +68,8 @@ describe('AnalyzerRunner', function() {
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.lengthOf(1);
       expect(result.elements[0]).to.have.property('name', 'ShopImage');
+      expect(result.elements[0]).to.have.property('path', 'shop-image.html');
     });
   });
+
 });
