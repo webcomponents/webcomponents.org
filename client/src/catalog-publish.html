@@ -285,8 +285,8 @@
         this.$.ajax.generateRequest();
         this._validatedRepo = repo;
         this.$.recaptcha.reset();
-        var key = repo.split('/').length == 1 ? '@@npm/' + repo : repo;
-        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + repo;
+        var key = repo.indexOf('/') == -1 ? '@@npm/' + repo : repo;
+        this.$.metaAjax.url = this.baseUrls.api + '/api/meta/' + key;
         this.startPolling(this.$.metaAjax);
       },
 

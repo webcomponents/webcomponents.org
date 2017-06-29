@@ -572,9 +572,9 @@
         this._customPages = [];
       },
 
-      _computePackageTitle: function(scopePackage, package) {
+      _computePackageTitle: function(scopePackage, packageName) {
         if (scopePackage.indexOf('/') != -1 && scopePackage.indexOf('@') == -1)
-          return package;
+          return packageName;
         return scopePackage;
       },
 
@@ -627,16 +627,17 @@
       /**
        * Determines if the path is referring to a unscoped package.
        * @param {string[]} parts - array of URL parts without '/'
+       * @return {boolean} is the path referencing a unscoped package.
        */
       _isUnscopedPackage: function(parts) {
         var keywords = ['demo', 'namespaces', 'elements', 'mixins', 'classes', 'behaviors'];
 
         // Find the first part which matches a keyword or version.
         var i = 0;
-        while (i < parts.length
-            && keywords.indexOf(parts[i]) == -1
-            && !parts[i].match(this._versionRegex)
-            && !parts[i].match(this._shaRegex)) {
+        while (i < parts.length &&
+            keywords.indexOf(parts[i]) == -1 &&
+            !parts[i].match(this._versionRegex) &&
+            !parts[i].match(this._shaRegex)) {
           i++;
         }
 
@@ -673,7 +674,7 @@
       },
 
       _updatePath: function() {
-        this._currentScopePackage = this._scopePackage
+        this._currentScopePackage = this._scopePackage;
         this._currentVersionRoute = this.versionRoute;
         this.docs = null;
         this.$.metaAjax.generateRequest();
