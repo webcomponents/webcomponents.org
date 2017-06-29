@@ -193,5 +193,28 @@ class DocsTest(ApiTestBase):
     self.assertEqual(response.status_int, 200)
     self.assertEqual(json.loads(response.normal_body).get('analysis'), "some data")
 
+class GetMetaTest(ApiTestBase):
+  def test_npm_scoped(self):
+    library_key = Library(id='@scope/package', status='ready').put()
+    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    response = self.app.get('/api/meta/@scope/package/v1.1.1')
+    self.assertEqual(response.status_int, 200)
+    body = json.loads(response.normal_body)
+    self.assertEqual(body.get('apiKey'), '@scope/package')
+    self.assertEqual(body.get('npmScope'), '@scope')
+    self.assertEqual(body.get('npmPackage'), 'package')
+
+  def test_npm_unscoped(self):
+    library_key = Library(id='@@npm/package', status='ready').put()
+    Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    response = self.app.get('/api/meta/@@npm/package/v1.1.1')
+    self.assertEqual(response.status_int, 200)
+    body = json.loads(response.normal_body)
+    self.assertEqual(body.get('apiKey'), '@@npm/package')
+    self.assertEqual(body.get('npmScope'), None)
+    self.assertEqual(body.get('npmPackage'), 'package')
+
 if __name__ == '__main__':
   unittest.main()
