@@ -21,6 +21,7 @@ describe('AnalyzerRunner', function() {
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.lengthOf(1);
       expect(result.elements[0]).to.have.property('name', 'ShopImage');
+      expect(result.elements[0]).to.have.property('path', 'shop-image.html');
     });
   });
 
@@ -59,4 +60,16 @@ describe('AnalyzerRunner', function() {
       expect(result.elements[0].demos[0]).to.have.property('description', 'description');
     });
   });
+
+  it('works without specifying any input files', function() {
+    var analyzer = new AnalyzerRunner();
+    return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), []).then(function(result) {
+      expect(result).to.exist;
+      expect(JSON.stringify(result)).to.exist;
+      expect(result.elements).to.have.lengthOf(1);
+      expect(result.elements[0]).to.have.property('name', 'ShopImage');
+      expect(result.elements[0]).to.have.property('path', 'shop-image.html');
+    });
+  });
+
 });
