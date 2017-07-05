@@ -381,8 +381,6 @@
         <div class="sidebar">
           <github-info data="[[data]]" class="box"></github-info>
 
-          <spinner-lite id="sidebar-spinner"></spinner-lite>
-
           <div id="github-action-group" class="box">
             <a id="github-view-button" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
@@ -410,6 +408,8 @@
               <a class="page-link" href="[[_baseHref]]/page/[[page.url]]"><span>[[page.description]]</span></a>
             </template>
           </div>
+
+          <spinner-lite id="sidebar-spinner"></spinner-lite>
 
           <template is="dom-repeat" items="[[_docSections]]" as="section">
             <h3>[[section.heading]]</h3>
@@ -677,6 +677,8 @@
         this._currentScopePackage = this._scopePackage;
         this._currentVersionRoute = this.versionRoute;
         this.docs = null;
+        this._descriptor = null;
+        this._docSections = null;
         this.$.metaAjax.generateRequest();
         this.$.docsAjax.generateRequest();
         this.$.collectionsAjax.generateRequest();
@@ -947,20 +949,22 @@
 
       _dependencies: function() {
         if (!this.data || !this.data.bower || !this.data.bower.dependencies)
-          return [];
+          return null;
         var results = [];
         var names = Object.keys(this.data.bower.dependencies);
         var i;
         for (i = 0; i < names.length; i++) {
           var name = names[i];
           var parts = this.data.bower.dependencies[name].split(/[/#]/g);
-          results.push({
-            owner: parts[0],
-            repo: parts[1],
-            version: parts[2],
-          });
+          if (parts.length == 3) {
+            results.push({
+              owner: parts[0],
+              repo: parts[1],
+              version: parts[2],
+            });
+          }
         }
-        return results;
+        return results.length ? results : null;
       },
 
       _lastUpdated: function(activity) {
