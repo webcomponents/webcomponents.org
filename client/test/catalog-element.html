@@ -178,5 +178,18 @@
       assert(!isUnscopedPackage('@package/package/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/elements/element-name'));
       assert(!isUnscopedPackage('owner/repo/ea1568c3d37bc5fee55e4b96173f831af7ed82e5/elements/element-name'));
     });
+
+    test('test demo frame URL', function(done) {
+      elementPage = fixture('element-page');
+      elementPage.baseUrls = {api: '', userContent: 'my-user-content'};
+      elementPage.route = {path: '/owner/repo/demo/demo/index.html', prefix: '/element'};
+      elementPage.setAttribute('visible', '');
+      elementPage.flushDebouncer('_updatePath');
+      server.respond();
+      elementPage.$.metaAjax.addEventListener('response', function() {
+        assert.equal(elementPage.$['demo-frame'].getAttribute('src'), 'my-user-content/owner/repo/v1.0.0/repo/demo/index.html');
+        done();
+      });
+    });
   });
 </script>
