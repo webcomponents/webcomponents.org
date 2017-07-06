@@ -551,11 +551,6 @@
         this._shaRegex = /^[0-9a-f]{20,}$/;
       },
 
-      ready: function() {
-        if (this.queryParams && this.queryParams.code)
-          this._starRepo();
-      },
-
       _shouldShowEditor: function(queryParams, prefix) {
         return 'editing' in queryParams || prefix == '/preview';
       },
@@ -795,6 +790,9 @@
         this.fire('meta-set', {key: 'name', value: 'twitter:card', content: 'summary'});
 
         this.async(this._updateActiveLinks);
+
+        if (this.queryParams && this.queryParams.code)
+          this._starRepo();
       },
 
       _pageTitle: function(pages, pagePath) {
