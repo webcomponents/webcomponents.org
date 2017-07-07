@@ -561,6 +561,7 @@ class UpdateLibrary(LibraryTask):
       # Can't update a library if it's not licensed correctly.
       return
     self.update_metadata()
+    self.update_license_and_kind()
     self.update_versions()
     self.set_ready()
 
