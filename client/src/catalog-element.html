@@ -258,6 +258,7 @@
 
         .sidebar {
           margin: 0 16px;
+          padding-top: 4px;
           position: initial;
           flex: 1 0 auto;
           max-height: none;
@@ -371,7 +372,7 @@
     <div id="container" hidden$="[[_hideMainContent]]">
 
       <div class="title mobile-only">
-        <h1 class="page-title">[[repo]]</h1>
+        <h1 class="page-title">[[_packageTitle]]</h1>
         <div class="version-sha">[[data.version]]</div>
       </div>
       <h2 class="page-subtitle mobile-only">[[data.description]] <a title="Home page link" href="[[data.homepage]]" hidden$="[[_redundantLink(data.homepage)]]">[[data.homepage]]</a></h2>
