@@ -678,6 +678,21 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(library.status, Status.ready)
     self.assertEqual(library.spdx_identifier, 'MIT')
 
+  def test_ingest_license_object(self):
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo", "license": {"spdx_id": "MIT"}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', '[{"name": "v1.0.0", "commit": {"sha": "lol"}}]')
+    response = self.app.get(util.ingest_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.status, Status.ready)
+    self.assertEqual(library.spdx_identifier, 'MIT')
+
   def test_ingest_bad_license(self):
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"license": {"key": "INVALID"}, "owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')

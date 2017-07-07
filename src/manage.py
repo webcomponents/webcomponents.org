@@ -343,8 +343,10 @@ class LibraryTask(RequestHandler):
 
     spdx_identifier = None
     github_license = metadata.get('license')
-    if github_license is not None:
-      spdx_identifier = licenses.validate_spdx(github_license.get('key', 'MISSING'))
+
+    # GitHub may now return as a license object instead.
+    if isinstance(github_license, dict):
+      spdx_identifier = licenses.validate_spdx(github_license.get('spdx_id', 'MISSING'))
 
     if spdx_identifier is None and bower_json is not None:
       license_name = bower_json.get('license')
