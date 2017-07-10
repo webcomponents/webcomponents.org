@@ -468,6 +468,28 @@ class UpdateLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([], tasks)
 
+  def test_update_element_null_license(self):
+    library_key = Library(id='org/repo', tag_map='{"v1.0.0":"old"}', spdx_identifier='MIT').put()
+    Version(id='v1.0.0', parent=library_key, sha='old', status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo", "license": {"spdx_id": null}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/tags', {'status': 304})
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    self.respond_to_github('https://raw.githubusercontent.com/org/repo/master/bower.json', '{"license": "MIT"}')
+
+    response = self.app.get(util.update_library_task('org/repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    library = library_key.get()
+    self.assertEqual(library.error, None)
+    self.assertEqual(library.status, Status.ready)
+    self.assertEqual(library.spdx_identifier, 'MIT')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([], tasks)
+
 class AuthorTest(ManageTestBase):
   def test_ingest_author(self):
     metadata = '{HI}'
