@@ -34,6 +34,7 @@ class SearchContents(webapp2.RequestHandler):
     index = search.Index('repo')
     cursor = search.Cursor(web_safe_string=request_cursor)
     try:
+      # Accuracy refers to accurate till n results.
       accuracy = 2000 if include_count else None
       sort_options = search.SortOptions(match_scorer=search.MatchScorer()) if scoring else None
       query_options = search.QueryOptions(limit=limit, number_found_accuracy=accuracy, sort_options=sort_options, cursor=cursor)
