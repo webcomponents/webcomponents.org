@@ -332,7 +332,7 @@ class LibraryTask(RequestHandler):
       elif response.status_code == 404:
         bower_json = None
       else:
-        return self.retry('error fetching master/bower.json' % response.status_code)
+        return self.retry('error fetching master/bower.json (%d)' % response.status_code)
 
       if bower_json is not None and 'element-collection' in bower_json.get('keywords', []):
         kind = 'collection'
