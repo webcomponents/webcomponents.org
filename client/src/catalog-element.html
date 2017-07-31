@@ -1088,7 +1088,8 @@
       },
 
       _absolutePath: function(url) {
-        return url.startsWith('http');
+        // String.startsWith not supported on IE11
+        return (url.substr(0,4) === 'http');
       },
 
       _docPageLoaded: function(event) {
