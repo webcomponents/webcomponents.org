@@ -218,9 +218,14 @@
 
         <h2>How do I use Polymer's data binding in an inline demo?</h2>
         <p>Polymer supports a HTML data binding feature, which automatically performs data binding inside custom elements. To allow data binding at the top level inside your inline demo, place your data bound HTML in <code>&lt;dom-bind&gt;&lt;template is="dom-bind"&gt;&lt;/template&gt;&lt;/dom-bind&gt;</code>. Ensure there's no script elements inside your template. If your snippet is simply HTML, you can do this in your hidden code:
-        <pre lang="html">&lt;template is="dom-bind"&gt;
-  &lt;next-code-block&gt;&lt;/next-code-block&gt;
-&lt;/template&gt;</pre></p>
+          <pre lang="html">
+&lt;dom-bind&gt;
+  &lt;template is="dom-bind"&gt;
+    &lt;next-code-block&gt;&lt;/next-code-block&gt;
+  &lt;/template&gt;
+&lt;/dom-bind&gt;
+          </pre>
+        </p>
       </div>
     </div>
 
