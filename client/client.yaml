@@ -46,7 +46,10 @@ handlers:
   upload: third_party/octicons/sprite.octicons.svg
   secure: always
   # Must be kept in sync with sw-precache-config.js
-- url: /(index.html)?
+- url: /
+  script: bot-filter.app
+  secure: always
+- url: /index.html?
   upload: index.html
   static_files: index.html
   secure: always
@@ -55,15 +58,11 @@ handlers:
   script: bot-filter.app
   secure: always
 - url: /(about|introduction|community|assets|polyfills|resources|libraries|specs|launch-announcement)(/.*)?
-  upload: index.html
-  static_files: index.html
+  script: bot-filter.app
   secure: always
-  application_readable: true
 - url: /(search|preview|preview-integration|publish|publish-collection)(/.*)?
-  upload: index.html
-  static_files: index.html
+  script: bot-filter.app
   secure: always
-  application_readable: true
   # Legacy pathing redirects
 - url: /(articles|podcasts|presentations)(.*)
   script: client.app

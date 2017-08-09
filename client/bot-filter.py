@@ -6,14 +6,14 @@ import re
 
 class FilterUserAgent(webapp2.RequestHandler):
   def get(self, path):
-    filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|slackbot';
+    filtered = r'baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|bingbot';
     filter = re.search(filtered, str(self.request.headers.get('User-Agent', '')), flags=re.IGNORECASE)
 
     if filter:
       try:
-        # Set deadline for fetch to 10 seconds
-        urlfetch.set_default_fetch_deadline(10)
-        result = urlfetch.fetch('https://bot-render.appspot.com/?url=%s' % self.request.url)
+        # Set deadline for fetch to 15 seconds
+        urlfetch.set_default_fetch_deadline(15)
+        result = urlfetch.fetch('https://web-components-render.appspot.com/render/%s' % self.request.url)
         if result.status_code == 200:
           self.response.write(result.content)
           return
