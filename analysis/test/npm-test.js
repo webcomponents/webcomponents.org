@@ -28,7 +28,7 @@ describe('NPM', () => {
 
   it('fails to install with missing package', function() {
     return new NPM().install('.', 'no-such-package', '').catch(err => {
-      // Expected rejection
+      expect(err).to.exist;
     });
   });
 

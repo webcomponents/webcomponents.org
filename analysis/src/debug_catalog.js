@@ -14,7 +14,7 @@ class DebugCatalog {
    * @return {Promise} a promise for determining success.
    */
   postResponse(data, attributes) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       Ana.log("catalog/postResponse");
       Ana.log("catalog/postResponse/debug attributes ", JSON.stringify(attributes));
       Ana.log("catalog/postResponse/debug data ", JSON.stringify(data, null, '\t'));

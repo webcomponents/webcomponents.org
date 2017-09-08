@@ -7,8 +7,6 @@ const fs = require('fs');
 
 const Ana = require('./ana_log');
 
-const fatalErrorCodes = [];
-
 var npmBin = require.resolve('../node_modules/npm/bin/npm-cli.js');
 var nodeBin = process.env.npm_node_execpath || process.env.NODE || process.execPath;
 

@@ -95,5 +95,4 @@ describe('AnalyzerRunner', function() {
       expect(result.elements[0].properties).to.have.lengthOf(1);
     });
   });
-
 });

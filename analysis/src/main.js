@@ -13,10 +13,9 @@ const NPM = require('./npm');
 const Catalog = require('./catalog');
 const DebugCatalog = require('./debug_catalog');
 
-const bodyParser = require('body-parser');
 const express = require('express');
 const lockfile = require('lockfile');
-const parseCommandLine = require('command-line-args')
+const parseCommandLine = require('command-line-args');
 const pubsub = require('@google-cloud/pubsub');
 
 const app = express();
@@ -26,9 +25,8 @@ const app = express();
  * forever!! 'forever'...
  */
 function processTasks() {
-
   const args = parseCommandLine([
-    { name: 'responseTopic', type: String, multiple: false },
+    {name: 'responseTopic', type: String, multiple: false},
   ]);
 
   // Exit if the response topic wasn't set in a production environment.
@@ -38,13 +36,13 @@ function processTasks() {
   }
 
   var catalog;
-  if (!process.env.NODE_ENV) {
+  if (process.env.NODE_ENV) {
+    Ana.log("main/processTasks", "Using project [", process.env.GCLOUD_PROJECT, "] and response topic [", args.responseTopic, "]");
+    catalog = new Catalog(pubsub({projectId: process.env.GCLOUD_PROJECT}), args.responseTopic);
+  } else {
     Ana.enableDebug();
     Ana.log("main/processTasks", "Debug mode - logging catalog responses to console.");
     catalog = new DebugCatalog();
-  } else {
-    Ana.log("main/processTasks", "Using project [", process.env.GCLOUD_PROJECT, "] and response topic [", args.responseTopic, "]");
-    catalog = new Catalog(pubsub({projectId: process.env.GCLOUD_PROJECT}), args.responseTopic);
   }
 
   var analysis = new Analysis(

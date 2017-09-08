@@ -5,7 +5,7 @@ var Bower = require('../src/bower');
 
 describe("Bower", function() {
   beforeEach(function(done) {
-    new Bower().prune().then(function() {done()});
+    new Bower().prune().then(done);
   });
 
   it("fails with retry false for malformed bower.json", function() {
@@ -39,12 +39,13 @@ describe("Bower", function() {
       expect(result.retry).to.be.false;
     });
   });
+
   it("has the right dependency field names", function() {
     this.timeout(15000);
     var bower = new Bower();
     return bower.install("andymutton", "file-input", "2.0.0").then(() => {
       return bower.findDependencies("andymutton", "file-input", "2.0.0").then(function(result) {
-        for (var dependency in result) {
+        for (var dependency of Object.keys(result)) {
           expect(result[dependency]).to.have.all.keys('name', 'version', 'owner', 'repo');
         }
       });
