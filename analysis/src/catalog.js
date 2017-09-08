@@ -2,7 +2,6 @@
 
 const Ana = require('./ana_log');
 
-
 /**
  * Service for communicating with the catalog servers.
  */

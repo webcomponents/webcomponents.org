@@ -16,8 +16,8 @@ class UrlLoader {
     return this._isValid(urlObject, pathname);
   }
 
-  _isValid(urlObject, pathname) {
-      return (urlObject.protocol === 'file' || !urlObject.hostname);
+  _isValid(urlObject) {
+    return (urlObject.protocol === 'file' || !urlObject.hostname);
   }
 
   load(url) {

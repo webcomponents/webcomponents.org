@@ -1,7 +1,6 @@
 'use strict';
 
 const Ana = require('./ana_log');
-const path = require('path');
 const fs = require('fs');
 
 /**
@@ -78,7 +77,7 @@ class Analysis {
 
       // SHA is ignored here.
       if (!attributes || !attributes.owner || !attributes.repo || !attributes.version || !attributes.isNpmPackage) {
-        Ana.fail('analysis/processNextTask', taskAsString, error);
+        Ana.fail('analysis/processNextTask', taskAsString);
         reject({retry: false, error: 'Task attributes missing or not a package'});
         return;
       }

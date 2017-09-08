@@ -10,8 +10,8 @@ var bufferedConsole;
 
 function initConsole() {
   logBuffer = new streamBuffers.WritableStreamBuffer({
-      initialSize: (100 * 1024),
-      incrementAmount: (10 * 1024)
+    initialSize: (100 * 1024),
+    incrementAmount: (10 * 1024)
   });
   bufferedConsole = new Console(logBuffer, logBuffer);
 }

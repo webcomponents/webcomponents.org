@@ -166,7 +166,7 @@ class Bower {
       var owner = parts[0];
       var repo = parts[1];
       repo = repo.replace(/\.git$/, '');
-      return {'owner': owner, 'repo': repo};
+      return {owner: owner, repo: repo};
     };
 
     return new Promise(resolve => {
