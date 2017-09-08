@@ -72,4 +72,28 @@ describe('AnalyzerRunner', function() {
     });
   });
 
+  it('analyzes siblings but does not include them - bower style', function() {
+    var analyzer = new AnalyzerRunner();
+    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), ['child-a.html']).then(function(result) {
+      expect(result).to.exist;
+      expect(JSON.stringify(result)).to.exist;
+      // Expect only include element in package & not imported elements.
+      expect(result.elements).to.have.lengthOf(1);
+      // Expect inherited properties from dependencies to be included.
+      expect(result.elements[0].properties).to.have.lengthOf(1);
+    });
+  });
+
+  it('analyzes siblings but does not include them - npm style', function() {
+    var analyzer = new AnalyzerRunner();
+    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), []).then(function(result) {
+      expect(result).to.exist;
+      expect(JSON.stringify(result)).to.exist;
+      // Expect only include element in package & not imported elements.
+      expect(result.elements).to.have.lengthOf(1);
+      // Expect inherited properties from dependencies to be included.
+      expect(result.elements[0].properties).to.have.lengthOf(1);
+    });
+  });
+
 });
