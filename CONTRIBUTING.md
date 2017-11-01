@@ -56,10 +56,8 @@ recaptcha: 'your-token'
 
 Deploy to staging.
 ```bash
-grunt lint #lints both client and python
-appcfg.py update_dispatch dispatch.yaml
-appcfg.py update manage.yaml
-appcfg.py update api.yaml
+npm run lint #lints both client and python
+gcloud app deploy dispatch.yaml manage.yaml api.yaml --project <your-gcloud-project-id>
 ```
 
-Deploy client & analysis per their documentation.
+Deploy client, analysis & raw per their documentation in their respective folders.
