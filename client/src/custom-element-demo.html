@@ -296,7 +296,13 @@
           code,
           '```',
         ].join('\n');
-        window.open('data:text/plain;base64,' + btoa(source));
+
+        // Initiate a download of the markdown. Opening data URIs in the top frame
+        // was deprecated.
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(source));
+        element.setAttribute('download', 'inline-demo.md');
+        element.click();
         this.fire('event', {category: 'Inline demo', action: 'export'});
       },
 
