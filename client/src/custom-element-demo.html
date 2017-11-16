@@ -297,12 +297,7 @@
           '```',
         ].join('\n');
 
-        // Initiate a download of the markdown. Opening data URIs in the top frame
-        // was deprecated.
-        var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(source));
-        element.setAttribute('download', 'inline-demo.md');
-        element.click();
+        window.open(URL.createObjectURL(new Blob([source]), {type: 'text/plain'}));
         this.fire('event', {category: 'Inline demo', action: 'export'});
       },
 
