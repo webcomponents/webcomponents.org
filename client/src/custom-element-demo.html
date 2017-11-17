@@ -296,7 +296,8 @@
           code,
           '```',
         ].join('\n');
-        window.open('data:text/plain;base64,' + btoa(source));
+
+        window.open(URL.createObjectURL(new Blob([source]), {type: 'text/plain'}));
         this.fire('event', {category: 'Inline demo', action: 'export'});
       },
 
