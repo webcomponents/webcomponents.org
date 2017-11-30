@@ -619,12 +619,20 @@ class PreviewCommit(webapp2.RequestHandler):
     if not tail:
       self.response.set_status(400)
       self.response.write('Unable to understand url (%s)' % url)
+      return
 
     response = util.github_get('repos', owner, repo, 'git/refs/' + tail)
 
     if response.status_code == 404:
       self.response.set_status(400)
       self.response.write('Error resolving url (%s)' % url)
+      return
+
+    refs = json.loads(response.content)
+    if 'object' not in refs or 'sha' not in refs['object']:
+      self.response.set_status(400)
+      self.response.write('Error determining SHA from url (%s)' % url)
+      return
 
     sha = json.loads(response.content)['object']['sha']
     util.new_task(util.ingest_preview_task(owner, repo), params={'commit': sha, 'url': url}, target='manage')
