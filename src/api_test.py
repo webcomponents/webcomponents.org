@@ -82,6 +82,11 @@ class PreviewCommitTest(ApiTestBase):
     self.assertEqual(response.status_int, 200)
     self.assertEqual(response.normal_body, 'org/repo/pullcommitsha')
 
+  def test_invalid_branch(self):
+    self.respond_to('https://www.google.com/recaptcha/api/siteverify', '{"success": true}')
+    self.respond_to('https://api.github.com/repos/org/repo#invalid/git/refs//branch', '{}')
+    self.app.post('/api/preview-commit', params={'url': 'https://github.com/org/repo#invalid/branch'}, status=400)
+
 class PreviewTest(ApiTestBase):
   def setUp(self):
     ApiTestBase.setUp(self)
