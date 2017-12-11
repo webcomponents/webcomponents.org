@@ -53,20 +53,25 @@
 
       /* Spec label */
 
-      div[label] {
+      [spec] {
         flex: 0 0 170px;
+        display: flex;
         margin-right: 16px;
+        color: var(--theme-blue-small);
+      }
+
+      [spec] div[label] {
         display: flex;
         align-items: center;
       }
 
-      div[label] svg {
+      [spec] svg {
         width: 26px;
         margin-right: 8px;
         fill: var(--theme-blue-grey, #697785);
       }
 
-      div[label]:after {
+      [spec] div[label]:after {
         content: attr(label);
         display: inline-block;
       }
@@ -79,13 +84,13 @@
         align-items: center;
       }
 
-      .row > :not([label]) {
+      .row > :not([spec]) {
         flex: 1 1 60px;
         padding: 8px 0;
         font-weight: bold;
       }
 
-      div.header > div.row > div:not([label]), div.row [title] {
+      div.header > div.row > div:not([spec]), div.row [title] {
         display: flex;
         align-items: center;
         margin: 8px 0;
@@ -102,7 +107,7 @@
         margin-right: 8px;
       }
 
-      div:not(.header) > div.row > :not([title]):not([label]) {
+      div:not(.header) > div.row > :not([title]):not([spec]) {
         flex-direction: column;
       }
 
@@ -203,7 +208,6 @@
       <div class="header">
         <h1 label>Browser support</h1>
         <div class="row">
-          <div label=""></div>
           <div>
             <img src="/assets/chrome.png">
             <span>Chrome</span>
@@ -227,7 +231,7 @@
         </div>
       </div>
       <div class="row">
-        <a href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element" target="__blank" rel="noopener">
+        <a spec href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element" target="_blank" rel="noopener">
           <div label="Templates"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#template"></use></svg></div>
         </a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5207287069147136"></a>
@@ -237,7 +241,7 @@
         <a title="Stable" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/templateelement/"></a>
       </div>
       <div class="row">
-        <a href="https://w3c.github.io/webcomponents/spec/custom/" target="__blank" rel="noopener">
+        <a spec href="https://w3c.github.io/webcomponents/spec/custom/" target="_blank" rel="noopener">
           <div label="Custom elements"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#element"></use></svg></div>
         </a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4696261944934400"></a>
@@ -253,7 +257,7 @@
         </a>
       </div>
       <div class="row">
-        <a href="https://dom.spec.whatwg.org/#shadow-trees" target="__blank" rel="noopener">
+        <a spec href="https://dom.spec.whatwg.org/#shadow-trees" target="_blank" rel="noopener">
           <div label="Shadow DOM"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#shadow"></use></svg></div>
         </a>
         <a title="Stable" href="https://www.chromestatus.com/feature/4667415417847808"></a>
@@ -269,7 +273,7 @@
         </a>
       </div>
       <div class="row">
-        <a href="https://html.spec.whatwg.org/multipage/webappapis.html#integration-with-the-javascript-module-system" target="__blank" rel="noopener">
+        <a spec href="https://html.spec.whatwg.org/multipag/webappapis.html#integration-with-the-javascript-module-system" target="_blank" rel="noopener">
           <div label='<script type="module">'><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
         </a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5365692190687232"></a>
@@ -279,7 +283,9 @@
         <a title="Stable" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/moduleses6/"></a>
       </div>
       <div class="row">
-        <div label="HTML imports"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
+        <a spec href="https://www.w3.org/TR/html-imports/" target="_blank" rel="noopener">
+          <div label="HTML imports"><svg viewBox="0 0 26 22"><use xlink:href="/sprite.octicons.svg#import"></use></svg></div>
+        </a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
         <a title="Stable" href="https://www.chromestatus.com/feature/5144752345317376"></a>
         <a href="https://webkit.org/status/#feature-html-imports">
