@@ -250,18 +250,20 @@
         color: hsl(0, 0%, 40%);
       }
 
-      @media (max-width: 500px) {
-        .title {
-          margin-left: 16px;
-          display: flex;
-        }
-
+      @media (max-width: 700px) {
         .sidebar {
           margin: 0 16px;
           padding-top: 4px;
           position: initial;
           flex: 1 0 auto;
           max-height: none;
+        }
+      }
+
+      @media (max-width: 500px) {
+        .title {
+          margin-left: 16px;
+          display: flex;
         }
 
         h1.page-title {
