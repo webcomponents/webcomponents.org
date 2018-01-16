@@ -745,6 +745,7 @@
           history.replaceState({}, document.title, this.route.prefix + '/' + this._scopePackage + this.versionRoute);
           this.fire('location-changed');
         }
+        this.$['demo-frame'].removeAttribute('src');
         this._dialogDemoLoading = false;
       },
 
