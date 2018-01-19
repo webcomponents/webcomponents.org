@@ -126,6 +126,7 @@
         totalResults: {
           type: Number,
           computed: '_sum(_elements.count, _collections.count)',
+          reflectToAttribute: true,
         },
         _collectionsLoading: {
           value: false,
