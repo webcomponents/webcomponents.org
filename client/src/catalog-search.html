@@ -41,9 +41,9 @@
       },
 
       _title: function(query, title) {
-        if(this.totalResults || title)
+        if (this.totalResults || title)
           return title ? title : 'Results for "' + query + '"';
-        
+
         return 'No results for "' + query + '"';
       },
     });
