@@ -11,6 +11,10 @@
         padding: 0 8px;
         background: white;
       }
+      
+      :host([hidden]) {
+        display: none;
+      }
 
       :host(:hover:not(:active)) {
         background: hsla(0, 0%, 98%, 1);
