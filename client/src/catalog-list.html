@@ -123,6 +123,11 @@
           type: Boolean,
           notify: true,
         },
+        totalResults: {
+          type: Number,
+          computed: '_sum(_elements.count, _collections.count)',
+          reflectToAttribute: true,
+        },
         _collectionsLoading: {
           value: false,
           type: Boolean,
@@ -151,6 +156,10 @@
       _params: function(count, noscore) {
         var params = '?limit=' + count + '&count';
         return noscore ? params + '&noscore' : params;
+      },
+
+      _sum: function(a, b) {
+        return a + b;
       },
 
       _and: function(a, b) {
