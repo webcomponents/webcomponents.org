@@ -119,6 +119,10 @@ function build() {
         });
       })
       .then(() => {
+        return gulp.src('node_modules/codemirror/lib/codemirror.css',
+          {base: '.'}).pipe(gulp.dest(buildDirectory));
+      })
+      .then(() => {
         // You did it!
         console.log('Build complete!');
         resolve();
