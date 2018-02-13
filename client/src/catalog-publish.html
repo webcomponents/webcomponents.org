@@ -183,9 +183,9 @@
         </ul>
 
         <h1>Ready to publish?</h1>
-        <p>Enter the GitHub repository below:</p>
+        <p>Enter the GitHub repository or NPM package below. You can paste a GitHub repository link, a NPM package link, or enter the package name.</p>
 
-        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/my-element-repo">
+        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/github-repo, @scope/npm-package or my-npm-package">
         <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button id="submit" on-click="onSubmit">
@@ -284,6 +284,7 @@
         var repo = this.$['repo-input'].value;
         repo = repo.replace(/\/$/, '');
         repo = repo.replace(/.*github.com\//, '');
+        repo = repo.replace(/.*npmjs.com\//, '');
 
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
