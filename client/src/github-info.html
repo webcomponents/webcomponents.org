@@ -203,10 +203,10 @@
         <section class="collapsed dark" on-click="_toggleExpand">
           <!-- TODO(samli): Needs to refer to correct package manager. -->
           <h3>
-            Licensed under 
-            <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>, 
-            [[_lastUpdated(data.activity)]], 
-            & installed via <a>Bower</a>
+            Licensed under
+            <a href="https://spdx.org/licenses/[[data.spdx_identifier]]" target="_blank">[[data.spdx_identifier]]</a>,
+            [[_lastUpdated(data.activity)]]
+            & installed via <a>[[_packageManager(data.npmPackage)]]</a>
           </h3>
 
           <svg id="plus-button" viewBox="0 0 100 100">
@@ -220,7 +220,7 @@
         <section class="expanded dark">
           <h3>Download</h3>
           <!-- TODO(samli): Needs NPM install command too. -->
-          <div id="download-command" title="Download command" on-click="_selectAllInfoDownload">bower install --save [[data.owner]]/[[data.repo]]</div>
+          <div id="download-command" title="Download command" on-click="_selectAllInfoDownload">[[_packageManager(data.npmPackage)]] install --save [[data.owner]]/[[data.repo]]</div>
 
           <h3>[[data.contributors.length]] contributor[[_s(data.contributors.length)]]</h3>
           <contributors-list contributors="[[data.contributors]]"></contributors-list>
@@ -305,6 +305,10 @@
 
       _searchTag: function(event) {
         this.fire('triggerSearch', {query: event.target.tag});
+      },
+
+      _packageManager: function(npmPackage) {
+        return npmPackage ? 'npm' : 'bower';
       },
 
     });

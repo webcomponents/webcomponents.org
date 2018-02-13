@@ -38,7 +38,7 @@
         margin-bottom: 0;
       }
 
-      #github-action-group > * {
+      #github-action-group > *:not(template) {
         display: flex;
         align-items: center;
         padding: 16px;
@@ -385,6 +385,12 @@
           <github-info data="[[data]]" class="box"></github-info>
 
           <div id="github-action-group" class="box">
+            <template is="dom-if" if="[[data.npmPackage]]">
+              <a id="github-view-button" href="https://npmjs.com/package/[[data.npmPackage]]" target="_blank">
+                <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#npm-square"></use></svg>
+                <div>View on NPM</div>
+              </a>
+            </template>
             <a id="github-view-button" href="https://github.com/[[data.owner]]/[[data.repo]]" target="_blank">
               <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#mark-github"></use></svg>
               <div>View on GitHub</div>
