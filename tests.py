@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import logging
-import optparse
+import argparse
 import os
 import sys
 import unittest
@@ -12,7 +12,7 @@ Run unit tests.
 SDK_PATH    Path to Google Cloud or Google App Engine SDK installation, usually
             ~/google_cloud_sdk"""
 
-def main(sdk_path):
+def main(sdk_path, test_path, test_pattern):
   # If the sdk path points to a google cloud sdk installation
   # then we should alter it to point to the GAE platform location.
   if os.path.exists(os.path.join(sdk_path, 'platform/google_appengine')):
@@ -34,25 +34,33 @@ def main(sdk_path):
   except ImportError:
     print "Note: unable to import appengine_config."
 
-  test_path = os.path.dirname(sys.modules[__name__].__file__)
-
   logging.disable(logging.CRITICAL)
 
   from colour_runner import runner
 
   # Discover and run tests.
-  suite = unittest.loader.TestLoader().discover(test_path, pattern='*_test.py')
+  suite = unittest.loader.TestLoader().discover(test_path, test_pattern)
   result = runner.ColourTextTestRunner(verbosity=2).run(suite)
 
   if not result.wasSuccessful():
     sys.exit(result)
 
 if __name__ == '__main__':
-  parser = optparse.OptionParser(USAGE)
-  options, args = parser.parse_args()
-  if len(args) != 1:
-    print 'Error: Exactly 1 arguments required.'
-    parser.print_help()
-    sys.exit(1)
-  SDK_PATH = args[0]
-  main(SDK_PATH)
+  parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument(
+      'sdk_path',
+      help='The path to the Google App Engine SDK or the Google Cloud SDK.')
+  parser.add_argument(
+      '--test-path',
+      help='The path to look for tests, defaults to the current directory.',
+      default=os.getcwd())
+  parser.add_argument(
+      '--test-pattern',
+      help='The file pattern for test modules, defaults to *_test.py.',
+      default='*_test.py')
+
+  args = parser.parse_args()
+
+  main(args.sdk_path, args.test_path, args.test_pattern)

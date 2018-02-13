@@ -481,12 +481,13 @@ class LibraryTask(RequestHandler):
     tags = versions.keys()
     tags.sort(versiontag.compare)
     # Create a tag map of tag to sha
-    tag_map = dict((tag, versions.get(tag).get('_shasum', '')) for tag in tags)
+    tag_map = dict((tag, versions.get(tag).get('gitHead', '')) for tag in tags
+                   if versiontag.is_valid(tag) and versions.get(tag).get('gitHead'))
 
     if self.library.tags is None or self.library.tags != tags:
       self.library.library_dirty = True
       self.library.tags = tags
-      self.library.tags_map = json.dumps(tag_map)
+      self.library.tag_map = json.dumps(tag_map)
       self.library.tags_updated = datetime.datetime.now()
 
     return tag_map
@@ -850,6 +851,9 @@ class UpdateIndexes(RequestHandler):
 
   def update_search_index(self, owner, repo, version_key, library, bower):
     metadata = json.loads(library.metadata)
+    registry_metadata = json.loads(library.registry_metadata) if library.registry_metadata else None
+    npm_description = registry_metadata.get('description', '') if registry_metadata else ''
+    npm_keywords = registry_metadata.get('keywords', []) if registry_metadata else []
     fields = [
         search.AtomField(name='owner', value=owner),
         search.TextField(name='repo', value=repo),
@@ -857,7 +861,9 @@ class UpdateIndexes(RequestHandler):
         search.AtomField(name='version', value=version_key.id()),
         search.TextField(name='github_description', value=metadata.get('description', '')),
         search.TextField(name='bower_description', value=bower.get('description', '')),
+        search.TextField(name='npm_description', value=npm_description),
         search.TextField(name='bower_keywords', value=' '.join(bower.get('keywords', []))),
+        search.TextField(name='npm_keywords', value=' '.join(npm_keywords)),
         search.TextField(name='prefix_matches', value=' '.join(util.generate_prefixes_from_list(
             util.safe_split_strip(metadata.get('description')) + util.safe_split_strip(bower.get('description')) +
             util.safe_split_strip(repo)))),

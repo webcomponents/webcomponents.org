@@ -789,7 +789,7 @@ class IngestLibraryTest(ManageTestBase):
 
 class IngestNPMLibraryTest(ManageTestBase):
   def test_ingest_element(self):
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {"_shasum": "lol"}}}')
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {"gitHead": "lol"}}}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
@@ -828,7 +828,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     self.assertEqual(len(tasks), 0)
 
   def test_ingest_repository_shorthand(self):
-    self.respond_to('https://registry.npmjs.org/package', '{"repository": "org/repo", "license": "BSD-3-Clause", "versions": {"1.0.0": {"_shasum": "lol"}, "0.5.0": {"_shasum": "sha"}}}')
+    self.respond_to('https://registry.npmjs.org/package', '{"repository": "org/repo", "license": "BSD-3-Clause", "versions": {"1.0.0": {"gitHead": "lol"}, "0.5.0": {"gitHead": "sha"}}}')
     self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
     self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
     self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
@@ -984,6 +984,35 @@ class UpdateIndexesTest(ManageTestBase):
 
     behaviors = [field for field in document.fields if field.name == 'behavior']
     self.assertEqual(len(behaviors), 0)
+
+  def test_npm_index(self):
+    metadata = """{
+      "full_name": "full-name"
+    }"""
+    registry_metadata = """{
+      "description": "mydescription",
+      "keywords": ["my-keyword"]
+    }"""
+    library_key = Library(id='@@npm/package', registry_metadata=registry_metadata, metadata=metadata).put()
+    version_key = Version(id='v1.1.1', parent=library_key, sha='sha', status='ready').put()
+
+    Content(id='bower', parent=version_key, content="""{"dependencies": {
+      "a": "org/element-1#1.0.0",
+      "b": "org/element-2#1.0.0"
+    }}""").put()
+
+    VersionCache.update(library_key)
+
+    response = self.app.get(util.update_indexes_task('@@npm', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    index = search.Index('repo')
+    document = index.get('@@npm/package')
+    self.assertIsNotNone(document)
+    self.assertTrue(len(document.fields) > 0)
+
+    self.assertEqual(document.field('npm_keywords').value, 'my-keyword')
+    self.assertEqual(document.field('npm_description').value, 'mydescription')
 
 if __name__ == '__main__':
   unittest.main()
