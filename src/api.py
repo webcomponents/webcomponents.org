@@ -94,9 +94,13 @@ class LibraryMetadata(object):
         'subscribers': metadata['subscribers'],
         'forks': metadata['forks'],
         'updated_at': metadata['updated_at'],
-        'dependency_count': metadata['dependency_count'],
         'avatar_url': metadata['avatar_url'],
     }
+    if 'dependency_count' in metadata:
+      result['dependency_count'] = metadata['dependency_count']
+    if 'npmFullPackage' in metadata:
+      result['npmFullPackage'] = metadata['npmFullPackage']
+
     if not assume_latest:
       result['latest_version'] = metadata['latest_version']
       result['default_version'] = metadata['default_version']
@@ -137,7 +141,11 @@ class LibraryMetadata(object):
       parts = key.split('/')
       if parts[0] != '@@npm':
         result['npmScope'] = parts[0]
+        result['npmFullPackage'] = key
+      else:
+        result['npmFullPackage'] = parts[1]
       result['npmPackage'] = parts[1]
+
     result['apiKey'] = key
     result['kind'] = library.kind
     result['status'] = library.status

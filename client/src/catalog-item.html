@@ -96,7 +96,7 @@
     </style>
 
     <template is="dom-if" if="[[data]]">
-      <a id="container" href="/[[data.kind]]/[[data.owner]]/[[data.repo]][[_versionPath(data.version, data.default_version)]]">
+      <a id="container" href="/[[_packagePath(data)]][[_versionPath(data.version, data.default_version)]]">
         <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]"   title="[[data.owner]]">
         <div id="header">
           <h2>[[data.repo]]</h2>
@@ -127,6 +127,12 @@
 
       properties: {
         data: Object,
+      },
+
+      _packagePath: function(data) {
+        if (data.npmFullPackage)
+          return data.kind + '/' + data.npmFullPackage;
+        return [data.kind, data.owner, data.repo].join('/');
       },
 
       _versionPath: function(version, latestVersion) {
