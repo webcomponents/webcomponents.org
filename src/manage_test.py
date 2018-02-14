@@ -34,6 +34,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/update/owner/repo', status=403)
     self.app.get('/task/ensure/owner', status=403)
     self.app.get('/task/ensure/owner/repo', status=403)
+    self.app.get('/task/suppress/owner/repo', status=403)
     self.app.get('/task/delete/owner/repo/version', status=403)
     self.app.get('/task/ingest/owner', status=403)
     self.app.get('/task/ingest/owner/repo', status=403)
@@ -163,6 +164,45 @@ class AnalyzeTest(ManageTestBase):
         util.ingest_analysis_task('owner', 'repo', 'v1.1.2'),
     ], [task.url for task in tasks])
 
+class SuppressLibraryTest(ManageTestBase):
+  def test_suppress_library(self):
+    library_key = Library(id='owner/repo').put()
+    Version(id='v1.0.0', parent=library_key, sha='sha', status=Status.ready).put()
+
+    response = self.app.get('/task/suppress/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    library = Library.get_by_id('owner/repo')
+    self.assertEqual(library.status, Status.suppressed)
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
+
+  def test_suppress_no_library(self):
+    response = self.app.get('/task/suppress/noowner/norepo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+class DeleteLibraryTest(ManageTestBase):
+  def test_delete_library(self):
+    library_key = Library(id='owner/repo').put()
+    Version(id='v1.0.0', parent=library_key, sha='sha', status=Status.ready).put()
+    Version(id='v2.0.0', parent=library_key, sha='sha', status=Status.ready).put()
+    VersionCache.update(library_key)
+
+    self.assertEqual(Library.versions_for_key_async(library_key).get_result(), ['v1.0.0', 'v2.0.0'])
+
+    response = self.app.get('/manage/delete/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+
+    self.assertIsNone(Library.get_by_id('owner/repo'))
+    self.assertEqual(Library.versions_for_key_async(library_key).get_result(), [])
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual(len(tasks), 0)
+
+  def test_delete_no_library(self):
+    response = self.app.get('/manage/delete/noowner/norepo', headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
 
 class DeleteVersionTest(ManageTestBase):
   def test_delete_version(self):
@@ -393,7 +433,7 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.1.0'),
+        util.delete_version_task('org', 'repo', 'v0.1.0'),
     ], [task.url for task in tasks])
 
   def test_subsequent_update_triggers_version_deletion(self):
@@ -414,7 +454,7 @@ class UpdateLibraryTest(ManageTestBase):
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
-        util.delete_task('org', 'repo', 'v0.1.0'),
+        util.delete_version_task('org', 'repo', 'v0.1.0'),
     ], [task.url for task in tasks])
 
   def test_update_collection(self):
@@ -811,6 +851,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('@scope', 'package', '1.0.0'),
+        util.suppress_library_task('org', 'repo'),
         util.ensure_author_task('org'),
         util.ingest_version_task('@scope', 'package', '1.0.0'),
     ], [task.url for task in tasks])
@@ -850,10 +891,47 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('@@npm', 'package', '1.0.0'),
+        util.suppress_library_task('org', 'repo'),
         util.ensure_author_task('org'),
         util.ingest_version_task('@@npm', 'package', '1.0.0'),
     ], [task.url for task in tasks])
 
+  def test_ingest_npm_deletes_bower(self):
+    bower_library_key = Library(id='org/repo', spdx_identifier='MIT').put()
+    Version(id='v0.1.0', parent=bower_library_key, sha='sha', status=Status.ready).put()
+    Version(id='v1.0.0', parent=bower_library_key, sha='sha', status=Status.ready).put()
+
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {"gitHead": "lol"}}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@scope/package')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['1.0.0'])
+
+    version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
+    self.assertIsNotNone(version)
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, 'lol')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('@scope', 'package', '1.0.0'),
+        util.suppress_library_task('org', 'repo'),
+        util.ensure_author_task('org'),
+        util.ingest_version_task('@scope', 'package', '1.0.0'),
+    ], [task.url for task in tasks])
+
+    response = self.app.get(util.suppress_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('org/repo')
+    self.assertEqual(library.status, Status.suppressed)
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):

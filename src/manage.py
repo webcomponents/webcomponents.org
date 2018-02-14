@@ -272,6 +272,13 @@ class LibraryTask(RequestHandler):
         util.new_task(task_url, target='manage')
         raise RequestAborted('repo has been renamed to %s', Library.id(self.owner, self.repo))
 
+      # If adding a NPM package that a Bower repo already points to, remove the bower one.
+      bowerLibrary = Library.id(self.owner, self.repo)
+      if is_npm_package and bowerLibrary is not None:
+        logging.info('removing bower repo %s', Library.id(self.owner, self.repo))
+        task_url = util.suppress_library_task(self.owner, self.repo)
+        util.new_task(task_url, target='manage')
+
       self.library.github_owner = self.owner
       self.library.github_repo = self.repo
 
@@ -370,7 +377,7 @@ class LibraryTask(RequestHandler):
       return self.error('Could not detect an OSI approved license on GitHub or in %s/bower.json' % default_branch, ErrorCodes.Library_license)
 
   def trigger_version_deletion(self, tag):
-    task_url = util.delete_task(self.scope, self.package, tag)
+    task_url = util.delete_version_task(self.scope, self.package, tag)
     util.new_task(task_url, target='manage', transactional=True)
 
   def trigger_version_ingestion(self, tag, sha, url=None, preview=False):
@@ -1106,10 +1113,17 @@ class GithubStatus(RequestHandler):
     for key, value in util.github_rate_limit().items():
       self.response.write('%s: %s<br>' % (key, value))
 
+class SuppressLibrary(RequestHandler):
+  def handle_get(self, scope, package):
+    library = Library.get_by_id(Library.id(scope, package))
+    if library is not None:
+      library.status = Status.suppressed
+      library.put()
+
 class DeleteLibrary(RequestHandler):
-  def handle_get(self, owner, repo):
+  def handle_get(self, scope, package):
     self.response.headers['Content-Type'] = 'text/plain'
-    delete_library(ndb.Key(Library, Library.id(owner, repo).lower()), response_for_logging=self.response)
+    delete_library(ndb.Key(Library, Library.id(scope, package).lower()), response_for_logging=self.response)
 
 class DeleteEverything(RequestHandler):
   def handle_get(self):
@@ -1151,7 +1165,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/manage/update-all', handler=UpdateAll),
     webapp2.Route(r'/manage/build-sitemaps', handler=BuildSitemaps),
     webapp2.Route(r'/manage/add/<owner>/<repo>', handler=AddLibrary),
-    webapp2.Route(r'/manage/delete/<owner>/<repo>', handler=DeleteLibrary),
+    webapp2.Route(r'/manage/delete/<scope>/<package>', handler=DeleteLibrary),
     webapp2.Route(r'/manage/delete_everything/yes_i_know_what_i_am_doing', handler=DeleteEverything),
     webapp2.Route(r'/task/analyze/<scope>/<package>', handler=AnalyzeLibrary),
     webapp2.Route(r'/task/analyze/<scope>/<package>/<latest>', handler=AnalyzeLibrary),
@@ -1160,6 +1174,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
+    webapp2.Route(r'/task/suppress/<scope>/<package>', handler=SuppressLibrary),
     webapp2.Route(r'/task/delete/<scope>/<package>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/<scope>/<package>', handler=IngestLibrary),
