@@ -61,7 +61,7 @@ describe('AnalyzerRunner', function() {
     });
   });
 
-  it('works without specifying any input files', function() {
+  it.only('works without specifying any input files', function() {
     var analyzer = new AnalyzerRunner();
     return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), []).then(function(result) {
       expect(result).to.exist;
