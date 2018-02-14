@@ -273,8 +273,8 @@ class LibraryTask(RequestHandler):
         raise RequestAborted('repo has been renamed to %s', Library.id(self.owner, self.repo))
 
       # If adding a NPM package that a Bower repo already points to, remove the bower one.
-      bowerLibrary = Library.id(self.owner, self.repo)
-      if is_npm_package and bowerLibrary is not None:
+      bower_library_id = Library.id(self.owner, self.repo)
+      if is_npm_package and bower_library_id is not None:
         logging.info('removing bower repo %s', Library.id(self.owner, self.repo))
         task_url = util.suppress_library_task(self.owner, self.repo)
         util.new_task(task_url, target='manage')
