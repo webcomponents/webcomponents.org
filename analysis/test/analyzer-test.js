@@ -101,4 +101,14 @@ describe('AnalyzerRunner', function() {
       expect(result.elements[0].properties).to.have.lengthOf(1);
     });
   });
+
+  it('ignores minified build files', function() {
+    var analyzer = new AnalyzerRunner();
+    return analyzer.analyze(path.resolve(__dirname, 'resources/minified'), []).then(function(result) {
+      expect(result).to.exist;
+      expect(JSON.stringify(result)).to.exist;
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['paper-button']);
+    });
+  });
 });
