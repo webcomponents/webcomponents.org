@@ -26,7 +26,24 @@ class UrlLoader extends FSUrlLoader {
    * Only return files from within the package directory.
    */
   async readDirectory(pathFromRoot, deep) {
-    return await new FSUrlLoader(this.packageRoot).readDirectory(pathFromRoot, deep);
+    const files = await new FSUrlLoader(this.packageRoot).readDirectory(pathFromRoot, deep);
+    const result = [];
+
+    // Filter out minified files etc.
+    for (const path of files) {
+      // eg. for file.min.js => file.js
+      const fileMatch = pathlib.basename(path).split('.');
+      if (fileMatch.length <= 2) {
+        result.push(path);
+        continue;
+      }
+
+      const strippedBaseName = fileMatch[0] + '.' + fileMatch[fileMatch.length - 1];
+      if (files.indexOf(pathlib.join(pathlib.dirname(path), strippedBaseName)) === -1) {
+        result.push(path);
+      }
+    }
+    return result;
   }
 }
 
