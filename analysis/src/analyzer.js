@@ -6,7 +6,7 @@ const {Analyzer, generateAnalysis, PackageUrlResolver, FSUrlLoader} = require('p
 const pathlib = require('path');
 // TODO: import it normally once its exported properly.
 // See https://github.com/Polymer/polymer-analyzer/issues/882.
-const {FsUrlResolver} = require('polymer-analyzer/lib/url-loader/fs-url-resolver');
+const {FsUrlResolver} = require('polymer-analyzer/lib/url-loader/fs-url-resolver.js');
 
 /**
  * Extends the FSUrlLoader to only read from the package directory, while
