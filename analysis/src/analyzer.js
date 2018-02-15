@@ -2,7 +2,7 @@
 
 const Ana = require('./ana_log');
 
-const {Analyzer, generateAnalysis, PackageUrlResolver, FSUrlLoader} = require('polymer-analyzer');
+const {Analyzer, generateAnalysis, FSUrlLoader} = require('polymer-analyzer');
 const pathlib = require('path');
 // TODO: import it normally once its exported properly.
 // See https://github.com/Polymer/polymer-analyzer/issues/882.

@@ -44,7 +44,8 @@
       "comma-dangle": 0,
       "eqeqeq": 0,
       "no-eq-null": 0,
-      "require-jsdoc": 0
+      "require-jsdoc": 0,
+      "valid-jsdoc": 0
     },
     "parserOptions": {
       "ecmaVersion": 8,
