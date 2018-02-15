@@ -19,7 +19,8 @@ describe('AnalyzerRunner', function() {
     return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), ['shop-image.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
-      expect(result.elements).to.have.lengthOf(1);
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['shop-image']);
       expect(result.elements[0]).to.have.property('name', 'ShopImage');
       expect(result.elements[0]).to.have.property('path', 'shop-image.html');
     });
@@ -54,7 +55,8 @@ describe('AnalyzerRunner', function() {
     return analyzer.analyze(path.resolve(__dirname, 'resources'), ['element-with-demo.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
-      expect(result.elements).to.have.lengthOf(1);
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['test-element']);
       expect(result.elements[0].demos).to.have.lengthOf(1);
       expect(result.elements[0].demos[0]).to.have.property('url', 'demo.html');
       expect(result.elements[0].demos[0]).to.have.property('description', 'description');
@@ -66,7 +68,8 @@ describe('AnalyzerRunner', function() {
     return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
-      expect(result.elements).to.have.lengthOf(1);
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['shop-image']);
       expect(result.elements[0]).to.have.property('name', 'ShopImage');
       expect(result.elements[0]).to.have.property('path', 'shop-image.html');
     });
@@ -78,7 +81,8 @@ describe('AnalyzerRunner', function() {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
-      expect(result.elements).to.have.lengthOf(1);
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['child-a']);
       // Expect inherited properties from dependencies to be included.
       expect(result.elements[0].properties).to.have.lengthOf(1);
     });
@@ -90,7 +94,9 @@ describe('AnalyzerRunner', function() {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
-      expect(result.elements).to.have.lengthOf(1);
+      const elementNames = result.elements.map((element) => element.tagname);
+      expect(elementNames).to.deep.equal(['child-a']);
+
       // Expect inherited properties from dependencies to be included.
       expect(result.elements[0].properties).to.have.lengthOf(1);
     });
