@@ -4,6 +4,8 @@ const npm = require('npm');
 const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const ncp = require('ncp').ncp;
+ncp.limit = 16;
 
 const Ana = require('./ana_log');
 
@@ -63,7 +65,7 @@ class NPM {
     return new Promise((resolve, reject) => {
       Ana.log("npm/prune");
       fs.writeFileSync('installed/package.json', '{}');
-      childProcess.exec("rm -rf installed/node_modules", function(err) {
+      childProcess.exec("rm -rf installed/node_modules installed/modules_copy", function(err) {
         if (err) {
           Ana.fail("npm/prune");
           reject({retry: true, error: err});
@@ -95,8 +97,18 @@ class NPM {
           // ETARGET seems to have a code of 1
           reject({retry: false, error: code});
         }
-        const scopePath = scope == '@@npm' ? '' : scope + '/';
-        resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
+
+        // Duplicate node_modules folder.
+        ncp(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), function(err) {
+          if (err) {
+            Ana.fail('npm/install', packageToInstall);
+            reject({retry: true, error: error});
+            return;
+          }
+
+          const scopePath = scope == '@@npm' ? '' : scope + '/';
+          resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
+        });
       }).catch(error => {
         Ana.fail('npm/install', packageToInstall);
         reject({retry: true, error: error});

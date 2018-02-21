@@ -12,6 +12,7 @@
     "express": "4.13.4",
     "hydrolysis": "1.25.0",
     "lockfile": "1.0.1",
+    "ncp": "^2.0.0",
     "npm": "^5.0.3",
     "polymer-analyzer": "3.0.0-pre.11",
     "rimraf": "^2.6.1",
