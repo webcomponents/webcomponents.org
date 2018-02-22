@@ -3,9 +3,7 @@
 const npm = require('npm');
 const childProcess = require('child_process');
 const path = require('path');
-const fs = require('fs');
-const ncp = require('ncp').ncp;
-ncp.limit = 16;
+const fs = require('fs-extra');
 
 const Ana = require('./ana_log');
 
@@ -20,9 +18,7 @@ class NPM {
   constructor() {
     // Create a safe environment for us to install so dependencies of this app
     // aren't affected by new packages.
-    if (!fs.existsSync('installed')) {
-      fs.mkdirSync('installed');
-    }
+    fs.ensureDirSync('installed');
     npm.load();
   }
 
@@ -64,7 +60,7 @@ class NPM {
   prune() {
     return new Promise((resolve, reject) => {
       Ana.log("npm/prune");
-      fs.writeFileSync('installed/package.json', '{}');
+      fs.writeJsonSync('installed/package.json', {});
       childProcess.exec("rm -rf installed/node_modules installed/modules_copy", function(err) {
         if (err) {
           Ana.fail("npm/prune");
@@ -99,7 +95,7 @@ class NPM {
         }
 
         // Duplicate node_modules folder.
-        ncp(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), function(err) {
+        fs.move(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), function(err) {
           if (err) {
             Ana.fail('npm/install', packageToInstall);
             reject({retry: true, error: error});
