@@ -3,7 +3,7 @@
 const npm = require('npm');
 const childProcess = require('child_process');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 const Ana = require('./ana_log');
 
@@ -18,9 +18,7 @@ class NPM {
   constructor() {
     // Create a safe environment for us to install so dependencies of this app
     // aren't affected by new packages.
-    if (!fs.existsSync('installed')) {
-      fs.mkdirSync('installed');
-    }
+    fs.ensureDirSync('installed');
     npm.load();
   }
 
@@ -60,18 +58,17 @@ class NPM {
   * @return {Promise} A promise handling the prune operation.
   */
   prune() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       Ana.log("npm/prune");
-      fs.writeFileSync('installed/package.json', '{}');
-      childProcess.exec("rm -rf installed/node_modules", function(err) {
-        if (err) {
-          Ana.fail("npm/prune");
-          reject({retry: true, error: err});
-        } else {
-          Ana.success("npm/prune");
-          resolve();
-        }
-      });
+      await fs.writeJson('installed/package.json', {});
+      try {
+        await fs.remove('installed/node_modules');
+        await fs.remove('installed/module_copy');
+        Ana.success("npm/prune");
+        resolve();
+      } catch (err) {
+        reject({retry: true, error: err});
+      }
     });
   }
 
@@ -95,8 +92,18 @@ class NPM {
           // ETARGET seems to have a code of 1
           reject({retry: false, error: code});
         }
-        const scopePath = scope == '@@npm' ? '' : scope + '/';
-        resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
+
+        // Duplicate node_modules folder.
+        fs.move(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), {overwrite: true}, function(err) {
+          if (err) {
+            Ana.fail('npm/install', packageToInstall);
+            reject({retry: true, error: err});
+            return;
+          }
+
+          const scopePath = scope == '@@npm' ? '' : scope + '/';
+          resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
+        });
       }).catch(error => {
         Ana.fail('npm/install', packageToInstall);
         reject({retry: true, error: error});

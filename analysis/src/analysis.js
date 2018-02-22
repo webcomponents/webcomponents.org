@@ -86,7 +86,9 @@ class Analysis {
         return this.npm.install(attributes.owner, attributes.repo, attributes.version);
       }).then(root => {
         return Promise.all([
-          this.analyzer.analyze(root),
+          // Replace analyzer root because we can't have node_modules in the path.
+          // See https://github.com/Polymer/polymer-analyzer/issues/882 for the analyzer bug.
+          this.analyzer.analyze(root.replace('node_modules', 'modules_copy')),
           this.npm.findDependencies(attributes.owner, attributes.repo)]);
       }).then(results => {
         var data = {};
