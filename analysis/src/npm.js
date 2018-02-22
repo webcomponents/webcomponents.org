@@ -58,18 +58,17 @@ class NPM {
   * @return {Promise} A promise handling the prune operation.
   */
   prune() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       Ana.log("npm/prune");
       fs.writeJsonSync('installed/package.json', {});
-      childProcess.exec("rm -rf installed/node_modules installed/modules_copy", function(err) {
-        if (err) {
-          Ana.fail("npm/prune");
-          reject({retry: true, error: err});
-        } else {
-          Ana.success("npm/prune");
-          resolve();
-        }
-      });
+      try {
+        await fs.remove('installed/node_modules');
+        await fs.remove('installed/module_copy');
+        Ana.success("npm/prune");
+        resolve();
+      } catch (err) {
+        reject({retry: true, error: err});
+      }
     });
   }
 
@@ -95,10 +94,10 @@ class NPM {
         }
 
         // Duplicate node_modules folder.
-        fs.move(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), function(err) {
+        fs.move(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), {overwrite: true}, function(err) {
           if (err) {
             Ana.fail('npm/install', packageToInstall);
-            reject({retry: true, error: error});
+            reject({retry: true, error: err});
             return;
           }
 

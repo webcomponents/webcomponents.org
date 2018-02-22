@@ -19,7 +19,7 @@
     "stream-buffers": "3.0.1"
   },
   "engines": {
-    "node": ">=7"
+    "node": ">=8"
   },
   "scripts": {
     "start": "node src/main.js --responseTopic analysis-responses",
