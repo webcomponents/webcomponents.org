@@ -60,7 +60,7 @@ class NPM {
   prune() {
     return new Promise(async (resolve, reject) => {
       Ana.log("npm/prune");
-      fs.writeJsonSync('installed/package.json', {});
+      await fs.writeJson('installed/package.json', {});
       try {
         await fs.remove('installed/node_modules');
         await fs.remove('installed/module_copy');
