@@ -67,7 +67,33 @@ class AnalyzerRunner {
 
       if (paths.length === 0) {
         analyzer.analyzePackage().then(analysis => {
-          resolve(generateAnalysis(analysis, analyzer.urlResolver, isInPackage));
+          // Get source paths for all features.
+          const features = Array.from(analysis.getFeatures());
+          const paths = features
+            .filter((f) => f.sourceRange !== undefined)
+            .map((f) => f.sourceRange.file);
+          const uniquePaths = new Set(paths);
+
+          const shouldOutputFeature = (feature) => {
+            if (!isInPackage(feature)) {
+              return false;
+            }
+
+            const path = feature.sourceRange.file;
+            const fileMatch = pathlib.basename(path).split('.');
+            if (fileMatch.length <= 2) {
+              return true;
+            }
+
+            const strippedBaseName = fileMatch[0] + '.' + fileMatch[fileMatch.length - 1];
+            // Don't use pathlib.join() as that will strip file:/// protocol.
+            if (!uniquePaths.has(pathlib.dirname(path) + pathlib.sep + strippedBaseName)) {
+              return true;
+            }
+            return false;
+          };
+
+          resolve(generateAnalysis(analysis, analyzer.urlResolver, shouldOutputFeature));
         }).catch(function(error) {
           Ana.fail('analyzer/analyze', paths, error);
           reject({retry: true, error: error});
