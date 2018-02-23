@@ -69,10 +69,12 @@ class AnalyzerRunner {
         analyzer.analyzePackage().then(analysis => {
           // Get source paths for all features.
           const features = Array.from(analysis.getFeatures());
-          const paths = features.map((f) => f.sourceRange && f.sourceRange.file);
+          const paths = features
+            .filter((f) => f.sourceRange !== undefined)
+            .map((f) => f.sourceRange.file);
           const uniquePaths = new Set(paths);
 
-          const shouldOuputFeature = (feature) => {
+          const shouldOutputFeature = (feature) => {
             if (!isInPackage(feature)) {
               return false;
             }
@@ -85,13 +87,13 @@ class AnalyzerRunner {
 
             const strippedBaseName = fileMatch[0] + '.' + fileMatch[fileMatch.length - 1];
             // Don't use pathlib.join() as that will strip file:/// protocol.
-            if (!uniquePaths.has(pathlib.dirname(path) + '/' + strippedBaseName)) {
+            if (!uniquePaths.has(pathlib.dirname(path) + pathlib.sep + strippedBaseName)) {
               return true;
             }
             return false;
           };
 
-          resolve(generateAnalysis(analysis, analyzer.urlResolver, shouldOuputFeature));
+          resolve(generateAnalysis(analysis, analyzer.urlResolver, shouldOutputFeature));
         }).catch(function(error) {
           Ana.fail('analyzer/analyze', paths, error);
           reject({retry: true, error: error});
