@@ -253,9 +253,9 @@
       },
 
       _packageName: function() {
-        return this.data.npmFullPackage
-          ? this.data.npmFullPackage
-          : this.data.owner + '/' + this.data.repo;
+        return this.data.npmFullPackage ?
+          this.data.npmFullPackage :
+          this.data.owner + '/' + this.data.repo;
       },
 
       _dpr: function(value) {
