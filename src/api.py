@@ -146,6 +146,11 @@ class LibraryMetadata(object):
         result['npmFullPackage'] = parts[1]
       result['npmPackage'] = parts[1]
 
+      if library.migrated_from_bower:
+        result['migratedFromBower'] = True
+    elif library.npm_package:
+      result['migratedToNpm'] = library.npm_package
+
     result['apiKey'] = key
     result['kind'] = library.kind
     result['status'] = library.status

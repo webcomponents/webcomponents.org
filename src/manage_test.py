@@ -34,7 +34,7 @@ class XsrfTest(ManageTestBase):
     self.app.get('/task/update/owner/repo', status=403)
     self.app.get('/task/ensure/owner', status=403)
     self.app.get('/task/ensure/owner/repo', status=403)
-    self.app.get('/task/migrate/owner/repo', status=403)
+    self.app.get('/task/migrate/owner/repo/scope/package', status=403)
     self.app.get('/task/delete/owner/repo/version', status=403)
     self.app.get('/task/ingest/owner', status=403)
     self.app.get('/task/ingest/owner/repo', status=403)
@@ -169,19 +169,19 @@ class MigrateLibraryTest(ManageTestBase):
     library_key = Library(id='owner/repo').put()
     Version(id='v1.0.0', parent=library_key, sha='sha', status=Status.ready).put()
     library = Library.get_by_id('owner/repo')
-    self.assertFalse(library.migrated_to_npm)
+    self.assertIsNone(library.npm_package)
 
-    response = self.app.get('/task/migrate/owner/repo', headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get('/task/migrate/owner/repo/@scope/package', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
     library = Library.get_by_id('owner/repo')
-    self.assertTrue(library.migrated_to_npm)
+    self.assertEqual(library.npm_package, '@scope/package')
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual(len(tasks), 0)
 
   def test_migrate_no_library(self):
-    response = self.app.get('/task/migrate/noowner/norepo', headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get('/task/migrate/noowner/norepo/@scope/package', headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
 class DeleteLibraryTest(ManageTestBase):
@@ -853,7 +853,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('@scope', 'package', '1.0.0'),
-        util.migrate_library_task('org', 'repo'),
+        util.migrate_library_task('org', 'repo', '@scope', 'package'),
         util.ensure_author_task('org'),
         util.ingest_version_task('@scope', 'package', '1.0.0'),
     ], [task.url for task in tasks])
@@ -893,7 +893,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('@@npm', 'package', '1.0.0'),
-        util.migrate_library_task('org', 'repo'),
+        util.migrate_library_task('org', 'repo', '@@npm', 'package'),
         util.ensure_author_task('org'),
         util.ingest_version_task('@@npm', 'package', '1.0.0'),
     ], [task.url for task in tasks])
@@ -926,15 +926,15 @@ class IngestNPMLibraryTest(ManageTestBase):
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([
         util.ingest_analysis_task('@scope', 'package', '1.0.0'),
-        util.migrate_library_task('org', 'repo'),
+        util.migrate_library_task('org', 'repo', '@scope', 'package'),
         util.ensure_author_task('org'),
         util.ingest_version_task('@scope', 'package', '1.0.0'),
     ], [task.url for task in tasks])
 
-    response = self.app.get(util.migrate_library_task('org', 'repo'), headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.migrate_library_task('org', 'repo', '@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
     library = Library.get_by_id('org/repo')
-    self.assertTrue(library.migrated_to_npm)
+    self.assertTrue(library.npm_package, '@scope/package')
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):

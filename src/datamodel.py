@@ -72,7 +72,7 @@ class Library(ndb.Model):
   error = ndb.StringProperty(indexed=False)
   updated = ndb.DateTimeProperty(auto_now=True)
 
-  migrated_to_npm = ndb.BooleanProperty(indexed=False, default=False)
+  npm_package = ndb.StringProperty(indexed=False)
   migrated_from_bower = ndb.BooleanProperty(indexed=False, default=False)
 
   @staticmethod
