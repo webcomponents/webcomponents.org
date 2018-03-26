@@ -78,8 +78,8 @@ def ingest_analysis_task(owner, repo, version, sha=None):
     return '/task/analyze/%s/%s/%s/%s' % (owner, repo, version, sha)
   return '/task/analyze/%s/%s/%s' % (owner, repo, version)
 
-def suppress_library_task(owner, repo):
-  return '/task/suppress/%s/%s' % (owner, repo)
+def migrate_library_task(owner, repo, scope, package):
+  return '/task/migrate/%s/%s/%s/%s' % (owner, repo, scope, package)
 
 def delete_version_task(owner, repo, version):
   return '/task/delete/%s/%s/%s' % (owner, repo, version)

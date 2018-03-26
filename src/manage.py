@@ -275,9 +275,11 @@ class LibraryTask(RequestHandler):
       # If adding a NPM package that a Bower repo already points to, remove the bower one.
       bower_library_id = Library.id(self.owner, self.repo)
       if is_npm_package and bower_library_id is not None:
-        logging.info('removing bower repo %s', Library.id(self.owner, self.repo))
-        task_url = util.suppress_library_task(self.owner, self.repo)
+        logging.info('migrating bower repo %s', Library.id(self.owner, self.repo))
+        task_url = util.migrate_library_task(self.owner, self.repo, self.scope, self.package)
         util.new_task(task_url, target='manage')
+
+        self.library.migrated_from_bower = True
 
       self.library.github_owner = self.owner
       self.library.github_repo = self.repo
@@ -834,6 +836,9 @@ class UpdateIndexes(RequestHandler):
     version_key = bower_key.parent()
     library = version_key.parent().get()
 
+    if library.npm_package is not None:
+      return
+
     self.update_search_index(owner, repo, version_key, library, bower)
 
     if library.kind == 'collection':
@@ -1113,12 +1118,16 @@ class GithubStatus(RequestHandler):
     for key, value in util.github_rate_limit().items():
       self.response.write('%s: %s<br>' % (key, value))
 
-class SuppressLibrary(RequestHandler):
-  def handle_get(self, scope, package):
-    library = Library.get_by_id(Library.id(scope, package))
+class MigrateLibrary(RequestHandler):
+  def handle_get(self, owner, repo, scope, package):
+    library = Library.get_by_id(Library.id(owner, repo))
     if library is not None:
-      library.status = Status.suppressed
+      library.npm_package = scope + '/' + package
       library.put()
+
+      # Remove from search indexes.
+      index = search.Index('repo')
+      index.delete(Library.id(owner, repo))
 
 class DeleteLibrary(RequestHandler):
   def handle_get(self, scope, package):
@@ -1174,7 +1183,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/task/update/<name>', handler=UpdateAuthor),
     webapp2.Route(r'/task/update/<owner>/<repo>', handler=UpdateLibrary),
     webapp2.Route(r'/task/update-indexes/<owner>/<repo>', handler=UpdateIndexes),
-    webapp2.Route(r'/task/suppress/<scope>/<package>', handler=SuppressLibrary),
+    webapp2.Route(r'/task/migrate/<owner>/<repo>/<scope>/<package>', handler=MigrateLibrary),
     webapp2.Route(r'/task/delete/<scope>/<package>/<version>', handler=DeleteVersion),
     webapp2.Route(r'/task/ingest/<name>', handler=IngestAuthor),
     webapp2.Route(r'/task/ingest/<scope>/<package>', handler=IngestLibrary),
