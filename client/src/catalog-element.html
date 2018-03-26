@@ -334,6 +334,16 @@
           font-weight: 600;
         };
       }
+
+      .migration-warning {
+        padding: 12px 16px;
+        background: var(--hue-5-2, red);
+        color: white;
+        border-radius: 3px;
+        font-weight: bold;
+        margin: 6 0;
+        display: block;
+      }
     </style>
 
     <app-location route="{{routeLocation}}"></app-location>
@@ -401,6 +411,12 @@
               </svg>
               <div><div>Star on GitHub</div></div>
             </a>
+            <template is="dom-if" if="[[data.migratedFromBower]]">
+              <a id="github-view-button" href="/element/[[data.owner]]/[[data.repo]]?bower">
+                <svg viewBox="0 0 100 100"><use xlink:href="/sprite.octicons.svg#bower"></use></svg>
+                <div>View Bower docs</div>
+              </a>
+            </template>
           </div>
 
           <div class="sidebar-nav box loader" role="navigation">
@@ -469,6 +485,11 @@
 
         <!-- Main content pane -->
         <div id="main-content" class="main-content">
+          <template is="dom-if" if="[[data.migratedToNpm]]">
+            <a class="migration-warning" href="/element/[[_packageName(data.migratedToNpm)]]">
+              Warning: You're viewing the Bower docs. This element has migrated to NPM.
+            </a>
+          </template>
           <div class="title desktop-only">
             <h1 class="page-title">[[_packageTitle]]</h1>
             <template is="dom-if" if="[[!_contains(data.versions, data.version)]]">
@@ -580,6 +601,10 @@
         if (scopePackage.indexOf('/') != -1 && scopePackage.indexOf('@') == -1)
           return packageName;
         return scopePackage;
+      },
+
+      _packageName: function(packageWithScope) {
+        return packageWithScope.replace('@@npm/', '');
       },
 
       _splitRoute: function() {
@@ -764,6 +789,11 @@
           return Object.keys(object || {}).map(function(title) {
             return {description: title, url: object[title]};
           });
+        }
+
+        if (this.queryParams.bower === undefined && this.data.migratedToNpm) {
+          window.location.href = '/element/' + this.data.migratedToNpm;
+          return;
         }
 
         if (this.data.status == 'pending') {
