@@ -916,6 +916,7 @@ class IngestNPMLibraryTest(ManageTestBase):
     self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['1.0.0'])
+    self.assertTrue(library.migrated_from_bower)
 
     version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
     self.assertIsNotNone(version)

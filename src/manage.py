@@ -279,6 +279,8 @@ class LibraryTask(RequestHandler):
         task_url = util.migrate_library_task(self.owner, self.repo)
         util.new_task(task_url, target='manage')
 
+        self.library.migrated_from_bower = True
+
       self.library.github_owner = self.owner
       self.library.github_repo = self.repo
 

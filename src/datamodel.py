@@ -73,6 +73,7 @@ class Library(ndb.Model):
   updated = ndb.DateTimeProperty(auto_now=True)
 
   migrated_to_npm = ndb.BooleanProperty(indexed=False, default=False)
+  migrated_from_bower = ndb.BooleanProperty(indexed=False, default=False)
 
   @staticmethod
   def id(owner, repo):
