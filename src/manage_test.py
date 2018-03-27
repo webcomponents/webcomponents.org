@@ -709,10 +709,13 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(bower.get_json(), {})
 
   def test_ingest_version_npm(self):
-    library_key = Library(id='@scope/package', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
+    library_key = Library(id='@scope/package',
+      github_owner='owner',
+      github_repo='repo',
+      metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
     Version(id='1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"versions": {"1.0.0": {"readme": "readme as markdown"}}}')
+    self.respond_to_github(r'https://api.github.com/repos/owner/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('readme as markdown'))
     self.respond_to_github('https://api.github.com/markdown', '<html>Converted readme</html>')
 
     response = self.app.get(util.ingest_version_task('@scope', 'package', '1.0.0'), headers={'X-AppEngine-QueueName': 'default'})

@@ -747,16 +747,20 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self, is_npm_package):
+    github_owner = self.owner
+    github_repo = self.repo
+
     if is_npm_package:
-      response = util.registry_get(self.owner, self.repo)
-    else:
-      response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
+      # Load parent library object to get the repo information
+      library = Library.get_by_id(Library.id(self.owner, self.repo))
+      github_owner = library.github_owner
+      github_repo = library.github_repo
+
+    print github_owner, github_repo
+    response = util.github_get('repos', github_owner, github_repo, 'readme', params={"ref": self.sha})
 
     if response.status_code == 200:
-      if is_npm_package:
-        readme = json.loads(response.content).get('versions').get(self.version).get('readme')
-      else:
-        readme = base64.b64decode(json.loads(response.content)['content'])
+      readme = base64.b64decode(json.loads(response.content)['content'])
 
       try:
         Content(parent=self.version_key, id='readme', content=readme,
