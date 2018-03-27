@@ -793,7 +793,7 @@
           });
         }
 
-        if (this.queryParams.bower === undefined && this.data.migratedToNpm) {
+        if ((!this.queryParams || this.queryParams.bower === undefined) && this.data.migratedToNpm) {
           window.location.href = '/element/' + this.data.migratedToNpm;
           return;
         }
