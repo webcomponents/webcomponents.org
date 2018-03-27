@@ -710,25 +710,25 @@ class IngestLibraryTest(ManageTestBase):
 
   def test_ingest_version_npm(self):
     library_key = Library(id='@scope/package', metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
-    Version(id='v1.0.0', parent=library_key, sha='sha').put()
+    Version(id='1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"readme": "readme as markdown"}')
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"versions": {"1.0.0": {"readme": "readme as markdown"}}}')
     self.respond_to_github('https://api.github.com/markdown', '<html>Converted readme</html>')
 
-    response = self.app.get(util.ingest_version_task('@scope', 'package', 'v1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
+    response = self.app.get(util.ingest_version_task('@scope', 'package', '1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
 
-    version = Version.get_by_id('v1.0.0', parent=library_key)
+    version = Version.get_by_id('1.0.0', parent=library_key)
     self.assertIsNone(version.error)
     self.assertEqual(version.status, Status.ready)
     self.assertFalse(version.preview)
 
     versions = Library.versions_for_key_async(library_key).get_result()
-    self.assertEqual(['v1.0.0'], versions)
+    self.assertEqual(['1.0.0'], versions)
 
-    readme = ndb.Key(Library, '@scope/package', Version, 'v1.0.0', Content, 'readme').get()
+    readme = ndb.Key(Library, '@scope/package', Version, '1.0.0', Content, 'readme').get()
     self.assertEqual(readme.content, 'readme as markdown')
-    readme_html = ndb.Key(Library, '@scope/package', Version, 'v1.0.0', Content, 'readme.html').get()
+    readme_html = ndb.Key(Library, '@scope/package', Version, '1.0.0', Content, 'readme.html').get()
     self.assertEqual(readme_html.content, '<html>Converted readme</html>')
 
   def test_ingest_preview(self):

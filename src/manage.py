@@ -754,7 +754,7 @@ class IngestVersion(RequestHandler):
 
     if response.status_code == 200:
       if is_npm_package:
-        readme = json.loads(response.content).get('readme')
+        readme = json.loads(response.content).get('versions').get(self.version).get('readme')
       else:
         readme = base64.b64decode(json.loads(response.content)['content'])
 
