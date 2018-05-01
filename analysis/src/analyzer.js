@@ -2,11 +2,8 @@
 
 const Ana = require('./ana_log');
 
-const {Analyzer, generateAnalysis, FsUrlLoader} = require('polymer-analyzer');
+const {Analyzer, generateAnalysis, FsUrlLoader, FsUrlResolver} = require('polymer-analyzer');
 const pathlib = require('path');
-// TODO: import it normally once its exported properly.
-// See https://github.com/Polymer/polymer-analyzer/issues/882.
-const {FsUrlResolver} = require('polymer-analyzer/lib/url-loader/fs-url-resolver.js');
 
 /**
  * Extends the FsUrlLoader to only read from the package directory, while
