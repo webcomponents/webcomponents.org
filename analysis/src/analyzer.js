@@ -2,17 +2,17 @@
 
 const Ana = require('./ana_log');
 
-const {Analyzer, generateAnalysis, FSUrlLoader} = require('polymer-analyzer');
+const {Analyzer, generateAnalysis, FsUrlLoader} = require('polymer-analyzer');
 const pathlib = require('path');
 // TODO: import it normally once its exported properly.
 // See https://github.com/Polymer/polymer-analyzer/issues/882.
 const {FsUrlResolver} = require('polymer-analyzer/lib/url-loader/fs-url-resolver.js');
 
 /**
- * Extends the FSUrlLoader to only read from the package directory, while
+ * Extends the FsUrlLoader to only read from the package directory, while
  * allowing reading of files in the parent of the package directory.
  */
-class UrlLoader extends FSUrlLoader {
+class UrlLoader extends FsUrlLoader {
   /**
    * @param root - package root
    */
@@ -26,7 +26,7 @@ class UrlLoader extends FSUrlLoader {
    * Only return files from within the package directory.
    */
   async readDirectory(pathFromRoot, deep) {
-    const files = await new FSUrlLoader(this.packageRoot).readDirectory(pathFromRoot, deep);
+    const files = await new FsUrlLoader(this.packageRoot).readDirectory(pathFromRoot, deep);
     const result = [];
 
     // Filter out minified files etc.
