@@ -61,6 +61,19 @@ class AnalyzerRunner {
       const rootUrl = await analyzer.urlResolver.resolve('');
       const isInPackage = feature => feature.sourceRange &&
         feature.sourceRange.file.startsWith(rootUrl);
+      // Filter out top level test/ and demo/ directories.
+      const isTest = (feature) => {
+        if (!feature.sourceRange) {
+          return false;
+        }
+        const relativePath = feature.sourceRange.file.substring(rootUrl.length);
+        if (relativePath.startsWith('test/') ||
+            relativePath.startsWith('tests/') ||
+            relativePath.startsWith('demo/')) {
+          return true;
+        }
+        return false;
+      };
 
       if (paths.length === 0) {
         analyzer.analyzePackage().then(analysis => {
@@ -73,6 +86,10 @@ class AnalyzerRunner {
 
           const shouldOutputFeature = (feature) => {
             if (!isInPackage(feature)) {
+              return false;
+            }
+
+            if (isTest(feature)) {
               return false;
             }
 
