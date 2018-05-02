@@ -933,6 +933,9 @@ class IngestAnalysis(RequestHandler):
     return False
 
   def handle_post(self):
+    # Ignore payloads larger than 5 MB.
+    if len(self.request.body) > 1048487 * 5:
+      return
     message_json = json.loads(urllib.unquote(self.request.body).rstrip('='))
     message = message_json['message']
     data = base64.b64decode(str(message['data']))
