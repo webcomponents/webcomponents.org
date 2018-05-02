@@ -61,11 +61,17 @@ class AnalyzerRunner {
       const rootUrl = await analyzer.urlResolver.resolve('');
       const isInPackage = feature => feature.sourceRange &&
         feature.sourceRange.file.startsWith(rootUrl);
-      // Filter out test files. This matches both `/test/abc.html` and
-      // `/my-test.html`.
-      const testRegex = /\btests?\b/;
-      const isTest = feature => feature.sourceRange &&
-        testRegex.test(feature.sourceRange.file);
+      // Filter out top level test/ and demo/ directories.
+      const isTest = (feature) => {
+        if (!feature.sourceRange) {
+          return false;
+        }
+        const relativePath = feature.sourceRange.file.substring(rootUrl.length);
+        if (relativePath.startsWith('test/') || relativePath.startsWith('demo/')) {
+          return true;
+        }
+        return false;
+      };
 
       if (paths.length === 0) {
         analyzer.analyzePackage().then(analysis => {

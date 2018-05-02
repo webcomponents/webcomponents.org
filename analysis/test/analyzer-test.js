@@ -111,4 +111,13 @@ describe('AnalyzerRunner', function() {
       expect(elementNames).to.deep.equal(['paper-button']);
     });
   });
+
+  it('ignores top level test directories', function() {
+    var analyzer = new AnalyzerRunner();
+    return analyzer.analyze(path.resolve(__dirname, 'resources/filtered-tests'), []).then(function(result) {
+      expect(result).to.exist;
+      expect(JSON.stringify(result)).to.exist;
+      expect(result.elements).to.be.undefined;
+    });
+  });
 });
