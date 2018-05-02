@@ -67,7 +67,9 @@ class AnalyzerRunner {
           return false;
         }
         const relativePath = feature.sourceRange.file.substring(rootUrl.length);
-        if (relativePath.startsWith('test/') || relativePath.startsWith('demo/')) {
+        if (relativePath.startsWith('test/') ||
+            relativePath.startsWith('tests/') ||
+            relativePath.startsWith('demo/')) {
           return true;
         }
         return false;
