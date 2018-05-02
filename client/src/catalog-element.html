@@ -888,6 +888,7 @@
       _updateDescriptor: function() {
         function _section(heading, pathPrefix, descriptorItems) {
           var sectionItems = [];
+          var pathSet = new Set();
           for (var i = 0; i < (descriptorItems || []).length; i++) {
             var item = descriptorItems[i];
             var name = item.tagname ? '<' + item.tagname + '>' : item.name;
@@ -907,6 +908,13 @@
                 description: demo.description || 'Demo'
               });
             }
+
+            // Descriptor object can have multiple instances of the same
+            // feature. This ensures it isn't duplicated.
+            if (pathSet.has(path)) {
+              continue;
+            }
+            pathSet.add(path);
 
             sectionItems.push({name: name, path: path, demos: demos});
           }
