@@ -24,7 +24,7 @@
   "scripts": {
     "start": "node src/main.js --responseTopic analysis-responses",
     "test": "npm run test-mocha",
-    "test-mocha": "mocha -R spec ./test/*.js"
+    "test-mocha": "mocha -R spec ./mochaTests/*.js"
   },
   "devDependencies": {
     "chai": "^3.5.0",

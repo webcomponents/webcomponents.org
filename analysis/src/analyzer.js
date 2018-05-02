@@ -63,7 +63,7 @@ class AnalyzerRunner {
         feature.sourceRange.file.startsWith(rootUrl);
       // Filter out test files. This matches both `/test/abc.html` and
       // `/my-test.html`.
-      const testRegex = /\btest\b/;
+      const testRegex = /\btests?\b/;
       const isTest = feature => feature.sourceRange &&
         testRegex.test(feature.sourceRange.file);
 
