@@ -155,7 +155,7 @@
 
       _packagePath: function(data) {
         if (data.npmFullPackage)
-          return data.kind + '/' + data.npmFullPackage;
+          return [data.kind, data.npmFullPackage].join('/');
         return [data.kind, data.owner, data.repo].join('/');
       },
 
