@@ -861,6 +861,34 @@ class IngestNPMLibraryTest(ManageTestBase):
         util.ingest_version_task('@scope', 'package', '1.0.0'),
     ], [task.url for task in tasks])
 
+  def test_ingest_element_no_githead(self):
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {}}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@scope/package')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['1.0.0'])
+
+    version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
+    self.assertIsNotNone(version)
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, '')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('@scope', 'package', '1.0.0'),
+        util.migrate_library_task('org', 'repo', '@scope', 'package'),
+        util.ensure_author_task('org'),
+        util.ingest_version_task('@scope', 'package', '1.0.0'),
+    ], [task.url for task in tasks])
+
   def test_ingest_no_package(self):
     self.respond_to('https://registry.npmjs.org/nopackage', {'status': 404})
     response = self.app.get(util.ingest_library_task('@@npm', 'nopackage'), headers={'X-AppEngine-QueueName': 'default'})

@@ -491,7 +491,7 @@ class LibraryTask(RequestHandler):
     tags.sort(versiontag.compare)
     # Create a tag map of tag to sha
     tag_map = dict((tag, versions.get(tag).get('gitHead', '')) for tag in tags
-                   if versiontag.is_valid(tag) and versions.get(tag).get('gitHead'))
+                   if versiontag.is_valid(tag))
 
     if self.library.tags is None or self.library.tags != tags:
       self.library.library_dirty = True
