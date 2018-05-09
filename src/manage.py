@@ -754,7 +754,6 @@ class IngestVersion(RequestHandler):
       readme_path = registry_metadata.get('readmeFilename', 'README.md')
       response = util.unpkg_get(self.owner, self.repo, self.version, readme_path)
       readme = response.content
-      print readme
     else:
       # Load readme from GitHub endpoint.
       response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
@@ -767,7 +766,7 @@ class IngestVersion(RequestHandler):
         return self.retry('error fetching readme (%d)' % response.status_code)
 
     if readme is not None:
-      # Store the raw readme markdwon contents.
+      # Store the raw readme markdown.
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()
