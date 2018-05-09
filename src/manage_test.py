@@ -709,13 +709,19 @@ class IngestLibraryTest(ManageTestBase):
     self.assertEqual(bower.get_json(), {})
 
   def test_ingest_version_npm(self):
+    registry_metadata = """{
+      "description": "mydescription",
+      "keywords": ["my-keyword"],
+      "readmeFilename": "README"
+    }"""
     library_key = Library(id='@scope/package',
                           github_owner='owner',
                           github_repo='repo',
-                          metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}').put()
+                          metadata='{"full_name": "NSS Bob", "stargazers_count": 420, "subscribers_count": 419, "forks": 418, "updated_at": "2011-8-10T13:47:12Z"}',
+                          registry_metadata=registry_metadata).put()
     Version(id='1.0.0', parent=library_key, sha='sha').put()
 
-    self.respond_to_github(r'https://api.github.com/repos/owner/repo/readme\?ref=sha', '{"content":"%s"}' % b64encode('readme as markdown'))
+    self.respond_to_github('https://unpkg.com/@scope/package@1.0.0/README', 'readme as markdown')
     self.respond_to_github('https://api.github.com/markdown', '<html>Converted readme</html>')
 
     response = self.app.get(util.ingest_version_task('@scope', 'package', '1.0.0'), headers={'X-AppEngine-QueueName': 'default'})
@@ -852,6 +858,34 @@ class IngestNPMLibraryTest(ManageTestBase):
     self.assertIsNotNone(version)
     self.assertIsNone(version.error)
     self.assertEqual(version.sha, 'lol')
+
+    tasks = self.tasks.get_filtered_tasks()
+    self.assertEqual([
+        util.ingest_analysis_task('@scope', 'package', '1.0.0'),
+        util.migrate_library_task('org', 'repo', '@scope', 'package'),
+        util.ensure_author_task('org'),
+        util.ingest_version_task('@scope', 'package', '1.0.0'),
+    ], [task.url for task in tasks])
+
+  def test_ingest_element_no_githead(self):
+    self.respond_to('https://registry.npmjs.org/@scope%2fpackage', '{"repository": {"url": "git+https://github.com/org/repo.git"}, "license": "BSD-3-Clause", "versions": {"1.0.0": {}}}')
+    self.respond_to_github('https://api.github.com/repos/org/repo', '{"owner":{"login":"org"},"name":"repo"}')
+    self.respond_to_github('https://api.github.com/repos/org/repo/contributors', '["a"]')
+    self.respond_to_github('https://api.github.com/repos/org/repo/stats/participation', '{}')
+    response = self.app.get(util.ingest_library_task('@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
+
+    self.assertEqual(response.status_int, 200)
+    library = Library.get_by_id('@scope/package')
+    self.assertIsNotNone(library)
+    self.assertIsNone(library.error)
+    self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
+    self.assertEqual(library.contributors, '["a"]')
+    self.assertEqual(library.tags, ['1.0.0'])
+
+    version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
+    self.assertIsNotNone(version)
+    self.assertIsNone(version.error)
+    self.assertEqual(version.sha, '')
 
     tasks = self.tasks.get_filtered_tasks()
     self.assertEqual([

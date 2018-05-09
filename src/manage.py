@@ -491,7 +491,7 @@ class LibraryTask(RequestHandler):
     tags.sort(versiontag.compare)
     # Create a tag map of tag to sha
     tag_map = dict((tag, versions.get(tag).get('gitHead', '')) for tag in tags
-                   if versiontag.is_valid(tag) and versions.get(tag).get('gitHead'))
+                   if versiontag.is_valid(tag))
 
     if self.library.tags is None or self.library.tags != tags:
       self.library.library_dirty = True
@@ -747,32 +747,33 @@ class IngestVersion(RequestHandler):
     super(IngestVersion, self).error(error_string)
 
   def update_readme(self, is_npm_package):
-    github_owner = self.owner
-    github_repo = self.repo
-
     if is_npm_package:
-      # Load parent library object to get the repo information
+      # Load registry metadata to fetch readme path.
       library = Library.get_by_id(Library.id(self.owner, self.repo))
-      github_owner = library.github_owner
-      github_repo = library.github_repo
+      registry_metadata = json.loads(library.registry_metadata) if library.registry_metadata else None
+      readme_path = registry_metadata.get('readmeFilename', 'README.md')
+      response = util.unpkg_get(self.owner, self.repo, self.version, readme_path)
+      readme = response.content
+    else:
+      # Load readme from GitHub endpoint.
+      response = util.github_get('repos', self.owner, self.repo, 'readme', params={"ref": self.sha})
 
-    print github_owner, github_repo
-    response = util.github_get('repos', github_owner, github_repo, 'readme', params={"ref": self.sha})
+      if response.status_code == 200:
+        readme = base64.b64decode(json.loads(response.content)['content'])
+      elif response.status_code == 404:
+        readme = None
+      else:
+        return self.retry('error fetching readme (%d)' % response.status_code)
 
-    if response.status_code == 200:
-      readme = base64.b64decode(json.loads(response.content)['content'])
-
+    if readme is not None:
+      # Store the raw readme markdown.
       try:
         Content(parent=self.version_key, id='readme', content=readme,
                 status=Status.ready, etag=response.headers.get('ETag', None)).put()
       except db.BadValueError:
         return self.error("Could not store README.md as a utf-8 string", ErrorCodes.Version_utf)
-    elif response.status_code == 404:
-      readme = None
-    else:
-      return self.retry('error fetching readme (%d)' % response.status_code)
 
-    if readme is not None:
+      # Convert markdown to HTML and store the result.
       response = util.github_markdown(readme)
       if response.status_code == 200:
         Content(parent=self.version_key, id='readme.html', content=response.content,

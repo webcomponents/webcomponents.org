@@ -39,6 +39,13 @@ def registry_get(scope, package):
     url = 'https://registry.npmjs.org/%s%s%s' % (scope, '%2f', package)
   return urlfetch.fetch(url, headers=headers, validate_certificate=False)
 
+def unpkg_get(scope, package, version, path):
+  if scope == '@@npm':
+    url = 'https://unpkg.com/%s@%s/%s' % (package, version, path)
+  else:
+    url = 'https://unpkg.com/%s/%s@%s/%s' % (scope, package, version, path)
+  return urlfetch.fetch(url)
+
 def analyze_library_task(owner, repo, latest=False):
   return '/task/analyze/%s/%s/%s' % (owner, repo, latest)
 
