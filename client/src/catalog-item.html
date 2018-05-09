@@ -99,7 +99,7 @@
       <a id="container" href="/[[_packagePath(data)]][[_versionPath(data.version, data.default_version)]]">
         <img class="avatar" src="[[data.avatar_url]]&s=[[_dpr(40)]]"   title="[[data.owner]]">
         <div id="header">
-          <h2>[[data.repo]]</h2>
+          <h2>[[_packageTitle(data)]]</h2>
           <div id="description">[[data.description]]</div>
         </div>
         <div id="stats">
@@ -133,6 +133,10 @@
         if (data.npmFullPackage)
           return data.kind + '/' + data.npmFullPackage;
         return [data.kind, data.owner, data.repo].join('/');
+      },
+
+      _packageTitle: function(data) {
+        return data.npmPackage || data.repo;
       },
 
       _versionPath: function(version, latestVersion) {

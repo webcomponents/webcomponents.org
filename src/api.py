@@ -100,6 +100,8 @@ class LibraryMetadata(object):
       result['dependency_count'] = metadata['dependency_count']
     if 'npmFullPackage' in metadata:
       result['npmFullPackage'] = metadata['npmFullPackage']
+    if 'npmPackage' in metadata:
+      result['npmPackage'] = metadata['npmPackage']
 
     if not assume_latest:
       result['latest_version'] = metadata['latest_version']

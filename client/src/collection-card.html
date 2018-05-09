@@ -110,7 +110,7 @@
     <template is="dom-if" if="[[data]]">
       <div class="container" type$="[[data.kind]]">
         <a id="header" href="/[[_packagePath(data)]][[_versionPath(data.version, data.default_version)]]" aria-label$="[[data.owner]]/[[data.repo]] collection">
-          <h2>[[data.repo]]</h2>
+          <h2>[[_packageTitle(data)]]</h2>
           <div id="numElements">[[data.dependency_count]] item[[_s(data.dependency_count)]]</div>
           <div id="description">[[data.description]]</div>
         </a>
@@ -157,6 +157,10 @@
         if (data.npmFullPackage)
           return [data.kind, data.npmFullPackage].join('/');
         return [data.kind, data.owner, data.repo].join('/');
+      },
+
+      _packageTitle: function(data) {
+        return data.npmPackage || data.repo;
       },
 
       _computeColor: function(type, owner, repo) {
