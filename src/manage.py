@@ -751,8 +751,8 @@ class IngestVersion(RequestHandler):
       # Load registry metadata to fetch readme path.
       library = Library.get_by_id(Library.id(self.owner, self.repo))
       registry_metadata = json.loads(library.registry_metadata) if library.registry_metadata else None
-      readmePath = registry_metadata.get('readmeFilename', 'README.md')
-      response = util.unpkg_get(self.owner, self.repo, self.version, readmePath)
+      readme_path = registry_metadata.get('readmeFilename', 'README.md')
+      response = util.unpkg_get(self.owner, self.repo, self.version, readme_path)
       readme = response.content
       print readme
     else:
