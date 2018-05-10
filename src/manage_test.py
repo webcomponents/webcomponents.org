@@ -953,7 +953,6 @@ class IngestNPMLibraryTest(ManageTestBase):
     self.assertEqual(library.metadata, '{"owner":{"login":"org"},"name":"repo"}')
     self.assertEqual(library.contributors, '["a"]')
     self.assertEqual(library.tags, ['1.0.0'])
-    self.assertTrue(library.migrated_from_bower)
 
     version = ndb.Key(Library, '@scope/package', Version, '1.0.0').get()
     self.assertIsNotNone(version)
@@ -970,8 +969,9 @@ class IngestNPMLibraryTest(ManageTestBase):
 
     response = self.app.get(util.migrate_library_task('org', 'repo', '@scope', 'package'), headers={'X-AppEngine-QueueName': 'default'})
     self.assertEqual(response.status_int, 200)
-    library = Library.get_by_id('org/repo')
-    self.assertTrue(library.npm_package, '@scope/package')
+    bower_library = Library.get_by_id('org/repo')
+    self.assertTrue(bower_library.npm_package, '@scope/package')
+    self.assertTrue(library.migrated_from_bower)
 
 class UpdateIndexesTest(ManageTestBase):
   def test_update_indexes(self):

@@ -275,11 +275,8 @@ class LibraryTask(RequestHandler):
       # If adding a NPM package that a Bower repo already points to, remove the bower one.
       bower_library_id = Library.id(self.owner, self.repo)
       if is_npm_package and bower_library_id is not None:
-        logging.info('migrating bower repo %s', Library.id(self.owner, self.repo))
         task_url = util.migrate_library_task(self.owner, self.repo, self.scope, self.package)
         util.new_task(task_url, target='manage')
-
-        self.library.migrated_from_bower = True
 
       self.library.github_owner = self.owner
       self.library.github_repo = self.repo
@@ -1129,13 +1126,21 @@ class GithubStatus(RequestHandler):
 class MigrateLibrary(RequestHandler):
   def handle_get(self, owner, repo, scope, package):
     library = Library.get_by_id(Library.id(owner, repo))
-    if library is not None:
-      library.npm_package = scope + '/' + package
-      library.put()
 
-      # Remove from search indexes.
-      index = search.Index('repo')
-      index.delete(Library.id(owner, repo))
+    if library is None:
+      return
+
+    library.npm_package = scope + '/' + package
+    library.put()
+
+    # Remove from search indexes.
+    index = search.Index('repo')
+    index.delete(Library.id(owner, repo))
+
+    npm_library = Library.get_by_id(Library.id(scope, package))
+    if npm_library is not None:
+      npm_library.migrated_from_bower = True
+      npm_library.put()
 
 class DeleteLibrary(RequestHandler):
   def handle_get(self, scope, package):
