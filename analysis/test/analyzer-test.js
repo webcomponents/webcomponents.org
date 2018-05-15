@@ -12,7 +12,7 @@ describe('AnalyzerRunner', function() {
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.length.above(0);
     });
-  }).timeout(3000);
+  }).timeout(10000);
 
   it('works with Polymer 2.0 class syntax elements', function() {
     var analyzer = new AnalyzerRunner();
