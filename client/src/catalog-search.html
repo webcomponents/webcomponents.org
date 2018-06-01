@@ -11,7 +11,7 @@
     <h1 class="page-title">[[_title(query, pageTitle)]]</h1>
 
     <div id="header-main" class="main-content">
-      <catalog-list id="list" totalResults="{{totalResults}}" query="[[query]]" base-urls="[[baseUrls]]" loading="{{loading}}" disabled="[[!visible]]"></catalog-list>
+      <catalog-list id="list" query="[[query]]" base-urls="[[baseUrls]]" loading="{{loading}}" disabled="[[!visible]]" empty-message="No results"></catalog-list>
     </div>
 
   </template>
@@ -27,7 +27,6 @@
 
       properties: {
         query: String,
-        totalResults: Number,
         baseUrls: Object,
         route: Object,
         visible: {
@@ -42,10 +41,7 @@
       },
 
       _title: function(query, title) {
-        if (this.totalResults || title)
-          return title ? title : 'Results for "' + query + '"';
-
-        return 'No results for "' + query + '"';
+        return title ? title : 'Results for "' + query + '"';
       },
     });
   </script>
