@@ -129,8 +129,8 @@
         <h1>Before you publish</h1>
         <h2>Requirements</h2>
         <ul>
-          <li>Open source license - before others can use your element, your repository needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
-          <li>Tagged release - your repository must have a tagged release before it can be published.</li>
+          <li>Open source license - before others can use your element, your package needs an appropriate license. All licenses recognised by the <a href="https://opensource.org/licenses/alphabetical">Open Source Initative</a> are accepted.</li>
+          <li>Published on NPM - your package must already be published on NPM.</li>
           <li>README - please create a README.md for your repository. Here's a template you can use: <a href="https://gist.github.com/zenorocha/4526327">A template for Github READMEs (Markdown)</a>.</li>
         </ul>
 
@@ -183,10 +183,10 @@
         </ul>
 
         <h1>Ready to publish?</h1>
-        <p>Enter the GitHub repository or NPM package below. You can paste a GitHub repository link, a NPM package link, or enter the package name.</p>
+        <p>Enter the name of your NPM package below. You can paste a NPM package link or enter the package name.</p>
 
-        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="username/github-repo, @scope/npm-package or my-npm-package">
-        <div id="error" class="error-message" hidden>Invalid input - enter a Github repository</div>
+        <input id="repo-input" type="text" name="repo" value="[[_trim(path)]]" placeholder="my-npm-package or @scope/npm-package">
+        <div id="error" class="error-message" hidden>Invalid input - enter a valid NPM package</div>
         <re-captcha id="recaptcha" sitekey="6LcCRSgTAAAAAGhe5bUDS5lVHAPNN2cY7xo-Zk5f"></re-captcha>
         <button id="submit" on-click="onSubmit">
           <spinner-lite active></spinner-lite>
@@ -194,7 +194,7 @@
         </button>
         <h1>FAQ</h1>
         <h2>How will my published element render?</h2>
-        <p>You can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
+        <p>If you are publishing a Bower package, you can <a href="/preview">preview</a> how it’ll look when it’s published without actually publishing it.</p>
 
         <h2>How are resources loaded?</h2>
         <p>Your inline demo will be relative to the root of your repository, with bower dependencies as siblings to your repository.</p>
