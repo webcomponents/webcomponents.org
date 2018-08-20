@@ -200,17 +200,18 @@ class LibraryMetadata(object):
 
     if library.metadata is not None:
       metadata = json.loads(library.metadata)
-      result['description'] = metadata['description']
-      result['subscribers'] = metadata['subscribers_count']
-      result['stars'] = metadata['stargazers_count']
-      result['forks'] = metadata['forks']
-      result['open_issues'] = metadata['open_issues']
-      result['updated_at'] = metadata['updated_at']
+      result['description'] = metadata.get('description', '')
+      result['subscribers'] = metadata.get('subscribers_count', 0)
+      result['stars'] = metadata.get('stargazers_count', 0)
+      result['forks'] = metadata.get('forks', 0)
+      result['open_issues'] = metadata.get('open_issues', 0)
+      result['updated_at'] = metadata.get('updated_at', 0)
       result['owner'] = metadata['owner']['login']
-      result['avatar_url'] = metadata['owner']['avatar_url']
+      result['avatar_url'] = metadata['owner'].get('avatar_url', '')
       result['repo'] = metadata['name']
-      result['homepage'] = metadata['homepage']
-      result['default_branch'] = metadata['default_branch']
+      if re.match(r'https?', metadata.get('homepage', '')):
+        result['homepage'] = metadata['homepage']
+      result['default_branch'] = metadata.get('default_branch', 'master')
 
     if not brief:
       readme = yield readme_future
