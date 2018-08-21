@@ -209,7 +209,7 @@ class LibraryMetadata(object):
       result['owner'] = metadata['owner']['login']
       result['avatar_url'] = metadata['owner'].get('avatar_url', '')
       result['repo'] = metadata['name']
-      if re.match(r'https?', metadata.get('homepage', '')):
+      if metadata.get('homepage') and re.match(r'https?', metadata.get('homepage')):
         result['homepage'] = metadata['homepage']
       result['default_branch'] = metadata.get('default_branch', 'master')
 

@@ -232,5 +232,16 @@ class GetMetaTest(ApiTestBase):
     self.assertEqual(body.get('repo'), 'repo')
     self.assertIsNone(body.get('homepage'))
 
+  def test_null_homepage(self):
+    library_key = Library(id='owner/repo', status='ready', metadata='{"owner":{"login":"owner"},"name":"repo", "license": {"spdx_id": "MIT"}, "homepage": null}').put()
+    Version(id='v1.0.0', parent=library_key, sha='sha', status='ready').put()
+
+    response = self.app.get('/api/meta/owner/repo/v1.0.0')
+    self.assertEqual(response.status_int, 200)
+    body = json.loads(response.normal_body)
+    self.assertEqual(body.get('owner'), 'owner')
+    self.assertEqual(body.get('repo'), 'repo')
+    self.assertIsNone(body.get('homepage'))
+
 if __name__ == '__main__':
   unittest.main()
