@@ -2,47 +2,8 @@
 
 const Ana = require('./ana_log');
 
-const {Analyzer, generateAnalysis, FsUrlLoader, FsUrlResolver} = require('polymer-analyzer');
+const {Analyzer, generateAnalysis, FsUrlLoader, PackageUrlResolver} = require('polymer-analyzer');
 const pathlib = require('path');
-
-/**
- * Extends the FsUrlLoader to only read from the package directory, while
- * allowing reading of files in the parent of the package directory.
- */
-class UrlLoader extends FsUrlLoader {
-  /**
-   * @param root - package root
-   */
-  constructor(root) {
-    super(pathlib.join(root, '..'));
-
-    this.packageRoot = root;
-  }
-
-  /**
-   * Only return files from within the package directory.
-   */
-  async readDirectory(pathFromRoot, deep) {
-    const files = await new FsUrlLoader(this.packageRoot).readDirectory(pathFromRoot, deep);
-    const result = [];
-
-    // Filter out minified files etc.
-    for (const path of files) {
-      // eg. for file.min.js => file.js
-      const fileMatch = pathlib.basename(path).split('.');
-      if (fileMatch.length <= 2) {
-        result.push(path);
-        continue;
-      }
-
-      const strippedBaseName = fileMatch[0] + '.' + fileMatch[fileMatch.length - 1];
-      if (files.indexOf(pathlib.join(pathlib.dirname(path), strippedBaseName)) === -1) {
-        result.push(path);
-      }
-    }
-    return result;
-  }
-}
 
 class AnalyzerRunner {
   analyze(root, inputs) {
@@ -51,16 +12,22 @@ class AnalyzerRunner {
 
       var paths = inputs || [];
 
+      const isBower = paths.length > 0;
+
       const analyzer = new Analyzer({
-        urlLoader: new UrlLoader(root),
-        urlResolver: new FsUrlResolver(root),
+        urlLoader: new FsUrlLoader(root),
+        urlResolver: new PackageUrlResolver({
+          packageDir: root,
+          componentDir: isBower ? 'bower_components' : 'node_modules'
+        }),
+        moduleResolution: isBower ? undefined : 'node',
       });
 
       // Filter results for only what is in the requested package instead
       // of everything that was analyzed.
       const rootUrl = await analyzer.urlResolver.resolve('');
-      const isInPackage = feature => feature.sourceRange &&
-        feature.sourceRange.file.startsWith(rootUrl);
+      // const isInPackage = feature => feature.sourceRange &&
+      //   feature.sourceRange.file.startsWith(rootUrl);
       // Filter out top level test/ and demo/ directories.
       const isTest = (feature) => {
         if (!feature.sourceRange) {
@@ -85,9 +52,9 @@ class AnalyzerRunner {
           const uniquePaths = new Set(paths);
 
           const shouldOutputFeature = (feature) => {
-            if (!isInPackage(feature)) {
-              return false;
-            }
+            // if (!isInPackage(feature)) {
+            //   return false;
+            // }
 
             if (isTest(feature)) {
               return false;
@@ -114,7 +81,7 @@ class AnalyzerRunner {
         });
       } else {
         analyzer.analyze(paths).then(function(analysis) {
-          resolve(generateAnalysis(analysis, analyzer.urlResolver, isInPackage));
+          resolve(generateAnalysis(analysis, analyzer.urlResolver));
         }).catch(function(error) {
           Ana.fail('analyzer/analyze', paths, error);
           reject({retry: true, error: error});

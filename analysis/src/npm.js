@@ -16,9 +16,6 @@ var nodeBin = process.env.npm_node_execpath || process.env.NODE || process.execP
  */
 class NPM {
   constructor() {
-    // Create a safe environment for us to install so dependencies of this app
-    // aren't affected by new packages.
-    fs.ensureDirSync('installed');
     npm.load();
   }
 
@@ -60,10 +57,10 @@ class NPM {
   prune() {
     return new Promise(async (resolve, reject) => {
       Ana.log("npm/prune");
-      await fs.writeJson('installed/package.json', {});
       try {
-        await fs.remove('installed/node_modules');
-        await fs.remove('installed/module_copy');
+        // Empty contents, ensure directory exists.
+        await fs.emptyDir('installed');
+        await fs.writeJson('installed/package.json', {});
         Ana.success("npm/prune");
         resolve();
       } catch (err) {
@@ -93,17 +90,8 @@ class NPM {
           reject({retry: false, error: code});
         }
 
-        // Duplicate node_modules folder.
-        fs.move(path.resolve('installed/node_modules'), path.resolve('installed/modules_copy'), {overwrite: true}, function(err) {
-          if (err) {
-            Ana.fail('npm/install', packageToInstall);
-            reject({retry: true, error: err});
-            return;
-          }
-
-          const scopePath = scope == '@@npm' ? '' : scope + '/';
-          resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
-        });
+        const scopePath = scope == '@@npm' ? '' : scope + '/';
+        resolve(path.resolve('installed/node_modules/' + scopePath + packageName));
       }).catch(error => {
         Ana.fail('npm/install', packageToInstall);
         reject({retry: true, error: error});

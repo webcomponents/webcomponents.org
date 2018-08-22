@@ -3,6 +3,7 @@
 const bower = require('bower');
 const childProcess = require('child_process');
 const url = require('url');
+const fs = require('fs-extra');
 
 const Ana = require('./ana_log');
 
@@ -24,19 +25,9 @@ class Bower {
   * (usually stored in ~/.cache/bower).
   * @return {Promise} A promise handling the prune operation.
   */
-  prune() {
-    return new Promise((resolve, reject) => {
-      Ana.log("bower/prune");
-      childProcess.exec("rm -rf bower_components", function(err) {
-        if (err) {
-          Ana.fail("bower/prune");
-          reject({retry: true, error: err});
-        } else {
-          Ana.success("bower/prune");
-          resolve();
-        }
-      });
-    });
+  async prune() {
+    Ana.log('bower/prune');
+    await fs.remove('sandbox');
   }
 
   /**
@@ -52,7 +43,7 @@ class Bower {
     var packageToInstall = packageWithOwner + "#" + versionOrSha;
     Ana.log("bower/install", packageToInstall);
     return new Promise((resolve, reject) => {
-      bower.commands.install([packageToInstall], {}, {force: false}).on('end', function(installed) {
+      bower.commands.install([packageToInstall], {}, {force: false, directory: 'sandbox/bower_components'}).on('end', function(installed) {
         Ana.success("bower/install", packageToInstall);
         for (let bowerPackage in installed) {
           if (installed[bowerPackage].endpoint.source.toLowerCase() != packageWithOwner.toLowerCase()) {

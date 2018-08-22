@@ -1,7 +1,8 @@
 'use strict';
 
 const Ana = require('./ana_log');
-const fs = require('fs');
+const fs = require('fs-extra');
+const path = require('path');
 
 /**
  * Encapsulates the processing of each task.
@@ -48,15 +49,17 @@ class Analysis {
       var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
-      }).then(result => {
+      }).then(async (result) => {
         if (!fs.existsSync(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
           reject({retry: false, error: Error("Installed package not found")});
           return;
         }
 
+        const newRoot = await promoteDirectoryContents(result.root);
+
         return Promise.all([
-          this.analyzer.analyze(result.root, result.mainHtmls),
+          this.analyzer.analyze(newRoot, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = {};
@@ -84,11 +87,11 @@ class Analysis {
 
       this.npm.prune().then(() => {
         return this.npm.install(attributes.owner, attributes.repo, attributes.version);
-      }).then(root => {
+      }).then(async(root) => {
+        const newRoot = await promoteDirectoryContents(root);
+
         return Promise.all([
-          // Replace analyzer root because we can't have node_modules in the path.
-          // See https://github.com/Polymer/polymer-analyzer/issues/882 for the analyzer bug.
-          this.analyzer.analyze(root.replace('node_modules', 'modules_copy')),
+          this.analyzer.analyze(newRoot),
           this.npm.findDependencies(attributes.owner, attributes.repo)]);
       }).then(results => {
         var data = {};
@@ -107,3 +110,18 @@ class Analysis {
 }
 
 module.exports = Analysis;
+
+/**
+ * Promotes the contents of the specified directory to the grandparent directory.
+ * For example, /sandbox/bower_components/element/file will be moved to /sandbox/file.
+ */
+async function promoteDirectoryContents(dir) {
+  const parent = path.dirname(path.dirname(dir));
+  const files = await fs.readdir(dir);
+
+  for (const file of files) {
+    await fs.move(path.join(dir, file), path.join(parent, file));
+  }
+
+  return parent;
+}

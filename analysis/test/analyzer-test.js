@@ -75,9 +75,9 @@ describe('AnalyzerRunner', function() {
     });
   });
 
-  it('analyzes siblings but does not include them - bower style', function() {
+  it('analyzes dependencies but does not include them - bower style', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), ['child-a.html']).then(function(result) {
+    return analyzer.analyze(path.resolve(__dirname, 'resources/dep-with-bower'), ['child-a.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
@@ -88,9 +88,9 @@ describe('AnalyzerRunner', function() {
     });
   });
 
-  it('analyzes siblings but does not include them - npm style', function() {
+  it('analyzes dependencies but does not include them - npm style', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), []).then(function(result) {
+    return analyzer.analyze(path.resolve(__dirname, 'resources/dep-with-npm'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
