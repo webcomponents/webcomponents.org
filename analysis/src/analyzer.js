@@ -26,8 +26,6 @@ class AnalyzerRunner {
       // Filter results for only what is in the requested package instead
       // of everything that was analyzed.
       const rootUrl = await analyzer.urlResolver.resolve('');
-      // const isInPackage = feature => feature.sourceRange &&
-      //   feature.sourceRange.file.startsWith(rootUrl);
       // Filter out top level test/ and demo/ directories.
       const isTest = (feature) => {
         if (!feature.sourceRange) {
@@ -52,10 +50,6 @@ class AnalyzerRunner {
           const uniquePaths = new Set(paths);
 
           const shouldOutputFeature = (feature) => {
-            // if (!isInPackage(feature)) {
-            //   return false;
-            // }
-
             if (isTest(feature)) {
               return false;
             }

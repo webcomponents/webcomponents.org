@@ -56,10 +56,11 @@ class Analysis {
           return;
         }
 
-        const newRoot = await promoteDirectoryContents(result.root);
-
+        // Move /bower_components/element/* to /bower_components/*.
+        const grandparent = path.dirname(path.dirname(result.root));
+        await hoistPackageContents(result.root, grandparent);
         return Promise.all([
-          this.analyzer.analyze(newRoot, result.mainHtmls),
+          this.analyzer.analyze(grandparent, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = {};
@@ -88,7 +89,16 @@ class Analysis {
       this.npm.prune().then(() => {
         return this.npm.install(attributes.owner, attributes.repo, attributes.version);
       }).then(async(root) => {
-        const newRoot = await promoteDirectoryContents(root);
+        let newRoot = root;
+        // Find the node_modules folder. This may be nested since it could be a
+        // scoped package.
+        while (path.basename(newRoot) !== 'node_modules') {
+          newRoot = path.dirname(newRoot);
+        }
+        // Move up to parent of node_modules.
+        newRoot = path.dirname(newRoot);
+        // Move /node_modules/element/* to /node_modules/*.
+        await hoistPackageContents(root, newRoot);
 
         return Promise.all([
           this.analyzer.analyze(newRoot),
@@ -112,16 +122,17 @@ class Analysis {
 module.exports = Analysis;
 
 /**
- * Promotes the contents of the specified directory to the grandparent directory.
- * For example, /sandbox/bower_components/element/file will be moved to /sandbox/file.
+ * Hoists the contents of the specified directory to the specified parent
+ * directory.
  */
-async function promoteDirectoryContents(dir) {
-  const parent = path.dirname(path.dirname(dir));
+async function hoistPackageContents(dir, newDir) {
   const files = await fs.readdir(dir);
 
   for (const file of files) {
-    await fs.move(path.join(dir, file), path.join(parent, file));
+    // Don't copy over the package.json, since we need to maintain the existing
+    // one from installing the package.
+    if (file !== 'package.json') {
+      await fs.move(path.join(dir, file), path.join(newDir, file));
+    }
   }
-
-  return parent;
 }
