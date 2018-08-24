@@ -50,7 +50,7 @@ class Analysis {
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
       }).then(async (result) => {
-        if (!await fs.exsists(result.root)) {
+        if (!await fs.exists(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
           reject({retry: false, error: Error("Installed package not found")});
           return;
