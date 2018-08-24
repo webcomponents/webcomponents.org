@@ -50,17 +50,18 @@ class Analysis {
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
       }).then(async (result) => {
-        if (!fs.existsSync(result.root)) {
+        if (!await fs.exsists(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
           reject({retry: false, error: Error("Installed package not found")});
           return;
         }
 
-        // Move /bower_components/element/* to /bower_components/*.
+        // Move /bower_components/element/* to /*. It is simpler to analyze a
+        // package in the root with all the dependencies in bower_components.
         const grandparent = path.dirname(path.dirname(result.root));
         await hoistPackageContents(result.root, grandparent);
-        return Promise.all([
-          this.analyzer.analyze(grandparent, result.mainHtmls),
+        return await Promise.all([
+          this.analyzer.analyze(true, grandparent, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = {};
@@ -88,20 +89,22 @@ class Analysis {
 
       this.npm.prune().then(() => {
         return this.npm.install(attributes.owner, attributes.repo, attributes.version);
-      }).then(async(root) => {
-        let newRoot = root;
+      }).then(async(packagePath) => {
+        // packagePath is the location of the installed package.
+        // eg. /node_modules/@scoped/package or /node_modules/package
+        let root = packagePath;
         // Find the node_modules folder. This may be nested since it could be a
         // scoped package.
-        while (path.basename(newRoot) !== 'node_modules') {
-          newRoot = path.dirname(newRoot);
+        while (path.basename(root) !== 'node_modules') {
+          root = path.dirname(root);
         }
         // Move up to parent of node_modules.
-        newRoot = path.dirname(newRoot);
-        // Move /node_modules/element/* to /node_modules/*.
-        await hoistPackageContents(root, newRoot);
+        root = path.dirname(root);
+        // Move /node_modules/element/* to /*.
+        await hoistPackageContents(packagePath, root);
 
-        return Promise.all([
-          this.analyzer.analyze(newRoot),
+        return await Promise.all([
+          this.analyzer.analyze(false, root),
           this.npm.findDependencies(attributes.owner, attributes.repo)]);
       }).then(results => {
         var data = {};

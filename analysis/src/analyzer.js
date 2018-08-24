@@ -6,21 +6,19 @@ const {Analyzer, generateAnalysis, FsUrlLoader, PackageUrlResolver} = require('p
 const pathlib = require('path');
 
 class AnalyzerRunner {
-  analyze(root, inputs) {
+  analyze(isBowerPackage, root, inputs) {
     return new Promise(async (resolve, reject) => {
       Ana.log('analyzer/analyze', inputs);
 
       var paths = inputs || [];
 
-      const isBower = paths.length > 0;
-
       const analyzer = new Analyzer({
         urlLoader: new FsUrlLoader(root),
         urlResolver: new PackageUrlResolver({
           packageDir: root,
-          componentDir: isBower ? 'bower_components' : 'node_modules'
+          componentDir: isBowerPackage ? 'bower_components' : 'node_modules'
         }),
-        moduleResolution: isBower ? undefined : 'node',
+        moduleResolution: isBowerPackage ? undefined : 'node',
       });
 
       // Filter results for only what is in the requested package instead
