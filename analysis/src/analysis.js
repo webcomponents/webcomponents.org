@@ -1,7 +1,8 @@
 'use strict';
 
 const Ana = require('./ana_log');
-const fs = require('fs');
+const fs = require('fs-extra');
+const path = require('path');
 
 /**
  * Encapsulates the processing of each task.
@@ -48,15 +49,19 @@ class Analysis {
       var versionOrSha = attributes.sha ? attributes.sha : attributes.version;
       this.bower.prune().then(() => {
         return this.bower.install(attributes.owner, attributes.repo, versionOrSha);
-      }).then(result => {
-        if (!fs.existsSync(result.root)) {
+      }).then(async (result) => {
+        if (!await fs.exists(result.root)) {
           Ana.fail("analysis/processNextTask", taskAsString, "Installed package not found");
           reject({retry: false, error: Error("Installed package not found")});
           return;
         }
 
-        return Promise.all([
-          this.analyzer.analyze(result.root, result.mainHtmls),
+        // Move /bower_components/element/* to /*. It is simpler to analyze a
+        // package in the root with all the dependencies in bower_components.
+        const grandparent = path.dirname(path.dirname(result.root));
+        await hoistPackageContents(result.root, grandparent);
+        return await Promise.all([
+          this.analyzer.analyze(true, grandparent, result.mainHtmls),
           this.bower.findDependencies(attributes.owner, attributes.repo, versionOrSha)]);
       }).then(results => {
         var data = {};
@@ -84,11 +89,22 @@ class Analysis {
 
       this.npm.prune().then(() => {
         return this.npm.install(attributes.owner, attributes.repo, attributes.version);
-      }).then(root => {
-        return Promise.all([
-          // Replace analyzer root because we can't have node_modules in the path.
-          // See https://github.com/Polymer/polymer-analyzer/issues/882 for the analyzer bug.
-          this.analyzer.analyze(root.replace('node_modules', 'modules_copy')),
+      }).then(async(packagePath) => {
+        // packagePath is the location of the installed package.
+        // eg. /node_modules/@scoped/package or /node_modules/package
+        let root = packagePath;
+        // Find the node_modules folder. This may be nested since it could be a
+        // scoped package.
+        while (path.basename(root) !== 'node_modules') {
+          root = path.dirname(root);
+        }
+        // Move up to parent of node_modules.
+        root = path.dirname(root);
+        // Move /node_modules/element/* to /*.
+        await hoistPackageContents(packagePath, root);
+
+        return await Promise.all([
+          this.analyzer.analyze(false, root),
           this.npm.findDependencies(attributes.owner, attributes.repo)]);
       }).then(results => {
         var data = {};
@@ -107,3 +123,19 @@ class Analysis {
 }
 
 module.exports = Analysis;
+
+/**
+ * Hoists the contents of the specified directory to the specified parent
+ * directory.
+ */
+async function hoistPackageContents(dir, newDir) {
+  const files = await fs.readdir(dir);
+
+  for (const file of files) {
+    // Don't copy over the package.json, since we need to maintain the existing
+    // one from installing the package.
+    if (file !== 'package.json') {
+      await fs.move(path.join(dir, file), path.join(newDir, file));
+    }
+  }
+}

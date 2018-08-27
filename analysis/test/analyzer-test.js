@@ -7,7 +7,7 @@ var AnalyzerRunner = require('../src/analyzer');
 describe('AnalyzerRunner', function() {
   it('is sensible', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, '../../client/src'), ['catalog-app.html']).then(function(result) {
+    return analyzer.analyze(true, path.resolve(__dirname, '../../client/src'), ['catalog-app.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.length.above(0);
@@ -16,7 +16,7 @@ describe('AnalyzerRunner', function() {
 
   it('works with Polymer 2.0 class syntax elements', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), ['shop-image.html']).then(function(result) {
+    return analyzer.analyze(true, path.resolve(__dirname, 'resources/polymer2'), ['shop-image.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       const elementNames = result.elements.map((element) => element.tagname);
@@ -28,7 +28,7 @@ describe('AnalyzerRunner', function() {
 
   it('ignores unknown files', function(done) {
     var analyzer = new AnalyzerRunner();
-    analyzer.analyze(path.resolve(__dirname, 'resources'), ['does-not-exist.not-found']).then(function(result) {
+    analyzer.analyze(true, path.resolve(__dirname, 'resources'), ['does-not-exist.not-found']).then(function(result) {
       // Doesn't throw anymore
       expect(result).to.exist;
       done();
@@ -37,7 +37,7 @@ describe('AnalyzerRunner', function() {
 
   it('includes imported files but not external packages', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/meta-repo'), ['import-more.html']).then(function(result) {
+    return analyzer.analyze(true, path.resolve(__dirname, 'resources/meta-repo'), ['import-more.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.have.lengthOf(3);
@@ -52,7 +52,7 @@ describe('AnalyzerRunner', function() {
 
   it('includes demos with descriptions', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources'), ['element-with-demo.html']).then(function(result) {
+    return analyzer.analyze(true, path.resolve(__dirname, 'resources'), ['element-with-demo.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       const elementNames = result.elements.map((element) => element.tagname);
@@ -65,7 +65,7 @@ describe('AnalyzerRunner', function() {
 
   it('works without specifying any input files', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/polymer2'), []).then(function(result) {
+    return analyzer.analyze(false, path.resolve(__dirname, 'resources/polymer2'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       const elementNames = result.elements.map((element) => element.tagname);
@@ -75,9 +75,9 @@ describe('AnalyzerRunner', function() {
     });
   });
 
-  it('analyzes siblings but does not include them - bower style', function() {
+  it('analyzes dependencies but does not include them - bower style', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), ['child-a.html']).then(function(result) {
+    return analyzer.analyze(true, path.resolve(__dirname, 'resources/dep-with-bower'), ['child-a.html']).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
@@ -88,9 +88,9 @@ describe('AnalyzerRunner', function() {
     });
   });
 
-  it('analyzes siblings but does not include them - npm style', function() {
+  it('analyzes dependencies but does not include them - npm style', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/sibling-repos/child-a'), []).then(function(result) {
+    return analyzer.analyze(false, path.resolve(__dirname, 'resources/dep-with-npm'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       // Expect only include element in package & not imported elements.
@@ -104,7 +104,7 @@ describe('AnalyzerRunner', function() {
 
   it('ignores minified build files', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/minified'), []).then(function(result) {
+    return analyzer.analyze(false, path.resolve(__dirname, 'resources/minified'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       const elementNames = result.elements.map((element) => element.tagname);
@@ -114,7 +114,7 @@ describe('AnalyzerRunner', function() {
 
   it('ignores top level test directories', function() {
     var analyzer = new AnalyzerRunner();
-    return analyzer.analyze(path.resolve(__dirname, 'resources/filtered-tests'), []).then(function(result) {
+    return analyzer.analyze(false, path.resolve(__dirname, 'resources/filtered-tests'), []).then(function(result) {
       expect(result).to.exist;
       expect(JSON.stringify(result)).to.exist;
       expect(result.elements).to.be.undefined;
