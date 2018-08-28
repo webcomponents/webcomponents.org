@@ -1,0 +1,22 @@
+{
+  "name": "demo",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint --project . --format stylish",
+    "start": "node build/server.js",
+    "test": "ava -t --tap test.js | tap-dot"
+  },
+  "dependencies": {
+    "express": "^4.15.2",
+    "koa": "^2.5.2",
+    "koa-compress": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.0.46",
+    "@types/koa-compress": "^2.0.8",
+    "ava": "^0.19.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.0.1"
+  }
+}
