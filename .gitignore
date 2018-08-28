@@ -7,3 +7,4 @@ secrets.yaml
 client/build
 *.sublime-*
 client/src/iron-doc-*.html
+demo/build
