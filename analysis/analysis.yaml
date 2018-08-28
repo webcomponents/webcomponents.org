@@ -2,6 +2,9 @@ service: analysis
 runtime: nodejs
 env: flex
 threadsafe: false
+resources:
+  cpu: 2
+  memory_gb: 7
 handlers:
 - url: /task/analyze/.*
   script: IGNORED
