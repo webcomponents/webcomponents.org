@@ -11,7 +11,8 @@ const Ana = require('./ana_log');
 // Don't retry ECMDERR ("Fatal: reference is not a tree:...")
 // Don't retry EMALFORMED ("Unexpected token } in JSON at position:...")
 // Don't retry EINVALID ("Failed to read bower.json")
-const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET', 'EMALFORMED', 'ENOTFOUND', 'EINVALID'];
+// Don't retry ENOENT ("No such file or directory")
+const fatalErrorCodes = ['ECMDERR', 'ECONFLICT', 'ENORESTARGET', 'EMALFORMED', 'ENOTFOUND', 'EINVALID', 'ENOENT'];
 
 /**
  * Service for communicating with Bower on the local machine.
