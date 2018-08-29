@@ -1,4 +1,5 @@
 import Koa from 'koa';
+
 import koaCompress from 'koa-compress';
 
 export class RawService {

@@ -1,4 +1,11 @@
+import babelGenerate from '@babel/generator';
+import * as babelParser from '@babel/parser';
+// import * as parse5 from 'parse5';
+// import * as htmlparser2Adapter from 'parse5-htmlparser2-tree-adapter';
+import RewritingStream from 'parse5-html-rewriting-stream';
 import semver from 'semver';
+import {Readable} from 'stream';
+import url from 'url';
 
 type PackageJson = {
   dependencies?: {[key: string]: string},
@@ -30,7 +37,115 @@ export function semverForPackage(
   return null;
 }
 
+/**
+ * Checks if import declaration is a bare module specifier. Reference:
+ * https://html.spec.whatwg.org/multipage/webappapis.html#resolve-a-module-specifier
+ */
+function isBareModuleSpecifier(specifier: string) {
+  const parsedUrl = url.parse(specifier);
+  if ((parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') &&
+      parsedUrl.hostname) {
+    return false;
+  }
+
+  if (specifier.startsWith('/') || specifier.startsWith('./') ||
+      specifier.startsWith('../')) {
+    return false;
+  }
+
+  return true;
+}
+
+function parsePackageName(specifier: string) {
+  const split = specifier.split('/');
+
+  if (!split.length) {
+    return {
+      package: specifier,
+      path: '',
+    };
+  }
+
+  let packageName = split[0];
+  if (split.length > 1 && packageName.startsWith('@')) {
+    packageName += '/' + split[1];
+  }
+
+  return {
+    package: packageName,
+    path: specifier.slice(packageName.length),
+  };
+}
+
+function getSemver(packageJson: PackageJson, name: string) {
+  let semverRange = '';
+  if (packageJson.dependencies && packageJson.dependencies[name]) {
+    semverRange = packageJson.dependencies[name];
+  }
+  if (packageJson.devDependencies && packageJson.devDependencies[name]) {
+    semverRange = packageJson.devDependencies[name];
+  }
+
+  return semverRange && semver.validRange(semverRange) ? '@' + semverRange : '';
+}
+
+/**
+ * Synchronously rewrites JS to replace import declarations using bare module
+ * specifiers with equivalent unpkg URLs.
+ */
+export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
+  const jsAST = babelParser.parse(code, {sourceType: 'module'});
+  for (const node of jsAST.program.body) {
+    if (node.type === 'ImportDeclaration') {
+      if (isBareModuleSpecifier(node.source.value)) {
+        const result = parsePackageName(node.source.value);
+        node.source.value = `https://unpkg.com/${result.package}${
+            getSemver(packageJson, result.package)}${result.path}?module`;
+      }
+    }
+  }
+
+  const outputJs = babelGenerate(jsAST, {retainLines: true}, code);
+  return outputJs.code;
+}
+
 export function htmlRewrite(
-    html: string, _packageJson: PackageJson = {}): string {
+    html: string, packageJson: PackageJson = {}): string {
+  const rewriter = new RewritingStream();
+  let insideModuleScript = false;
+
+  rewriter.on('startTag', (startTag) => {
+    if (startTag.tagName === 'script') {
+      const attribute = startTag.attrs.find(({name}) => name === 'type');
+      if (attribute && attribute.value === 'module') {
+        insideModuleScript = true;
+      }
+    }
+  });
+
+  rewriter.on('endTag', (endTag) => {
+    if (insideModuleScript && endTag.tagName === 'script') {
+      insideModuleScript = false;
+    }
+  });
+
+  rewriter.on('text', (_, raw) => {
+    if (insideModuleScript) {
+      rewriter.emitRaw(jsRewrite(raw, packageJson));
+    }
+  });
+
+  // Create string readable stream.
+  // TODO: this should probably be streamed in.
+  const stream = new Readable();
+  stream._read = () => {};
+  stream.setEncoding('utf8');
+  stream.push(html);
+  stream.pipe(rewriter).pipe(process.stdout);
+
+  stream.on('data', (data) => {
+    console.log(data);
+  });
+
   return html;
 }
