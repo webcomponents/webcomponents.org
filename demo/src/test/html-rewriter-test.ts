@@ -1,5 +1,6 @@
 import {test} from 'ava';
 import * as fs from 'fs-extra';
+import getStream from 'get-stream';
 import * as path from 'path';
 
 import {htmlRewrite, jsRewrite} from '../html-rewriter';
@@ -39,12 +40,16 @@ test('does not touch absolute paths', (t) => {
 });
 
 test('rewrites long complex file', async (t) => {
-  const beforeBuffer = await fs.readFile(
+  const beforeStream = fs.createReadStream(
       path.join(__dirname, '../../src/test/goldens/paper-button-demo.html'));
-  const afterBuffer = await fs.readFile(path.join(
-      __dirname, '../../src/test/goldens/paper-button-demo-expected.html'));
+  beforeStream.setEncoding('utf8');
+  const expected = await fs.readFile(
+      path.join(
+          __dirname, '../../src/test/goldens/paper-button-demo-expected.html'),
+      'utf8');
 
-  t.is(htmlRewrite(beforeBuffer.toString()), afterBuffer.toString());
+  const actualStream = htmlRewrite(beforeStream);
+  t.is(await getStream(actualStream), expected);
 });
 
 test('rewrites import with version semver', (t) => {

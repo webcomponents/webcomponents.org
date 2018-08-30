@@ -18,13 +18,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <title>paper-button demo</title>
   <script src="https://unpkg.com/@webcomponents/webcomponentsjs@^2.0.0/webcomponents-loader.js"></script>
   <script type="module">
-    import 'https://unpkg.com/@polymer/iron-demo-helpers/demo-snippet.js?module';
-    import 'https://unpkg.com/@polymer/iron-demo-helpers/demo-pages-shared-styles.js?module';
-    import 'https://unpkg.com/@polymer/iron-icons/iron-icons.js?module';
-    import 'https://unpkg.com/@polymer/paper-styles/color.js?module';
-    import '../paper-button.js';
-    import { html } from 'https://unpkg.com/@polymer/polymer/lib/utils/html-tag.js?module';
-    const template = html`
+import "https://unpkg.com/@polymer/iron-demo-helpers/demo-snippet.js?module";
+import "https://unpkg.com/@polymer/iron-demo-helpers/demo-pages-shared-styles.js?module";
+import "https://unpkg.com/@polymer/iron-icons/iron-icons.js?module";
+import "https://unpkg.com/@polymer/paper-styles/color.js?module";
+import '../paper-button.js';
+import { html } from "https://unpkg.com/@polymer/polymer/lib/utils/html-tag.js?module";
+const template = html`
     <custom-style>
       <style include="demo-pages-shared-styles">
         .vertical-section-container {
@@ -36,19 +36,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       </style>
     </custom-style>`;
-    document.body.appendChild(template.content);
-  </script>
+document.body.appendChild(template.content);</script>
 </head>
 
-<body unresolved>
+<body unresolved="">
   <div class="vertical-section-container centered">
     <h3>Buttons can be flat, raised, toggleable, or disabled</h3>
     <demo-snippet class="centered-demo">
       <template>
         <paper-button>link</paper-button>
-        <paper-button raised>raised</paper-button>
-        <paper-button toggles raised>toggles</paper-button>
-        <paper-button disabled>disabled</paper-button>
+        <paper-button raised="">raised</paper-button>
+        <paper-button toggles="" raised="">toggles</paper-button>
+        <paper-button disabled="">disabled</paper-button>
       </template>
     </demo-snippet>
 
@@ -57,11 +56,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <template>
         <paper-button>
           <iron-icon icon="check"></iron-icon>link</paper-button>
-        <paper-button raised>
+        <paper-button raised="">
           <iron-icon icon="file-download"></iron-icon>raised</paper-button>
-        <paper-button toggles raised>
+        <paper-button toggles="" raised="">
           <iron-icon icon="favorite"></iron-icon>toggles</paper-button>
-        <paper-button disabled>
+        <paper-button disabled="">
           <iron-icon icon="block"></iron-icon>disabled</paper-button>
       </template>
     </demo-snippet>
@@ -70,10 +69,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <i>noink</i> attribute</h3>
     <demo-snippet class="centered-demo">
       <template>
-        <paper-button noink>link</paper-button>
-        <paper-button raised noink>raised</paper-button>
-        <paper-button toggles raised noink>toggles</paper-button>
-        <paper-button disabled raised noink>disabled</paper-button>
+        <paper-button noink="">link</paper-button>
+        <paper-button raised="" noink="">raised</paper-button>
+        <paper-button toggles="" raised="" noink="">toggles</paper-button>
+        <paper-button disabled="" raised="" noink="">disabled</paper-button>
       </template>
     </demo-snippet>
 
@@ -81,9 +80,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <demo-snippet class="centered-demo">
       <template>
         <paper-button class="custom pink">link</paper-button>
-        <paper-button raised class="custom indigo">raised</paper-button>
-        <paper-button toggles raised class="custom green">toggles</paper-button>
-        <paper-button disabled class="custom disabled">disabled</paper-button>
+        <paper-button raised="" class="custom indigo">raised</paper-button>
+        <paper-button toggles="" raised="" class="custom green">toggles</paper-button>
+        <paper-button disabled="" class="custom disabled">disabled</paper-button>
         <custom-style>
           <style>
             paper-button.custom {
@@ -142,7 +141,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <demo-snippet class="centered-demo">
       <template>
         <a href="https://www.polymer-project.org/" tabindex="-1">
-          <paper-button raised>Polymer Project</paper-button>
+          <paper-button raised="">Polymer Project</paper-button>
         </a>
         <style>
           a paper-button,

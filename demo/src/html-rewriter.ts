@@ -1,7 +1,5 @@
 import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
-// import * as parse5 from 'parse5';
-// import * as htmlparser2Adapter from 'parse5-htmlparser2-tree-adapter';
 import RewritingStream from 'parse5-html-rewriting-stream';
 import semver from 'semver';
 import {Readable} from 'stream';
@@ -109,8 +107,11 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
   return outputJs.code;
 }
 
+/**
+ * Rewrites a given HTML stream. Stream must be string encoded (eg. 'utf8').
+ */
 export function htmlRewrite(
-    html: string, packageJson: PackageJson = {}): string {
+    htmlStream: Readable, packageJson: PackageJson = {}): Readable {
   const rewriter = new RewritingStream();
   let insideModuleScript = false;
 
@@ -121,31 +122,23 @@ export function htmlRewrite(
         insideModuleScript = true;
       }
     }
+    rewriter.emitStartTag(startTag);
   });
 
   rewriter.on('endTag', (endTag) => {
     if (insideModuleScript && endTag.tagName === 'script') {
       insideModuleScript = false;
     }
+    rewriter.emitEndTag(endTag);
   });
 
   rewriter.on('text', (_, raw) => {
     if (insideModuleScript) {
       rewriter.emitRaw(jsRewrite(raw, packageJson));
+    } else {
+      rewriter.emitRaw(raw);
     }
   });
 
-  // Create string readable stream.
-  // TODO: this should probably be streamed in.
-  const stream = new Readable();
-  stream._read = () => {};
-  stream.setEncoding('utf8');
-  stream.push(html);
-  stream.pipe(rewriter).pipe(process.stdout);
-
-  stream.on('data', (data) => {
-    console.log(data);
-  });
-
-  return html;
+  return htmlStream.pipe(rewriter);
 }
