@@ -21,6 +21,10 @@ export class RawService {
   }
 
   async handleRequest(ctx: Koa.Context, _next: () => {}) {
+    if (ctx.url === '/sw.js') {
+      return;
+    }
+
     // TODO: Request package.json and pass that into the HTML rewriter.
     const proxiedUrl = proxy(ctx.url);
     const response = await this._fetch(proxiedUrl);

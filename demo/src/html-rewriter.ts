@@ -97,7 +97,7 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
     if (node.type === 'ImportDeclaration') {
       if (isBareModuleSpecifier(node.source.value)) {
         const result = parsePackageName(node.source.value);
-        node.source.value = `https://unpkg.com/${result.package}${
+        node.source.value = `/${result.package}${
             getSemver(packageJson, result.package)}${result.path}?module`;
       }
     }
