@@ -4,6 +4,7 @@ import Koa from 'koa';
 import koaCompress from 'koa-compress';
 
 import {HTMLRewriter} from './html-rewriter';
+import {proxy} from './proxy';
 
 export class RawService {
   app = new Koa();
@@ -20,9 +21,9 @@ export class RawService {
   }
 
   async handleRequest(ctx: Koa.Context, _next: () => {}) {
-    ctx.response.set('Content-Type', 'text/html');
-    const response = await this._fetch(
-        'https://unpkg.com/@polymer/paper-button@3.0.0-pre.23/demo/index.html');
+    // TODO: Request package.json and pass that into the HTML rewriter.
+    const proxiedUrl = proxy(ctx.url);
+    const response = await this._fetch(proxiedUrl);
     ctx.set('Content-Type', response.headers['content-type'] || '');
     ctx.response.body = response.setEncoding('utf8').pipe(new HTMLRewriter());
   }

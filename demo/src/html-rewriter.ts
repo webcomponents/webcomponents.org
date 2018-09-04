@@ -112,6 +112,7 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
  */
 export class HTMLRewriter extends RewritingStream {
   constructor() {
+    // TODO: Support specifying package.json
     super();
 
     let insideModuleScript = false;
