@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import getStream from 'get-stream';
 import * as path from 'path';
 
-import {htmlRewrite, jsRewrite} from '../html-rewriter';
+import {HTMLRewriter, jsRewrite} from '../html-rewriter';
 
 test('rewrites basic scoped import', (t) => {
   const before = `import "@polymer/iron-demo-helpers/demo-snippet.js";`;
@@ -48,7 +48,7 @@ test('rewrites long complex file', async (t) => {
           __dirname, '../../src/test/goldens/paper-button-demo-expected.html'),
       'utf8');
 
-  const actualStream = htmlRewrite(beforeStream);
+  const actualStream = beforeStream.pipe(new HTMLRewriter());
   t.is(await getStream(actualStream), expected);
 });
 

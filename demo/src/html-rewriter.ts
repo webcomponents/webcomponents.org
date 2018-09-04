@@ -2,7 +2,7 @@ import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
 import semver from 'semver';
-import {Readable} from 'stream';
+// import {Duplex} from 'stream';
 import url from 'url';
 
 type PackageJson = {
@@ -110,35 +110,35 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
 /**
  * Rewrites a given HTML stream. Stream must be string encoded (eg. 'utf8').
  */
-export function htmlRewrite(
-    htmlStream: Readable, packageJson: PackageJson = {}): Readable {
-  const rewriter = new RewritingStream();
-  let insideModuleScript = false;
+export class HTMLRewriter extends RewritingStream {
+  constructor() {
+    super();
 
-  rewriter.on('startTag', (startTag) => {
-    if (startTag.tagName === 'script') {
-      const attribute = startTag.attrs.find(({name}) => name === 'type');
-      if (attribute && attribute.value === 'module') {
-        insideModuleScript = true;
+    let insideModuleScript = false;
+
+    this.on('startTag', (startTag) => {
+      if (startTag.tagName === 'script') {
+        const attribute = startTag.attrs.find(({name}) => name === 'type');
+        if (attribute && attribute.value === 'module') {
+          insideModuleScript = true;
+        }
       }
-    }
-    rewriter.emitStartTag(startTag);
-  });
+      this.emitStartTag(startTag);
+    });
 
-  rewriter.on('endTag', (endTag) => {
-    if (insideModuleScript && endTag.tagName === 'script') {
-      insideModuleScript = false;
-    }
-    rewriter.emitEndTag(endTag);
-  });
+    this.on('endTag', (endTag) => {
+      if (insideModuleScript && endTag.tagName === 'script') {
+        insideModuleScript = false;
+      }
+      this.emitEndTag(endTag);
+    });
 
-  rewriter.on('text', (_, raw) => {
-    if (insideModuleScript) {
-      rewriter.emitRaw(jsRewrite(raw, packageJson));
-    } else {
-      rewriter.emitRaw(raw);
-    }
-  });
-
-  return htmlStream.pipe(rewriter);
+    this.on('text', (_, raw) => {
+      if (insideModuleScript) {
+        this.emitRaw(jsRewrite(raw));
+      } else {
+        this.emitRaw(raw);
+      }
+    });
+  }
 }
