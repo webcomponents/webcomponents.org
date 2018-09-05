@@ -11,6 +11,7 @@
     "@babel/generator": "^7.0.0",
     "@babel/parser": "^7.0.0",
     "express": "^4.15.2",
+    "follow-redirects": "^1.5.7",
     "get-stream": "^4.0.0",
     "koa": "^2.5.2",
     "koa-compress": "^3.0.0",

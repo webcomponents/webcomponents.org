@@ -2,7 +2,6 @@ import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
 import semver from 'semver';
-// import {Duplex} from 'stream';
 import url from 'url';
 
 type PackageJson = {
@@ -98,7 +97,7 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
       if (isBareModuleSpecifier(node.source.value)) {
         const result = parsePackageName(node.source.value);
         node.source.value = `/${result.package}${
-            getSemver(packageJson, result.package)}${result.path}?module`;
+            getSemver(packageJson, result.package)}${result.path}`;
       }
     }
   }

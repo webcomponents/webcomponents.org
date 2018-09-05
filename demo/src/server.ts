@@ -1,9 +1,10 @@
+import {https} from 'follow-redirects';
+import getStream from 'get-stream';
 import {IncomingMessage} from 'http';
-import * as https from 'https';
 import Koa from 'koa';
 import koaCompress from 'koa-compress';
 
-import {HTMLRewriter} from './html-rewriter';
+import {HTMLRewriter, jsRewrite} from './html-rewriter';
 import {proxy} from './proxy';
 
 export class RawService {
@@ -25,16 +26,21 @@ export class RawService {
       return;
     }
 
-    // TODO: Request package.json and pass that into the HTML rewriter.
     const proxiedUrl = proxy(ctx.url);
     const response = await this._fetch(proxiedUrl);
-    ctx.set('Content-Type', response.headers['content-type'] || '');
-    ctx.response.body = response.setEncoding('utf8').pipe(new HTMLRewriter());
+    const contentType = response.headers['content-type'] || '';
+    ctx.set('Content-Type', contentType);
+
+    if (contentType.startsWith('application/javascript')) {
+      ctx.response.body = jsRewrite(await getStream(response));
+    } else if (contentType.startsWith('text/html')) {
+      ctx.response.body = response.setEncoding('utf8').pipe(new HTMLRewriter());
+    }
   }
 
   _fetch(url: string): Promise<IncomingMessage> {
     return new Promise((resolve) => {
-      https.get(url, (response) => {
+      https.get(url, (response: IncomingMessage) => {
         resolve(response);
       });
     });

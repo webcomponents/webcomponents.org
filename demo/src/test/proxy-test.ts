@@ -23,12 +23,12 @@ test('scoped package with prerelease tag', (t) => {
 
 test('scoped package with no path', (t) => {
   const incoming = '/@polymer/paper-button@2.0.0';
-  const outgoing = 'https://unpkg.com/@polymer/paper-button@2.0.0?module';
+  const outgoing = 'https://unpkg.com/@polymer/paper-button@2.0.0';
   t.is(proxy(incoming), outgoing);
 });
 
 test('scoped package with no path, no leading /', (t) => {
   const incoming = '@polymer/paper-button@2.0.0';
-  const outgoing = 'https://unpkg.com/@polymer/paper-button@2.0.0?module';
+  const outgoing = 'https://unpkg.com/@polymer/paper-button@2.0.0';
   t.is(proxy(incoming), outgoing);
 });
