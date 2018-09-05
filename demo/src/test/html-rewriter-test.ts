@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import getStream from 'get-stream';
 import * as path from 'path';
 
-import {HTMLRewriter, jsRewrite} from '../html-rewriter';
+import {HTMLRewriter, jsRewrite, parsePackageName} from '../html-rewriter';
 
 test('rewrites basic scoped import', (t) => {
   const before = `import "@polymer/iron-demo-helpers/demo-snippet.js";`;
@@ -73,4 +73,18 @@ test('ignores non-semver values', (t) => {
   const after = `import "/express/test.js";`;
 
   t.is(jsRewrite(before, packageJson), after);
+});
+
+test('correctly parse package names', (t) => {
+  t.deepEqual(
+      parsePackageName('@polymer/polymer/index.js'),
+      {package: '@polymer/polymer', path: '/index.js'});
+
+  t.deepEqual(
+      parsePackageName('my-package-name'),
+      {package: 'my-package-name', path: ''});
+
+  t.deepEqual(
+      parsePackageName('@scope/my-package-name'),
+      {package: '@scope/my-package-name', path: ''});
 });

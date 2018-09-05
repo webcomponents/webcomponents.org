@@ -4,7 +4,7 @@ import RewritingStream from 'parse5-html-rewriting-stream';
 import semver from 'semver';
 import url from 'url';
 
-type PackageJson = {
+export type PackageJson = {
   dependencies?: {[key: string]: string},
   devDependencies?: {[key: string]: string}
 };
@@ -53,7 +53,7 @@ function isBareModuleSpecifier(specifier: string) {
   return true;
 }
 
-function parsePackageName(specifier: string) {
+export function parsePackageName(specifier: string) {
   const split = specifier.split('/');
 
   if (!split.length) {
@@ -75,6 +75,7 @@ function parsePackageName(specifier: string) {
 }
 
 function getSemver(packageJson: PackageJson, name: string) {
+  debugger;
   let semverRange = '';
   if (packageJson.dependencies && packageJson.dependencies[name]) {
     semverRange = packageJson.dependencies[name];
@@ -110,8 +111,7 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
  * Rewrites a given HTML stream. Stream must be string encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
-  constructor() {
-    // TODO: Support specifying package.json
+  constructor(packageJson: PackageJson = {}) {
     super();
 
     let insideModuleScript = false;
@@ -135,7 +135,7 @@ export class HTMLRewriter extends RewritingStream {
 
     this.on('text', (_, raw) => {
       if (insideModuleScript) {
-        this.emitRaw(jsRewrite(raw));
+        this.emitRaw(jsRewrite(raw, packageJson));
       } else {
         this.emitRaw(raw);
       }

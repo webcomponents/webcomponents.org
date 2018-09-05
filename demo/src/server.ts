@@ -3,8 +3,9 @@ import getStream from 'get-stream';
 import {IncomingMessage} from 'http';
 import Koa from 'koa';
 import koaCompress from 'koa-compress';
+import url from 'url';
 
-import {HTMLRewriter, jsRewrite} from './html-rewriter';
+import {HTMLRewriter, jsRewrite, PackageJson, parsePackageName} from './html-rewriter';
 import {proxy} from './proxy';
 
 export class RawService {
@@ -27,14 +28,22 @@ export class RawService {
     }
 
     const proxiedUrl = proxy(ctx.url);
+    // Get package.json.
+    const packageName = parsePackageName(ctx.url.substring(1)).package;
+    const packageJsonResponse = await this._fetch(
+        url.resolve('https://unpkg.com', `${packageName}/package.json`));
+    const packageJson =
+        JSON.parse(await getStream(packageJsonResponse)) as PackageJson;
+
     const response = await this._fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
 
     if (contentType.startsWith('application/javascript')) {
-      ctx.response.body = jsRewrite(await getStream(response));
+      ctx.response.body = jsRewrite(await getStream(response), packageJson);
     } else if (contentType.startsWith('text/html')) {
-      ctx.response.body = response.setEncoding('utf8').pipe(new HTMLRewriter());
+      ctx.response.body =
+          response.setEncoding('utf8').pipe(new HTMLRewriter(packageJson));
     }
   }
 
