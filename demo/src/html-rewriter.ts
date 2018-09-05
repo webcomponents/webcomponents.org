@@ -92,7 +92,8 @@ function getSemver(packageJson: PackageJson, name: string) {
  * specifiers with equivalent unpkg URLs.
  */
 export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
-  const jsAST = babelParser.parse(code, {sourceType: 'module'});
+  const jsAST = babelParser.parse(
+      code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
     if (node.type === 'ImportDeclaration') {
       if (isBareModuleSpecifier(node.source.value)) {
