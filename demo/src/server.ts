@@ -23,7 +23,7 @@ export class RawService {
   }
 
   async handleRequest(ctx: Koa.Context, _next: () => {}) {
-    if (ctx.url === '/sw.js') {
+    if (ctx.url === '/sw.js' || ctx.url === '/favicon.ico') {
       return;
     }
 
@@ -32,8 +32,13 @@ export class RawService {
     const packageName = parsePackageName(ctx.url.substring(1)).package;
     const packageJsonResponse = await this._fetch(
         url.resolve('https://unpkg.com', `${packageName}/package.json`));
-    const packageJson =
-        JSON.parse(await getStream(packageJsonResponse)) as PackageJson;
+    let packageJson: PackageJson = {};
+    try {
+      packageJson = JSON.parse(await getStream(packageJsonResponse));
+    } catch {
+      console.log(`Unable to parse package.json. Original request ${ctx.url}`);
+      return;
+    }
 
     const response = await this._fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';

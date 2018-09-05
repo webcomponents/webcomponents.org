@@ -1,2 +1,2 @@
-runtime: nodejs
+runtime: nodejs8
 service: demo
