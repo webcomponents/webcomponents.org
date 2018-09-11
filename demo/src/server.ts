@@ -21,7 +21,7 @@ import {resolveToUnpkg} from './proxy';
  * will be inserted into the paths to ensure a compatible version of the package
  * is fetched.
  *
- * Another notable difference is behavior from unpkg.com is that requests with
+ * Another notable difference in behavior from unpkg.com is that requests with
  * specified semvers are not redirected with a 302 status code. Instead, these
  * are internally resolved, which helps ensure consistency of request URLs. This
  * is important as the import spec
