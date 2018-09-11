@@ -741,6 +741,11 @@
 
         var demoVersionRoute = this.versionRoute || '/' + this.data.version;
         var demoUrl = this.baseUrls.userContent + '/' + this._apiId + demoVersionRoute + '/' + this.package + '/' + this.demo;
+
+        if (this._apiId.indexOf('@') === 0) {
+          demoUrl = this.baseUrls.npmService + '/' + this._scopePackage + '/' + this.demo;
+        }
+
         this.$['demo-frame'].src = demoUrl;
         if (this.$['demo-dialog'].hasAttribute('unresolved'))
           this.$['demo-dialog'].opened = true;
