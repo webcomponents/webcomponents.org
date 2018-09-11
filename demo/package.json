@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint --project . --format stylish",
-    "start": "node build/server.js",
+    "start": "node build/start.js",
     "test": "npm run build && ava build/test"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "@types/koa": "^2.0.46",
     "@types/koa-compress": "^2.0.8",
     "@types/parse5": "^5.0.0",
+    "@types/parse5-html-rewriting-stream": "^5.1.0",
     "@types/parse5-sax-parser": "^5.0.1",
     "@types/semver": "^5.5.0",
     "ava": "^0.19.1",

@@ -10,32 +10,7 @@ export type PackageJson = {
 };
 
 /**
- * From a packageJson string, finds the valid semver associated with a package
- * name if it exists.
- */
-export function semverForPackage(
-    packageJson: PackageJson, name: string): string|null {
-  if (packageJson.dependencies &&
-      Object.keys(packageJson.dependencies).includes(name)) {
-    const value = packageJson.dependencies[name];
-    if (value && semver.valid(value)) {
-      return value;
-    }
-  }
-
-  if (packageJson.devDependencies &&
-      Object.keys(packageJson.devDependencies).includes(name)) {
-    const value = packageJson.devDependencies[name];
-    if (value && semver.valid(value)) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
-/**
- * Checks if import declaration is a bare module specifier. Reference:
+ * Checks if module import specifier is a bare module specifier. Reference:
  * https://html.spec.whatwg.org/multipage/webappapis.html#resolve-a-module-specifier
  */
 function isBareModuleSpecifier(specifier: string) {
@@ -53,6 +28,9 @@ function isBareModuleSpecifier(specifier: string) {
   return true;
 }
 
+/**
+ * Split package name into NPM package name and path.
+ */
 export function parsePackageName(specifier: string) {
   const split = specifier.split('/');
 
@@ -74,8 +52,12 @@ export function parsePackageName(specifier: string) {
   };
 }
 
-function getSemver(packageJson: PackageJson, name: string) {
-  debugger;
+/**
+ * Finds the semver for the given package in dependencies or devDependencies.
+ * Returns '' if the package is not found, or is an invalid semver range.
+ * Returns the semver associated with the package prefixed with '@'.
+ */
+function semverForPackage(packageJson: PackageJson, name: string) {
   let semverRange = '';
   if (packageJson.dependencies && packageJson.dependencies[name]) {
     semverRange = packageJson.dependencies[name];
@@ -89,18 +71,20 @@ function getSemver(packageJson: PackageJson, name: string) {
 
 /**
  * Synchronously rewrites JS to replace import declarations using bare module
- * specifiers with equivalent unpkg URLs.
+ * specifiers with equivalent absolute paths. For example, `import
+ * '@polymer/polymer/path'` will be rewritten as `import
+ * '/@polymer/polymer@3.0.0/path'`.
  */
-export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
+export function rewriteBareModuleSpecifiers(
+    code: string, packageJson: PackageJson = {}): string {
   const jsAST = babelParser.parse(
       code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
-    if (node.type === 'ImportDeclaration') {
-      if (isBareModuleSpecifier(node.source.value)) {
-        const result = parsePackageName(node.source.value);
-        node.source.value = `/${result.package}${
-            getSemver(packageJson, result.package)}${result.path}`;
-      }
+    if (node.type === 'ImportDeclaration' &&
+        isBareModuleSpecifier(node.source.value)) {
+      const result = parsePackageName(node.source.value);
+      node.source.value = `/${result.package}${
+          semverForPackage(packageJson, result.package)}${result.path}`;
     }
   }
 
@@ -109,7 +93,9 @@ export function jsRewrite(code: string, packageJson: PackageJson = {}): string {
 }
 
 /**
- * Rewrites a given HTML stream. Stream must be string encoded (eg. 'utf8').
+ * Transform stream for HTML content that finds module scripts (<script
+ * type="module">) and rewrites bare module specifiers. Stream must be string
+ * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
   constructor(packageJson: PackageJson = {}) {
@@ -136,7 +122,7 @@ export class HTMLRewriter extends RewritingStream {
 
     this.on('text', (_, raw) => {
       if (insideModuleScript) {
-        this.emitRaw(jsRewrite(raw, packageJson));
+        this.emitRaw(rewriteBareModuleSpecifiers(raw, packageJson));
       } else {
         this.emitRaw(raw);
       }
