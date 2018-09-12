@@ -2,6 +2,7 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import getStream from 'get-stream';
 import * as path from 'path';
+import {Readable} from 'stream';
 
 import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from '../html-rewriter';
 
@@ -46,6 +47,18 @@ test('rewrites long complex file', async (t) => {
       path.join(
           __dirname, '../../src/test/goldens/paper-button-demo-expected.html'),
       'utf8');
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter());
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites sibling node_modules references', async (t) => {
+  const beforeStream = new Readable();
+  beforeStream.push('<script src="../node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
 
   const actualStream = beforeStream.pipe(new HTMLRewriter());
   t.is(await getStream(actualStream), expected);
