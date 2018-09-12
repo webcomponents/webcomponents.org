@@ -98,16 +98,25 @@ export function rewriteBareModuleSpecifiers(
  * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
-  constructor(packageJson: PackageJson = {}) {
+  constructor(packageJson: PackageJson = {}, pathFromPackageRoot = '/') {
     super();
 
     let insideModuleScript = false;
 
     this.on('startTag', (startTag) => {
       if (startTag.tagName === 'script') {
-        const attribute = startTag.attrs.find(({name}) => name === 'type');
-        if (attribute && attribute.value === 'module') {
+        const typeAttribute = startTag.attrs.find(({name}) => name === 'type');
+        if (typeAttribute && typeAttribute.value === 'module') {
           insideModuleScript = true;
+        }
+
+        // Rewrite any references to /node_modules/ as absolute paths.
+        const srcAttribute = startTag.attrs.find(({name}) => name === 'src');
+        if (srcAttribute &&
+            url.resolve(pathFromPackageRoot, srcAttribute.value)
+                .startsWith('/node_modules/')) {
+          srcAttribute.value =
+              srcAttribute.value.replace(/(\.?\.\/)+node_modules/, '');
         }
       }
       this.emitStartTag(startTag);

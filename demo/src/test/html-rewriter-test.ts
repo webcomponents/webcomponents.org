@@ -2,6 +2,7 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import getStream from 'get-stream';
 import * as path from 'path';
+import {Readable} from 'stream';
 
 import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from '../html-rewriter';
 
@@ -48,6 +49,46 @@ test('rewrites long complex file', async (t) => {
       'utf8');
 
   const actualStream = beforeStream.pipe(new HTMLRewriter());
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites /node_modules references, root', async (t) => {
+  const filePath = '/';
+  const beforeStream = new Readable();
+  beforeStream.push('<script src="./node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites /node_modules references, 1 dir nested', async (t) => {
+  const filePath = '/demo/index.html';
+  const beforeStream = new Readable();
+  beforeStream.push('<script src="../node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites /node_modules references, 2 dirs nested', async (t) => {
+  const filePath = '/demo/parent/index.html';
+  const beforeStream = new Readable();
+  beforeStream.push(
+      '<script src="../../node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
   t.is(await getStream(actualStream), expected);
 });
 
