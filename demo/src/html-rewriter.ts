@@ -98,7 +98,7 @@ export function rewriteBareModuleSpecifiers(
  * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
-  constructor(packageJson: PackageJson = {}) {
+  constructor(packageJson: PackageJson = {}, pathFromPackageRoot = '/') {
     super();
 
     let insideModuleScript = false;
@@ -110,12 +110,13 @@ export class HTMLRewriter extends RewritingStream {
           insideModuleScript = true;
         }
 
-        // Rewrite any sibling references to node_modules folder as absolute
-        // paths.
+        // Rewrite any references to /node_modules/ as absolute paths.
         const srcAttribute = startTag.attrs.find(({name}) => name === 'src');
-        if (srcAttribute && srcAttribute.value.startsWith('../node_modules')) {
+        if (srcAttribute &&
+            url.resolve(pathFromPackageRoot, srcAttribute.value)
+                .startsWith('/node_modules/')) {
           srcAttribute.value =
-              srcAttribute.value.replace('../node_modules', '');
+              srcAttribute.value.replace(/(\.?\.\/)+node_modules/, '');
         }
       }
       this.emitStartTag(startTag);

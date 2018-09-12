@@ -52,9 +52,9 @@ export class DemoService {
     }
 
     const proxiedUrl = resolveToUnpkg(ctx.url);
-    const packageName = parsePackageName(ctx.url.substring(1)).package;
-    const packageJsonResponse = await this.fetch(
-        url.resolve('https://unpkg.com', `${packageName}/package.json`));
+    const parsedPackage = parsePackageName(ctx.url.substring(1));
+    const packageJsonResponse = await this.fetch(url.resolve(
+        'https://unpkg.com', `${parsedPackage.package}/package.json`));
     let packageJson: PackageJson = {};
     try {
       packageJson = JSON.parse(await getStream(packageJsonResponse));
@@ -71,8 +71,8 @@ export class DemoService {
       ctx.response.body =
           rewriteBareModuleSpecifiers(await getStream(response), packageJson);
     } else if (contentType.startsWith('text/html')) {
-      ctx.response.body =
-          response.setEncoding('utf8').pipe(new HTMLRewriter(packageJson));
+      ctx.response.body = response.setEncoding('utf8').pipe(
+          new HTMLRewriter(packageJson, parsedPackage.path));
     }
   }
 

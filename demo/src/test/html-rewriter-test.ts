@@ -52,7 +52,21 @@ test('rewrites long complex file', async (t) => {
   t.is(await getStream(actualStream), expected);
 });
 
-test('rewrites sibling node_modules references', async (t) => {
+test('rewrites /node_modules references, root', async (t) => {
+  const filePath = '/';
+  const beforeStream = new Readable();
+  beforeStream.push('<script src="./node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites /node_modules references, 1 dir nested', async (t) => {
+  const filePath = '/demo/index.html';
   const beforeStream = new Readable();
   beforeStream.push('<script src="../node_modules/other-package/file.html">');
   beforeStream.push(null);
@@ -60,7 +74,21 @@ test('rewrites sibling node_modules references', async (t) => {
 
   const expected = '<script src="/other-package/file.html">';
 
-  const actualStream = beforeStream.pipe(new HTMLRewriter());
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
+  t.is(await getStream(actualStream), expected);
+});
+
+test('rewrites /node_modules references, 2 dirs nested', async (t) => {
+  const filePath = '/demo/parent/index.html';
+  const beforeStream = new Readable();
+  beforeStream.push(
+      '<script src="../../node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath));
   t.is(await getStream(actualStream), expected);
 });
 
