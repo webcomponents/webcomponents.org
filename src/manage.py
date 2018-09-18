@@ -870,6 +870,7 @@ class UpdateIndexes(RequestHandler):
     npm_keywords = registry_metadata.get('keywords', []) if registry_metadata else []
     fields = [
         search.AtomField(name='owner', value=owner),
+        search.AtomField(name='github_owner', value=library.github_owner),
         search.TextField(name='repo', value=repo),
         search.AtomField(name='kind', value=library.kind),
         search.AtomField(name='version', value=version_key.id()),
