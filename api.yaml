@@ -17,6 +17,7 @@ skip_files:
 - client
 - node_modules
 - raw
+- demo
 
 handlers:
 - url: /.*

@@ -59,7 +59,7 @@
       },
 
       _ownerQuery: function(author) {
-        return author && 'owner:' + author;
+        return author ? '(owner:' + author + ' OR github_owner:' + author + ')' : '';
       },
 
       _authorChanged: function(author, visible) {
