@@ -1,12 +1,11 @@
-import {https} from 'follow-redirects';
 import getStream from 'get-stream';
-import {IncomingMessage} from 'http';
 import Koa from 'koa';
 import koaCompress from 'koa-compress';
 
 import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
 import {PackageLockGenerator} from './package-lock-generator';
 import {resolveToUnpkg} from './proxy';
+import {fetch} from './util';
 
 /**
  * Demo microservice which can serve HTML demos containing bare module import
@@ -21,12 +20,11 @@ import {resolveToUnpkg} from './proxy';
  * will be inserted into the paths to ensure a compatible version of the package
  * is fetched.
  *
- * Another notable difference in behavior from unpkg.com is that requests with
- * specified semvers are not redirected with a 302 status code. Instead, these
- * are internally resolved, which helps ensure consistency of request URLs. This
- * is important as the import spec
- * (https://html.spec.whatwg.org/multipage/webappapis.html#fetching-scripts)
- * defines that module maps are keyed with request URLs, not response URLs.
+ * This microservice also uses a package-lock generator to resolve all package
+ * versions. For example, if requesting a HTML file within package 'foo' that
+ * depends on dependencies and devDependencies, each module will be resolved by
+ * effectively installing 'foo' and resolving each dependency against what would
+ * be installed.
  */
 export class DemoService {
   private app = new Koa();
@@ -42,35 +40,31 @@ export class DemoService {
 
     this.app.use(this.handleRequest.bind(this));
 
-    await this.packageLockGenerator.init();
-
     return this.app.listen(this.port, () => {
       console.log(`Demo service listening on port ${this.port}`);
     });
   }
 
   async handleRequest(ctx: Koa.Context, _next: () => {}) {
-    if (ctx.url === '/sw.js' || ctx.url === '/favicon.ico') {
+    if (ctx.url === '/favicon.ico') {
+      return;
+    }
+
+    const parsedPackage = parsePackageName(ctx.url.substring(1));
+    // Root package is specified as ?@scope/package@1.0.0. If unspecified, the
+    // current requested package is used as the root resolver for subsequent
+    // requests.
+    const rootPackage = ctx.querystring || parsedPackage.package;
+    const packageLock = await this.packageLockGenerator.get(rootPackage);
+    if (!packageLock) {
+      ctx.response.status = 400;
+      ctx.response.body = `Invalid package version '${
+          rootPackage}'. Must be specifed as @scope/package@1.0.0.`;
       return;
     }
 
     const proxiedUrl = resolveToUnpkg(ctx.url);
-    const parsedPackage = parsePackageName(ctx.url.substring(1));
-    const rootPackage = ctx.querystring || parsedPackage.package;
-
-    const packageLock = await this.packageLockGenerator.get(rootPackage);
-
-    // const packageJsonResponse = await this.fetch(url.resolve(
-    //     'https://unpkg.com', `${parsedPackage.package}/package.json`));
-    // let packageJson: PackageJson = {};
-    // try {
-    //   packageJson = JSON.parse(await getStream(packageJsonResponse));
-    // } catch {
-    //   console.log(`Unable to parse package.json. Original request
-    //   ${ctx.url}`); return;
-    // }
-
-    const response = await this.fetch(proxiedUrl);
+    const response = await fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
 
@@ -81,13 +75,5 @@ export class DemoService {
       ctx.response.body = response.setEncoding('utf8').pipe(
           new HTMLRewriter(packageLock, parsedPackage.path, rootPackage));
     }
-  }
-
-  private fetch(url: string): Promise<IncomingMessage> {
-    return new Promise((resolve) => {
-      https.get(url, (response: IncomingMessage) => {
-        resolve(response);
-      });
-    });
   }
 }

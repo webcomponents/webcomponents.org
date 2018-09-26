@@ -1,3 +1,7 @@
+/**
+ * Simple in-memory implementation of a least recently used cache. Based on
+ * Map's preservation of insertion order.
+ */
 export class Cache<T> {
   private values: Map<string, T> = new Map<string, T>();
   private maxSize: number;

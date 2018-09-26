@@ -1,15 +1,9 @@
 import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
-// import semver from 'semver';
 import url from 'url';
 
 import {PackageDefinition} from './package-lock-generator';
-
-// export type PackageJson = {
-//   dependencies?: {[key: string]: string},
-//   devDependencies?: {[key: string]: string}
-// };
 
 /**
  * Checks if module import specifier is a bare module specifier. Reference:
@@ -55,26 +49,8 @@ export function parsePackageName(specifier: string) {
 }
 
 /**
- * Finds the semver for the given package in dependencies or devDependencies.
- * Returns '' if the package is not found, or is an invalid semver range.
- * Returns the semver associated with the package prefixed with '@'.
- */
-// function semverForPackage(packageLock: PackageDefinition, name: string) {
-//   let semverRange = '';
-//   if (packageLock.dependencies && packageLock.dependencies[name]) {
-//     semverRange = packageLock.dependencies[name];
-//   }
-//   if (packageLock.devDependencies && packageLock.devDependencies[name]) {
-//     semverRange = packageLock.devDependencies[name];
-//   }
-
-//   return semverRange && semver.validRange(semverRange) ? '@' + semverRange :
-//   '';
-// }
-
-/**
  * Given a package lock object, performs a depth first search for the requested
- * package.
+ * package and return the resolved version.
  */
 function getPackageVersion(
     packageLock: PackageDefinition, name: string): string|undefined {
@@ -108,14 +84,25 @@ export function rewriteBareModuleSpecifiers(
   const jsAST = babelParser.parse(
       code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
-    if (node.type === 'ImportDeclaration' &&
-        isBareModuleSpecifier(node.source.value)) {
-      const parsedPackage = parsePackageName(node.source.value);
-      const version = getPackageVersion(packageLock, parsedPackage.package);
-      const versionString = version ? '@' + version : '';
-      const queryString = rootPackage ? '?' + rootPackage : '';
-      node.source.value = `/${parsedPackage.package}${versionString}${
-          parsedPackage.path}${queryString}`;
+    if ((node.type === 'ImportDeclaration' ||
+         node.type === 'ExportNamedDeclaration' ||
+         node.type === 'ExportAllDeclaration') &&
+        node.source) {
+      if (isBareModuleSpecifier(node.source.value)) {
+        const parsedPackage = parsePackageName(node.source.value);
+        const version = getPackageVersion(packageLock, parsedPackage.package);
+        const versionString = version ? '@' + version : '';
+        const queryString = rootPackage ? '?' + rootPackage : '';
+        node.source.value = `/${parsedPackage.package}${versionString}${
+            parsedPackage.path}${queryString}`;
+      } else {
+        // Append rootPackage to relative URLs.
+        const parsedUrl = url.parse(node.source.value);
+        if (!parsedUrl.protocol) {
+          parsedUrl.search = rootPackage || '';
+          node.source.value = url.format(parsedUrl);
+        }
+      }
     }
   }
 
@@ -144,13 +131,23 @@ export class HTMLRewriter extends RewritingStream {
           insideModuleScript = true;
         }
 
-        // Rewrite any references to /node_modules/ as absolute paths.
+        // Inspect all <script> tags with src= attributes to rewrite URLs as
+        // needed.
         const srcAttribute = startTag.attrs.find(({name}) => name === 'src');
-        if (srcAttribute &&
-            url.resolve(pathFromPackageRoot, srcAttribute.value)
-                .startsWith('/node_modules/')) {
-          srcAttribute.value =
-              srcAttribute.value.replace(/(\.?\.\/)+node_modules/, '');
+        if (srcAttribute) {
+          const parsedUrl = url.parse(srcAttribute.value);
+          if (!parsedUrl.protocol && parsedUrl.pathname) {
+            // Rewrite any references to /node_modules/ as absolute paths.
+            if (url.resolve(pathFromPackageRoot, parsedUrl.pathname)
+                    .startsWith('/node_modules/')) {
+              parsedUrl.pathname =
+                  parsedUrl.pathname.replace(/(\.?\.\/)+node_modules/, '');
+            }
+
+            // Append rootPackage query parameter.
+            parsedUrl.search = rootPackage || '';
+            srcAttribute.value = url.format(parsedUrl);
+          }
         }
       }
       this.emitStartTag(startTag);

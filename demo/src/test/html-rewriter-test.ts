@@ -65,6 +65,19 @@ test('rewrites /node_modules references, root', async (t) => {
   t.is(await getStream(actualStream), expected);
 });
 
+test('rewrites /node_modules references with package root', async (t) => {
+  const filePath = '/';
+  const beforeStream = new Readable();
+  beforeStream.push('<script src="./node_modules/other-package/file.html">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script src="/other-package/file.html?@scope/package@3.0.0">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
+  t.is(await getStream(actualStream), expected);
+});
+
 test('rewrites /node_modules references, 1 dir nested', async (t) => {
   const filePath = '/demo/index.html';
   const beforeStream = new Readable();
@@ -108,6 +121,47 @@ test('rewrites import with version and root package param', (t) => {
   t.is(rewriteBareModuleSpecifiers(before, packageLock, '@polymer/polymer'), after);
 });
 
+test('rewrites relative import by appending root package param', (t) => {
+  const before = `import "./test.js";`;
+  const after = `import "./test.js?my-package@3.0.0";`;
+
+  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
+});
+
+test('rewrites relative import with query param by appending root package param', (t) => {
+  const before = `import "./test.js?foo&bar";`;
+  const after = `import "./test.js?my-package@3.0.0";`;
+
+  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
+});
+
+test('rewrites export all by appending root package param', (t) => {
+  const before = `export * from "./module.js";`;
+  const after = `export * from "./module.js?my-package@3.0.0";`;
+
+  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
+});
+
+test('rewrites export all with bare module specifier and package lock by appending root package param', (t) => {
+  const before = `export * from "@scoped/my-module";`;
+  const packageLock = {'dependencies': {'@scoped/my-module': {version: '4.15.2'}}};
+  const after = `export * from "/@scoped/my-module@4.15.2?my-package@3.0.0";`;
+
+  t.is(rewriteBareModuleSpecifiers(before, packageLock, 'my-package@3.0.0'), after);
+});
+
+test('rewrites relative named export by appending root package param', (t) => {
+  const before = `export { Polymer } from "./test.js";`;
+  const after = `export { Polymer } from "./test.js?my-package@3.0.0";`;
+
+  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
+});
+
+test('does not touch absolute urls', (t) => {
+  const before = `import "https://example.com/my-module";`;
+  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), before);
+})
+
 test('correctly parse package names', (t) => {
   t.deepEqual(
       parsePackageName('@polymer/polymer/index.js'),
@@ -120,4 +174,17 @@ test('correctly parse package names', (t) => {
   t.deepEqual(
       parsePackageName('@scope/my-package-name'),
       {package: '@scope/my-package-name', path: ''});
+});
+
+test('rewrites <script type="module"> src attribute references', async (t) => {
+  const filePath = '/';
+  const beforeStream = new Readable();
+  beforeStream.push('<script type="module" src="./module.js">');
+  beforeStream.push(null);
+  beforeStream.setEncoding('utf8');
+
+  const expected = '<script type="module" src="./module.js?@scope/package@3.0.0">';
+
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
+  t.is(await getStream(actualStream), expected);
 });
