@@ -1,13 +1,15 @@
 import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
-import semver from 'semver';
+// import semver from 'semver';
 import url from 'url';
 
-export type PackageJson = {
-  dependencies?: {[key: string]: string},
-  devDependencies?: {[key: string]: string}
-};
+import {PackageDefinition} from './package-lock-generator';
+
+// export type PackageJson = {
+//   dependencies?: {[key: string]: string},
+//   devDependencies?: {[key: string]: string}
+// };
 
 /**
  * Checks if module import specifier is a bare module specifier. Reference:
@@ -57,16 +59,42 @@ export function parsePackageName(specifier: string) {
  * Returns '' if the package is not found, or is an invalid semver range.
  * Returns the semver associated with the package prefixed with '@'.
  */
-function semverForPackage(packageJson: PackageJson, name: string) {
-  let semverRange = '';
-  if (packageJson.dependencies && packageJson.dependencies[name]) {
-    semverRange = packageJson.dependencies[name];
-  }
-  if (packageJson.devDependencies && packageJson.devDependencies[name]) {
-    semverRange = packageJson.devDependencies[name];
+// function semverForPackage(packageLock: PackageDefinition, name: string) {
+//   let semverRange = '';
+//   if (packageLock.dependencies && packageLock.dependencies[name]) {
+//     semverRange = packageLock.dependencies[name];
+//   }
+//   if (packageLock.devDependencies && packageLock.devDependencies[name]) {
+//     semverRange = packageLock.devDependencies[name];
+//   }
+
+//   return semverRange && semver.validRange(semverRange) ? '@' + semverRange :
+//   '';
+// }
+
+/**
+ * Given a package lock object, performs a depth first search for the requested
+ * package.
+ */
+function getPackageVersion(
+    packageLock: PackageDefinition, name: string): string|undefined {
+  if (!packageLock.dependencies) {
+    return undefined;
   }
 
-  return semverRange && semver.validRange(semverRange) ? '@' + semverRange : '';
+  if (packageLock.dependencies[name]) {
+    return packageLock.dependencies[name].version;
+  }
+
+  let result;
+  for (const dep of Object.keys(packageLock.dependencies)) {
+    result = getPackageVersion(packageLock.dependencies[dep], name);
+    if (result) {
+      return result;
+    }
+  }
+
+  return undefined;
 }
 
 /**
@@ -76,15 +104,18 @@ function semverForPackage(packageJson: PackageJson, name: string) {
  * '/@polymer/polymer@3.0.0/path'`.
  */
 export function rewriteBareModuleSpecifiers(
-    code: string, packageJson: PackageJson = {}): string {
+    code: string, packageLock: PackageDefinition, rootPackage: string): string {
   const jsAST = babelParser.parse(
       code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
     if (node.type === 'ImportDeclaration' &&
         isBareModuleSpecifier(node.source.value)) {
-      const result = parsePackageName(node.source.value);
-      node.source.value = `/${result.package}${
-          semverForPackage(packageJson, result.package)}${result.path}`;
+      const parsedPackage = parsePackageName(node.source.value);
+      const version = getPackageVersion(packageLock, parsedPackage.package);
+      const versionString = version ? '@' + version : '';
+      const queryString = rootPackage ? '?' + rootPackage : '';
+      node.source.value = `/${parsedPackage.package}${versionString}${
+          parsedPackage.path}${queryString}`;
     }
   }
 
@@ -98,7 +129,10 @@ export function rewriteBareModuleSpecifiers(
  * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
-  constructor(packageJson: PackageJson = {}, pathFromPackageRoot = '/') {
+  constructor(
+      packageLock: PackageDefinition,
+      pathFromPackageRoot = '/',
+      rootPackage = '') {
     super();
 
     let insideModuleScript = false;
@@ -131,7 +165,8 @@ export class HTMLRewriter extends RewritingStream {
 
     this.on('text', (_, raw) => {
       if (insideModuleScript) {
-        this.emitRaw(rewriteBareModuleSpecifiers(raw, packageJson));
+        this.emitRaw(
+            rewriteBareModuleSpecifiers(raw, packageLock, rootPackage));
       } else {
         this.emitRaw(raw);
       }

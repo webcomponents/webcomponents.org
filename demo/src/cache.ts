@@ -15,6 +15,8 @@ export class Cache<T> {
     // Re-insert value.
     this.values.delete(key);
     this.values.set(key, value);
+
+    return value;
   }
 
   set(key: string, value: T) {

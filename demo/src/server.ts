@@ -3,9 +3,9 @@ import getStream from 'get-stream';
 import {IncomingMessage} from 'http';
 import Koa from 'koa';
 import koaCompress from 'koa-compress';
-import url from 'url';
 
-import {HTMLRewriter, PackageJson, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
+import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
+import {PackageLockGenerator} from './package-lock-generator';
 import {resolveToUnpkg} from './proxy';
 
 /**
@@ -31,6 +31,7 @@ import {resolveToUnpkg} from './proxy';
 export class DemoService {
   private app = new Koa();
   private port: number;
+  private packageLockGenerator = new PackageLockGenerator();
 
   constructor(port: number) {
     this.port = port;
@@ -40,6 +41,8 @@ export class DemoService {
     this.app.use(koaCompress());
 
     this.app.use(this.handleRequest.bind(this));
+
+    await this.packageLockGenerator.init();
 
     return this.app.listen(this.port, () => {
       console.log(`Demo service listening on port ${this.port}`);
@@ -53,26 +56,30 @@ export class DemoService {
 
     const proxiedUrl = resolveToUnpkg(ctx.url);
     const parsedPackage = parsePackageName(ctx.url.substring(1));
-    const packageJsonResponse = await this.fetch(url.resolve(
-        'https://unpkg.com', `${parsedPackage.package}/package.json`));
-    let packageJson: PackageJson = {};
-    try {
-      packageJson = JSON.parse(await getStream(packageJsonResponse));
-    } catch {
-      console.log(`Unable to parse package.json. Original request ${ctx.url}`);
-      return;
-    }
+    const rootPackage = ctx.querystring || parsedPackage.package;
+
+    const packageLock = await this.packageLockGenerator.get(rootPackage);
+
+    // const packageJsonResponse = await this.fetch(url.resolve(
+    //     'https://unpkg.com', `${parsedPackage.package}/package.json`));
+    // let packageJson: PackageJson = {};
+    // try {
+    //   packageJson = JSON.parse(await getStream(packageJsonResponse));
+    // } catch {
+    //   console.log(`Unable to parse package.json. Original request
+    //   ${ctx.url}`); return;
+    // }
 
     const response = await this.fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
 
     if (contentType.startsWith('application/javascript')) {
-      ctx.response.body =
-          rewriteBareModuleSpecifiers(await getStream(response), packageJson);
+      ctx.response.body = rewriteBareModuleSpecifiers(
+          await getStream(response), packageLock, rootPackage);
     } else if (contentType.startsWith('text/html')) {
       ctx.response.body = response.setEncoding('utf8').pipe(
-          new HTMLRewriter(packageJson, parsedPackage.path));
+          new HTMLRewriter(packageLock, parsedPackage.path, rootPackage));
     }
   }
 

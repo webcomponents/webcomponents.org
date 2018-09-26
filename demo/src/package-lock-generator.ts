@@ -3,9 +3,9 @@ import npm from 'npm';
 import * as path from 'path';
 import {Cache} from './cache';
 
-type PackageDefinition = {
-  dependencies: {[key: string]: PackageDefinition};
-  version: string;
+export type PackageDefinition = {
+  dependencies?: {[key: string]: PackageDefinition};
+  version?: string;
 };
 
 export class PackageLockGenerator {
@@ -33,15 +33,14 @@ export class PackageLockGenerator {
         // Do not produce any stdin logs.
         loglevel: 'silent',
       };
-      npm.load(configOptions,
-          () => {
-            this.initialized = true;
-            resolve();
-          });
+      npm.load(configOptions, () => {
+        this.initialized = true;
+        resolve();
+      });
     });
   }
 
-  getPackageLock(packageString: string) {
+  async get(packageString: string): Promise<PackageDefinition> {
     const valueFromCache = this.cache.get(packageString);
     if (valueFromCache) {
       return valueFromCache;
@@ -51,14 +50,19 @@ export class PackageLockGenerator {
       throw new Error('init() must be called first');
     }
 
+    return await this.npmInstall(packageString);
+  }
+
+  private npmInstall(packageString: string) {
     return new Promise((resolve, reject) => {
       npm.commands.install(
           [packageString], async (error, _installedPackages, _packageInfo) => {
             if (error) {
               reject(error);
             }
-            const packageLock = await fsExtra.readJson(
-                path.join(__dirname, 'package-lock.json')) as PackageDefinition;
+            const packageLock =
+                await fsExtra.readJson(path.join(
+                    __dirname, 'package-lock.json')) as PackageDefinition;
             // Insert into cache.
             this.cache.set(packageString, packageLock);
             resolve(packageLock);
@@ -66,16 +70,3 @@ export class PackageLockGenerator {
     });
   }
 }
-
-async function run() {
-  const packageLock = new PackageLockGenerator();
-  await packageLock.init();
-
-  console.log(await packageLock.getPackageLock('@polymer/polymer'));
-  console.log(await packageLock.getPackageLock('@polymer/polymer'));
-  console.log(await packageLock.getPackageLock('@polymer/polymer'));
-  console.log(await packageLock.getPackageLock('@polymer/lit-element'));
-  // console.log(await packageLock.getPackageLock('@polymer/paper-button'));
-}
-
-run();

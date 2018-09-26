@@ -10,33 +10,33 @@ test('rewrites basic scoped import', (t) => {
   const before = `import "@polymer/iron-demo-helpers/demo-snippet.js";`;
   const after = `import "/@polymer/iron-demo-helpers/demo-snippet.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before), after);
+  t.is(rewriteBareModuleSpecifiers(before, {}, ''), after);
 });
 
 test('rewrites basic unscoped import', (t) => {
   const before = `import "package/test.js";`;
   const after = `import "/package/test.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before), after);
+  t.is(rewriteBareModuleSpecifiers(before, {}, ''), after);
 });
 
 test('rewrites basic bare unscoped import', (t) => {
   const before = `import "express";`;
   const after = `import "/express";`;
 
-  t.is(rewriteBareModuleSpecifiers(before), after);
+  t.is(rewriteBareModuleSpecifiers(before, {}, ''), after);
 });
 
 test('does not touch relative paths', (t) => {
   const before = `import "./my-element.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before), before);
+  t.is(rewriteBareModuleSpecifiers(before, {}, ''), before);
 });
 
 test('does not touch absolute paths', (t) => {
   const before = `import "/@scope/test.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before), before);
+  t.is(rewriteBareModuleSpecifiers(before, {}, ''), before);
 });
 
 test('rewrites long complex file', async (t) => {
@@ -48,7 +48,7 @@ test('rewrites long complex file', async (t) => {
           __dirname, '../../src/test/goldens/paper-button-demo-expected.html'),
       'utf8');
 
-  const actualStream = beforeStream.pipe(new HTMLRewriter());
+  const actualStream = beforeStream.pipe(new HTMLRewriter({}));
   t.is(await getStream(actualStream), expected);
 });
 
@@ -92,28 +92,20 @@ test('rewrites /node_modules references, 2 dirs nested', async (t) => {
   t.is(await getStream(actualStream), expected);
 });
 
-test('rewrites import with version semver', (t) => {
+test('rewrites import with specified package lock version', (t) => {
   const before = `import "express/test.js";`;
-  const packageJson = {'dependencies': {'express': '^4.15.2'}};
-  const after = `import "/express@^4.15.2/test.js";`;
+  const packageLock = {'dependencies': {'express': {version: '4.15.2'}}};
+  const after = `import "/express@4.15.2/test.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageJson), after);
+  t.is(rewriteBareModuleSpecifiers(before, packageLock, ''), after);
 });
 
-test('rewrites import with strict version', (t) => {
+test('rewrites import with version and root package param', (t) => {
   const before = `import "express/test.js";`;
-  const packageJson = {'dependencies': {'express': '3.9.0'}};
-  const after = `import "/express@3.9.0/test.js";`;
+  const packageLock = {'dependencies': {'express': {version: '4.15.2'}}};
+  const after = `import "/express@4.15.2/test.js?@polymer/polymer";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageJson), after);
-});
-
-test('ignores non-semver values', (t) => {
-  const before = `import "express/test.js";`;
-  const packageJson = {'dependencies': {'express': 'http://blah.com/module'}};
-  const after = `import "/express/test.js";`;
-
-  t.is(rewriteBareModuleSpecifiers(before, packageJson), after);
+  t.is(rewriteBareModuleSpecifiers(before, packageLock, '@polymer/polymer'), after);
 });
 
 test('correctly parse package names', (t) => {
