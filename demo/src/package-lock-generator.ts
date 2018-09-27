@@ -76,6 +76,7 @@ export class PackageLockGenerator {
       const asString = JSON.stringify(packageVersionMap);
       zlib.gzip(asString, (error, result: Buffer) => {
         if (error) {
+          console.error('Failed to compress data');
           reject(error);
         }
         resolve(result);
@@ -87,6 +88,7 @@ export class PackageLockGenerator {
     return new Promise((resolve, reject) => {
       zlib.unzip(buffer, (error, result: Buffer) => {
         if (error) {
+          console.error('Failed to uncompress data');
           reject(error);
         }
         resolve(JSON.parse(result.toString()) as PackageVersionMap);
@@ -112,11 +114,12 @@ export class PackageLockGenerator {
           PackageDefinition;
       const packageVersionMap = this.flattenPackageLock(packageLock);
       const compressed = await this.compressData(packageVersionMap);
-      await fsExtra.writeFile('paper-button-compressed-after.json', compressed);
       // Insert into cache.
       this.cache.set(packageString, compressed);
       return packageVersionMap;
-    } catch {
+    } catch (error) {
+      console.error(`Failed to generate package lock for ${packageString}`);
+      console.error(error);
       return null;
     } finally {
       // Cleanup temporary directory.
