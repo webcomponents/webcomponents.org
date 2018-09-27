@@ -3,6 +3,7 @@ import * as fsExtra from 'fs-extra';
 import os from 'os';
 import * as path from 'path';
 import url from 'url';
+import zlib from 'zlib';
 
 import {Cache} from './cache';
 import {fetch} from './util';
@@ -13,10 +14,15 @@ const MEMORY_RESERVED_MB = 128;
 /**
  * Basic representation of the contents of package-lock.json file.
  */
-export type PackageDefinition = {
+type PackageDefinition = {
   dependencies?: {[key: string]: PackageDefinition};
   version?: string;
 };
+
+/**
+ * Flat representation of a package-lock file.
+ */
+export type PackageVersionMap = {[name: string]: string};
 
 /**
  * Used to generate package locks for requested packages. These package locks
@@ -34,22 +40,21 @@ export type PackageDefinition = {
 export class PackageLockGenerator {
   // Instantiate a cache which dynamically determines cache size based on how
   // much memory is being used.
-  private cache = new Cache<PackageDefinition>((_currentSize) => {
+  private cache = new Cache<Buffer>((_currentSize) => {
     const currentHeapBytes = process.memoryUsage().heapUsed;
     const currentHeapMB = currentHeapBytes / 1024 / 1024;
     return MEMORY_TOTAL_MB - currentHeapMB > MEMORY_RESERVED_MB;
   });
-  private pendingInstalls = new Map<string, Promise<PackageDefinition|null>>();
+  private pendingInstalls = new Map<string, Promise<PackageVersionMap|null>>();
 
   /**
    * Fetch & generate if necessary the package-lock.json file for the specified
    * package. Package is specified in the from @scope/package@1.0.0.
    */
-  async get(packageString: string): Promise<PackageDefinition|null> {
-    // TODO: support package-lock expirations since they can become out of date.
+  async get(packageString: string): Promise<PackageVersionMap|null> {
     const valueFromCache = this.cache.get(packageString);
     if (valueFromCache) {
-      return valueFromCache;
+      return await this.uncompressData(valueFromCache);
     }
 
     // Check if there is already a pending install for the same package.
@@ -64,6 +69,29 @@ export class PackageLockGenerator {
     const value = await generatePromise;
     this.pendingInstalls.delete(packageString);
     return value;
+  }
+
+  private compressData(packageVersionMap: PackageVersionMap):Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const asString = JSON.stringify(packageVersionMap);
+      zlib.gzip(asString, (error, result: Buffer) => {
+        if (error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+  private uncompressData(buffer: Buffer):Promise<PackageVersionMap> {
+    return new Promise((resolve, reject) => {
+      zlib.unzip(buffer, (error, result: Buffer) => {
+        if (error) {
+          reject(error);
+        }
+        resolve(JSON.parse(result.toString()) as PackageVersionMap);
+      });
+    });
   }
 
   /**
@@ -82,15 +110,48 @@ export class PackageLockGenerator {
       const packageLock =
           await fsExtra.readJson(path.join(packagePath, 'package-lock.json')) as
           PackageDefinition;
+      const packageVersionMap = this.flattenPackageLock(packageLock);
+      const compressed = await this.compressData(packageVersionMap);
+      await fsExtra.writeFile('paper-button-compressed-after.json', compressed);
       // Insert into cache.
-      this.cache.set(packageString, packageLock);
-      return packageLock;
+      this.cache.set(packageString, compressed);
+      return packageVersionMap;
     } catch {
       return null;
     } finally {
       // Cleanup temporary directory.
       await fsExtra.remove(packagePath);
     }
+  }
+
+  /**
+   * From a large recursive definition, produces a flattened representation. A
+   * package may only appear once, so if there are conflicts, only one version
+   * will listed.
+   */
+  private flattenPackageLock(packageLock: PackageDefinition):
+      PackageVersionMap {
+    const packageMap: PackageVersionMap = {};
+
+    /**
+     * Recursively appends dependencies if a version is specified.
+     */
+    const appendDependencies = (root: PackageDefinition) => {
+      if (!root.dependencies) {
+        return;
+      }
+
+      for (const name of Object.keys(root.dependencies)) {
+        const version = root.dependencies[name].version;
+        if (version) {
+          packageMap[name] = version;
+        }
+        appendDependencies(root.dependencies[name]);
+      }
+    };
+
+    appendDependencies(packageLock);
+    return packageMap;
   }
 
   /**

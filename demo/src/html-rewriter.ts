@@ -3,7 +3,7 @@ import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
 import url from 'url';
 
-import {PackageDefinition} from './package-lock-generator';
+import {PackageVersionMap} from './package-lock-generator';
 
 /**
  * Checks if module import specifier is a bare module specifier. Reference:
@@ -49,38 +49,14 @@ export function parsePackageName(specifier: string) {
 }
 
 /**
- * Given a package lock object, performs a depth first search for the requested
- * package and return the resolved version.
- */
-function getPackageVersion(
-    packageLock: PackageDefinition, name: string): string|undefined {
-  if (!packageLock.dependencies) {
-    return undefined;
-  }
-
-  if (packageLock.dependencies[name]) {
-    return packageLock.dependencies[name].version;
-  }
-
-  let result;
-  for (const dep of Object.keys(packageLock.dependencies)) {
-    result = getPackageVersion(packageLock.dependencies[dep], name);
-    if (result) {
-      return result;
-    }
-  }
-
-  return undefined;
-}
-
-/**
  * Synchronously rewrites JS to replace import declarations using bare module
  * specifiers with equivalent absolute paths. For example, `import
  * '@polymer/polymer/path'` will be rewritten as `import
  * '/@polymer/polymer@3.0.0/path'`.
  */
 export function rewriteBareModuleSpecifiers(
-    code: string, packageLock: PackageDefinition, rootPackage: string): string {
+    code: string, packageVersions: PackageVersionMap, rootPackage: string):
+    string {
   const jsAST = babelParser.parse(
       code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
@@ -90,7 +66,7 @@ export function rewriteBareModuleSpecifiers(
         node.source) {
       if (isBareModuleSpecifier(node.source.value)) {
         const parsedPackage = parsePackageName(node.source.value);
-        const version = getPackageVersion(packageLock, parsedPackage.package);
+        const version = packageVersions[parsedPackage.package];
         const versionString = version ? '@' + version : '';
         const queryString = rootPackage ? '?' + rootPackage : '';
         node.source.value = `/${parsedPackage.package}${versionString}${
@@ -117,7 +93,7 @@ export function rewriteBareModuleSpecifiers(
  */
 export class HTMLRewriter extends RewritingStream {
   constructor(
-      packageLock: PackageDefinition,
+      packageLock: PackageVersionMap,
       pathFromPackageRoot = '/',
       rootPackage = '') {
     super();

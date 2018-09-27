@@ -107,18 +107,18 @@ test('rewrites /node_modules references, 2 dirs nested', async (t) => {
 
 test('rewrites import with specified package lock version', (t) => {
   const before = `import "express/test.js";`;
-  const packageLock = {'dependencies': {'express': {version: '4.15.2'}}};
+  const packageVersions = {'express': '4.15.2'};
   const after = `import "/express@4.15.2/test.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageLock, ''), after);
+  t.is(rewriteBareModuleSpecifiers(before, packageVersions, ''), after);
 });
 
 test('rewrites import with version and root package param', (t) => {
   const before = `import "express/test.js";`;
-  const packageLock = {'dependencies': {'express': {version: '4.15.2'}}};
+  const packageVersions = {'express': '4.15.2'};
   const after = `import "/express@4.15.2/test.js?@polymer/polymer";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageLock, '@polymer/polymer'), after);
+  t.is(rewriteBareModuleSpecifiers(before, packageVersions, '@polymer/polymer'), after);
 });
 
 test('rewrites relative import by appending root package param', (t) => {
@@ -144,10 +144,10 @@ test('rewrites export all by appending root package param', (t) => {
 
 test('rewrites export all with bare module specifier and package lock by appending root package param', (t) => {
   const before = `export * from "@scoped/my-module";`;
-  const packageLock = {'dependencies': {'@scoped/my-module': {version: '4.15.2'}}};
+  const packageVersions = {'@scoped/my-module': '4.15.2'};
   const after = `export * from "/@scoped/my-module@4.15.2?my-package@3.0.0";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageLock, 'my-package@3.0.0'), after);
+  t.is(rewriteBareModuleSpecifiers(before, packageVersions, 'my-package@3.0.0'), after);
 });
 
 test('rewrites relative named export by appending root package param', (t) => {
