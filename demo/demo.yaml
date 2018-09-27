@@ -1,5 +1,5 @@
 runtime: nodejs8
-service: demo
+service: default
 
 instance_class: F4_1G
 

@@ -24,7 +24,11 @@ import {fetch} from './util';
  * versions. For example, if requesting a HTML file within package 'foo' that
  * depends on dependencies and devDependencies, each module will be resolved by
  * effectively installing 'foo' and resolving each dependency against what would
- * be installed.
+ * be installed. As package locks are required in every request, they are
+ * aggressively cached. Generated package locks are also permanently persisted
+ * to ensure consistent performance.
+ *
+ * Each response is considered immutable and cached aggressively.
  */
 export class DemoService {
   private app = new Koa();
@@ -68,8 +72,9 @@ export class DemoService {
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
     // Since requests should always specify version, the response is effectively
-    // immutable as NPM versions cannot be unpublished.
-    ctx.set('Cache-Control', 'public,max-age=31536000');
+    // immutable as NPM versions cannot be unpublished. Cache currently set to
+    // 24 hours.
+    ctx.set('Cache-Control', 'public,max-age=86400');
 
     if (contentType.startsWith('application/javascript')) {
       ctx.response.body = rewriteBareModuleSpecifiers(

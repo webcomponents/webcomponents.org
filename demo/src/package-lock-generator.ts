@@ -1,4 +1,6 @@
+import {Firestore} from '@google-cloud/firestore';
 import child_process from 'child_process';
+import firebaseAdmin from 'firebase-admin';
 import * as fsExtra from 'fs-extra';
 import os from 'os';
 import * as path from 'path';
@@ -33,8 +35,10 @@ export type PackageVersionMap = {
  * file.
  *
  * Response times vary by the number of transitive dependencies of a package.
- * However, responses are cached in an in-memory least recently used cache. For
- * frequently used packages, this resolution will only be done once.
+ * All generated package locks are persisted and reused once it has initially
+ * been generated. An in-memory cache also exists to reduce the number of reads.
+ * For example, when loading a module based demo, hundreds of requests can be
+ * generated reading the same package lock. However, responses are cached in an
  *
  * This also supports concurrent requests to generate the same package lock
  * through deduplication of requests.
@@ -47,7 +51,22 @@ export class PackageLockGenerator {
     const currentHeapMB = currentHeapBytes / 1024 / 1024;
     return MEMORY_TOTAL_MB - currentHeapMB > MEMORY_RESERVED_MB;
   });
+  // Map to dedupe pending installs if there are concurrent requests.
   private pendingInstalls = new Map<string, Promise<PackageVersionMap|null>>();
+  // Persistent database to store generated package locks.
+  private firestore?: Firestore;
+
+  constructor() {
+    if (process.env.NODE_ENV === 'production') {
+      firebaseAdmin.initializeApp(
+          {credential: firebaseAdmin.credential.applicationDefault()});
+
+      this.firestore = firebaseAdmin.firestore();
+      this.firestore.settings({timestampsInSnapshots: true});
+    } else {
+      console.log('Running without Firestore backing.');
+    }
+  }
 
   /**
    * Fetch & generate if necessary the package-lock.json file for the specified
@@ -57,6 +76,22 @@ export class PackageLockGenerator {
     const valueFromCache = this.cache.get(packageString);
     if (valueFromCache) {
       return await this.uncompressData(valueFromCache);
+    }
+
+    let firestoreDocId;
+
+    // Check if there is already a persisted value in datastore.
+    if (this.firestore) {
+      firestoreDocId = this.firestore.collection('package-locks')
+                           .doc(packageString.replace('/', '__'))
+      const doc = await firestoreDocId.get();
+      if (doc.exists) {
+        const packageVersionMap = doc.data() as PackageVersionMap;
+        // Insert into in-memory cache.
+        const compressed = await this.compressData(packageVersionMap);
+        this.cache.set(packageString, compressed);
+        return packageVersionMap;
+      }
     }
 
     // Check if there is already a pending install for the same package.
@@ -73,11 +108,20 @@ export class PackageLockGenerator {
     if (packageVersionMap) {
       const compressed = await this.compressData(packageVersionMap);
       this.cache.set(packageString, compressed);
+
+      // Insert into datastore.
+      if (firestoreDocId) {
+        firestoreDocId.set(packageVersionMap);
+      }
     }
     this.pendingInstalls.delete(packageString);
     return packageVersionMap;
   }
 
+  /**
+   * Compresses PackageVersionMaps by converting it to a string and gziping the
+   * result.
+   */
   private compressData(packageVersionMap: PackageVersionMap): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const asString = JSON.stringify(packageVersionMap);
