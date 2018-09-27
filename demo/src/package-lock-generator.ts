@@ -68,9 +68,14 @@ export class PackageLockGenerator {
     // Generate the package lock.
     const generatePromise = this.generatePackageLock(packageString);
     this.pendingInstalls.set(packageString, generatePromise);
-    const value = await generatePromise;
+    const packageVersionMap = await generatePromise;
+    // Insert into cache.
+    if (packageVersionMap) {
+      const compressed = await this.compressData(packageVersionMap);
+      this.cache.set(packageString, compressed);
+    }
     this.pendingInstalls.delete(packageString);
-    return value;
+    return packageVersionMap;
   }
 
   private compressData(packageVersionMap: PackageVersionMap): Promise<Buffer> {
@@ -115,9 +120,6 @@ export class PackageLockGenerator {
           await fsExtra.readJson(path.join(packagePath, 'package-lock.json')) as
           PackageDefinition;
       const packageVersionMap = this.flattenPackageLock(packageLock);
-      const compressed = await this.compressData(packageVersionMap);
-      // Insert into cache.
-      this.cache.set(packageString, compressed);
       return packageVersionMap;
     } catch (error) {
       console.error(`Failed to generate package lock for ${packageString}`);

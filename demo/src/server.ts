@@ -67,6 +67,9 @@ export class DemoService {
     const response = await fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
+    // Since requests should always specify version, the response is effectively
+    // immutable as NPM versions cannot be unpublished.
+    ctx.set('Cache-Control', 'public,max-age=31536000');
 
     if (contentType.startsWith('application/javascript')) {
       ctx.response.body = rewriteBareModuleSpecifiers(
