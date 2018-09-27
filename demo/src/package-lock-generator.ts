@@ -69,8 +69,9 @@ export class PackageLockGenerator {
   }
 
   /**
-   * Fetch & generate if necessary the package-lock.json file for the specified
-   * package. Package is specified in the from @scope/package@1.0.0.
+   * Fetch the package versions for the specified package (in the form
+   * @scope/package@1.0.0). This is done by checking the in-memory cache, then
+   * Firestore. If it does not exist, it is generated.
    */
   async get(packageString: string): Promise<PackageVersionMap|null> {
     const valueFromCache = this.cache.get(packageString);
@@ -153,7 +154,7 @@ export class PackageLockGenerator {
    * caches the result.
    */
   private async generatePackageLock(packageString: string) {
-    // Create unique directory for this package.
+    // Create unique temp directory for this package.
     const packagePath =
         await fsExtra.mkdtemp(path.join(os.tmpdir(), 'package-locks-'));
     await fsExtra.ensureDir(packagePath);
