@@ -72,9 +72,11 @@ test('rewrites /node_modules references with package root', async (t) => {
   beforeStream.push(null);
   beforeStream.setEncoding('utf8');
 
-  const expected = '<script src="/other-package/file.html?@scope/package@3.0.0">';
+  const expected =
+      '<script src="/other-package/file.html?@scope/package@3.0.0">';
 
-  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
+  const actualStream =
+      beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
   t.is(await getStream(actualStream), expected);
 });
 
@@ -107,18 +109,19 @@ test('rewrites /node_modules references, 2 dirs nested', async (t) => {
 
 test('rewrites import with specified package lock version', (t) => {
   const before = `import "express/test.js";`;
-  const packageVersions = {'express': '4.15.2'};
+  const versions = {'express': '4.15.2'};
   const after = `import "/express@4.15.2/test.js";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageVersions, ''), after);
+  t.is(rewriteBareModuleSpecifiers(before, versions, ''), after);
 });
 
 test('rewrites import with version and root package param', (t) => {
   const before = `import "express/test.js";`;
-  const packageVersions = {'express': '4.15.2'};
+  const versions = {'express': '4.15.2'};
   const after = `import "/express@4.15.2/test.js?@polymer/polymer";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageVersions, '@polymer/polymer'), after);
+  t.is(
+      rewriteBareModuleSpecifiers(before, versions, '@polymer/polymer'), after);
 });
 
 test('rewrites relative import by appending root package param', (t) => {
@@ -128,12 +131,14 @@ test('rewrites relative import by appending root package param', (t) => {
   t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
 });
 
-test('rewrites relative import with query param by appending root package param', (t) => {
-  const before = `import "./test.js?foo&bar";`;
-  const after = `import "./test.js?my-package@3.0.0";`;
+test(
+    'rewrites relative import with query param by appending root package param',
+    (t) => {
+      const before = `import "./test.js?foo&bar";`;
+      const after = `import "./test.js?my-package@3.0.0";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
-});
+      t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
+    });
 
 test('rewrites export all by appending root package param', (t) => {
   const before = `export * from "./module.js";`;
@@ -142,13 +147,18 @@ test('rewrites export all by appending root package param', (t) => {
   t.is(rewriteBareModuleSpecifiers(before, {}, 'my-package@3.0.0'), after);
 });
 
-test('rewrites export all with bare module specifier and package lock by appending root package param', (t) => {
-  const before = `export * from "@scoped/my-module";`;
-  const packageVersions = {'@scoped/my-module': '4.15.2'};
-  const after = `export * from "/@scoped/my-module@4.15.2?my-package@3.0.0";`;
+test(
+    'rewrites export all with bare module specifier and package lock by appending root package param',
+    (t) => {
+      const before = `export * from "@scoped/my-module";`;
+      const versions = {'@scoped/my-module': '4.15.2'};
+      const after =
+          `export * from "/@scoped/my-module@4.15.2?my-package@3.0.0";`;
 
-  t.is(rewriteBareModuleSpecifiers(before, packageVersions, 'my-package@3.0.0'), after);
-});
+      t.is(
+          rewriteBareModuleSpecifiers(before, versions, 'my-package@3.0.0'),
+          after);
+    });
 
 test('rewrites relative named export by appending root package param', (t) => {
   const before = `export { Polymer } from "./test.js";`;
@@ -183,8 +193,10 @@ test('rewrites <script type="module"> src attribute references', async (t) => {
   beforeStream.push(null);
   beforeStream.setEncoding('utf8');
 
-  const expected = '<script type="module" src="./module.js?@scope/package@3.0.0">';
+  const expected =
+      '<script type="module" src="./module.js?@scope/package@3.0.0">';
 
-  const actualStream = beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
+  const actualStream =
+      beforeStream.pipe(new HTMLRewriter({}, filePath, '@scope/package@3.0.0'));
   t.is(await getStream(actualStream), expected);
 });

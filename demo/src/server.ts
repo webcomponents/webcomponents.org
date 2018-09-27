@@ -40,7 +40,7 @@ export class DemoService {
 
     this.app.use(this.handleRequest.bind(this));
 
-    return this.app.listen(this.port, () => {
+    this.app.listen(this.port, () => {
       console.log(`Demo service listening on port ${this.port}`);
     });
   }

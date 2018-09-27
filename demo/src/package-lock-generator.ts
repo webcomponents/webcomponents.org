@@ -22,7 +22,9 @@ type PackageDefinition = {
 /**
  * Flat representation of a package-lock file.
  */
-export type PackageVersionMap = {[name: string]: string};
+export type PackageVersionMap = {
+  [name: string]: string
+};
 
 /**
  * Used to generate package locks for requested packages. These package locks
@@ -71,7 +73,7 @@ export class PackageLockGenerator {
     return value;
   }
 
-  private compressData(packageVersionMap: PackageVersionMap):Promise<Buffer> {
+  private compressData(packageVersionMap: PackageVersionMap): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const asString = JSON.stringify(packageVersionMap);
       zlib.gzip(asString, (error, result: Buffer) => {
@@ -84,7 +86,7 @@ export class PackageLockGenerator {
     });
   }
 
-  private uncompressData(buffer: Buffer):Promise<PackageVersionMap> {
+  private uncompressData(buffer: Buffer): Promise<PackageVersionMap> {
     return new Promise((resolve, reject) => {
       zlib.unzip(buffer, (error, result: Buffer) => {
         if (error) {
