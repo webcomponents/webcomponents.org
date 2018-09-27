@@ -4,10 +4,10 @@
  */
 export class Cache<T> {
   private values: Map<string, T> = new Map<string, T>();
-  private maxSize: number;
+  private shouldCacheMore: (maxsize: number) => boolean;
 
-  constructor(maxSize = 1000) {
-    this.maxSize = maxSize;
+  constructor(shouldCacheMore: (currentSize: number) => boolean) {
+    this.shouldCacheMore = shouldCacheMore;
   }
 
   get(key: string) {
@@ -25,9 +25,10 @@ export class Cache<T> {
 
   set(key: string, value: T) {
     // Remove least used item if cache is full.
-    if (this.values.size > this.maxSize) {
+    if (!this.shouldCacheMore(this.values.size)) {
       const [keyToRemove] = this.values.entries().next().value;
       this.values.delete(keyToRemove);
+      process.memoryUsage().heapUsed / 1024 / 1024 / 100
     }
 
     this.values.set(key, value);

@@ -7,6 +7,9 @@ import url from 'url';
 import {Cache} from './cache';
 import {fetch} from './util';
 
+const MEMORY_TOTAL_MB = 1024;
+const MEMORY_RESERVED_MB = 128;
+
 /**
  * Basic representation of the contents of package-lock.json file.
  */
@@ -29,7 +32,13 @@ export type PackageDefinition = {
  * through deduplication of requests.
  */
 export class PackageLockGenerator {
-  private cache = new Cache<PackageDefinition>();
+  // Instantiate a cache which dynamically determines cache size based on how
+  // much memory is being used.
+  private cache = new Cache<PackageDefinition>((_currentSize) => {
+    const currentHeapBytes = process.memoryUsage().heapUsed;
+    const currentHeapMB = currentHeapBytes / 1024 / 1024;
+    return MEMORY_TOTAL_MB - currentHeapMB > MEMORY_RESERVED_MB;
+  });
   private pendingInstalls = new Map<string, Promise<PackageDefinition|null>>();
 
   /**
