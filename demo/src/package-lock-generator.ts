@@ -156,8 +156,7 @@ export class PackageLockGenerator {
 
   /**
    * Generates a package lock by creating a unique temp directory, copying the
-   * package.json and running `npm install` in that directory. Automatically
-   * caches the result.
+   * package.json and running `npm install` in that directory.
    */
   private async generatePackageLock(packageString: string) {
     // Create unique temp directory for this package.
