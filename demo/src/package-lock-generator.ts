@@ -228,6 +228,14 @@ export class PackageLockGenerator {
    * as a child process.
    */
   private npmInstall(cwd: string) {
-    return exec('npm install --package-lock-only --silent', {cwd});
+    // npm install in the directory installs both dependencies and
+    // devDependencies.
+    // --package-lock-only will only generate a package-lock.json and not
+    // download any dependencies.
+    // --silent suppresses output.
+    // --ignore-scripts prevents npm from executing any scripts defined in
+    // package.json.
+    return exec(
+        'npm install --package-lock-only --silent --ignore-scripts', {cwd});
   }
 }
