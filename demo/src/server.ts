@@ -3,7 +3,7 @@ import Koa from 'koa';
 import koaCompress from 'koa-compress';
 
 import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
-import {PackageLockGenerator} from './package-lock-generator';
+import {PackageLockGenerator, PackageVersionMap} from './package-lock-generator';
 import {resolveToUnpkg} from './proxy';
 import {fetch} from './util';
 
@@ -59,8 +59,12 @@ export class DemoService {
     // current requested package is used as the root resolver for subsequent
     // requests.
     const rootPackage = ctx.querystring || parsedPackage.package;
-    const packageLock = await this.packageLockGenerator.get(rootPackage);
-    if (!packageLock) {
+    let packageLock: PackageVersionMap;
+    try {
+      packageLock = await this.packageLockGenerator.get(rootPackage);
+    } catch (error) {
+      console.error(`Failed to generate package lock for ${rootPackage}`);
+      console.error(error);
       ctx.response.status = 400;
       ctx.response.body = `Invalid package version '${
           rootPackage}'. Must be specifed as @scope/package@1.0.0.`;
@@ -75,6 +79,8 @@ export class DemoService {
     // immutable as NPM versions cannot be unpublished. Cache currently set to
     // 24 hours.
     ctx.set('Cache-Control', 'public,max-age=86400');
+    // Allow cross origin requests.
+    ctx.set('Access-Control-Allow-Origin', '*');
 
     if (contentType.startsWith('application/javascript')) {
       ctx.response.body = rewriteBareModuleSpecifiers(

@@ -2,33 +2,32 @@
  * Simple in-memory implementation of a least recently used cache. Based on
  * Map's preservation of insertion order.
  */
-export class Cache<T> {
-  private values: Map<string, T> = new Map<string, T>();
-  private shouldCacheMore: (maxsize: number) => boolean;
+export class Cache<K, V> {
+  private values: Map<K, V> = new Map<K, V>();
+  private shouldCacheMore: (currentNumItems: number) => boolean;
 
-  constructor(shouldCacheMore: (currentSize: number) => boolean) {
+  constructor(shouldCacheMore: (currentNumItems: number) => boolean) {
     this.shouldCacheMore = shouldCacheMore;
   }
 
-  get(key: string) {
+  get(key: K) {
     const value = this.values.get(key);
-    if (value === undefined) {
+    if (!this.values.has(key)) {
       return undefined;
     }
 
-    // Re-insert value.
+    // Re-insert the value to record that it has been recently used.
     this.values.delete(key);
-    this.values.set(key, value);
+    this.values.set(key, value!);
 
     return value;
   }
 
-  set(key: string, value: T) {
+  set(key: K, value: V) {
     // Remove least used item if cache is full.
     if (!this.shouldCacheMore(this.values.size)) {
       const [keyToRemove] = this.values.entries().next().value;
       this.values.delete(keyToRemove);
-      process.memoryUsage().heapUsed / 1024 / 1024 / 100
     }
 
     this.values.set(key, value);

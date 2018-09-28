@@ -92,8 +92,15 @@ export function rewriteBareModuleSpecifiers(
  * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
+  /**
+   * @param packageVersionMap - package version map
+   * @param pathFromPackageRoot - current path from root. Used to compute
+   *     relative paths.
+   * @param rootPackage - package version string to insert into rewritten
+   *     imports.
+   */
   constructor(
-      packageLock: PackageVersionMap,
+      packageVersionMap: PackageVersionMap,
       pathFromPackageRoot = '/',
       rootPackage = '') {
     super();
@@ -139,7 +146,7 @@ export class HTMLRewriter extends RewritingStream {
     this.on('text', (_, raw) => {
       if (insideModuleScript) {
         this.emitRaw(
-            rewriteBareModuleSpecifiers(raw, packageLock, rootPackage));
+            rewriteBareModuleSpecifiers(raw, packageVersionMap, rootPackage));
       } else {
         this.emitRaw(raw);
       }

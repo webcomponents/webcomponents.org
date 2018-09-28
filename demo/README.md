@@ -15,7 +15,6 @@ npm run test
 ```
 
 ## Deployment
-This project requires native Firestore when running on Google Cloud Platform.
-Ensure the project is built.
+This project requires [Cloud Firestore in Native mode](https://cloud.google.com/datastore/docs/firestore-or-datastore#choosing_a_database) when running on Google Cloud Platform. Ensure the project is built.
 ```
 gcloud app deploy demo.yaml --project <your-project-id>
