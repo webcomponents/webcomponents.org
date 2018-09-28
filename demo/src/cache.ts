@@ -12,8 +12,8 @@ export class Cache<T> {
 
   get(key: string) {
     const value = this.values.get(key);
-    if (!value) {
-      return null;
+    if (value === undefined) {
+      return undefined;
     }
 
     // Re-insert value.

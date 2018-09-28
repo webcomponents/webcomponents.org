@@ -5,6 +5,7 @@ import * as fsExtra from 'fs-extra';
 import os from 'os';
 import * as path from 'path';
 import url from 'url';
+import {promisify} from 'util';
 import zlib from 'zlib';
 
 import {Cache} from './cache';
@@ -12,6 +13,8 @@ import {fetch} from './util';
 
 const MEMORY_TOTAL_MB = 1024;
 const MEMORY_RESERVED_MB = 128;
+
+const exec = promisify(child_process.exec);
 
 /**
  * Basic representation of the contents of package-lock.json file.
@@ -225,14 +228,6 @@ export class PackageLockGenerator {
    * as a child process.
    */
   private npmInstall(cwd: string) {
-    return new Promise((resolve, reject) => {
-      child_process.exec(
-          'npm install --package-lock-only --silent', {cwd}, async (error) => {
-            if (error) {
-              reject(error);
-            }
-            resolve();
-          });
-    });
+    return exec('npm install --package-lock-only --silent', {cwd});
   }
 }
