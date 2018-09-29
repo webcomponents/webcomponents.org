@@ -1,12 +1,11 @@
-import {https} from 'follow-redirects';
 import getStream from 'get-stream';
-import {IncomingMessage} from 'http';
 import Koa from 'koa';
 import koaCompress from 'koa-compress';
-import url from 'url';
 
-import {HTMLRewriter, PackageJson, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
+import {HTMLRewriter, parsePackageName, rewriteBareModuleSpecifiers} from './html-rewriter';
+import {PackageLockGenerator, PackageVersionMap} from './package-lock-generator';
 import {resolveToUnpkg} from './proxy';
+import {fetch} from './util';
 
 /**
  * Demo microservice which can serve HTML demos containing bare module import
@@ -21,16 +20,20 @@ import {resolveToUnpkg} from './proxy';
  * will be inserted into the paths to ensure a compatible version of the package
  * is fetched.
  *
- * Another notable difference in behavior from unpkg.com is that requests with
- * specified semvers are not redirected with a 302 status code. Instead, these
- * are internally resolved, which helps ensure consistency of request URLs. This
- * is important as the import spec
- * (https://html.spec.whatwg.org/multipage/webappapis.html#fetching-scripts)
- * defines that module maps are keyed with request URLs, not response URLs.
+ * This microservice also uses a package-lock generator to resolve all package
+ * versions. For example, if requesting a HTML file within package 'foo' that
+ * depends on dependencies and devDependencies, each module will be resolved by
+ * effectively installing 'foo' and resolving each dependency against what would
+ * be installed. As package locks are required in every request, they are
+ * aggressively cached. Generated package locks are also permanently persisted
+ * to ensure consistent performance.
+ *
+ * Each response is considered immutable and cached aggressively.
  */
 export class DemoService {
   private app = new Koa();
   private port: number;
+  private packageLockGenerator = new PackageLockGenerator();
 
   constructor(port: number) {
     this.port = port;
@@ -41,46 +44,50 @@ export class DemoService {
 
     this.app.use(this.handleRequest.bind(this));
 
-    return this.app.listen(this.port, () => {
+    this.app.listen(this.port, () => {
       console.log(`Demo service listening on port ${this.port}`);
     });
   }
 
   async handleRequest(ctx: Koa.Context, _next: () => {}) {
-    if (ctx.url === '/sw.js' || ctx.url === '/favicon.ico') {
+    if (ctx.url === '/favicon.ico') {
+      return;
+    }
+
+    const parsedPackage = parsePackageName(ctx.url.substring(1));
+    // Root package is specified as ?@scope/package@1.0.0. If unspecified, the
+    // current requested package is used as the root resolver for subsequent
+    // requests.
+    const rootPackage = ctx.querystring || parsedPackage.package;
+    let packageLock: PackageVersionMap;
+    try {
+      packageLock = await this.packageLockGenerator.get(rootPackage);
+    } catch (error) {
+      console.error(`Failed to generate package lock for ${rootPackage}`);
+      console.error(error);
+      ctx.response.status = 400;
+      ctx.response.body = `Invalid package version '${
+          rootPackage}'. Must be specifed as @scope/package@1.0.0.`;
       return;
     }
 
     const proxiedUrl = resolveToUnpkg(ctx.url);
-    const parsedPackage = parsePackageName(ctx.url.substring(1));
-    const packageJsonResponse = await this.fetch(url.resolve(
-        'https://unpkg.com', `${parsedPackage.package}/package.json`));
-    let packageJson: PackageJson = {};
-    try {
-      packageJson = JSON.parse(await getStream(packageJsonResponse));
-    } catch {
-      console.log(`Unable to parse package.json. Original request ${ctx.url}`);
-      return;
-    }
-
-    const response = await this.fetch(proxiedUrl);
+    const response = await fetch(proxiedUrl);
     const contentType = response.headers['content-type'] || '';
     ctx.set('Content-Type', contentType);
+    // Since requests should always specify version, the response is effectively
+    // immutable as NPM versions cannot be unpublished. Cache currently set to
+    // 24 hours.
+    ctx.set('Cache-Control', 'public,max-age=86400');
+    // Allow cross origin requests.
+    ctx.set('Access-Control-Allow-Origin', '*');
 
     if (contentType.startsWith('application/javascript')) {
-      ctx.response.body =
-          rewriteBareModuleSpecifiers(await getStream(response), packageJson);
+      ctx.response.body = rewriteBareModuleSpecifiers(
+          await getStream(response), packageLock, rootPackage);
     } else if (contentType.startsWith('text/html')) {
       ctx.response.body = response.setEncoding('utf8').pipe(
-          new HTMLRewriter(packageJson, parsedPackage.path));
+          new HTMLRewriter(packageLock, parsedPackage.path, rootPackage));
     }
-  }
-
-  private fetch(url: string): Promise<IncomingMessage> {
-    return new Promise((resolve) => {
-      https.get(url, (response: IncomingMessage) => {
-        resolve(response);
-      });
-    });
   }
 }

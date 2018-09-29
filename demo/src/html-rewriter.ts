@@ -1,13 +1,9 @@
 import babelGenerate from '@babel/generator';
 import * as babelParser from '@babel/parser';
 import RewritingStream from 'parse5-html-rewriting-stream';
-import semver from 'semver';
 import url from 'url';
 
-export type PackageJson = {
-  dependencies?: {[key: string]: string},
-  devDependencies?: {[key: string]: string}
-};
+import {PackageVersionMap} from './package-lock-generator';
 
 /**
  * Checks if module import specifier is a bare module specifier. Reference:
@@ -53,38 +49,36 @@ export function parsePackageName(specifier: string) {
 }
 
 /**
- * Finds the semver for the given package in dependencies or devDependencies.
- * Returns '' if the package is not found, or is an invalid semver range.
- * Returns the semver associated with the package prefixed with '@'.
- */
-function semverForPackage(packageJson: PackageJson, name: string) {
-  let semverRange = '';
-  if (packageJson.dependencies && packageJson.dependencies[name]) {
-    semverRange = packageJson.dependencies[name];
-  }
-  if (packageJson.devDependencies && packageJson.devDependencies[name]) {
-    semverRange = packageJson.devDependencies[name];
-  }
-
-  return semverRange && semver.validRange(semverRange) ? '@' + semverRange : '';
-}
-
-/**
  * Synchronously rewrites JS to replace import declarations using bare module
  * specifiers with equivalent absolute paths. For example, `import
  * '@polymer/polymer/path'` will be rewritten as `import
  * '/@polymer/polymer@3.0.0/path'`.
  */
 export function rewriteBareModuleSpecifiers(
-    code: string, packageJson: PackageJson = {}): string {
+    code: string, packageVersions: PackageVersionMap, rootPackage: string):
+    string {
   const jsAST = babelParser.parse(
       code, {sourceType: 'module', plugins: ['dynamicImport']});
   for (const node of jsAST.program.body) {
-    if (node.type === 'ImportDeclaration' &&
-        isBareModuleSpecifier(node.source.value)) {
-      const result = parsePackageName(node.source.value);
-      node.source.value = `/${result.package}${
-          semverForPackage(packageJson, result.package)}${result.path}`;
+    if ((node.type === 'ImportDeclaration' ||
+         node.type === 'ExportNamedDeclaration' ||
+         node.type === 'ExportAllDeclaration') &&
+        node.source) {
+      if (isBareModuleSpecifier(node.source.value)) {
+        const parsedPackage = parsePackageName(node.source.value);
+        const version = packageVersions[parsedPackage.package];
+        const versionString = version ? '@' + version : '';
+        const queryString = rootPackage ? '?' + rootPackage : '';
+        node.source.value = `/${parsedPackage.package}${versionString}${
+            parsedPackage.path}${queryString}`;
+      } else {
+        // Append rootPackage to relative URLs.
+        const parsedUrl = url.parse(node.source.value);
+        if (!parsedUrl.protocol) {
+          parsedUrl.search = rootPackage || '';
+          node.source.value = url.format(parsedUrl);
+        }
+      }
     }
   }
 
@@ -98,7 +92,17 @@ export function rewriteBareModuleSpecifiers(
  * encoded (eg. 'utf8').
  */
 export class HTMLRewriter extends RewritingStream {
-  constructor(packageJson: PackageJson = {}, pathFromPackageRoot = '/') {
+  /**
+   * @param packageVersionMap - package version map
+   * @param pathFromPackageRoot - current path from root. Used to compute
+   *     relative paths.
+   * @param rootPackage - package version string to insert into rewritten
+   *     imports.
+   */
+  constructor(
+      packageVersionMap: PackageVersionMap,
+      pathFromPackageRoot = '/',
+      rootPackage = '') {
     super();
 
     let insideModuleScript = false;
@@ -110,13 +114,23 @@ export class HTMLRewriter extends RewritingStream {
           insideModuleScript = true;
         }
 
-        // Rewrite any references to /node_modules/ as absolute paths.
+        // Inspect all <script> tags with src= attributes to rewrite URLs as
+        // needed.
         const srcAttribute = startTag.attrs.find(({name}) => name === 'src');
-        if (srcAttribute &&
-            url.resolve(pathFromPackageRoot, srcAttribute.value)
-                .startsWith('/node_modules/')) {
-          srcAttribute.value =
-              srcAttribute.value.replace(/(\.?\.\/)+node_modules/, '');
+        if (srcAttribute) {
+          const parsedUrl = url.parse(srcAttribute.value);
+          if (!parsedUrl.protocol && parsedUrl.pathname) {
+            // Rewrite any references to /node_modules/ as absolute paths.
+            if (url.resolve(pathFromPackageRoot, parsedUrl.pathname)
+                    .startsWith('/node_modules/')) {
+              parsedUrl.pathname =
+                  parsedUrl.pathname.replace(/(\.?\.\/)+node_modules/, '');
+            }
+
+            // Append rootPackage query parameter.
+            parsedUrl.search = rootPackage || '';
+            srcAttribute.value = url.format(parsedUrl);
+          }
         }
       }
       this.emitStartTag(startTag);
@@ -131,7 +145,8 @@ export class HTMLRewriter extends RewritingStream {
 
     this.on('text', (_, raw) => {
       if (insideModuleScript) {
-        this.emitRaw(rewriteBareModuleSpecifiers(raw, packageJson));
+        this.emitRaw(
+            rewriteBareModuleSpecifiers(raw, packageVersionMap, rootPackage));
       } else {
         this.emitRaw(raw);
       }
