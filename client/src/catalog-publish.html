@@ -284,7 +284,7 @@
         var repo = this.$['repo-input'].value;
         repo = repo.replace(/\/$/, '');
         repo = repo.replace(/.*github.com\//, '');
-        repo = repo.replace(/.*npmjs.com\//, '');
+        repo = repo.replace(/.*npmjs.com\/package\//, '');
 
         this.$.submit.setAttribute('disabled', '');
         this.$.ajax.url = this.baseUrls.api + '/api/publish/' + repo;
