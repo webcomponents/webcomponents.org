@@ -67,6 +67,7 @@ class ErrorCodes(object):
   Library_parse_registry = 13
   Library_no_package = 14
   Library_no_github = 15
+  Library_registry_too_big = 16
 
 class RequestAborted(Exception):
   pass
@@ -234,6 +235,16 @@ class LibraryTask(RequestHandler):
       new_metadata = json.loads(response.content)
       old_metadata = self.library.registry_metadata
       if old_metadata is None or new_metadata.get('_rev') != json.loads(old_metadata).get('_rev'):
+        # The maximum datastore entity size is 1048487 bytes, and this NPM
+        # registry response can sometimes surpass that limit. Hard fail now if
+        # we might get close to the limit, or else we'll fail later with an
+        # uncaught error when we commit, which will cause the task to
+        # unnecessarily retry (note there is other data in the entity too).
+        #
+        # TODO(aomarks) Compress or prune the registry metadata of erroring,
+        # since this means we are currently skipping some packages.
+        if len(response.content) > 1000000:
+          return self.error('Registry metadata is too big', ErrorCodes.Library_registry_too_big)
         self.library.registry_metadata = response.content
         self.library.registry_metadata_updated = datetime.datetime.now()
         self.library_dirty = True
