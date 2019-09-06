@@ -7,6 +7,9 @@
     "start": "node build/start.js",
     "test": "npm run build && ava build/test"
   },
+  "engines": {
+    "node": "10.x.x"
+  },
   "dependencies": {
     "@babel/generator": "^7.0.0",
     "@babel/parser": "^7.0.0",
