@@ -21,7 +21,7 @@
     "get-stream": "^4.0.0",
     "koa": "^2.5.2",
     "koa-compress": "^3.0.0",
-    "npm": "^6.4.1",
+    "npm": "^6.11.3",
     "package-json": "^5.0.0",
     "parse5": "^5.1.0",
     "parse5-html-rewriting-stream": "^5.1.0",
