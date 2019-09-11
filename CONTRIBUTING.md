@@ -14,6 +14,9 @@ At a high-level, the services are:
 - Manage, a Python service dealing with ingestion and management of ingested data from Bower, Github and Analysis.
 - Api, a Python service providing a REST api used by Client to access data from Manage.
 - Analysis, a node.js service that performs slower analysis on ingested elements, using Bower and Hydrolysis.
+- Demo, a node.js service that enables demos to be served on webcomponents.org. It utilizes the unpkg service with support for bare module specifiers.
+- Raw, a node.js service that serves content from GitHub repos.
+
 
 ## Additional documentation for client & analysis services
 For more detailed guides refer to [client](client), [analysis](analysis) & [raw](raw).
