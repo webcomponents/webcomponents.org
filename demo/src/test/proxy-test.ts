@@ -1,4 +1,4 @@
-import {test} from 'ava';
+import test from 'ava';
 import {resolveToUnpkg} from '../proxy';
 
 test('unscoped package', (t) => {
