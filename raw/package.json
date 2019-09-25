@@ -2,7 +2,7 @@
   "name": "raw",
   "private": true,
   "engines": {
-    "node": ">=7"
+    "node": ">=10"
   },
   "scripts": {
     "start": "node server.js",
