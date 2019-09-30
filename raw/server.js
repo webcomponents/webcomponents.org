@@ -7,7 +7,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const express = require('express');
-const datastore = require('@google-cloud/datastore')();
+const {Datastore} = require('@google-cloud/datastore');
+const datastore = new Datastore();
 const request = require('request');
 const app = express();
 const zlib = require('zlib');
