@@ -13,7 +13,7 @@
     "fs-extra": "^5.0.0",
     "hydrolysis": "1.25.0",
     "lockfile": "1.0.1",
-    "npm": "^6.11.3",
+    "npm": "^6.13.4",
     "polymer-analyzer": "^3.1.1",
     "rimraf": "^2.6.1",
     "stream-buffers": "3.0.1"
