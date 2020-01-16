@@ -5,45 +5,43 @@ const proxyquire = require('proxyquire').noCallThru();
 const nock = require('nock');
 const fs = require('fs');
 
-const datastoreStub = function() {
-  return {
-    key: function(params) {
-      if (params.includes('notexist'))
-        return 'notexist';
-      return {path: params};
-    },
+const datastoreStub = class {
+  key(params) {
+    if (params.includes('notexist'))
+      return 'notexist';
+    return {path: params};
+  }
 
-    get: function(key) {
-      if (key == 'notexist')
-        return Promise.resolve([undefined]);
-      var data = {};
-      if (key.path[1].startsWith('@')) {
-        data.npmDependencies = [
-          '@scope/package@1.0.0',
-          'package@2.0.0',
-        ];
-      } else {
-        data.bowerDependencies = [
-          {
-            owner: "owner",
-            repo: "repo",
-            version: "v1.0.0",
-            name: "repo"
-          },
-          {
-            owner: "depOwner",
-            repo: "depRepo",
-            version: "v2.0.0",
-            name: "depRepo"
-          }
-        ];
-      }
-      return Promise.resolve([{content: JSON.stringify(data), status: 'ready'}]);
+  get(key) {
+    if (key == 'notexist')
+      return Promise.resolve([undefined]);
+    var data = {};
+    if (key.path[1].startsWith('@')) {
+      data.npmDependencies = [
+        '@scope/package@1.0.0',
+        'package@2.0.0',
+      ];
+    } else {
+      data.bowerDependencies = [
+        {
+          owner: "owner",
+          repo: "repo",
+          version: "v1.0.0",
+          name: "repo"
+        },
+        {
+          owner: "depOwner",
+          repo: "depRepo",
+          version: "v2.0.0",
+          name: "depRepo"
+        }
+      ];
     }
-  };
-};
+    return Promise.resolve([{content: JSON.stringify(data), status: 'ready'}]);
+  }
+}
 
-const server = proxyquire('./server', {'@google-cloud/datastore': datastoreStub});
+const server = proxyquire('./server', {'@google-cloud/datastore': {Datastore: datastoreStub}});
 const request = require('supertest')(server);
 
 test.cb('absolute paths result in error', t => {

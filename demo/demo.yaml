@@ -1,7 +1,8 @@
-runtime: nodejs8
+runtime: nodejs10
 service: default
-
-instance_class: F4_1G
-
-automatic_scaling:
-  min_instances: 1
+instance_class: F4_HIGHMEM
+handlers:
+  - url: '.*'
+    script: auto
+    secure: always
+    redirect_http_response_code: 301

@@ -1,4 +1,4 @@
-import {test} from 'ava';
+import test from 'ava';
 import * as fs from 'fs-extra';
 import getStream from 'get-stream';
 import * as path from 'path';
