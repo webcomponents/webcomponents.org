@@ -101,3 +101,5 @@ class LibraryGithubFromUrl(TestBase):
     self.assertEqual(Library.github_from_url('owner/repo'), ('owner', 'repo'))
     self.assertEqual(Library.github_from_url('git+https://github.com/owner/repo.git'), ('owner', 'repo'))
     self.assertEqual(Library.github_from_url('git://github.com/owner/repo.git'), ('owner', 'repo'))
+    self.assertEqual(Library.github_from_url('git://git@github.com/owner/repo.git'), ('owner', 'repo'))
+    self.assertEqual(Library.github_from_url('git+ssh://git@github.com/owner/repo.git'), ('owner', 'repo'))
