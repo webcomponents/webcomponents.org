@@ -81,7 +81,7 @@ class Library(ndb.Model):
 
   @staticmethod
   def github_from_url(path):
-    path = re.sub('git://github.com/', '', path)
+    path = re.sub('git(\+ssh)?://(git@)?github\.com//', '', path)
     path = re.sub(r'(git\+)?https?:\/\/github.com\/', '', path)
     path = re.sub(r'\.git$', '', path)
     split = path.split('/')
