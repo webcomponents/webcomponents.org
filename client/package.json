@@ -8,7 +8,7 @@
     "test-sauce": "node_modules/web-component-tester/bin/wct"
   },
   "dependencies": {
-    "codemirror": "^5.20.0",
+    "codemirror": "^5.58.2",
     "web-component-tester": "^5.0.1"
   },
   "devDependencies": {
