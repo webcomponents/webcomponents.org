@@ -16,7 +16,7 @@
     "@google-cloud/debug-agent": "^3.0.0",
     "express": "^4.15.2",
     "firebase-admin": "^6.0.0",
-    "follow-redirects": "^1.5.7",
+    "follow-redirects": "^1.14.8",
     "fs-extra": "^7.0.0",
     "get-stream": "^4.0.0",
     "koa": "^2.5.2",
