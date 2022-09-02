@@ -1,6 +1,0 @@
-User-agent: *
-Disallow: /preview/
-Disallow: /preview-integration/
-Disallow: /publish/
-Disallow: /publish-collection/
-Disallow: /search
