@@ -5,5 +5,12 @@
   "description": "A new implementation of the webcompoents.org site",
   "workspaces": [
     "./packages/*"
-  ]
+  ],
+  "scripts": {
+    "format": "prettier \"./packages/*/src/**/*.ts\" --write"
+  },
+  "dependencies": {
+    "prettier": "^2.7.1",
+    "typescript": "~4.8.2"
+  }
 }
