@@ -26,6 +26,8 @@ Checks:
  - TODO: (warning) Global type references are known (ie, check against `lib.d.ts` and `lib.dom.d.ts` or MDN)
  - TODO: (warning) Each element (possibly other exports) has a description
  - TODO: All names that need to be unique within a scope are unique: exports, declarations, class members, function parameters, etc.
+ - TODO: (warning) Modules don't have common browser-incompatible code: process, non-standard CSS imports, etc.
+ - TODO: (warning) Imports within modules work with either browser-standard or Node JS module import specifier resolution.
 
 ### `index.js`
 
