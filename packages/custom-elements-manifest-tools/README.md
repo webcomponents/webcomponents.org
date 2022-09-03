@@ -25,6 +25,7 @@ Checks:
  - TODO: (warning) type strings have type references
  - TODO: (warning) Global type references are known (ie, check against `lib.d.ts` and `lib.dom.d.ts` or MDN)
  - TODO: (warning) Each element (possibly other exports) has a description
+ - TODO: All names that need to be unique within a scope are unique: exports, declarations, class members, function parameters, etc.
 
 ### `index.js`
 
@@ -32,4 +33,3 @@ Checks:
  - `getModule()`: Gets a module by path
  - `referenceString()`: Serialize a CEM reference to a string
  - `parseReferenceString()`: Deserialize a CEM reference from a string
- 
