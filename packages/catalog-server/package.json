@@ -1,0 +1,78 @@
+{
+  "name": "@webcomponents/catalog-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A web component catalog database and server",
+  "author": "Google LLC",
+  "homepage": "",
+  "license": "APACHE-2.0",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.{d.ts,d.ts.map,js,js.map}"
+  ],
+  "scripts": {
+    "build": "wireit",
+    "start": "wireit",
+    "start:dev": "wireit",
+    "test": "wireit",
+    "emulators:start": "firebase emulators:start --project wc-catalog",
+    "firebase": "firebase"
+  },
+  "wireit": {
+    "build": {
+      "command": "../../node_modules/.bin/tsc --pretty",
+      "dependencies": [
+        "../custom-elements-manifest-tools:build",
+        "../catalog-api:build"
+      ],
+      "files": [
+        "tsconfig.json",
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib",
+        "index.{js,js.map,d.ts,d.ts.map}",
+        "tsconfig.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "start": {
+      "command": "node --enable-source-maps index.js",
+      "dependencies": [
+        "build"
+      ]
+    },
+    "start:dev": {
+      "command": "FIRESTORE_EMULATOR_HOST=localhost:8088 npm start",
+      "dependencies": [
+        "build"
+      ]
+    },
+    "test": {
+      "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:8088 uvu test \"_test\\.js$\"",
+      "dependencies": [
+        "build"
+      ],
+      "files": [],
+      "output": []
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.6",
+    "@types/npm-registry-fetch": "^8.0.0",
+    "@types/source-map-support": "^0.5.3",
+    "firebase-tools": "^11.3.0"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^6.0.0",
+    "@webcomponents/catalog-api": "0.0.0",
+    "@webcomponents/custom-elements-manifest-tools": "0.0.0",
+    "custom-elements-manifest": "^1.0.0",
+    "firebase": "^9.6.10",
+    "firebase-admin": "^11.0.0",
+    "node-fetch": "^3.2.3",
+    "npm-registry-fetch": "^13.1.0"
+  }
+}
