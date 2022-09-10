@@ -12,15 +12,12 @@ import {
   printParseErrorCode,
   findNodeAtLocation,
 } from 'jsonc-parser';
+import type {Package} from 'custom-elements-manifest/schema';
+import {PackageFiles} from './npm.js';
 
 const {satisfies} = semver;
 
-export interface PackageFiles {
-  getFile(packageName: string, version: string, path: string): Promise<string>;
-}
-
 export interface ValidateManifestArgs {
-  // package: Package;
   packageName: string;
   version: string;
   files: PackageFiles;
@@ -53,41 +50,70 @@ export const errorCodes = {
  * Validates an npm package/version against a number of checks for custom
  * element manifest correctness.
  */
-export async function* validatePackage(
-  args: ValidateManifestArgs
-): AsyncGenerator<ValidationProblem> {
-  // const {packageName, version, files} = args;
+export const validatePackage = async (args: ValidateManifestArgs) => {
+  const problems: Array<ValidationProblem> = [];
+
   const {
     customElementsManifestFileName,
     customElementsManifestNode,
     problems: packgeJsonProblems,
   } = await validatePackageJson(args);
-  yield* packgeJsonProblems();
-  if (
-    customElementsManifestFileName === undefined ||
-    customElementsManifestNode === undefined
-  ) {
-    return;
-  }
-  const {problems: manifestProblems} = await validateManifest(
-    args,
-    customElementsManifestFileName,
-    customElementsManifestNode
-  );
-  yield* manifestProblems();
-}
+  problems.push(...packgeJsonProblems);
 
-async function validatePackageJson(args: ValidateManifestArgs) {
+  let manifestSource: string | undefined = undefined;
+  let manifestData: Package | undefined = undefined;
+
+  if (
+    customElementsManifestFileName !== undefined &&
+    customElementsManifestNode !== undefined
+  ) {
+    const result = await validateManifest(
+      args,
+      customElementsManifestFileName,
+      customElementsManifestNode
+    );
+    problems.push(...result.problems);
+    manifestSource = result.manifestSource;
+    manifestData = result.manifestData;
+  }
+
+  return {
+    manifestData,
+    manifestSource,
+    problems,
+  };
+};
+
+const validatePackageJson = async (args: ValidateManifestArgs) => {
   const {packageName, version, files} = args;
+  const problems: Array<ValidationProblem> = [];
+
+  // Fetch package.json *file* from package.
+  // This is the source as uploaded to npm, so it's suitable for reporting
+  // errors on.
   const packageJsonSource = await files.getFile(
     packageName,
     version,
     'package.json'
   );
+
+  // Parse package.json
   const parseErrors: Array<ParseError> = [];
   const packageJsonTree = parseTree(packageJsonSource, parseErrors, {
     disallowComments: true,
   })!;
+  for (const e of parseErrors) {
+    problems.push({
+      filePath: 'package.json',
+      code: errorCodes.JSON_parse_error,
+      message: `JSON parse error ${printParseErrorCode(e.error)}`,
+      start: e.offset,
+      length: e.length,
+      severity: 'error',
+    } as const);
+  }
+
+  // Get manifest file name
   let customElementsManifestFileName: string | undefined = undefined;
   const customElementsManifestNode = findNodeAtLocation(packageJsonTree, [
     'customElements',
@@ -95,33 +121,23 @@ async function validatePackageJson(args: ValidateManifestArgs) {
   if (customElementsManifestNode?.type === 'string') {
     customElementsManifestFileName = customElementsManifestNode.value;
   }
+  if (customElementsManifestFileName === undefined) {
+    problems.push({
+      filePath: 'package.json',
+      code: errorCodes.customElements_field_missing,
+      message: errorCodeMessages[errorCodes.customElements_field_missing],
+      start: 0,
+      length: 0,
+      severity: 'error',
+    } as const);
+  }
+
   return {
     customElementsManifestNode,
     customElementsManifestFileName,
-    problems: async function* () {
-      if (customElementsManifestFileName === undefined) {
-        yield {
-          filePath: 'package.json',
-          code: errorCodes.customElements_field_missing,
-          message: errorCodeMessages[errorCodes.customElements_field_missing],
-          start: 0,
-          length: 0,
-          severity: 'error',
-        } as const;
-      }
-      for (const e of parseErrors) {
-        yield {
-          filePath: 'package.json',
-          code: errorCodes.JSON_parse_error,
-          message: `JSON parse error ${printParseErrorCode(e.error)}`,
-          start: e.offset,
-          length: e.length,
-          severity: 'error',
-        } as const;
-      }
-    },
+    problems,
   };
-}
+};
 
 const validateManifest = async (
   args: ValidateManifestArgs,
@@ -129,6 +145,9 @@ const validateManifest = async (
   customElementsManifestNode: Node
 ) => {
   const {packageName, version, files} = args;
+  const problems: Array<ValidationProblem> = [];
+
+  // Fetch manifest
   let manifestSource: string | undefined;
   try {
     manifestSource = await files.getFile(
@@ -136,8 +155,18 @@ const validateManifest = async (
       version,
       customElementsManifestFileName
     );
-  } catch (e) {}
+  } catch (e) {
+    problems.push({
+      filePath: 'package.json',
+      code: errorCodes.custom_elements_manifest_not_found,
+      message: `Custom elements manifest not found: ${customElementsManifestFileName}`,
+      start: customElementsManifestNode.offset,
+      length: customElementsManifestNode.length,
+      severity: 'error',
+    } as const);
+  }
 
+  // Parse manifest to AST
   const parseErrors: Array<ParseError> = [];
   let manifestTree: Node | undefined;
   if (manifestSource !== undefined) {
@@ -145,40 +174,41 @@ const validateManifest = async (
       disallowComments: true,
     })!;
   }
+  for (const e of parseErrors) {
+    problems.push({
+      filePath: customElementsManifestFileName,
+      code: errorCodes.JSON_parse_error,
+      message: `JSON parse error ${printParseErrorCode(e.error)}`,
+      start: e.offset,
+      length: e.length,
+      severity: 'error',
+    } as const);
+  }
+
+  // Parse manifest to data
+  // Assume that double parsing is roughly near the same performance as turning
+  // the AST into a data object, and a lot less code.
+  const manifestData =
+    manifestSource !== undefined && parseErrors.length === 0
+      ? JSON.parse(manifestSource)
+      : undefined;
+
+  // Validate schema version
+  if (manifestTree !== undefined && parseErrors.length === 0) {
+    problems.push(
+      ...validateSchemaVersion(manifestTree, customElementsManifestFileName)
+    );
+  }
+
   return {
+    manifestData,
+    manifestSource,
     manifestTree,
-    problems: async function* () {
-      if (manifestSource === undefined) {
-        yield {
-          filePath: 'package.json',
-          code: errorCodes.custom_elements_manifest_not_found,
-          message: `Custom elements manifest not found: ${customElementsManifestFileName}`,
-          start: customElementsManifestNode.offset,
-          length: customElementsManifestNode.length,
-          severity: 'error',
-        } as const;
-      }
-      for (const e of parseErrors) {
-        yield {
-          filePath: customElementsManifestFileName,
-          code: errorCodes.JSON_parse_error,
-          message: `JSON parse error ${printParseErrorCode(e.error)}`,
-          start: e.offset,
-          length: e.length,
-          severity: 'error',
-        } as const;
-      }
-      if (manifestTree !== undefined && parseErrors.length === 0) {
-        yield* validateSchemaVersion(
-          manifestTree,
-          customElementsManifestFileName
-        );
-      }
-    },
+    problems,
   };
 };
 
-async function* validateSchemaVersion(
+function* validateSchemaVersion(
   manifestTree: Node,
   customElementsManifestFileName: string
 ) {
@@ -188,7 +218,7 @@ async function* validateSchemaVersion(
   }
   const schemaVersion = schemaVersionNode.value;
 
-  if (!satisfies(schemaVersion, '~^1.0.0')) {
+  if (!satisfies(schemaVersion, '^1.0.0')) {
     yield {
       filePath: customElementsManifestFileName,
       code: errorCodes.invalid_schema_version,
@@ -201,5 +231,3 @@ async function* validateSchemaVersion(
     } as const;
   }
 }
-
-// Warning: no custom elements found

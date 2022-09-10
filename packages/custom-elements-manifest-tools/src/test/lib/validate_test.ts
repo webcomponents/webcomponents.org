@@ -7,71 +7,20 @@
 import {suite} from 'uvu';
 import * as assert from 'uvu/assert';
 
-import {errorCodes, PackageFiles, validatePackage} from '../../lib/validate.js';
+import {errorCodes, validatePackage} from '../../lib/validate.js';
+import {InMemoryPackageFiles} from '../in-memory-package-files.js';
 
 const test = suite('Custom element manifest utils tests');
 
-interface FileTree {
-  [name: string]: string | FileTree;
-}
-
-class MemoryFiles implements PackageFiles {
-  packageName: string;
-  version: string;
-  files: FileTree;
-
-  constructor(packageName: string, version: string, files: FileTree) {
-    this.packageName = packageName;
-    this.version = version;
-    this.files = files;
-  }
-
-  async getFile(
-    packageName: string,
-    version: string,
-    filePath: string
-  ): Promise<string> {
-    if (packageName !== this.packageName) {
-      throw new Error(`Invalid package name: ${packageName}`);
-    }
-    if (version !== this.version) {
-      throw new Error(`Invalid package version: ${version}`);
-    }
-    const segments = filePath.split('/');
-    let file: FileTree | string | undefined = this.files;
-    while (
-      segments.length > 0 &&
-      typeof file !== 'string' &&
-      file !== undefined
-    ) {
-      file = file[segments.shift()!];
-    }
-    if (typeof file !== 'string') {
-      throw new Error(`File not found: ${filePath}`);
-    }
-    return file;
-  }
-}
-
-const collect = async <T>(gen: AsyncGenerator<T>) => {
-  const results: Array<T> = [];
-  for await (const r of gen) {
-    results.push(r);
-  }
-  return results;
-};
-
 test('customElements field missing', async () => {
-  const files = new MemoryFiles('test-package', '1.0.0', {
+  const files = new InMemoryPackageFiles('test-package', '1.0.0', {
     'package.json': `{}`,
   });
-  const problems = await collect(
-    validatePackage({
-      packageName: 'test-package',
-      version: '1.0.0',
-      files,
-    })
-  );
+  const {problems} = await validatePackage({
+    packageName: 'test-package',
+    version: '1.0.0',
+    files,
+  });
   assert.equal(problems.length, 1);
   const problem = problems[0]!;
   assert.equal(problem.filePath, 'package.json');
@@ -79,16 +28,14 @@ test('customElements field missing', async () => {
 });
 
 test('manifest not found', async () => {
-  const files = new MemoryFiles('test-package', '1.0.0', {
+  const files = new InMemoryPackageFiles('test-package', '1.0.0', {
     'package.json': `{"customElements": "custom-elements.json"}`,
   });
-  const problems = await collect(
-    validatePackage({
-      packageName: 'test-package',
-      version: '1.0.0',
-      files,
-    })
-  );
+  const {problems} = await validatePackage({
+    packageName: 'test-package',
+    version: '1.0.0',
+    files,
+  });
   assert.equal(problems.length, 1);
   const problem = problems[0]!;
   assert.equal(problem.filePath, 'package.json');
@@ -96,17 +43,15 @@ test('manifest not found', async () => {
 });
 
 test('manifest parse error', async () => {
-  const files = new MemoryFiles('test-package', '1.0.0', {
+  const files = new InMemoryPackageFiles('test-package', '1.0.0', {
     'package.json': `{"customElements": "custom-elements.json"}`,
     'custom-elements.json': `{`,
   });
-  const problems = await collect(
-    validatePackage({
-      packageName: 'test-package',
-      version: '1.0.0',
-      files,
-    })
-  );
+  const {problems} = await validatePackage({
+    packageName: 'test-package',
+    version: '1.0.0',
+    files,
+  });
   assert.equal(problems.length, 1);
   const problem = problems[0]!;
   assert.equal(problem.filePath, 'custom-elements.json');
@@ -114,17 +59,15 @@ test('manifest parse error', async () => {
 });
 
 test('incompatible manifest version', async () => {
-  const files = new MemoryFiles('test-package', '1.0.0', {
+  const files = new InMemoryPackageFiles('test-package', '1.0.0', {
     'package.json': `{"customElements": "custom-elements.json"}`,
     'custom-elements.json': `{"schemaVersion": "2.0.0"}`,
   });
-  const problems = await collect(
-    validatePackage({
-      packageName: 'test-package',
-      version: '1.0.0',
-      files,
-    })
-  );
+  const {problems} = await validatePackage({
+    packageName: 'test-package',
+    version: '1.0.0',
+    files,
+  });
   assert.equal(problems.length, 1);
   const problem = problems[0]!;
   assert.equal(problem.filePath, 'custom-elements.json');
