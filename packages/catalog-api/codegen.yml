@@ -1,0 +1,19 @@
+schema: ./src/lib/schema.graphql
+
+generates:
+  gen/lib/schema.ts:
+    plugins:
+      - typescript
+      - typed-document-node
+      - typescript-resolvers
+    config:
+      declarationKind: interface
+      dedupeOperationSuffix: true
+      immutableTypes: true
+      namingConvention: keep
+      noSchemaStitching: true
+      operationResultSuffix: Data
+      wrapFieldDefinitions: true
+      scalars:
+        Date: Date
+        JSON: String
