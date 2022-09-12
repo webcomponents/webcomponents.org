@@ -36,7 +36,7 @@ export const errorCodeMessages = {
   1001: 'JSON parse error',
   2001: 'customElements field missing',
   2002: 'Custom elements manifest not found',
-  2003: 'Uunsupported custom elements manifest schema version',
+  2003: 'Unsupported custom elements manifest schema version',
 } as const;
 export type ErrorCode = keyof typeof errorCodeMessages;
 export const errorCodes = {
