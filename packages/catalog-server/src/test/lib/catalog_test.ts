@@ -12,12 +12,12 @@ import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 
 const test = suite('Custom element manifest utils tests');
 
-test('something...', async () => {
-  const packageName = 'test';
+test('Imports a package with no problems', async () => {
+  const packageName = 'test-1';
   const version = '0.0.0';
   const files = new InMemoryPackageFiles(packageName, version, {
     'package.json': `{
-      "name": "test",
+      "name": "test-1",
       "version": "0.0.0",
       "customElements": "custom-elements.json"
     }`,
