@@ -1,7 +1,0 @@
-queue:
-- name: update
-  target: manage
-  rate: 20/s
-- name: analysis
-  target: analysis
-  rate: 20/s

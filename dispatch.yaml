@@ -1,7 +1,0 @@
-dispatch:
-  - url: "*/api/*"
-    module: api
-  - url: "webcomponents.org/*"
-    module: redirect
-  - url: "beta.webcomponents.org/*"
-    module: redirect
