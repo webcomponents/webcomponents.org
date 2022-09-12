@@ -84,4 +84,8 @@ export class Catalog {
     console.log('done');
     return {problems};
   }
+
+  async getProblems(packageName: string, version: string) {
+    
+  }
 }

@@ -1,5 +1,6 @@
 /lib/
 /node_modules/
-/test/
+/test/*
+!/test/test-packages
 /tsconfig.tsbuildinfo
 *-debug.log
