@@ -16,7 +16,7 @@ import {getModule} from '../index.js';
  * Resolves a manifest reference from a local package and module into a
  * Declaration object.
  *
- * The current implementatino can only resolve within the local package. To
+ * The current implementation can only resolve within the local package. To
  * resolve to external packages would require some kind of package registry.
  *
  * The `packageName` and `packageVersion` parameters are required for good
