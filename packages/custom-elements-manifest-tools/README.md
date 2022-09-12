@@ -1,4 +1,4 @@
-# cutsom-elements-manifest-tools
+# custom-elements-manifest-tools
 
 A collection of utilities for working with [Custom Element Manifest](https://github.com/webcomponents/custom-elements-manifest) files.
 
