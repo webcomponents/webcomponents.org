@@ -5,7 +5,7 @@
  */
 
 /**
- * Interface for retreiving npm package metadata and files.
+ * Interface for retrieving npm package metadata and files.
  */
 export interface PackageFiles {
   getPackageMetadata(packageName: string): Promise<Package>
