@@ -35,7 +35,7 @@ export class InMemoryPackageFiles implements PackageFiles {
     }
     const packageJson = JSON.parse(packageJsonSource);
     const packument = JSON.parse(packageJsonSource);
-    // Add versions, dist-tags, and time and to make an npm "packument"
+    // Add versions, dist-tags, and time to make an npm "packument"
     // See: https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
     packument.versions = {
       [this.version]: packageJson,
