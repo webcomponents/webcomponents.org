@@ -15,7 +15,7 @@
   },
   "wireit": {
     "build": {
-      "command": "cp -r out/{src,gen}/* .",
+      "command": "cp -r out/src/* . ; cp -r out/gen/* .",
       "dependencies": [
         "build:graphql",
         "build:ts"
