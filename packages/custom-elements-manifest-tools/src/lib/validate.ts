@@ -12,7 +12,7 @@ import {
   printParseErrorCode,
   findNodeAtLocation,
 } from 'jsonc-parser';
-import type {Package} from 'custom-elements-manifest/schema';
+import type {Package} from 'custom-elements-manifest/schema.js';
 import {PackageFiles} from './npm.js';
 
 const {satisfies} = semver;

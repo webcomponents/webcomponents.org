@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import type {Package} from 'custom-elements-manifest/schema';
+import type {Package} from 'custom-elements-manifest/schema.js';
 import {suite} from 'uvu';
 import * as assert from 'uvu/assert';
 import {resolveReference} from '../../lib/resolve-reference.js';

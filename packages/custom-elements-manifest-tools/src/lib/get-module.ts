@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {Package} from 'custom-elements-manifest/schema';
+import type {Package} from 'custom-elements-manifest/schema.js';
 
 export const getModule = (pkg: Package, path: string) => {
   if (path.startsWith('/')) {

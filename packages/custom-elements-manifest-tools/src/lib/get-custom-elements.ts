@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {
+import type {
   CustomElementDeclaration,
   CustomElementExport,
   Module,
   Package,
-} from 'custom-elements-manifest/schema';
+} from 'custom-elements-manifest/schema.js';
 import {resolveReference} from './resolve-reference.js';
 
 export type CustomElementInfo = {

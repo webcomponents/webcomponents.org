@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {
+import type {
   Declaration,
   Module,
   Package,
   Reference,
-} from 'custom-elements-manifest/schema';
+} from 'custom-elements-manifest/schema.js';
 import {getModule} from '../index.js';
 
 /**
@@ -30,7 +30,7 @@ export const resolveReference = (
   packageVersion: string
 ): Declaration | undefined => {
   // Check for local reference
-  if (ref.package !== undefined && ref.package !== packageName) {
+  if (ref.package !== undefined) {
     // We don't know how to resolve cross-package references yet
     console.warn("Can't resolve cross-package reference", ref);
     return undefined;

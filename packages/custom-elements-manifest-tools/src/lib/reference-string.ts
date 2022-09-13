@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {Module, Reference} from 'custom-elements-manifest/schema';
+import type {Module, Reference} from 'custom-elements-manifest/schema.js';
 
 /**
  * Serializes a reference to a string, as used in the GraphQL API of the
