@@ -75,7 +75,7 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^8.3.6",
-    "custom-elements-manifest": "^1.0.0",
+    "custom-elements-manifest": "^2.0.0",
     "graphql": "^16.3.0"
   }
 }

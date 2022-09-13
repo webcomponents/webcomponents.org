@@ -19,18 +19,18 @@
             "name": "FooElement"
           }
         }
+      ],
+      "declarations": [
+        {
+          "kind": "class",
+          "customElement": true,
+          "tagName": "my-element",
+          "name": "FooElement",
+          "superclass": {
+            "name": "HTMLElement"
+          }
+        }
       ]
-    }
-  ],
-  "declarations": [
-    {
-      "kind": "class",
-      "customElement": true,
-      "tagName": "my-element",
-      "name": "FooElement",
-      "superclass": {
-        "name": "HTMLElement"
-      }
     }
   ]
 }

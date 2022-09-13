@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {
+import type {
   CustomElement,
   PackageInfo,
   PackageVersion,
+  ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema';
 import type {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import type {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
@@ -54,6 +55,30 @@ export interface Repository {
     author: string
   ): Promise<void>;
 
+  /**
+   * Gets the custom elements for a package version.
+   */
+  getCustomElements(
+    packageName: string,
+    version: string,
+    tagName?: string
+  ): Promise<CustomElement[]>;
+
+  writeProblems(
+    packageName: string,
+    version: string,
+    problems: Array<ValidationProblem>
+  ): Promise<void>;
+
+  /**
+   * Gets the custom elements for a package version.
+   */
+  getProblems(
+    packageName: string,
+    version: string,
+    tagName?: string
+  ): Promise<ValidationProblem[]>;
+
   getPackageInfo(packageName: string): Promise<PackageInfo | undefined>;
 
   /**
@@ -64,10 +89,4 @@ export interface Repository {
     packageName: string,
     version: string
   ): Promise<PackageVersion | undefined>;
-
-  getCustomElements(
-    packageName: string,
-    version: string,
-    tagName?: string
-  ): Promise<CustomElement[]>;
 }

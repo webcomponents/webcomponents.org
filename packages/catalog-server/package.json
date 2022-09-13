@@ -69,7 +69,7 @@
     "@google-cloud/firestore": "^6.0.0",
     "@webcomponents/catalog-api": "0.0.0",
     "@webcomponents/custom-elements-manifest-tools": "0.0.0",
-    "custom-elements-manifest": "^1.0.0",
+    "custom-elements-manifest": "^2.0.0",
     "firebase": "^9.6.10",
     "firebase-admin": "^11.0.0",
     "node-fetch": "^3.2.3",

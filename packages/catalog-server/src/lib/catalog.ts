@@ -9,6 +9,7 @@ import {validatePackage} from '@webcomponents/custom-elements-manifest-tools/lib
 import {getCustomElements} from '@webcomponents/custom-elements-manifest-tools';
 import {PackageFiles} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from './repository.js';
+import {PackageVersion} from '@webcomponents/catalog-api/lib/schema.js';
 
 export interface CatalogInit {
   repository: Repository;
@@ -39,7 +40,11 @@ export class Catalog {
     });
     const packageMetadataPromise = this._files.getPackageMetadata(packageName);
 
-    // TODO: record problems
+    if (problems.length > 0) {
+      console.log('Writing problems...');
+      await this.repository.writeProblems(packageName, version, problems);
+      console.log('  done');
+    }
 
     if (manifestData === undefined) {
       console.log('Marking package as errored...');
@@ -51,14 +56,24 @@ export class Catalog {
       return {problems};
     }
 
-    const packageMetadata = await packageMetadataPromise;
-
-    // TODO: write custom elements
     const customElements = getCustomElements(
       manifestData,
       packageName,
       version
     );
+
+    if (customElements.length === 0) {
+      console.log('Marking package as errored...');
+      await this.repository.endPackageVersionImportWithError(
+        packageName,
+        version
+      );
+      console.log('  done');
+      return {problems};
+    }
+
+    const packageMetadata = await packageMetadataPromise;
+
     const packageVersionMetadata = packageMetadata.versions[version]!;
     const distTags = packageMetadata['dist-tags'];
     const versionDistTags = getDistTagsForVersion(distTags, version);
@@ -85,7 +100,35 @@ export class Catalog {
     return {problems};
   }
 
-  async getProblems(packageName: string, version: string) {
-    
+  /**
+   * Returns the package version metadata, custom elements, and problems
+   * @param packageName
+   * @param version
+   * @returns
+   */
+  async getPackageVersion(
+    packageName: string,
+    version: string
+  ): Promise<PackageVersion | undefined> {
+    const [packageVersionData, customElements, problems] = await Promise.all([
+      this.repository.getPackageVersion(packageName, version),
+      this.repository.getCustomElements(packageName, version),
+      this.repository.getProblems(packageName, version),
+    ]);
+    if (packageVersionData === undefined) {
+      return undefined;
+    }
+
+    // The packageVersionData we received from the repository doesn't have any
+    // custom elements, so we assign them here:
+    (packageVersionData as Mutable<PackageVersion>).customElements =
+      customElements;
+    (packageVersionData as Mutable<PackageVersion>).problems = problems;
+
+    return packageVersionData;
   }
 }
+
+type Mutable<T> = {
+  -readonly [K in keyof T]: T[K];
+};

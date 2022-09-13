@@ -13,9 +13,7 @@ import {
 } from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
-import {
-  CustomElementInfo,
-} from '@webcomponents/custom-elements-manifest-tools';
+import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import {referenceString} from '@webcomponents/custom-elements-manifest-tools/lib/reference-string.js';
 
 import {getDistTagsForVersion} from '../npm.js';
@@ -26,13 +24,14 @@ import {
   PackageStatus,
   PackageVersion,
   VersionStatus,
+  ValidationProblem
 } from '@webcomponents/catalog-api/lib/schema.js';
-// import type {Package as CustomElementsManifest} from 'custom-elements-manifest/schema';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
-import { packageInfoConverter } from './package-info-converter.js';
-import { packageVersionConverter } from './package-version-converter.js';
-import { customElementConverter } from './custom-element-converter.js';
+import {packageInfoConverter} from './package-info-converter.js';
+import {packageVersionConverter} from './package-version-converter.js';
+import {customElementConverter} from './custom-element-converter.js';
+import {validationProblemConverter} from './validation-problem-converter.js';
 
 const projectId = 'wc-catalog';
 firebase.initializeApp({projectId});
@@ -67,7 +66,7 @@ export class FirestoreRepository implements Repository {
       );
       const packageVersionData = packageVersionDoc.data();
       if (packageVersionData === undefined) {
-        console.error(`Package version not found: ${packageName}@${version}`)
+        console.error(`Package version not found: ${packageName}@${version}`);
         throw new Error(`Package version not found: ${packageName}@${version}`);
       }
       if (packageVersionData.status !== VersionStatus.INITIALIZING) {
@@ -87,7 +86,6 @@ export class FirestoreRepository implements Repository {
       // Store package data and mark version as ready
       // TODO: we want this type to match the schema and converter type. How do
       // we get strongly typed refs?
-      console.log('Writing package version...');
       await t.set(versionRef, {
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
@@ -102,7 +100,6 @@ export class FirestoreRepository implements Repository {
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
-      console.log('done');
     });
   }
 
@@ -169,6 +166,31 @@ export class FirestoreRepository implements Repository {
     );
   }
 
+  async writeProblems(
+    packageName: string,
+    version: string,
+    problems: Array<ValidationProblem>
+  ): Promise<void> {
+    const versionRef = getPackageVersionRef(packageName, version);
+    const problemsRef = versionRef
+      .collection('problems')
+      .withConverter(validationProblemConverter);
+    const batch = db.batch();
+    for (const problem of problems) {
+      batch.create(problemsRef.doc(), problem);
+    }
+    await batch.commit();
+  }
+
+  async getProblems(packageName: string, version: string): Promise<ValidationProblem[]> {
+    const versionRef = getPackageVersionRef(packageName, version);
+    const problemsRef = versionRef
+      .collection('problems')
+      .withConverter(validationProblemConverter);
+    const result = await problemsRef.get();
+    return result.docs.map((d) => d.data());
+  }
+
   /**
    * Gets the PackageInfo for a package, excluding package versions.
    *
@@ -176,7 +198,7 @@ export class FirestoreRepository implements Repository {
    */
   async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
     const packageDocId = getPackageDocId(packageName);
-    console.log('packageInfo', packageName, packageDocId);
+    // console.log('packageInfo', packageName, packageDocId);
     const packageRef = db.collection('packages').doc(packageDocId);
     const packageDoc = await packageRef
       .withConverter(packageInfoConverter)
@@ -206,7 +228,7 @@ export class FirestoreRepository implements Repository {
   }
 
   /**
-   * Gets a PackageVersion object from the database, including all the
+   * Gets a PackageVersion object from the database, not including all the
    * custom elements exported by the package.
    */
   async getPackageVersion(
