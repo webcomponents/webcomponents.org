@@ -36,7 +36,7 @@ export const resolveReference = (
     return undefined;
   }
   // TODO (justinfagnani): Use a normalizing path comparison instead of ===
-  if (ref.module === undefined || ref.module === localModule.path) {
+  if (ref.module === undefined) {
     // Local reference. Local references refer to declarations in the local
     // module scope, which may or may not be exported.
     return localModule.declarations?.find((d) => d.name === ref.name);

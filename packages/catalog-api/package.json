@@ -11,8 +11,7 @@
   "scripts": {
     "build": "wireit",
     "build:ts": "wireit",
-    "build:graphql": "wireit",
-    "test": "wireit"
+    "build:graphql": "wireit"
   },
   "wireit": {
     "build": {
@@ -56,14 +55,6 @@
         "gen/lib/schema.ts"
       ],
       "clean": "if-file-deleted"
-    },
-    "test": {
-      "command": "uvu test \".*_test\\.js$\"",
-      "dependencies": [
-        "build"
-      ],
-      "files": [],
-      "output": []
     }
   },
   "devDependencies": {

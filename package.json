@@ -18,7 +18,8 @@
   "wireit": {
     "test": {
       "dependencies": [
-        "./packages/custom-elements-manifest-tools:test"
+        "./packages/custom-elements-manifest-tools:test",
+        "./packages/catalog-server:test"
       ]
     }
   }

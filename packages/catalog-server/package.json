@@ -51,11 +51,13 @@
       ]
     },
     "test": {
-      "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:8088 uvu test \"_test\\.js$\"",
+      "command": "firebase emulators:exec --project wc-catalog ./test.sh",
       "dependencies": [
         "build"
       ],
-      "files": [],
+      "files": [
+        "test.sh"
+      ],
       "output": []
     }
   },
