@@ -22,7 +22,7 @@ export const referenceString = (
 };
 
 /**
- * Parses a serialized references string produced by referenceString*()
+ * Parses a serialized reference string produced by referenceString*()
  */
 export const parseReferenceString = (reference: string): Reference => {
   const hashIndex = reference.indexOf('#');
