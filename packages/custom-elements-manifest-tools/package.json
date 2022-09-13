@@ -1,0 +1,48 @@
+{
+  "name": "@webcomponents/custom-elements-manifest-tools",
+  "version": "0.0.0",
+  "description": "Utilities for working with Custom Elements Manifest files",
+  "author": "Google LLC",
+  "license": "APACHE-2.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "wireit",
+    "test": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "command": "../../node_modules/.bin/tsc --pretty",
+      "files": [
+        "tsconfig.json",
+        "src/**/*.ts"
+      ],
+      "output": [
+        "index.js",
+        "index.d.ts",
+        "index.js.map",
+        "lib/",
+        "test/",
+        "tsconfig.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "test": {
+      "command": "NODE_OPTIONS='--enable-source-maps' uvu test \"_test\\.js$\"",
+      "dependencies": [
+        "build"
+      ],
+      "files": [],
+      "output": []
+    }
+  },
+  "devDependencies": {
+    "@types/semver": "^7.3.12",
+    "uvu": "^0.5.6"
+  },
+  "dependencies": {
+    "custom-elements-manifest": "^1.0.0",
+    "jsonc-parser": "^3.2.0",
+    "semver": "^7.3.7"
+  }
+}
