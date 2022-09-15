@@ -11,7 +11,11 @@ import {
   Timestamp,
 } from '@google-cloud/firestore';
 
-import {DistTag, PackageInfo} from '@webcomponents/catalog-api/lib/schema.js';
+import {
+  DistTag,
+  PackageInfo,
+  ReadablePackageInfo,
+} from '@webcomponents/catalog-api/lib/schema.js';
 
 export const packageInfoConverter: FirestoreDataConverter<
   Omit<PackageInfo, 'version'>
@@ -29,7 +33,7 @@ export const packageInfoConverter: FirestoreDataConverter<
       status: snapshot.get('status'),
       description: snapshot.get('description'),
       distTags: graphQLDistTags,
-    };
+    } as ReadablePackageInfo;
   },
   toFirestore(_packageInfo: PackageInfo) {
     throw new Error('not implemented');

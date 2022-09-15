@@ -79,14 +79,20 @@ export interface Repository {
     tagName?: string
   ): Promise<ValidationProblem[]>;
 
-  getPackageInfo(packageName: string): Promise<PackageInfo | undefined>;
+  /**
+   * Gets a PackageInfo object from the database, not including the
+   * published package versions.
+   */
+  getPackageInfo(
+    packageName: string
+  ): Promise<Omit<PackageInfo, 'version'> | undefined>;
 
   /**
-   * Gets a PackageVersion object from the database, including all the
+   * Gets a PackageVersion object from the database, not including all the
    * custom elements exported by the package.
    */
   getPackageVersion(
     packageName: string,
     version: string
-  ): Promise<PackageVersion | undefined>;
+  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined>;
 }

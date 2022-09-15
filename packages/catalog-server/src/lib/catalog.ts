@@ -9,7 +9,10 @@ import {validatePackage} from '@webcomponents/custom-elements-manifest-tools/lib
 import {getCustomElements} from '@webcomponents/custom-elements-manifest-tools';
 import {PackageFiles} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from './repository.js';
-import {PackageVersion} from '@webcomponents/catalog-api/lib/schema.js';
+import {
+  PackageVersion,
+  ReadablePackageVersion,
+} from '@webcomponents/catalog-api/lib/schema.js';
 
 export interface CatalogInit {
   repository: Repository;
@@ -101,10 +104,7 @@ export class Catalog {
   }
 
   /**
-   * Returns the package version metadata, custom elements, and problems
-   * @param packageName
-   * @param version
-   * @returns
+   * Returns the package version metadata, custom elements, and problems.
    */
   async getPackageVersion(
     packageName: string,
@@ -120,12 +120,12 @@ export class Catalog {
     }
 
     // The packageVersionData we received from the repository doesn't have any
-    // custom elements, so we assign them here:
-    (packageVersionData as Mutable<PackageVersion>).customElements =
+    // custom elements or problems, so we assign them here:
+    (packageVersionData as Mutable<ReadablePackageVersion>).customElements =
       customElements;
     (packageVersionData as Mutable<PackageVersion>).problems = problems;
 
-    return packageVersionData;
+    return packageVersionData as PackageVersion;
   }
 }
 
