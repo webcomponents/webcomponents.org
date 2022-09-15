@@ -52,7 +52,7 @@
         "src/lib/schema.graphql"
       ],
       "output": [
-        "gen/lib/schema.ts"
+        "gen/lib/_schema.ts"
       ],
       "clean": "if-file-deleted"
     }
