@@ -213,17 +213,26 @@ type CustomElement {
   className: String
 
   """
-  Reference to the custom element export
+  Reference to the custom element export.
+
+  Reference strings have the format: `{package-name}/{module-path}#{tag-name}`
   """
   customElementExport: String
 
   """
-  Reference to the JS class export
+  Reference to the JavaScript class export for the custom element class, if it
+  exists.
+
+  Reference strings have the format: `{package-name}/{module-path}#{export-name}`
   """
   jsExport: String
 
   """
-  Reference to the class declaration
+  Reference to the class declaration of the custom element class. This is
+  different than the jsExport, as it's possible for a custom element to not
+  export its class. The declaration might not be directly importable.
+
+  Reference strings have the format: `{package-name}/{module-path}#{identifier}`
   """
   declaration: String
 }
