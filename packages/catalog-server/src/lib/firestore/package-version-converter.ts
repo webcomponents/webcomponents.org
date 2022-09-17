@@ -11,7 +11,10 @@ import {
   Timestamp,
 } from '@google-cloud/firestore';
 
-import {PackageVersion} from '@webcomponents/catalog-api/lib/schema.js';
+import {
+  isReadablePackageVersion,
+  PackageVersion,
+} from '@webcomponents/catalog-api/lib/schema.js';
 
 export const packageVersionConverter: FirestoreDataConverter<PackageVersion> = {
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): PackageVersion {
@@ -19,7 +22,6 @@ export const packageVersionConverter: FirestoreDataConverter<PackageVersion> = {
       status: snapshot.get('status'),
       lastUpdate: (snapshot.get('lastUpdate') as Timestamp).toDate(),
       version: snapshot.id,
-      // TODO: convert from Map to list
       distTags: snapshot.get('distTags'),
       description: snapshot.get('description'),
       type: snapshot.get('type'),
@@ -30,7 +32,24 @@ export const packageVersionConverter: FirestoreDataConverter<PackageVersion> = {
       customElementsManifest: snapshot.get('customElementsManifest'),
     };
   },
-  toFirestore(_packageInfo: PackageVersion) {
-    throw new Error('not implemented');
+  toFirestore(packageVersion: PackageVersion) {
+    if (isReadablePackageVersion(packageVersion)) {
+      return {
+        author: packageVersion.author,
+        customElementsManifest: packageVersion.customElementsManifest,
+        description: packageVersion.description,
+        distTags: packageVersion.distTags,
+        homepage: packageVersion.homepage,
+        lastUpdate: packageVersion.lastUpdate,
+        status: packageVersion.status,
+        time: Timestamp.fromDate(packageVersion.time),
+        type: packageVersion.type,
+      };
+    } else {
+      return {
+        status: packageVersion.status,
+        lastUpdate: packageVersion.lastUpdate,
+      };
+    }
   },
 };

@@ -13,6 +13,7 @@ generates:
       namingConvention: keep
       noSchemaStitching: true
       operationResultSuffix: Data
+      # TODO: try false
       wrapFieldDefinitions: true
       enumsAsConst: true
       scalars:

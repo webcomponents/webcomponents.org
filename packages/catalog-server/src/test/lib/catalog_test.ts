@@ -15,7 +15,7 @@ import {
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 
-const test = suite('Custom element manifest utils tests');
+const test = suite('Catalog server tests');
 
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
