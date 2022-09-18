@@ -4,12 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {
-  FieldValue,
-  Timestamp,
-  Query,
-  CollectionReference,
-} from '@google-cloud/firestore';
+import {FieldValue, Query, CollectionReference} from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
@@ -216,7 +211,7 @@ export class FirestoreRepository implements Repository {
         distTags: versionDistTags,
         author,
         // TODO (justinfagnani): Is this right? Add tests.
-        time: Timestamp.fromMillis(Date.parse(packageTime)),
+        time: new Date(packageTime),
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
