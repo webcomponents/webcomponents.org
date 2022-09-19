@@ -157,7 +157,7 @@ export class Catalog {
   }
 
   async importPackageVersion(packageName: string, version: string) {
-    console.log('Marking package as importing...');
+    console.log('Marking package version as importing...');
     await this.repository.startPackageVersionImport(packageName, version);
     console.log('  done');
 
@@ -179,7 +179,7 @@ export class Catalog {
     }
 
     if (manifestData === undefined) {
-      console.log('Marking package as errored...');
+      console.log('Marking package version as errored...');
       await this.repository.endPackageVersionImportWithError(
         packageName,
         version
@@ -195,7 +195,7 @@ export class Catalog {
     );
 
     if (customElements.length === 0) {
-      console.log('Marking package as errored...');
+      console.log('Marking package version as errored...');
       await this.repository.endPackageVersionImportWithError(
         packageName,
         version
@@ -207,7 +207,7 @@ export class Catalog {
     const packageMetadata = await packageMetadataPromise;
 
     if (packageMetadata === undefined) {
-      console.log('Marking package as errored...');
+      console.log('Marking package version as errored...');
       await this.repository.endPackageVersionImportWithError(
         packageName,
         version
@@ -229,16 +229,16 @@ export class Catalog {
       versionDistTags,
       author
     );
-    console.log('done');
+    console.log('  done');
 
-    console.log('Marking package as ready...');
+    console.log('Marking package version as ready...');
     await this.repository.endPackageVersionImportWithReady(
       packageName,
       version,
       packageMetadata,
       manifestSource
     );
-    console.log('done');
+    console.log('  done');
     return {problems};
   }
 

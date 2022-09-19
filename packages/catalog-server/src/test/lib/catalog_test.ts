@@ -11,11 +11,12 @@ import {LocalFsPackageFiles} from '@webcomponents/custom-elements-manifest-tools
 import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import * as path from 'path';
 import {
+  isReadablePackageVersion,
   ReadablePackageVersion,
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 
-const test = suite('Catalog server tests');
+const test = suite('Catalog tests');
 
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
@@ -28,12 +29,18 @@ test('Imports a package with no problems', async () => {
   );
   const repository = new FirestoreRepository();
   const catalog = new Catalog({files, repository});
-  const result = await catalog.importPackageVersion(packageName, version);
-  const {problems} = result;
-  assert.equal(problems.length, 0);
+  await catalog.importPackage(packageName);
+
+  // If there were validation problems, they will be on the package version,
+  // so read that and check:
+  const result = await catalog.getPackageVersion(packageName, version);
+  assert.equal(isReadablePackageVersion(result), true);
+
+  const {problems} = result as ReadablePackageVersion;
+  assert.equal(problems!.length, 0);
 });
 
-test('Gets package version data from imported package', async () => {
+test('Imports a package version with no problems', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
   const myDirname = new URL(import.meta.url).pathname;
@@ -44,20 +51,23 @@ test('Gets package version data from imported package', async () => {
   );
   const repository = new FirestoreRepository();
   const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackageVersion(packageName, version);
+  const {problems} = importResult;
+  assert.equal(problems.length, 0);
 
-  const result = await catalog.getPackageVersion(packageName, version);
+  const getResult = await catalog.getPackageVersion(packageName, version);
   const cemSource = await files.getFile(
     packageName,
     version,
     'custom-elements.json'
   );
 
-  assert.ok(result);
-  assert.equal(result.status, VersionStatus.READY);
+  assert.ok(getResult);
+  assert.equal(getResult.status, VersionStatus.READY);
 
-  const packageVersion = result as ReadablePackageVersion;
+  const packageVersion = getResult as ReadablePackageVersion;
 
-  assert.equal(result.version, '0.0.0');
+  assert.equal(getResult.version, '0.0.0');
   // Assume that the manifest is byte-for-byte the same, which it is for now.
   // If this changes, use a deep comparison library
   assert.equal(packageVersion.customElementsManifest, cemSource);

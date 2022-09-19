@@ -14,6 +14,7 @@ import {
 
 import {
   DistTag,
+  isReadablePackage,
   PackageInfo,
   ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
@@ -34,15 +35,25 @@ export const packageInfoConverter: FirestoreDataConverter<PackageInfo> = {
     } as ReadablePackageInfo;
   },
   toFirestore(packageInfo: WithFieldValue<PackageInfo>) {
-    const data = packageInfo as ReadablePackageInfo;
-    return {
-      status: data.status,
-      // TODO (justinfagnani): we could force this to be
-      // FieldValue.serverTimestamp() here.
-      lastUpdate: data.lastUpdate,
-      description: data.description,
-      distTags: new Map(data.distTags.map((t) => [t.tag, t.version])),
-    };
+    if (isReadablePackage(packageInfo as PackageInfo)) {
+      const data = packageInfo as WithFieldValue<ReadablePackageInfo>;
+      return {
+        status: data.status,
+        // TODO (justinfagnani): we could force this to be
+        // FieldValue.serverTimestamp() here.
+        lastUpdate: data.lastUpdate,
+        description: data.description,
+        distTags: new Map(
+          // We don't support FieldValues in distTags, so cast away:
+          (data.distTags as DistTag[]).map((t) => [t.tag, t.version])
+        ),
+      };
+    } else {
+      return {
+        status: packageInfo.status,
+        lastUpdate: packageInfo.lastUpdate,
+      };
+    }
   },
 };
 
