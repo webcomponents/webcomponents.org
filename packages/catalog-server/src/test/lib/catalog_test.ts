@@ -49,7 +49,7 @@ test('Imports a package version with no problems', async () => {
     packageName,
     version
   );
-  const repository = new FirestoreRepository();
+  const repository = new FirestoreRepository('package-version-tests');
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackageVersion(packageName, version);
   const {problems} = importResult;

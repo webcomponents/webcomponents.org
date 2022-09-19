@@ -36,8 +36,18 @@ firebase.initializeApp({projectId});
 export const db = new Firestore({projectId});
 
 export class FirestoreRepository implements Repository {
+  /**
+   * A namespace suffix to apply to the 'packages' collection to support
+   * multi-tenant-like separation of the database. Used for testing.
+   */
+  private readonly namespace?: string;
+
+  constructor(namespace?: string) {
+    this.namespace = namespace;
+  }
+
   async startPackageImport(packageName: string): Promise<void> {
-    const packageRef = getPackageRef(packageName);
+    const packageRef = this.getPackageRef(packageName);
     await packageRef.create({
       name: packageName,
       status: PackageStatus.INITIALIZING,
@@ -46,7 +56,7 @@ export class FirestoreRepository implements Repository {
   }
 
   async startPackageUpdate(packageName: string): Promise<void> {
-    const packageRef = getPackageRef(packageName);
+    const packageRef = this.getPackageRef(packageName);
     await packageRef.update({
       status: PackageStatus.UPDATING,
       lastUpdate: FieldValue.serverTimestamp(),
@@ -57,7 +67,7 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     packageInfo: ReadablePackageInfo
   ): Promise<void> {
-    const packageRef = getPackageRef(packageName);
+    const packageRef = this.getPackageRef(packageName);
     await db.runTransaction(async (t) => {
       const packageDoc = await t.get(packageRef);
       const packageData = packageDoc.data();
@@ -79,7 +89,7 @@ export class FirestoreRepository implements Repository {
   }
 
   async endPackageImportWithNotFound(packageName: string): Promise<void> {
-    const packageRef = getPackageRef(packageName);
+    const packageRef = this.getPackageRef(packageName);
     await db.runTransaction(async (t) => {
       const packageDoc = await t.get(packageRef);
       const packageData = packageDoc.data();
@@ -98,7 +108,7 @@ export class FirestoreRepository implements Repository {
   }
 
   async endPackageImportWithError(packageName: string): Promise<void> {
-    const packageRef = getPackageRef(packageName);
+    const packageRef = this.getPackageRef(packageName);
     await db.runTransaction(async (t) => {
       const packageDoc = await t.get(packageRef);
       const packageData = packageDoc.data();
@@ -129,7 +139,7 @@ export class FirestoreRepository implements Repository {
       await Promise.all(
         versionsToUpdate.map(async (version) => {
           const versionDistTags = getDistTagsForVersion(newDistTags, version);
-          const versionRef = getPackageVersionRef(packageName, version);
+          const versionRef = this.getPackageVersionRef(packageName, version);
 
           // Updat the PackageVersion doc
           await t.update(versionRef, {
@@ -164,7 +174,7 @@ export class FirestoreRepository implements Repository {
   ): Promise<void> {
     // TODO: verify that the package exists. Or does Firestore already do that
     // with subcollections?
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     // Since create() fails if the document exists, we don't need a transaction
     await versionRef.create({
       version,
@@ -181,7 +191,7 @@ export class FirestoreRepository implements Repository {
   ): Promise<void> {
     const packageVersionMetadata = packageMetadata.versions[version]!;
     await db.runTransaction(async (t) => {
-      const versionRef = getPackageVersionRef(packageName, version);
+      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -223,7 +233,7 @@ export class FirestoreRepository implements Repository {
     version: string
   ): Promise<void> {
     await db.runTransaction(async (t) => {
-      const versionRef = getPackageVersionRef(packageName, version);
+      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -251,7 +261,7 @@ export class FirestoreRepository implements Repository {
     author: string
   ): Promise<void> {
     // Store custom elements data in subcollection
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef.collection('customElements');
     const batch = db.batch();
 
@@ -280,7 +290,7 @@ export class FirestoreRepository implements Repository {
     version: string,
     problems: Array<ValidationProblem>
   ): Promise<void> {
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const problemsRef = versionRef
       .collection('problems')
       .withConverter(validationProblemConverter);
@@ -295,7 +305,7 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     version: string
   ): Promise<ValidationProblem[]> {
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const problemsRef = versionRef
       .collection('problems')
       .withConverter(validationProblemConverter);
@@ -309,7 +319,7 @@ export class FirestoreRepository implements Repository {
    * TODO: Currently only works for packages with a status of READY
    */
   async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
-    const packageDoc = await getPackageRef(packageName).get();
+    const packageDoc = await this.getPackageRef(packageName).get();
     if (packageDoc.exists) {
       const packageInfo = packageDoc.data()!;
       const status = packageInfo.status;
@@ -345,7 +355,10 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     version: string
   ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
-    const versionDoc = await getPackageVersionRef(packageName, version).get();
+    const versionDoc = await this.getPackageVersionRef(
+      packageName,
+      version
+    ).get();
     return versionDoc.data();
   }
 
@@ -354,7 +367,7 @@ export class FirestoreRepository implements Repository {
     version: string,
     tagName?: string
   ): Promise<CustomElement[]> {
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef
       .collection('customElements')
       .withConverter(customElementConverter);
@@ -367,21 +380,21 @@ export class FirestoreRepository implements Repository {
     const customElementsResults = await customElementsQuery.get();
     return customElementsResults.docs.map((d) => d.data());
   }
+
+  getPackageRef(packageName: string) {
+    return db
+      .collection('packages' + this.namespace ? `-${this.namespace}` : '')
+      .doc(packageNameToId(packageName))
+      .withConverter(packageInfoConverter);
+  }
+
+  getPackageVersionRef(packageName: string, version: string) {
+    return this.getPackageRef(packageName)
+      .collection('versions')
+      .doc(version)
+      .withConverter(packageVersionConverter);
+  }
 }
-
-const getPackageRef = (packageName: string) => {
-  return db
-    .collection('packages')
-    .doc(packageNameToId(packageName))
-    .withConverter(packageInfoConverter);
-};
-
-const getPackageVersionRef = (packageName: string, version: string) => {
-  return getPackageRef(packageName)
-    .collection('versions')
-    .doc(version)
-    .withConverter(packageVersionConverter);
-};
 
 // /**
 //  * Generates a type representing a Firestore document from a GraphQL schema
