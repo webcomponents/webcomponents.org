@@ -43,7 +43,7 @@ Package sources other than npm, like GitHub packages or package-less distributio
 
 #### Permissionless importing
 
-We want to make importing packages as transparent as possible, so that they require no special permission or ownership of packages to import. Any anonymous users should be able to request that an npm package is imported. So we need to make importing fast, idempotent (when there is nothig to update), and rate-limited to protect against abuse and DOS.
+We want to make importing packages as transparent as possible, so that they require no special permission or ownership of packages to import. Any anonymous users should be able to request that an npm package is imported. So we need to make importing fast, idempotent (when there is nothing to update), and rate-limited to protect against abuse and DOS.
 
 The catalog will record in the database when a package was imported, what the versions were at import time, and whether the package was a valid, custom-elements containing packge. This will let us know quickly and cheaply whether to read any information from npm to attempt another import.
 
@@ -55,15 +55,15 @@ Once a package has been successfully imported at least once, it will be periodic
 
 Design systems and other groups of components benefit from first-class support in the catalog. Users may want to search for collections of components rather than individual components.
 
-Collections don't neccesaarily correspond to packages. Many design systems publish each component as a separate npm package.
+Collections don't necessarily correspond to packages. Many design systems publish each component as a separate npm package.
 
-We would like a way for element authors to define their own collections controll exactly what elements are included. For this it would be ideal to have a centralized definition of a collection. Even though a collection is not published to npm, a collection definition could be published to a well-known URL, such as a file stored in GitHub. A custom element manifest can then include references to collection definitions so that while indexing element we can discover and index collections.
+We would like a way for element authors to define their own collections control exactly what elements are included. For this it would be ideal to have a centralized definition of a collection. Even though a collection is not published to npm, a collection definition could be published to a well-known URL, such as a file stored in GitHub. A custom element manifest can then include references to collection definitions so that while indexing element we can discover and index collections.
 
 ### Schema
 
-The catalog server has two schemas in play: A GraphQL schema and an implcit Firestore schema (implicit, since Firestore is schemaless). We will try to keep these as close as possible. Some places where schemas differ:
+The catalog server has two schemas in play: A GraphQL schema and an implicit Firestore schema (implicit, since Firestore is schemaless). We will try to keep these as close as possible. Some places where schemas differ:
 * IDs: Firestore documents have immutable IDs that must be unique within their subcollection. This makes immutable package data like package name, or the version string for a specific version, well-suited to be document IDs. They will name to GraphQL fields like name or version.
-* Collections: Firestore has both array-valued fields and subcollections. In GraphQL these are both described by a array-valued field, so Firestore subcollections will be mapped to GraphQL array fields.
+* Collections: Firestore has both array-valued fields and subcollections. In GraphQL these are both described by an array-valued field, so Firestore subcollections will be mapped to GraphQL array fields.
 * Dates vs Timestamps: Firestore has a Timestamp data type that will be converted to JS dates for GraphQL
 * Maps: Firestore supports map-valued fields. GraphQL only supports list values, so we must convert maps to lists of key/value pairs.
 * Denormalized fields in Firestore documents may or may not be present in the GraphQL schema.
@@ -84,7 +84,7 @@ Only one of the `PackageVersion` documents represents the latest version of a pa
 
 #### Collections
 
-Since ollections don't neccesaarily correspond to packages, we will have a separate root Firestore collection to represent element collections.
+Since collections don't neccesaarily correspond to packages, we will have a separate root Firestore collection to represent element collections.
 
 A simple representation of a collection would be a list of elements that belong to it. For this we need a way to reference an element. Package and custom element name works if element names are unique per package, which they should be. See [Identifying Elements](#identifying-elements).
 
@@ -177,7 +177,7 @@ Package versions will be encoded into the package name:
 
 ### Requirements for Inclusion in the catalog
 
-We would like to ensure that elements in the catalog are actual custom elements, and easy to include in projects that use a variety of build systems. We can do analysis of projects as we index them to see if they meet certain requirements to facilitiate this.
+We would like to ensure that elements in the catalog are actual custom elements, and easy to include in projects that use a variety of build systems. We can do analysis of projects as we index them to see if they meet certain requirements to facilitate this.
 
 * `"customElements"` `package.json` field pointing to a valid custom element manifest
 * `"type": "module"` in `package.json`
