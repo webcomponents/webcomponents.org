@@ -1,9 +1,10 @@
 {
   "name": "@webcomponents/custom-elements-manifest-tools",
+  "private": true,
   "version": "0.0.0",
   "description": "Utilities for working with Custom Elements Manifest files",
   "author": "Google LLC",
-  "license": "APACHE-2.0",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
