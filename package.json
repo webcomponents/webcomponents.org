@@ -11,6 +11,7 @@
     "format": "prettier \"./packages/*/src/**/*.ts\" --write"
   },
   "dependencies": {
+    "@11ty/eleventy": "^1.0.2",
     "prettier": "^2.7.1",
     "typescript": "~4.8.2",
     "wireit": "^0.7.1"
