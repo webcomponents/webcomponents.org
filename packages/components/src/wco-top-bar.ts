@@ -23,15 +23,9 @@ export class WCOTopBar extends LitElement {
       border-bottom: 1px solid #ccc;
       font-family: sans-serif;
     }
-    img {
-      margin-right: 10px;
-    }
   `;
 
   render() {
-    return html`
-      <img src="/assets/logo.svg" alt="webcomponents.org" width="40" />
-      webcomponents.org
-    `;
+    return html` webcomponents.org `;
   }
 }
