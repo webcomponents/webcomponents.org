@@ -16,6 +16,7 @@
       "command": "../../node_modules/.bin/tsc --pretty",
       "files": [
         "tsconfig.json",
+        "../../tsconfig.base.json",
         "src/**/*.ts"
       ],
       "output": [
