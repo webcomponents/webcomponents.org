@@ -1,5 +1,5 @@
 {
-  "name": "webcomponents.org",
+  "name": "@webcomponents/internal-site",
   "private": true,
   "version": "2.0.0",
   "description": "A new implementation of the webcompoents.org site",
