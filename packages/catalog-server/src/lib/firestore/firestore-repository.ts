@@ -24,6 +24,7 @@ import {
   VersionStatus,
   ValidationProblem,
   ReadablePackageInfo,
+  ReadablePackageVersion,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
@@ -192,9 +193,9 @@ export class FirestoreRepository implements Repository {
     version: string,
     packageMetadata: Package,
     customElementsManifestSource: string | undefined
-  ): Promise<void> {
+  ): Promise<ReadablePackageVersion> {
     const packageVersionMetadata = packageMetadata.versions[version]!;
-    await db.runTransaction(async (t) => {
+    const packageVersion = await db.runTransaction(async (t) => {
       const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
@@ -219,23 +220,29 @@ export class FirestoreRepository implements Repository {
       const versionDistTags = getDistTagsForVersion(distTags, version);
 
       // Store package data and mark version as ready
-      await t.set(versionRef, {
+      // TODO: make converter handle denormalized data
+      t.set(versionRef, {
+        version,
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
         // TODO (justinfagnani): augment PackageVersion type with denormalized
         // fields:
-        // package: packageName,
+        package: packageName,
         version,
         description: packageVersionMetadata.description ?? '',
         type: packageType,
         distTags: versionDistTags,
         author,
-        // TODO (justinfagnani): Is this right? Add tests.
         time: new Date(packageTime),
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
+      // There doesn't seem to be a way to get a WriteResult and therefore
+      // a writeTime inside a transaction, so we read from the database to
+      // get the server timestamp.
+      return t.get(versionRef);
     });
+    return {packageVersion};
   }
 
   async endPackageVersionImportWithError(

@@ -8,6 +8,7 @@ import type {
   CustomElement,
   PackageInfo,
   PackageVersion,
+  ReadablePackageVersion,
   ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema';
 import type {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
@@ -72,7 +73,7 @@ export interface Repository {
     version: string,
     packageMetadata: Package,
     customElementsManifestSource: string | undefined
-  ): Promise<void>;
+  ): Promise<ReadablePackageVersion>;
 
   /**
    * Updates a PackageVersion to status: ERROR. Verifies that the PackageVersion

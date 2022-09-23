@@ -16,6 +16,8 @@ import {
   PackageVersion,
   ReadablePackageVersion,
   isReadablePackage,
+  ValidationProblem,
+  PackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Temporal,
@@ -66,7 +68,11 @@ export class Catalog {
   async importPackage(
     packageName: string,
     packageRefreshInterval = defaultPackageRefreshInterval
-  ) {
+  ): Promise<{
+    packageInfo?: PackageInfo;
+    packageVersion?: PackageVersion;
+    problems?: ValidationProblem[];
+  }> {
     const currentPackageInfo = await this.#repository.getPackageInfo(
       packageName
     );
@@ -84,7 +90,7 @@ export class Catalog {
         Temporal.Duration.compare(timeSinceUpdate, packageRefreshInterval) ===
         -1
       ) {
-        return;
+        return {};
       }
       await this.#repository.startPackageUpdate(packageName);
     }
@@ -95,14 +101,14 @@ export class Catalog {
       newPackage = await this.#files.getPackageMetadata(packageName);
     } catch (e) {
       await this.#repository.endPackageImportWithError(packageName);
-      return;
+      return {};
     }
 
     if (newPackage === undefined) {
       await this.#repository.endPackageImportWithNotFound(packageName);
       // TODO (justinfagnani): a crazy edge case would be a package that was
       // previously found, but is not found now. Update package versions?
-      return;
+      return {};
     }
 
     const newDistTags = newPackage['dist-tags'];
@@ -151,9 +157,20 @@ export class Catalog {
       );
     }
 
+    let importResult:
+      | {packageVersion?: PackageVersion; problems?: ValidationProblem[]}
+      | undefined = undefined;
     if (versionToImport !== undefined) {
-      await this.importPackageVersion(packageName, versionToImport);
+      importResult = await this.importPackageVersion(
+        packageName,
+        versionToImport
+      );
     }
+    return {
+      packageVersion: importResult?.packageVersion,
+      problems: importResult?.problems,
+      packageInfo: await this.getPackageInfo(packageName),
+    };
   }
 
   async importPackageVersion(packageName: string, version: string) {
@@ -233,14 +250,19 @@ export class Catalog {
     console.log('  done');
 
     console.log('Marking package version as ready...');
-    await this.#repository.endPackageVersionImportWithReady(
-      packageName,
-      version,
-      packageMetadata,
-      manifestSource
-    );
+    const packageVersion =
+      await this.#repository.endPackageVersionImportWithReady(
+        packageName,
+        version,
+        packageMetadata,
+        manifestSource
+      );
     console.log('  done');
-    return {problems};
+    return {packageVersion, problems};
+  }
+
+  async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
+    return this.#repository.getPackageInfo(packageName);
   }
 
   /**
