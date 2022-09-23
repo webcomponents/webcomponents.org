@@ -18,6 +18,9 @@
       ],
       "output": [
         "_site"
+      ],
+      "dependencies": [
+        "../components:build"
       ]
     }
   }
