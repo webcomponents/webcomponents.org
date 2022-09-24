@@ -7,10 +7,18 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "wireit"
+    "build": "wireit",
+    "tsc": "wireit",
+    "rollup": "wireit"
   },
   "wireit": {
     "build": {
+      "dependencies": [
+        "tsc",
+        "rollup"
+      ]
+    },
+    "tsc": {
       "command": "tsc --pretty",
       "files": [
         "tsconfig.json",
@@ -22,9 +30,22 @@
         "tsconfig.tsbuildinfo"
       ],
       "clean": "if-file-deleted"
+    },
+    "rollup": {
+      "command": "rollup -c",
+      "dependencies": [
+        "tsc"
+      ],
+      "files": [
+        "rollup.config.js"
+      ],
+      "output": [
+        "bundled"
+      ]
     }
   },
   "dependencies": {
-    "lit": "^2.3.1"
+    "lit": "^2.3.1",
+    "tslib": "^2.4.0"
   }
 }
