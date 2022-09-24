@@ -20,7 +20,7 @@
         "_site"
       ],
       "dependencies": [
-        "../components:build"
+        "../client:build"
       ]
     }
   },

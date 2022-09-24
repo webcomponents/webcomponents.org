@@ -1,8 +1,8 @@
 {
-  "name": "@webcomponents/internal-site-components",
+  "name": "@webcomponents/internal-site-client",
   "private": true,
   "version": "0.0.0",
-  "description": "Web Components used on webcomponents.org",
+  "description": "Client JavaScript used on webcomponents.org",
   "author": "Google LLC",
   "license": "Apache-2.0",
   "type": "module",
