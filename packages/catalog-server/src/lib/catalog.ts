@@ -20,35 +20,35 @@ export interface CatalogInit {
  * Implements operations for reading and writing to a catalog.
  */
 export class Catalog {
-  private repository: Repository;
-  private _files: PackageFiles;
+  #repository: Repository;
+  #files: PackageFiles;
 
   constructor(init: CatalogInit) {
-    this._files = init.files;
-    this.repository = init.repository;
+    this.#files = init.files;
+    this.#repository = init.repository;
   }
 
   async importPackageVersion(packageName: string, version: string) {
     console.log('Marking package as importing...');
-    await this.repository.startPackageVersionImport(packageName, version);
+    await this.#repository.startPackageVersionImport(packageName, version);
     console.log('  done');
 
     const {manifestData, manifestSource, problems} = await validatePackage({
       packageName,
       version,
-      files: this._files,
+      files: this.#files,
     });
-    const packageMetadataPromise = this._files.getPackageMetadata(packageName);
+    const packageMetadataPromise = this.#files.getPackageMetadata(packageName);
 
     if (problems.length > 0) {
       console.log('Writing problems...');
-      await this.repository.writeProblems(packageName, version, problems);
+      await this.#repository.writeProblems(packageName, version, problems);
       console.log('  done');
     }
 
     if (manifestData === undefined) {
       console.log('Marking package as errored...');
-      await this.repository.endPackageVersionImportWithError(
+      await this.#repository.endPackageVersionImportWithError(
         packageName,
         version
       );
@@ -64,7 +64,7 @@ export class Catalog {
 
     if (customElements.length === 0) {
       console.log('Marking package as errored...');
-      await this.repository.endPackageVersionImportWithError(
+      await this.#repository.endPackageVersionImportWithError(
         packageName,
         version
       );
@@ -80,7 +80,7 @@ export class Catalog {
     const author = packageVersionMetadata.author?.name ?? '';
 
     console.log('Writing custom elements...');
-    await this.repository.writeCustomElements(
+    await this.#repository.writeCustomElements(
       packageName,
       version,
       customElements,
@@ -90,7 +90,7 @@ export class Catalog {
     console.log('done');
 
     console.log('Marking package as ready...');
-    await this.repository.endPackageVersionImportWithReady(
+    await this.#repository.endPackageVersionImportWithReady(
       packageName,
       version,
       packageMetadata,
@@ -110,9 +110,9 @@ export class Catalog {
     version: string
   ): Promise<PackageVersion | undefined> {
     const [packageVersionData, customElements, problems] = await Promise.all([
-      this.repository.getPackageVersion(packageName, version),
-      this.repository.getCustomElements(packageName, version),
-      this.repository.getProblems(packageName, version),
+      this.#repository.getPackageVersion(packageName, version),
+      this.#repository.getCustomElements(packageName, version),
+      this.#repository.getProblems(packageName, version),
     ]);
     if (packageVersionData === undefined) {
       return undefined;
