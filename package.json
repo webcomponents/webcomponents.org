@@ -8,8 +8,12 @@
   ],
   "scripts": {
     "test": "wireit",
-    "start": "wireit",
-    "dev": "wireit",
+    "build:dev": "wireit",
+    "build:prod": "wireit",
+    "serve:dev": "wireit",
+    "serve:prod": "wireit",
+    "watch:dev": "npm run build:dev && (npm run serve:dev & npm run build:dev --watch)",
+    "watch:prod": "npm run build:prod && (npm run serve:prod & npm run build:prod --watch)",
     "format": "prettier \"./packages/*/src/**/*.ts\" --write"
   },
   "dependencies": {
@@ -25,19 +29,31 @@
         "./packages/custom-elements-manifest-tools:test"
       ]
     },
-    "start": {
-      "command": "wds --root-dir=./packages/content/_site --open",
+    "serve:prod": {
+      "command": "wds --root-dir=./packages/content/_site --watch --open",
       "files": [],
       "output": [],
       "dependencies": [
         "./packages/content:build:prod"
       ]
     },
-    "dev": {
+    "serve:dev": {
       "command": "wds --root-dir=./packages/content/_dev --node-resolve --watch --open",
       "files": [],
       "output": [],
       "dependencies": [
+        "build:dev"
+      ]
+    },
+    "build:prod": {
+      "dependencies": [
+        "./packages/client:build:prod",
+        "./packages/content:build:prod"
+      ]
+    },
+    "build:dev": {
+      "dependencies": [
+        "./packages/client:build:dev",
         "./packages/content:build:dev"
       ]
     }

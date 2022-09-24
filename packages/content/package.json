@@ -33,9 +33,6 @@
       ],
       "output": [
         "_dev"
-      ],
-      "dependencies": [
-        "../client:build:dev"
       ]
     }
   },
