@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "test": "wireit",
+    "start": "wireit",
     "dev": "wireit",
     "format": "prettier \"./packages/*/src/**/*.ts\" --write"
   },
@@ -23,12 +24,20 @@
         "./packages/custom-elements-manifest-tools:test"
       ]
     },
-    "dev": {
-      "command": "wds --root-dir=./packages/content/_site --node-resolve --watch --open",
+    "start": {
+      "command": "wds --root-dir=./packages/content/_site --open",
       "files": [],
       "output": [],
       "dependencies": [
-        "./packages/content:build"
+        "./packages/content:build:prod"
+      ]
+    },
+    "dev": {
+      "command": "wds --root-dir=./packages/content/_dev --node-resolve --watch --open",
+      "files": [],
+      "output": [],
+      "dependencies": [
+        "./packages/content:build:dev"
       ]
     }
   }

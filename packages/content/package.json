@@ -7,20 +7,35 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "wireit"
+    "build:prod": "wireit",
+    "build:dev": "wireit"
   },
   "wireit": {
-    "build": {
-      "command": "eleventy --config=eleventy.config.cjs",
+    "build:prod": {
+      "command": "eleventy --config=eleventy.config.prod.cjs",
       "files": [
-        "site",
-        ".eleventy.cjs"
+        "eleventy.config.prod.cjs",
+        "site"
       ],
       "output": [
         "_site"
       ],
       "dependencies": [
-        "../client:build"
+        "../client:rollup"
+      ]
+    },
+    "build:dev": {
+      "command": "eleventy --config=eleventy.config.dev.cjs",
+      "files": [
+        "eleventy.config.dev.cjs",
+        "site",
+        "!site/assets"
+      ],
+      "output": [
+        "_dev"
+      ],
+      "dependencies": [
+        "../client:tsc"
       ]
     }
   },
