@@ -180,7 +180,7 @@ Package versions will be encoded into the package name:
 We would like to ensure that elements in the catalog are actual custom elements, and easy to include in projects that use a variety of build systems. We can do analysis of projects as we index them to see if they meet certain requirements to facilitiate this.
 
 * `"customElements"` `package.json` field pointing to a valid custom element manifest
-* `"type": "module"` in `package.json`
+* `"type": "module"` in `package.json` or appropriate package exports
 * Element module paths in custom element manifest exist and include the declared export.
 
 Additional, optional requirements based on static analysis:
