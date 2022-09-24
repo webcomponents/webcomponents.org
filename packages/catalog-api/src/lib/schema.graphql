@@ -1,6 +1,7 @@
 type Query {
+
   """
-  Retrieves currently indexed package metadata for all package versions.
+  Retrieves currently indexed top-level package metadata.
   """
   package(packageName: String!): PackageInfo
 
@@ -14,22 +15,25 @@ type Query {
   """
   elements(tag: String = "latest", limit: Int): [CustomElement!]!
 
+  """
+  Retrieves the custom element data for a single element.
+
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
   element(
     packageName: String!
     elementName: String!
     tag: String = "latest"
   ): CustomElement
-
-  """
-  Validates a package, returning a list of problems
-  """
-  validate(packageName: String!, tag: String = "latest"): [String!]!
 }
 
 type Mutation {
+  """
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
   importPackage(packageName: String!): PackageInfo
-
-  deletePackage(packageName: String!): Boolean
 }
 
 """

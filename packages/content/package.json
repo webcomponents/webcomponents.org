@@ -1,0 +1,27 @@
+{
+  "name": "@webcomponents/internal-site-content",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The static content for webcomponents.org",
+  "author": "Google LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "command": "eleventy --config=eleventy.config.cjs",
+      "files": [
+        "site",
+        ".eleventy.cjs"
+      ],
+      "output": [
+        "_site"
+      ],
+      "dependencies": [
+        "../components:build"
+      ]
+    }
+  }
+}

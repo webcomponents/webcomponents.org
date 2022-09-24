@@ -30,7 +30,7 @@
       "clean": "if-file-deleted"
     },
     "build:ts": {
-      "command": "../../node_modules/.bin/tsc",
+      "command": "tsc --pretty",
       "dependencies": [
         "build:graphql"
       ],

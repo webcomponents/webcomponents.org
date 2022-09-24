@@ -89,6 +89,8 @@ export class FirestoreRepository implements Repository {
       await t.set(versionRef, {
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
+        // TODO (justinfagnani): augment PackageVersion type with denormalized
+        // fields:
         // package: packageName,
         version,
         description: packageVersionMetadata.description ?? '',
