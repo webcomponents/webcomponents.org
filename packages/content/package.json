@@ -23,5 +23,8 @@
         "../components:build"
       ]
     }
+  },
+  "dependencies": {
+    "@11ty/eleventy": "^1.0.2"
   }
 }

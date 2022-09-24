@@ -23,5 +23,8 @@
       ],
       "clean": "if-file-deleted"
     }
+  },
+  "dependencies": {
+    "lit": "^2.3.1"
   }
 }
