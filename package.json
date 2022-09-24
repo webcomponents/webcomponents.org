@@ -12,8 +12,9 @@
     "build:prod": "wireit",
     "serve:dev": "wireit",
     "serve:prod": "wireit",
-    "watch:dev": "npm run build:dev && (npm run serve:dev & npm run build:dev --watch)",
-    "watch:prod": "npm run build:prod && (npm run serve:prod & npm run build:prod --watch)",
+    "watch:dev": "npm run build:dev && (npm run serve:dev & npm run build:dev --watch & npm run check --watch)",
+    "watch:prod": "npm run build:prod && (npm run serve:prod & npm run build:prod --watch & npm run check --watch)",
+    "check": "wireit",
     "format": "prettier \"./packages/*/src/**/*.ts\" --write"
   },
   "dependencies": {
@@ -55,6 +56,11 @@
       "dependencies": [
         "./packages/client:build:dev",
         "./packages/content:build:dev"
+      ]
+    },
+    "check": {
+      "dependencies": [
+        "./packages/client:check:types"
       ]
     }
   }
