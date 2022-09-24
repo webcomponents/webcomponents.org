@@ -104,7 +104,6 @@ export class Catalog {
    * Returns the package version metadata, custom elements, and problems
    * @param packageName
    * @param version
-   * @returns
    */
   async getPackageVersion(
     packageName: string,
