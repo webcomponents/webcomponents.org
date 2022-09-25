@@ -10,7 +10,9 @@
     "build": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
-    "check:types": "wireit"
+    "check": "wireit",
+    "check:types": "wireit",
+    "check:lit-analyzer": "wireit"
   },
   "wireit": {
     "build": {
@@ -40,6 +42,12 @@
       ],
       "clean": "if-file-deleted"
     },
+    "check": {
+      "dependencies": [
+        "check:types",
+        "check:lit-analyzer"
+      ]
+    },
     "check:types": {
       "command": "tsc --pretty",
       "files": [
@@ -48,9 +56,17 @@
         "src/**/*.ts"
       ],
       "output": []
+    },
+    "check:lit-analyzer": {
+      "command": "lit-analyzer --strict --color --rules.no-unknown-tag-name=error --rules.no-missing-import=error --rules.no-missing-element-type-definition=error --rules.no-unknown-attribute=error --rules.no-unknown-property=error --rules.no-unknown-event=error --rules.no-unknown-slot=error \"src/**/*.ts\"",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": []
     }
   },
   "dependencies": {
-    "lit": "^2.3.1"
+    "lit": "^2.3.1",
+    "lit-analyzer": "^1.2.1"
   }
 }
