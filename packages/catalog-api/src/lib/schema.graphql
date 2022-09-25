@@ -13,7 +13,7 @@ type Query {
   algorithm, otherwise the order will just be defined by the database
   implementation.
   """
-  elements(tag: String = "latest", limit: Int): [CustomElement!]!
+  elements(distTag: String = "latest", limit: Int): [CustomElement!]!
 
   """
   Retrieves the custom element data for a single element.
@@ -69,7 +69,7 @@ type ReadablePackageInfo {
 }
 
 """
-A package that's data is unreadable because it's importing for the first time
+A package whose data is unreadable because it's importing for the first time
 or has a critical error that prevented it from being imported.
 """
 type UnreadablePackageInfo {
