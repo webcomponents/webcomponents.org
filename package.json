@@ -18,7 +18,8 @@
     "check:lint": "wireit",
     "build-and-check:dev": "wireit",
     "build-and-check:prod": "wireit",
-    "format": "prettier \"./packages/*/src/**/*.ts\" --write"
+    "format": "prettier \"./packages/*/src/**/*.ts\" --write",
+    "check:format": "wireit"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^5.38.0",
@@ -81,13 +82,22 @@
     "check": {
       "dependencies": [
         "./packages/client:check",
-        "check:lint"
+        "check:lint",
+        "check:format"
       ]
     },
     "check:lint": {
       "command": "eslint --color --cache --cache-location .eslintcache \"packages/client/src/**/*.ts\"",
       "files": [
         ".eslintrc.json",
+        "packages/client/src/**/*.ts"
+      ],
+      "output": []
+    },
+    "check:format": {
+      "command": "prettier \"./packages/client/src/**/*.ts\" --check --cache --cache-strategy=metadata",
+      "files": [
+        ".prettierrc.json",
         "packages/client/src/**/*.ts"
       ],
       "output": []
