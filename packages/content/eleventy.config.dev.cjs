@@ -18,6 +18,15 @@ module.exports = (eleventyConfig) => {
   };
 };
 
+/**
+ * Create parent directories because  Eleventy doesn't create the output
+ * directory before invoking the config function, and also in case we want a
+ * symlink in a child directory.
+ *
+ * Delete existing symlinks so that if we use Eleventy's built-in watch mode
+ * (which doesn't clean output first), we won't get an error because the symlink
+ * already exists.
+ */
 function symlinkForce(target, path) {
   try {
     fs.unlinkSync(path);
