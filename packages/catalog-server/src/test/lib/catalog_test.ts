@@ -64,15 +64,15 @@ test('Imports a package version with no problems', async () => {
 
   assert.ok(getResult);
   assert.equal(getResult.status, VersionStatus.READY);
-
-  const packageVersion = getResult as ReadablePackageVersion;
-
+  if (getResult.status !== VersionStatus.READY) {
+    throw new Error();
+  }
   assert.equal(getResult.version, '0.0.0');
   // Assume that the manifest is byte-for-byte the same, which it is for now.
   // If this changes, use a deep comparison library
-  assert.equal(packageVersion.customElementsManifest, cemSource);
-  assert.equal(packageVersion.customElements?.length, 1);
-  assert.equal(packageVersion.problems?.length, 0);
+  assert.equal(getResult.customElementsManifest, cemSource);
+  assert.equal(getResult.customElements?.length, 1);
+  assert.equal(getResult.problems?.length, 0);
 });
 
 // TODO: add a test the same as the first to make sure we handle a

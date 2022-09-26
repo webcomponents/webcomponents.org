@@ -22,7 +22,7 @@
   },
   "wireit": {
     "build": {
-      "command": "../../node_modules/.bin/tsc --pretty",
+      "command": "tsc --pretty",
       "dependencies": [
         "../custom-elements-manifest-tools:build",
         "../catalog-api:build"

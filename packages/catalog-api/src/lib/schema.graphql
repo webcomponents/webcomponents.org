@@ -1,6 +1,7 @@
 type Query {
+
   """
-  Retrieves currently indexed package metadata for all package versions.
+  Retrieves currently indexed top-level package metadata.
   """
   package(packageName: String!): PackageInfo
 
@@ -12,24 +13,27 @@ type Query {
   algorithm, otherwise the order will just be defined by the database
   implementation.
   """
-  elements(tag: String = "latest", limit: Int): [CustomElement!]!
+  elements(distTag: String = "latest", limit: Int): [CustomElement!]!
 
+  """
+  Retrieves the custom element data for a single element.
+
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
   element(
     packageName: String!
     elementName: String!
     tag: String = "latest"
   ): CustomElement
-
-  """
-  Validates a package, returning a list of problems
-  """
-  validate(packageName: String!, tag: String = "latest"): [String!]!
 }
 
 type Mutation {
+  """
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
   importPackage(packageName: String!): PackageInfo
-
-  deletePackage(packageName: String!): Boolean
 }
 
 """
@@ -65,7 +69,7 @@ type ReadablePackageInfo {
 }
 
 """
-A package that's data is unreadable because it's importing for the first time
+A package whose data is unreadable because it's importing for the first time
 or has a critical error that prevented it from being imported.
 """
 type UnreadablePackageInfo {

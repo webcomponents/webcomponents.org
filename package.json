@@ -1,5 +1,5 @@
 {
-  "name": "webcomponents.org",
+  "name": "@webcomponents/internal-site",
   "private": true,
   "version": "2.0.0",
   "description": "A new implementation of the webcompoents.org site",
@@ -9,9 +9,13 @@
   "scripts": {
     "build": "wireit",
     "test": "wireit",
+    "dev": "wireit",
     "format": "prettier \"./packages/*/src/**/*.ts\" --write"
   },
   "dependencies": {
+    "@11ty/eleventy": "^1.0.2",
+    "@web/dev-server": "^0.1.34",
+    "lit": "^2.3.1",
     "prettier": "^2.7.1",
     "typescript": "~4.8.2",
     "wireit": "^0.7.1"
@@ -28,6 +32,14 @@
       "dependencies": [
         "./packages/custom-elements-manifest-tools:test",
         "./packages/catalog-server:test"
+      ]
+    },
+    "dev": {
+      "command": "wds --root-dir=./packages/content/_site --node-resolve --watch --open",
+      "files": [],
+      "output": [],
+      "dependencies": [
+        "./packages/content:build"
       ]
     }
   }

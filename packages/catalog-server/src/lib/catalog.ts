@@ -45,12 +45,12 @@ export interface CatalogInit {
  * Implements operations for reading and writing to a catalog.
  */
 export class Catalog {
-  private repository: Repository;
-  private _files: PackageFiles;
+  #repository: Repository;
+  #files: PackageFiles;
 
   constructor(init: CatalogInit) {
-    this._files = init.files;
-    this.repository = init.repository;
+    this.#files = init.files;
+    this.#repository = init.repository;
   }
 
   /**
@@ -67,13 +67,13 @@ export class Catalog {
     packageName: string,
     packageRefreshInterval = defaultPackageRefreshInterval
   ) {
-    const currentPackageInfo = await this.repository.getPackageInfo(
+    const currentPackageInfo = await this.#repository.getPackageInfo(
       packageName
     );
 
     if (currentPackageInfo === undefined) {
       // For an initial import, mark the package as initializing:
-      await this.repository.startPackageImport(packageName);
+      await this.#repository.startPackageImport(packageName);
     } else {
       // Check that we haven't imported recently, and abort if we have:
       const updatedDate = currentPackageInfo.lastUpdate;
@@ -86,20 +86,20 @@ export class Catalog {
       ) {
         return;
       }
-      await this.repository.startPackageUpdate(packageName);
+      await this.#repository.startPackageUpdate(packageName);
     }
 
     // Fetch package metadata from npm:
     let newPackage: Package | undefined;
     try {
-      newPackage = await this._files.getPackageMetadata(packageName);
+      newPackage = await this.#files.getPackageMetadata(packageName);
     } catch (e) {
-      await this.repository.endPackageImportWithError(packageName);
+      await this.#repository.endPackageImportWithError(packageName);
       return;
     }
 
     if (newPackage === undefined) {
-      await this.repository.endPackageImportWithNotFound(packageName);
+      await this.#repository.endPackageImportWithNotFound(packageName);
       // TODO (justinfagnani): a crazy edge case would be a package that was
       // previously found, but is not found now. Update package versions?
       return;
@@ -144,7 +144,7 @@ export class Catalog {
       }
 
       // Write the tags
-      await this.repository.updateDistTags(
+      await this.#repository.updateDistTags(
         packageName,
         [...versionsToUpdate],
         newDistTags
@@ -158,29 +158,29 @@ export class Catalog {
 
   async importPackageVersion(packageName: string, version: string) {
     console.log('Marking package version as importing...');
-    await this.repository.startPackageVersionImport(packageName, version);
+    await this.#repository.startPackageVersionImport(packageName, version);
     console.log('  done');
 
     const {manifestData, manifestSource, problems} = await validatePackage({
       packageName,
       version,
-      files: this._files,
+      files: this.#files,
     });
 
     // TODO (justinfagnani): If we're calling this from importPackage(), we'll
     // already have package metadata, so either use that rather making another
     // call, or cache the manifests in PackageFiles.
-    const packageMetadataPromise = this._files.getPackageMetadata(packageName);
+    const packageMetadataPromise = this.#files.getPackageMetadata(packageName);
 
     if (problems.length > 0) {
       console.log('Writing problems...');
-      await this.repository.writeProblems(packageName, version, problems);
+      await this.#repository.writeProblems(packageName, version, problems);
       console.log('  done');
     }
 
     if (manifestData === undefined) {
       console.log('Marking package version as errored...');
-      await this.repository.endPackageVersionImportWithError(
+      await this.#repository.endPackageVersionImportWithError(
         packageName,
         version
       );
@@ -196,7 +196,7 @@ export class Catalog {
 
     if (customElements.length === 0) {
       console.log('Marking package version as errored...');
-      await this.repository.endPackageVersionImportWithError(
+      await this.#repository.endPackageVersionImportWithError(
         packageName,
         version
       );
@@ -208,7 +208,7 @@ export class Catalog {
 
     if (packageMetadata === undefined) {
       console.log('Marking package version as errored...');
-      await this.repository.endPackageVersionImportWithError(
+      await this.#repository.endPackageVersionImportWithError(
         packageName,
         version
       );
@@ -222,7 +222,7 @@ export class Catalog {
     const author = packageVersionMetadata.author?.name ?? '';
 
     console.log('Writing custom elements...');
-    await this.repository.writeCustomElements(
+    await this.#repository.writeCustomElements(
       packageName,
       version,
       customElements,
@@ -232,7 +232,7 @@ export class Catalog {
     console.log('  done');
 
     console.log('Marking package version as ready...');
-    await this.repository.endPackageVersionImportWithReady(
+    await this.#repository.endPackageVersionImportWithReady(
       packageName,
       version,
       packageMetadata,
@@ -250,9 +250,9 @@ export class Catalog {
     version: string
   ): Promise<PackageVersion | undefined> {
     const [packageVersionData, customElements, problems] = await Promise.all([
-      this.repository.getPackageVersion(packageName, version),
-      this.repository.getCustomElements(packageName, version),
-      this.repository.getProblems(packageName, version),
+      this.#repository.getPackageVersion(packageName, version),
+      this.#repository.getCustomElements(packageName, version),
+      this.#repository.getProblems(packageName, version),
     ]);
     if (packageVersionData === undefined) {
       return undefined;
