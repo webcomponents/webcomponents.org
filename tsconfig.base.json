@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2021",
+    "target": "es2022",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "incremental": true,
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
@@ -16,6 +15,6 @@
     "noPropertyAccessFromIndexSignature": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }

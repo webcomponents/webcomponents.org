@@ -6,7 +6,7 @@
 
 module.exports = (eleventyConfig) => {
   eleventyConfig.addPassthroughCopy('site/assets');
-  eleventyConfig.addPassthroughCopy({'../components/lib': 'js'});
+  eleventyConfig.addPassthroughCopy({'../client/bundled': 'js'});
   return {
     dir: {
       input: 'site',

@@ -1,0 +1,56 @@
+{
+  "name": "@webcomponents/internal-site-client",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Client JavaScript used on webcomponents.org",
+  "author": "Google LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "wireit",
+    "build:dev": "wireit",
+    "build:prod": "wireit",
+    "check:types": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "dependencies": [
+        "build:dev",
+        "build:prod",
+        "check:types"
+      ]
+    },
+    "build:dev": {
+      "command": "esbuild --format=esm --target=es2022 --color --outdir=lib src/**/*.ts ",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:prod": {
+      "command": "esbuild --format=esm --target=es2022 --color --outdir=bundled --bundle --splitting --minify src/entrypoints/*.ts ",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "bundled"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "tsconfig.json",
+        "../../tsconfig.base.json",
+        "src/**/*.ts"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "lit": "^2.3.1"
+  }
+}
