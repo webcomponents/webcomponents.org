@@ -12,17 +12,26 @@
     "build:prod": "wireit",
     "serve:dev": "wireit",
     "serve:prod": "wireit",
-    "watch:dev": "npm run build:dev && (npm run serve:dev & npm run build:dev --watch & npm run check --watch)",
-    "watch:prod": "npm run build:prod && (npm run serve:prod & npm run build:prod --watch & npm run check --watch)",
+    "watch:dev": "npm run build:dev && (npm run serve:dev > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:dev --watch)",
+    "watch:prod": "npm run build:prod && (npm run serve:prod > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
     "check": "wireit",
-    "format": "prettier \"./packages/*/src/**/*.ts\" --write"
+    "check:lint": "wireit",
+    "build-and-check:dev": "wireit",
+    "build-and-check:prod": "wireit",
+    "format": "prettier \"./packages/*/src/**/*.ts\" --write",
+    "check:format": "wireit"
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
     "@web/dev-server": "^0.1.34",
     "esbuild": "^0.15.9",
+    "eslint": "^8.24.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-no-only-tests": "^3.0.0",
     "prettier": "^2.7.1",
     "typescript": "~4.8.2",
-    "wireit": "^0.7.1"
+    "wireit": "^0.7.2"
   },
   "wireit": {
     "test": {
@@ -58,10 +67,40 @@
         "./packages/content:build:dev"
       ]
     },
+    "build-and-check:dev": {
+      "dependencies": [
+        "build:dev",
+        "check"
+      ]
+    },
+    "build-and-check:prod": {
+      "dependencies": [
+        "build:prod",
+        "check"
+      ]
+    },
     "check": {
       "dependencies": [
-        "./packages/client:check:types"
+        "./packages/client:check",
+        "check:lint",
+        "check:format"
       ]
+    },
+    "check:lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache \"packages/client/src/**/*.ts\"",
+      "files": [
+        ".eslintrc.json",
+        "packages/client/src/**/*.ts"
+      ],
+      "output": []
+    },
+    "check:format": {
+      "command": "prettier \"./packages/client/src/**/*.ts\" --check --cache --cache-strategy=metadata",
+      "files": [
+        ".prettierrc.json",
+        "packages/client/src/**/*.ts"
+      ],
+      "output": []
     }
   }
 }

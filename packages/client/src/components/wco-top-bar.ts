@@ -29,3 +29,9 @@ export class WCOTopBar extends LitElement {
     return html` webcomponents.org `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wco-top-bar': WCOTopBar;
+  }
+}
