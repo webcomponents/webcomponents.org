@@ -14,11 +14,11 @@ import {
 import {Repository} from './repository.js';
 import {
   PackageVersion,
-  ReadablePackageVersion,
   isReadablePackage,
   ValidationProblem,
   PackageInfo,
   ReadablePackageInfo,
+  CustomElement,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Temporal,
@@ -74,7 +74,6 @@ export class Catalog {
     packageVersion?: PackageVersion;
     problems?: ValidationProblem[];
   }> {
-
     console.log('Catalog.importPackage');
 
     const currentPackageInfo = await this.#repository.getPackageInfo(
@@ -123,7 +122,7 @@ export class Catalog {
     // version (if the 'latest' dist-tag didn't change).
     let versionToImport: string | undefined = newDistTags['latest'];
 
-    if (isReadablePackage(currentPackageInfo)) {      
+    if (isReadablePackage(currentPackageInfo)) {
       const currentDistTagEntries = currentPackageInfo.distTags;
       const currentDistTags = Object.fromEntries(
         currentDistTagEntries.map(({tag, version}) => [tag, version])
@@ -168,7 +167,7 @@ export class Catalog {
     let importResult:
       | {packageVersion?: PackageVersion; problems?: ValidationProblem[]}
       | undefined = undefined;
-    
+
     if (versionToImport !== undefined) {
       importResult = await this.importPackageVersion(
         packageName,
@@ -178,11 +177,14 @@ export class Catalog {
 
     console.log('Marking package ready...');
     const newPackageInfo: ReadablePackageInfo = {
-      ...currentPackageInfo as ReadablePackageInfo,
+      ...(currentPackageInfo as ReadablePackageInfo),
       description: newPackage.description,
       distTags: distTagMapToList(newDistTags),
     };
-    await this.#repository.endPackageImportWithReady(packageName, newPackageInfo);
+    await this.#repository.endPackageImportWithReady(
+      packageName,
+      newPackageInfo
+    );
     console.log('  done');
 
     return {
@@ -279,7 +281,7 @@ export class Catalog {
         version,
         packageMetadata,
         manifestSource
-      );      
+      );
     console.log('  done marking package version as ready');
     return {packageVersion, problems};
   }
@@ -289,35 +291,21 @@ export class Catalog {
   }
 
   /**
-   * Returns the package version metadata, custom elements, and problems.
+   * Returns the package version metadata, without custom elements or problems.
    */
   async getPackageVersion(
     packageName: string,
     version: string
   ): Promise<PackageVersion | undefined> {
+    console.log('Catalog.getPackageVersion', packageName, version);
+    return this.#repository.getPackageVersion(packageName, version);
+  }
 
-    console.log('Catalog.getPackageVersion', packageName, version);    
-
-    const [packageVersionData, customElements, problems] = await Promise.all([
-      this.#repository.getPackageVersion(packageName, version),
-      this.#repository.getCustomElements(packageName, version),
-      this.#repository.getProblems(packageName, version),
-    ]);
-
-    if (packageVersionData === undefined) {
-      return undefined;
-    }
-
-    // The packageVersionData we received from the repository doesn't have any
-    // custom elements or problems, so we assign them here:
-    (packageVersionData as Mutable<ReadablePackageVersion>).customElements =
-      customElements;
-    (packageVersionData as Mutable<PackageVersion>).problems = problems;
-
-    return packageVersionData as PackageVersion;
+  async getCustomElements(
+    packageName: string,
+    version: string,
+    tagName: string | undefined
+  ): Promise<Array<CustomElement>> {
+    return this.#repository.getCustomElements(packageName, version, tagName);
   }
 }
-
-type Mutable<T> = {
-  -readonly [K in keyof T]: T[K];
-};

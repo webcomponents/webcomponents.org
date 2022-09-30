@@ -13,6 +13,8 @@ import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import {referenceString} from '@webcomponents/custom-elements-manifest-tools/lib/reference-string.js';
+import clean from 'semver/functions/clean.js';
+import semverValidRange from 'semver/ranges/valid.js';
 
 import {getDistTagsForVersion} from '../npm.js';
 
@@ -374,22 +376,29 @@ export class FirestoreRepository implements Repository {
    */
   async getPackageVersion(
     packageName: string,
-    version: string
-  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
-    console.log(
-      'FirestoreRepository.getPackageVersion',
-      packageName,
-      version,
-    );
-    if (/^\d/.test(version)) {
-      // If `version` starts with a digit, it's a version number and we can build a ref
-      const versionRef = this.getPackageVersionRef(packageName, version);
+    versionOrTag: string
+  ): Promise<PackageVersion | undefined> {
+    console.log('FirestoreRepository.getPackageVersion', packageName, versionOrTag);
+
+    const versionNumber = clean(versionOrTag);
+
+    if (versionNumber !== null) {
+      // If version is valid semver we can build a document reference.
+      const versionRef = this.getPackageVersionRef(packageName, versionNumber);
       const versionDoc = await versionRef.get();
       return versionDoc.data();
-    } else {
-      // If `version` doesn't start with a digit, it's a dist-tag and we need to query
+    } else {      
+      // If version is not a valid semver it may be a dist-tag
+
+      // First, filter out semver ranges, since npm doesn't allow semver
+      // ranges to be dist tags
+      if (semverValidRange(versionOrTag)) {
+        return undefined;
+      }
+
+      // Now query for a version that's assigned this dist-tag
       const result = await this.getPackageVersionCollectionRef(packageName)
-        .where('distTags', 'array-contains', version)
+        .where('distTags', 'array-contains', versionOrTag)
         .limit(1)
         .get();
       if (result.size !== 0) {
@@ -404,6 +413,8 @@ export class FirestoreRepository implements Repository {
     version: string,
     tagName?: string
   ): Promise<CustomElement[]> {
+    console.log('Firestore.getCustomElements', packageName, version, `:${tagName}`);
+
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef
       .collection('customElements')

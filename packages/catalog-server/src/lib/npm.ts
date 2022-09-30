@@ -16,6 +16,7 @@ import {
   Package,
   Version,
 } from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
+import * as semver from 'semver';
 
 export class NpmAndUnpkgFiles implements PackageFiles {
   /**
@@ -66,3 +67,6 @@ export const distTagMapToList = (distTags: {[tag: string]: string}) =>
 export const distTagListToMap = (
   distTags: Array<{tag: string; version: string}>
 ) => Object.fromEntries(distTags.map(({tag, version}) => [tag, version]));
+
+export const isValidSemver = (versionOrTag: string) =>
+  semver.valid(versionOrTag) === null ? false : true;

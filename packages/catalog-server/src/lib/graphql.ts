@@ -12,12 +12,17 @@ import {Catalog} from './catalog.js';
 
 const require = createRequire(import.meta.url);
 
+/**
+ * Creates a GraphQLSchema object with resolvers
+ */
 export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
   const schemaPath = require.resolve(
     '@webcomponents/catalog-api/src/lib/schema.graphql'
   );
   const schemaSource = await readFile(schemaPath, 'utf8');
 
+  // Resolvers for our schema. See https://graphql.org/learn/execution/ for
+  // an explaination of the role of resolvers in performing GraphQL queries.
   const resolvers: Resolvers = {
     Query: {
       async package(_parent, {packageName}: {packageName: string}): Promise<PackageInfo | null> {
@@ -90,17 +95,18 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
       customElements: async (
         packageVersion,
         {tagName}: {tagName?: string | null},
-        _context,
+        context,
         _info
       ) => {
-        console.log(`Query.ReadablePackageVersion.customElements ${tagName}`);
-        return packageVersion.customElements!;
-        // const packageName = context.packageName;
-        // return catalog.getCustomElements(
-        //   packageName,
-        //   packageVersion.version,
-        //   tagName ?? undefined
-        // );
+        // const packageName = packageVersion.name;
+        const packageName = context.packageName;
+        const version = packageVersion.version;
+        console.log(`Query.ReadablePackageVersion.customElements ${packageName} ${tagName}`);
+        return catalog.getCustomElements(
+          packageName,
+          version,
+          tagName ?? undefined
+        );
       },
     },
     Mutation: {
@@ -112,6 +118,7 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
     },
   };
 
+  // See https://www.graphql-tools.com/docs/generate-schema
   const schema = makeExecutableSchema({
     typeDefs: schemaSource,
     resolvers,

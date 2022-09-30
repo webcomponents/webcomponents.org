@@ -135,5 +135,5 @@ export interface Repository {
   getPackageVersion(
     packageName: string,
     version: string
-  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined>;
+  ): Promise<PackageVersion | undefined>;
 }

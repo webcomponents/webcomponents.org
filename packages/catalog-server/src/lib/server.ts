@@ -10,6 +10,7 @@ import {
   getGraphQLParameters,
   processRequest,
   renderGraphiQL,
+  sendResult,
   shouldRenderGraphiQL,
 } from 'graphql-helix';
 import bodyParser from 'koa-bodyparser';
@@ -32,6 +33,7 @@ export const makeServer = async () => {
   router.use(bodyParser());
 
   router.all('/graphql', async (context) => {
+    // Build the graphql-helix request object
     const request = {
       body: context.request.body,
       headers: context.req.headers,
@@ -40,6 +42,9 @@ export const makeServer = async () => {
     };
 
     if (shouldRenderGraphiQL(request)) {
+      // This renders the interactive GraphiQL interface.
+      // We might want to turn this off in production, or limit its use to
+      // project owners.
       context.body = renderGraphiQL({});
     } else {
       const params = getGraphQLParameters(request);
@@ -54,19 +59,16 @@ export const makeServer = async () => {
       });
 
       if (result.type === 'RESPONSE') {
+        // Log errors that are not normally logged.
+        // The errors are actual Error objects, so we get the stack traces
         if (result.payload.errors && result.payload.errors.length > 0) {
           for (const e of result.payload.errors) {
             console.error(e);
           }
         }
-        result.headers.forEach(({name, value}) =>
-          context.response.set(name, value)
-        );
-        context.status = result.status;
-        context.body = result.payload;
-      } else {
-        throw new Error(`Result type ${result.type} not supported`);
       }
+
+      sendResult(result, context.response.res);
     }
   });
 
@@ -86,5 +88,4 @@ export const makeServer = async () => {
   app.use(router.routes());
   app.use(router.allowedMethods());
   return app;
-
 };

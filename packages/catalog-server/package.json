@@ -81,6 +81,7 @@
     "graphql-helix": "^1.13.0",
     "koa-bodyparser": "^4.3.0",
     "node-fetch": "^3.2.3",
-    "npm-registry-fetch": "^13.1.0"
+    "npm-registry-fetch": "^13.1.0",
+    "semver": "^7.3.7"
   }
 }
