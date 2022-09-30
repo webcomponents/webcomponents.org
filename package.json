@@ -13,7 +13,7 @@
     "serve:dev": "wireit",
     "serve:prod": "wireit",
     "watch:dev": "npm run build:dev && (npm run serve:dev > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:dev --watch)",
-    "watch:prod": "npm run build:prod && (npm run serve:prod > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
+    "watch:prod": "npm run build:prod && (npm run serve:prod & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
     "check": "wireit",
     "check:lint": "wireit",
     "build-and-check:dev": "wireit",
@@ -40,10 +40,11 @@
       ]
     },
     "serve:prod": {
-      "command": "wds --root-dir=./packages/content/_site --watch --open",
+      "command": "node packages/site-server/lib/prod-server.js",
       "files": [],
       "output": [],
       "dependencies": [
+        "./packages/site-server:build",
         "./packages/content:build:prod"
       ]
     },
@@ -58,13 +59,14 @@
     "build:prod": {
       "dependencies": [
         "./packages/client:build:prod",
-        "./packages/content:build:prod"
+        "./packages/content:build:prod",
+        "./packages/site-server:build"
       ]
     },
     "build:dev": {
       "dependencies": [
         "./packages/client:build:dev",
-        "./packages/content:build:dev"
+        "./packages/site-server:build"
       ]
     },
     "build-and-check:dev": {
@@ -82,23 +84,24 @@
     "check": {
       "dependencies": [
         "./packages/client:check",
+        "./packages/site-server:check",
         "check:lint",
         "check:format"
       ]
     },
     "check:lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache \"packages/client/src/**/*.ts\"",
+      "command": "eslint --color --cache --cache-location .eslintcache \"packages/{client,site-server}/src/**/*.ts\"",
       "files": [
         ".eslintrc.json",
-        "packages/client/src/**/*.ts"
+        "packages/{client,server}/src/**/*.ts"
       ],
       "output": []
     },
     "check:format": {
-      "command": "prettier \"./packages/client/src/**/*.ts\" --check --cache --cache-strategy=metadata",
+      "command": "prettier \"./packages/{client,site-server}/src/**/*.ts\" --check --cache --cache-strategy=metadata",
       "files": [
         ".prettierrc.json",
-        "packages/client/src/**/*.ts"
+        "packages/{client,site-server}/src/**/*.ts"
       ],
       "output": []
     }

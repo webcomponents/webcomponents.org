@@ -23,7 +23,7 @@
       ]
     },
     "build:dev": {
-      "command": "esbuild --format=esm --target=es2022 --color --outdir=lib src/**/*.ts ",
+      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
       "files": [
         "src/**/*.ts"
       ],
@@ -33,7 +33,7 @@
       "clean": "if-file-deleted"
     },
     "build:prod": {
-      "command": "esbuild --format=esm --target=es2022 --color --outdir=bundled --bundle --splitting --minify src/entrypoints/*.ts ",
+      "command": "esbuild --format=esm --target=es2022 --color --outdir=bundled --bundle --splitting --minify src/entrypoints/*.ts",
       "files": [
         "src/**/*.ts"
       ],

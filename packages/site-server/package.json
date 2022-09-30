@@ -1,0 +1,44 @@
+{
+  "name": "@webcomponents/internal-site-server",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The server for webcomponents.org",
+  "author": "Google LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "wireit",
+    "check": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check": {
+      "command": "tsc --pretty",
+      "files": [
+        "tsconfig.json",
+        "../../tsconfig.base.json",
+        "src/**/*.ts"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "@types/koa": "^2.13.5",
+    "@types/koa-conditional-get": "^2.0.0",
+    "@types/koa-etag": "^3.0.0",
+    "@types/koa-static": "^4.0.2",
+    "koa": "^2.13.4",
+    "koa-conditional-get": "^3.0.0",
+    "koa-etag": "^4.0.0",
+    "koa-static": "^5.0.0"
+  }
+}
