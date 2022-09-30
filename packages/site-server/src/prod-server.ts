@@ -9,16 +9,10 @@ import koaStatic from 'koa-static';
 import koaConditionalGet from 'koa-conditional-get';
 import koaEtag from 'koa-etag';
 import {fileURLToPath} from 'url';
-import * as pathlib from 'path';
 
 const PORT = process.env['PORT'] || 8080;
-const STATIC_ROOT = pathlib.resolve(
-  fileURLToPath(import.meta.url),
-  '..',
-  '..',
-  '..',
-  'content',
-  '_site'
+const STATIC_ROOT = fileURLToPath(
+  new URL('../../content/_site', import.meta.url)
 );
 
 const app = new Koa();
