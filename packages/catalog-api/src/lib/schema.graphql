@@ -185,7 +185,7 @@ enum ReadableVersionStatus {
   """
   A non-recoverable error. The package was imported, but invalid in some way
   that prevents it from being displayed in the catalog. Since package versions
-  are immutable, this version cannot be fixed. A new package version will may
+  are immutable, this version cannot be fixed. A new package version may
   not have the error, however.
   """
   INVALID
