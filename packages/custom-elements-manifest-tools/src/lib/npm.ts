@@ -8,15 +8,19 @@
  * Interface for retrieving npm package metadata and files.
  */
 export interface PackageFiles {
-  getPackageMetadata(packageName: string): Promise<Package>
-  getPackageVersionMetadata(packageName: string, version: string): Promise<Version>
+  getPackageMetadata(packageName: string): Promise<Package | undefined>;
+  // TODO: include undefined
+  getPackageVersionMetadata(
+    packageName: string,
+    version: string
+  ): Promise<Version>;
   getFile(packageName: string, version: string, path: string): Promise<string>;
 }
 
 /**
  * npm package metadata as returned from the npm registry
  * https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
- * 
+ *
  * TODO (justinfagnani): can we get this interface from somewhere canonical?
  */
 export interface Package {

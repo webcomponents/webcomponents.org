@@ -7,6 +7,7 @@
     "./packages/*"
   ],
   "scripts": {
+    "build": "wireit",
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
@@ -34,6 +35,13 @@
     "wireit": "^0.7.2"
   },
   "wireit": {
+    "build": {
+      "dependencies": [
+        "./packages/custom-elements-manifest-tools:build",
+        "./packages/catalog-api:build",
+        "./packages/catalog-server:build"
+      ]
+    },
     "test": {
       "dependencies": [
         "./packages/custom-elements-manifest-tools:test",

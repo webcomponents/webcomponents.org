@@ -15,10 +15,46 @@ import type {Package} from '@webcomponents/custom-elements-manifest-tools/lib/np
 
 /**
  * Interface for a database that stores package and custom element data.
+ *
+ * Separating Repository from Catalog lets us isolate database-specific code
+ * to Repository in relatively simple operations, and keep
+ * database-independent logic in Catalog. This allows for multiple
+ * implementations of Repository so the catalog can run on different local and
+ * cloud environments.
+ *
+ * Repository methods should be as simple as possible. They should either
+ * operate on a single entity-kind/table (and let Catalog coordinate access to
+ * multiple entity-kinds) or use a transaction to guarantee consistency across
+ * multiple entity-kinds.
+ *
+ * Some workflows, like importing packages and versions, are split across
+ * several methods and do not allow for a single transaction. These workflows
+ * do relatively expensive I/O and file processing in the middle of reads and
+ * writes and so instead work by acquiring and releasing locks on the document
+ * being processed with with start* and end* methods.
  */
 export interface Repository {
   /**
-   * Create an initial PackageVersion document in the "initialized" status.
+   * Create an initial PackageInfo document in the "initializing" status.
+   * Throws if the document already exists, or if the Package document does not
+   * exist.
+   */
+  startPackageImport(packageName: string): Promise<void>;
+
+  startPackageUpdate(packageName: string): Promise<void>;
+
+  endPackageImportWithNotFound(packageName: string): Promise<void>;
+
+  endPackageImportWithError(packageName: string): Promise<void>;
+
+  updateDistTags(
+    packageName: string,
+    versionsToUpdate: Array<string>,
+    newDistTags: {[tag: string]: string}
+  ): Promise<void>;
+
+  /**
+   * Create an initial PackageVersion document in the "initializing" status.
    * Throws if the document already exists, or if the Package document does not
    * exist.
    */
@@ -83,9 +119,7 @@ export interface Repository {
    * Gets a PackageInfo object from the database, not including the
    * published package versions.
    */
-  getPackageInfo(
-    packageName: string
-  ): Promise<Omit<PackageInfo, 'version'> | undefined>;
+  getPackageInfo(packageName: string): Promise<PackageInfo | undefined>;
 
   /**
    * Gets a PackageVersion object from the database, not including all the

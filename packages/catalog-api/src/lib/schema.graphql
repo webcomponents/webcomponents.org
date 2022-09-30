@@ -173,6 +173,8 @@ type UnreadablePackageVersion {
 
   status: UnreadableVersionStatus!
 
+  lastUpdate: Date!
+
   problems: [ValidationProblem]
 }
 

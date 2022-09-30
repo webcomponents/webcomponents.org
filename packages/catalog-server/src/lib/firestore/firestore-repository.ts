@@ -6,8 +6,6 @@
 
 import {
   FieldValue,
-  Timestamp,
-  DocumentReference,
   Query,
   CollectionReference,
 } from '@google-cloud/firestore';
@@ -25,10 +23,14 @@ import {
   PackageVersion,
   VersionStatus,
   ValidationProblem,
+  ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
-import {packageInfoConverter} from './package-info-converter.js';
+import {
+  packageInfoConverter,
+  packageNameToId,
+} from './package-info-converter.js';
 import {packageVersionConverter} from './package-version-converter.js';
 import {customElementConverter} from './custom-element-converter.js';
 import {validationProblemConverter} from './validation-problem-converter.js';
@@ -38,15 +40,148 @@ firebase.initializeApp({projectId});
 export const db = new Firestore({projectId});
 
 export class FirestoreRepository implements Repository {
+  /**
+   * A namespace suffix to apply to the 'packages' collection to support
+   * multi-tenant-like separation of the database. Used for testing.
+   */
+  private readonly namespace?: string;
+
+  constructor(namespace?: string) {
+    this.namespace = namespace;
+  }
+
+  async startPackageImport(packageName: string): Promise<void> {
+    const packageRef = this.getPackageRef(packageName);
+    await packageRef.create({
+      name: packageName,
+      status: PackageStatus.INITIALIZING,
+      lastUpdate: FieldValue.serverTimestamp(),
+    });
+  }
+
+  async startPackageUpdate(packageName: string): Promise<void> {
+    const packageRef = this.getPackageRef(packageName);
+    await packageRef.update({
+      status: PackageStatus.UPDATING,
+      lastUpdate: FieldValue.serverTimestamp(),
+    });
+  }
+
+  async endPackageImportWithReady(
+    packageName: string,
+    packageInfo: ReadablePackageInfo
+  ): Promise<void> {
+    const packageRef = this.getPackageRef(packageName);
+    await db.runTransaction(async (t) => {
+      const packageDoc = await t.get(packageRef);
+      const packageData = packageDoc.data();
+      if (packageData === undefined) {
+        throw new Error(`Package not found: ${packageName}`);
+      }
+      if (
+        packageData.status !== PackageStatus.INITIALIZING &&
+        packageData.status !== PackageStatus.UPDATING
+      ) {
+        throw new Error(`Unexpected package status: ${packageData.status}`);
+      }
+      await t.set(packageRef, {
+        ...packageInfo,
+        status: PackageStatus.READY,
+        lastUpdate: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  async endPackageImportWithNotFound(packageName: string): Promise<void> {
+    const packageRef = this.getPackageRef(packageName);
+    await db.runTransaction(async (t) => {
+      const packageDoc = await t.get(packageRef);
+      const packageData = packageDoc.data();
+      if (packageData === undefined) {
+        throw new Error(`Package not found: ${packageName}`);
+      }
+      if (packageData.status !== PackageStatus.INITIALIZING) {
+        throw new Error(`Unexpected package status: ${packageData.status}`);
+      }
+      await t.set(packageRef, {
+        name: packageName,
+        status: PackageStatus.NOT_FOUND,
+        lastUpdate: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  async endPackageImportWithError(packageName: string): Promise<void> {
+    const packageRef = this.getPackageRef(packageName);
+    await db.runTransaction(async (t) => {
+      const packageDoc = await t.get(packageRef);
+      const packageData = packageDoc.data();
+      if (packageData === undefined) {
+        throw new Error(`Package not found: ${packageName}`);
+      }
+      if (packageData.status !== PackageStatus.INITIALIZING) {
+        throw new Error(`Unexpected package status: ${packageData.status}`);
+      }
+      await t.set(packageRef, {
+        name: packageName,
+        status: PackageStatus.ERROR,
+        lastUpdate: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  /**
+   * Update the dist-tags for `versionsToUpdate` and all the elements they
+   * contain in a single transaction.
+   */
+  async updateDistTags(
+    packageName: string,
+    versionsToUpdate: Array<string>,
+    newDistTags: {[tag: string]: string}
+  ): Promise<void> {
+    await db.runTransaction(async (t) => {
+      await Promise.all(
+        versionsToUpdate.map(async (version) => {
+          const versionDistTags = getDistTagsForVersion(newDistTags, version);
+          const versionRef = this.getPackageVersionRef(packageName, version);
+
+          // Updat the PackageVersion doc
+          await t.update(versionRef, {
+            distTags: versionDistTags,
+          });
+
+          // Update all custom elements of the PackageVersion
+          const customElementsRef = versionRef
+            .collection('customElements')
+            .withConverter(customElementConverter);
+          // TODO: can we structure this for less data transfer by using a
+          // fieldMask or update() without a get()? We would have to use store
+          // the list of custom elements with the packageVersion object so that
+          // we can construct custom element refs without a query on the
+          // collection first.
+          const elements = await t.get(customElementsRef);
+          await Promise.all(
+            elements.docs.map(async (element) => {
+              await t.update(element.ref, {
+                distTags: versionDistTags,
+              });
+            })
+          );
+        })
+      );
+    });
+  }
+
   async startPackageVersionImport(
     packageName: string,
     version: string
   ): Promise<void> {
     // TODO: verify that the package exists. Or does Firestore already do that
     // with subcollections?
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     // Since create() fails if the document exists, we don't need a transaction
     await versionRef.create({
+      version,
       status: VersionStatus.INITIALIZING,
       lastUpdate: FieldValue.serverTimestamp(),
     });
@@ -60,7 +195,7 @@ export class FirestoreRepository implements Repository {
   ): Promise<void> {
     const packageVersionMetadata = packageMetadata.versions[version]!;
     await db.runTransaction(async (t) => {
-      const versionRef = getPackageVersionRef(packageName, version);
+      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -84,8 +219,6 @@ export class FirestoreRepository implements Repository {
       const versionDistTags = getDistTagsForVersion(distTags, version);
 
       // Store package data and mark version as ready
-      // TODO: we want this type to match the schema and converter type. How do
-      // we get strongly typed refs?
       await t.set(versionRef, {
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
@@ -97,8 +230,8 @@ export class FirestoreRepository implements Repository {
         type: packageType,
         distTags: versionDistTags,
         author,
-        // TODO: convert to Timestamp
-        time: packageTime,
+        // TODO (justinfagnani): Is this right? Add tests.
+        time: new Date(packageTime),
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
@@ -110,7 +243,7 @@ export class FirestoreRepository implements Repository {
     version: string
   ): Promise<void> {
     await db.runTransaction(async (t) => {
-      const versionRef = getPackageVersionRef(packageName, version);
+      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -138,34 +271,28 @@ export class FirestoreRepository implements Repository {
     author: string
   ): Promise<void> {
     // Store custom elements data in subcollection
-    const versionRef = getPackageVersionRef(packageName, version);
-    const customElementsCollectionRef = versionRef.collection('customElements');
-    await Promise.all(
-      customElements.map(async (c) => {
-        const customElementRef = customElementsCollectionRef.doc();
-        await customElementRef.set({
-          package: packageName,
-          version,
-          distTags,
-          author,
-          tagName: c.export.name,
-          className: c.declaration.name,
-          // TODO (justinfagnani): Do we need to namespace custom element exports
-          // to separate them from JS exports? Or do we just know the export name
-          // is in the global registry here?
-          customElementExport: referenceString(
-            packageName,
-            c.module,
-            c.export.name
-          ),
-          declaration: referenceString(
-            packageName,
-            c.module,
-            c.declaration.name
-          ),
-        });
-      })
-    );
+    const versionRef = this.getPackageVersionRef(packageName, version);
+    const customElementsRef = versionRef.collection('customElements');
+    const batch = db.batch();
+
+    for (const c of customElements) {
+      batch.create(customElementsRef.doc(), {
+        package: packageName,
+        version,
+        distTags,
+        author,
+        tagName: c.export.name,
+        className: c.declaration.name,
+        customElementExport: referenceString(
+          packageName,
+          c.module,
+          c.export.name
+        ),
+        declaration: referenceString(packageName, c.module, c.declaration.name),
+      });
+    }
+
+    await batch.commit();
   }
 
   async writeProblems(
@@ -173,7 +300,7 @@ export class FirestoreRepository implements Repository {
     version: string,
     problems: Array<ValidationProblem>
   ): Promise<void> {
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const problemsRef = versionRef
       .collection('problems')
       .withConverter(validationProblemConverter);
@@ -188,7 +315,7 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     version: string
   ): Promise<ValidationProblem[]> {
-    const versionRef = getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
     const problemsRef = versionRef
       .collection('problems')
       .withConverter(validationProblemConverter);
@@ -201,23 +328,21 @@ export class FirestoreRepository implements Repository {
    *
    * TODO: Currently only works for packages with a status of READY
    */
-  async getPackageInfo(
-    packageName: string
-  ): Promise<Omit<PackageInfo, 'version'> | undefined> {
-    const packageDocId = getPackageDocId(packageName);
-    // console.log('packageInfo', packageName, packageDocId);
-    const packageRef = db.collection('packages').doc(packageDocId);
-    const packageDoc = await packageRef
-      .withConverter(packageInfoConverter)
-      .get();
+  async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
+    const packageDoc = await this.getPackageRef(packageName).get();
     if (packageDoc.exists) {
+      // eslint-disable-next-line
       const packageInfo = packageDoc.data()!;
       const status = packageInfo.status;
       switch (status) {
+        // These statuses are the "readable" status: they indicate that
+        // the package has been successfully imported.
         case PackageStatus.READY:
         case PackageStatus.UPDATING: {
-          return packageInfo;
+          return packageInfo as ReadablePackageInfo;
         }
+        // These three statuses are "unreadable": they indicate that the
+        // package has failed to import.
         case PackageStatus.INITIALIZING:
         case PackageStatus.NOT_FOUND:
         case PackageStatus.ERROR: {
@@ -241,14 +366,10 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     version: string
   ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
-    const packageDocId = getPackageDocId(packageName);
-    const packageRef = db
-      .collection('packages')
-      .doc(packageDocId) as DocumentReference<PackageInfoData>;
-    const versionRef = packageRef.collection('versions').doc(version);
-    const versionDoc = await versionRef
-      .withConverter(packageVersionConverter)
-      .get();
+    const versionDoc = await this.getPackageVersionRef(
+      packageName,
+      version
+    ).get();
     return versionDoc.data();
   }
 
@@ -257,73 +378,71 @@ export class FirestoreRepository implements Repository {
     version: string,
     tagName?: string
   ): Promise<CustomElement[]> {
-    const packageDocId = getPackageDocId(packageName);
-    const packageRef = db
-      .collection('packages')
-      .doc(packageDocId) as DocumentReference<PackageInfoData>;
-    const versionRef = packageRef.collection('versions').doc(version);
-    const customElementsRef = versionRef.collection('customElements');
+    const versionRef = this.getPackageVersionRef(packageName, version);
+    const customElementsRef = versionRef
+      .collection('customElements')
+      .withConverter(customElementConverter);
     let customElementsQuery:
       | CollectionReference<CustomElement>
-      | Query<CustomElement> = customElementsRef.withConverter(
-      customElementConverter
-    );
+      | Query<CustomElement> = customElementsRef;
     if (tagName !== undefined) {
       customElementsQuery = customElementsQuery.where('tagName', '==', tagName);
     }
     const customElementsResults = await customElementsQuery.get();
     return customElementsResults.docs.map((d) => d.data());
   }
+
+  getPackageRef(packageName: string) {
+    return db
+      .collection('packages' + this.namespace ? `-${this.namespace}` : '')
+      .doc(packageNameToId(packageName))
+      .withConverter(packageInfoConverter);
+  }
+
+  getPackageVersionRef(packageName: string, version: string) {
+    return this.getPackageRef(packageName)
+      .collection('versions')
+      .doc(version)
+      .withConverter(packageVersionConverter);
+  }
 }
 
-/**
- * Returns a Firestore document ID based on the package name.
- */
-const getPackageDocId = (packageName: string) =>
-  packageName.replaceAll('/', '__');
+// /**
+//  * Generates a type representing a Firestore document from a GraphQL schema
+//  * type.
+//  *
+//  *  - Removes __typename
+//  *  - Date -> Timestamp
+//  *  - Removes specified collection fields
+//  *  - Transforms list of tuples to maps
+//  */
+// type FirestoreType<
+//   SchemaType,
+//   MapFields extends {[k: string]: string},
+//   Collections extends string
+// > = {
+//   [K in keyof SchemaType]: K extends '__typename'
+//     ? never
+//     : K extends Date
+//     ? Timestamp
+//     : K extends keyof MapFields
+//     ? {
+//         [key: string]: MapFields[K] extends string
+//           ? SchemaType[K] extends ReadonlyArray<infer T>
+//             ? Omit<T, MapFields[K]>
+//             : never
+//           : MapFields[K];
+//       }
+//     : K extends Collections
+//     ? never
+//     : SchemaType[K];
+// };
 
-const getPackageVersionRef = (packageName: string, version: string) => {
-  const packageDocId = getPackageDocId(packageName);
-  const packageRef = db.collection('packages').doc(packageDocId);
-  return packageRef.collection('versions').doc(version);
-};
-
-/**
- * Generates a type representing a Firestore document from a GraphQL schema
- * type.
- *
- *  - Removes __typename
- *  - Date -> Timestamp
- *  - Removes specified collection fields
- *  - Transforms list of tuples to maps
- */
-type FirestoreType<
-  SchemaType,
-  MapFields extends {[k: string]: string},
-  Collections extends string
-> = {
-  [K in keyof SchemaType]: K extends '__typename'
-    ? never
-    : K extends Date
-    ? Timestamp
-    : K extends keyof MapFields
-    ? {
-        [key: string]: MapFields[K] extends string
-          ? SchemaType[K] extends ReadonlyArray<infer T>
-            ? Omit<T, MapFields[K]>
-            : never
-          : MapFields[K];
-      }
-    : K extends Collections
-    ? never
-    : SchemaType[K];
-};
-
-/**
- * Firestore DocumentData for PackageInfo documents.
- */
-type PackageInfoData = FirestoreType<
-  PackageInfo,
-  {distTags: string},
-  'version'
->;
+// /**
+//  * Firestore DocumentData for PackageInfo documents.
+//  */
+// type PackageInfoData = FirestoreType<
+//   PackageInfo,
+//   {distTags: string},
+//   'version'
+// >;
