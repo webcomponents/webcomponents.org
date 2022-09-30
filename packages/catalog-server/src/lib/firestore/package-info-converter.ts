@@ -76,4 +76,4 @@ export const packageNameToId = (packageName: string) =>
  * Converts a Firestore ID to a package name.
  */
 export const idToPackageName = (packageName: string) =>
-  packageName.replace('/', '__');
+  packageName.replace('__', '/');

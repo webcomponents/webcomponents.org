@@ -216,6 +216,7 @@ export class Catalog {
       return {problems};
     }
 
+    // eslint-disable-next-line
     const packageVersionMetadata = packageMetadata.versions[version]!;
     const distTags = packageMetadata['dist-tags'];
     const versionDistTags = getDistTagsForVersion(distTags, version);

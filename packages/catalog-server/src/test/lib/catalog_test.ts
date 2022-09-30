@@ -12,7 +12,6 @@ import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import * as path from 'path';
 import {
   isReadablePackageVersion,
-  ReadablePackageInfo,
   ReadablePackageVersion,
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
@@ -36,7 +35,9 @@ test('Imports a package with no problems', async () => {
   // so read that and check:
   const result = await catalog.getPackageVersion(packageName, version);
   assert.equal(isReadablePackageVersion(result), true);
-  assert.equal((result as unknown as ReadablePackageInfo).name, 'test-1');
+
+  // TODO (justinfagnani): add assertion when we have the name
+  // assert.equal((result as unknown as ReadablePackageVersion).name, 'test-1');
 
   const {problems} = result as ReadablePackageVersion;
   assert.equal(problems?.length, 0);
