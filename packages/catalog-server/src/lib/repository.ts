@@ -28,8 +28,8 @@ import type {Package} from '@webcomponents/custom-elements-manifest-tools/lib/np
  * multiple entity-kinds.
  *
  * Some workflows, like importing packages and versions, are split across
- * several methods and do not allow for a single transaction. These worflows do
- * relatively expensive I/O and file processing in the middle of reads and
+ * several methods and do not allow for a single transaction. These workflows
+ * do relatively expensive I/O and file processing in the middle of reads and
  * writes and so instead work by acquiring and releasing locks on the document
  * being processed with with start* and end* methods.
  */
@@ -119,9 +119,7 @@ export interface Repository {
    * Gets a PackageInfo object from the database, not including the
    * published package versions.
    */
-  getPackageInfo(
-    packageName: string
-  ): Promise<PackageInfo | undefined>;
+  getPackageInfo(packageName: string): Promise<PackageInfo | undefined>;
 
   /**
    * Gets a PackageVersion object from the database, not including all the
