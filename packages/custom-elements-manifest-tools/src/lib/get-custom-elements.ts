@@ -49,6 +49,9 @@ export const getCustomElements = (
               export: e,
               declaration: decl,
             });
+          } else {
+            // This is some kind of manifest error, should we warn?
+            // Or assume it was handled in a validation pass?
           }
         }
       }
