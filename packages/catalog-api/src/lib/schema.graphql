@@ -12,6 +12,9 @@ type Query {
   Eventually this will have more query parameters, and use some sort of ranking
   algorithm, otherwise the order will just be defined by the database
   implementation.
+
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
   """
   elements(distTag: String = "latest", limit: Int): [CustomElement!]!
 
