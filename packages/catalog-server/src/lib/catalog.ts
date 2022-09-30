@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {getDistTagsForVersion} from './npm.js';
+import {distTagMapToList, getDistTagsForVersion} from './npm.js';
 import {validatePackage} from '@webcomponents/custom-elements-manifest-tools/lib/validate.js';
 import {getCustomElements} from '@webcomponents/custom-elements-manifest-tools';
 import {
@@ -18,6 +18,7 @@ import {
   isReadablePackage,
   ValidationProblem,
   PackageInfo,
+  ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Temporal,
@@ -73,6 +74,9 @@ export class Catalog {
     packageVersion?: PackageVersion;
     problems?: ValidationProblem[];
   }> {
+
+    console.log('Catalog.importPackage');
+
     const currentPackageInfo = await this.#repository.getPackageInfo(
       packageName
     );
@@ -96,6 +100,7 @@ export class Catalog {
     }
 
     // Fetch package metadata from npm:
+    console.log('Fetching package metadata...');
     let newPackage: Package | undefined;
     try {
       newPackage = await this.#files.getPackageMetadata(packageName);
@@ -103,6 +108,7 @@ export class Catalog {
       await this.#repository.endPackageImportWithError(packageName);
       return {};
     }
+    console.log(' done');
 
     if (newPackage === undefined) {
       await this.#repository.endPackageImportWithNotFound(packageName);
@@ -117,7 +123,7 @@ export class Catalog {
     // version (if the 'latest' dist-tag didn't change).
     let versionToImport: string | undefined = newDistTags['latest'];
 
-    if (isReadablePackage(currentPackageInfo)) {
+    if (isReadablePackage(currentPackageInfo)) {      
       const currentDistTagEntries = currentPackageInfo.distTags;
       const currentDistTags = Object.fromEntries(
         currentDistTagEntries.map(({tag, version}) => [tag, version])
@@ -150,22 +156,35 @@ export class Catalog {
       }
 
       // Write the tags
+      console.log('Writing package dist tags...');
       await this.#repository.updateDistTags(
         packageName,
         [...versionsToUpdate],
         newDistTags
       );
+      console.log('  done');
     }
 
     let importResult:
       | {packageVersion?: PackageVersion; problems?: ValidationProblem[]}
       | undefined = undefined;
+    
     if (versionToImport !== undefined) {
       importResult = await this.importPackageVersion(
         packageName,
         versionToImport
       );
     }
+
+    console.log('Marking package ready...');
+    const newPackageInfo: ReadablePackageInfo = {
+      ...currentPackageInfo as ReadablePackageInfo,
+      description: newPackage.description,
+      distTags: distTagMapToList(newDistTags),
+    };
+    await this.#repository.endPackageImportWithReady(packageName, newPackageInfo);
+    console.log('  done');
+
     return {
       packageVersion: importResult?.packageVersion,
       problems: importResult?.problems,
@@ -196,6 +215,7 @@ export class Catalog {
     }
 
     if (manifestData === undefined) {
+      console.error(`manifestData not found`);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -212,6 +232,8 @@ export class Catalog {
     );
 
     if (customElements.length === 0) {
+      console.error(`No customElements found`);
+      console.log(manifestSource);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -224,6 +246,7 @@ export class Catalog {
     const packageMetadata = await packageMetadataPromise;
 
     if (packageMetadata === undefined) {
+      console.error(`packageMetadata not found`);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -256,8 +279,8 @@ export class Catalog {
         version,
         packageMetadata,
         manifestSource
-      );
-    console.log('  done');
+      );      
+    console.log('  done marking package version as ready');
     return {packageVersion, problems};
   }
 
@@ -272,11 +295,15 @@ export class Catalog {
     packageName: string,
     version: string
   ): Promise<PackageVersion | undefined> {
+
+    console.log('Catalog.getPackageVersion', packageName, version);    
+
     const [packageVersionData, customElements, problems] = await Promise.all([
       this.#repository.getPackageVersion(packageName, version),
       this.#repository.getCustomElements(packageName, version),
       this.#repository.getProblems(packageName, version),
     ]);
+
     if (packageVersionData === undefined) {
       return undefined;
     }

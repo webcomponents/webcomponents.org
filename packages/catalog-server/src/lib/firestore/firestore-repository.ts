@@ -23,8 +23,8 @@ import {
   PackageVersion,
   VersionStatus,
   ValidationProblem,
-  ReadablePackageInfo,
   ReadablePackageVersion,
+  ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
@@ -85,10 +85,11 @@ export class FirestoreRepository implements Repository {
       ) {
         throw new Error(`Unexpected package status: ${packageData.status}`);
       }
-      await t.set(packageRef, {
-        ...packageInfo,
+      await t.update(packageRef, {
         status: PackageStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
+        description: packageInfo.description,
+        distTags: packageInfo.distTags,
       });
     });
   }
@@ -195,8 +196,9 @@ export class FirestoreRepository implements Repository {
     customElementsManifestSource: string | undefined
   ): Promise<ReadablePackageVersion> {
     const packageVersionMetadata = packageMetadata.versions[version]!;
-    const packageVersion = await db.runTransaction(async (t) => {
-      const versionRef = this.getPackageVersionRef(packageName, version);
+    const versionRef = this.getPackageVersionRef(packageName, version);
+
+    await db.runTransaction(async (t) => {
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -221,14 +223,12 @@ export class FirestoreRepository implements Repository {
 
       // Store package data and mark version as ready
       // TODO: make converter handle denormalized data
+      console.log('Writing to DB A');
       t.set(versionRef, {
+        name: packageName,
         version,
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
-        // TODO (justinfagnani): augment PackageVersion type with denormalized
-        // fields:
-        package: packageName,
-        version,
         description: packageVersionMetadata.description ?? '',
         type: packageType,
         distTags: versionDistTags,
@@ -237,12 +237,15 @@ export class FirestoreRepository implements Repository {
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
+      console.log('  Wrote to DB A');
+    });
+    const packageVersion = await db.runTransaction(async (t) => {
       // There doesn't seem to be a way to get a WriteResult and therefore
       // a writeTime inside a transaction, so we read from the database to
       // get the server timestamp.
-      return t.get(versionRef);
+      return (await t.get(versionRef)).data() as ReadablePackageVersion;
     });
-    return {packageVersion};
+    return packageVersion;
   }
 
   async endPackageVersionImportWithError(
@@ -373,11 +376,27 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     version: string
   ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
-    const versionDoc = await this.getPackageVersionRef(
+    console.log(
+      'FirestoreRepository.getPackageVersion',
       packageName,
-      version
-    ).get();
-    return versionDoc.data();
+      version,
+    );
+    if (/^\d/.test(version)) {
+      // If `version` starts with a digit, it's a version number and we can build a ref
+      const versionRef = this.getPackageVersionRef(packageName, version);
+      const versionDoc = await versionRef.get();
+      return versionDoc.data();
+    } else {
+      // If `version` doesn't start with a digit, it's a dist-tag and we need to query
+      const result = await this.getPackageVersionCollectionRef(packageName)
+        .where('distTags', 'array-contains', version)
+        .limit(1)
+        .get();
+      if (result.size !== 0) {
+        return result.docs[0]!.data();
+      }
+      return undefined;
+    }
   }
 
   async getCustomElements(
@@ -401,16 +420,19 @@ export class FirestoreRepository implements Repository {
 
   getPackageRef(packageName: string) {
     return db
-      .collection('packages' + this.namespace ? `-${this.namespace}` : '')
+      .collection('packages' + (this.namespace ? `-${this.namespace}` : ''))
       .doc(packageNameToId(packageName))
       .withConverter(packageInfoConverter);
   }
 
-  getPackageVersionRef(packageName: string, version: string) {
+  getPackageVersionCollectionRef(packageName: string) {
     return this.getPackageRef(packageName)
       .collection('versions')
-      .doc(version)
       .withConverter(packageVersionConverter);
+  }
+
+  getPackageVersionRef(packageName: string, version: string) {
+    return this.getPackageVersionCollectionRef(packageName).doc(version);
   }
 }
 

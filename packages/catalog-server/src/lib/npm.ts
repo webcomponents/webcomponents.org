@@ -56,3 +56,13 @@ export const getDistTagsForVersion = (
   Object.entries(distTags)
     .filter(([, v]) => v === version)
     .map(([t]) => t);
+
+export const distTagMapToList = (distTags: {[tag: string]: string}) =>
+  Object.entries(distTags).map(([tag, version]) => ({
+    tag,
+    version,
+  }));
+
+export const distTagListToMap = (
+  distTags: Array<{tag: string; version: string}>
+) => Object.fromEntries(distTags.map(({tag, version}) => [tag, version]));

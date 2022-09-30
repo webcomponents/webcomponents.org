@@ -8,6 +8,7 @@ import type {
   CustomElement,
   PackageInfo,
   PackageVersion,
+  ReadablePackageInfo,
   ReadablePackageVersion,
   ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema';
@@ -47,6 +48,11 @@ export interface Repository {
   endPackageImportWithNotFound(packageName: string): Promise<void>;
 
   endPackageImportWithError(packageName: string): Promise<void>;
+
+  endPackageImportWithReady(
+    packageName: string,
+    packageInfo: ReadablePackageInfo
+  ): Promise<void>;
 
   updateDistTags(
     packageName: string,

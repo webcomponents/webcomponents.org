@@ -131,6 +131,11 @@ union PackageVersion = ReadablePackageVersion | UnreadablePackageVersion
 Information about a specific version of a package
 """
 type ReadablePackageVersion {
+  """
+  The package name
+  """
+  name: String!
+
   version: String!
 
   status: ReadableVersionStatus!
