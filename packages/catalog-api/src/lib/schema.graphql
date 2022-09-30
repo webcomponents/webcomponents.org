@@ -1,0 +1,250 @@
+type Query {
+
+  """
+  Retrieves currently indexed top-level package metadata.
+  """
+  package(packageName: String!): PackageInfo
+
+  """
+  Queries custom elements in the entire catalog, from the latest version of each
+  package.
+
+  Eventually this will use some sort of ranking algorithm, otherwise the order
+  will just be defined by the database implementation.
+  """
+  elements(tag: String = "latest", limit: Int): [CustomElement!]!
+
+  """
+  Retrieves the custom element data for a single element.
+
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
+  element(packageName: String!, elementName: String!, tag: String = "latest"): CustomElement
+}
+
+type Mutation {
+  """
+  NOT IMPLEMENTED
+  DO_NOT_LAUNCH
+  """
+  importPackage(packageName: String!): PackageInfo
+}
+
+"""
+Information about an npm package that's either version-independent
+or related to the latest version of the package.
+"""
+type PackageInfo {
+  name: ID!
+
+  status: PackageStatus!
+
+  lastUpdate: Date!
+
+  """
+  The package description derived from the latest version
+  """
+  description: String
+
+  """
+  The dist tag mappings for the package.
+  """
+  distTags: [DistTag!]! @map
+
+  """
+  Retreives a published versioned package. The default is "latest" for the
+  current version.
+  """
+  version(versionOrTag: String = "latest"): PackageVersion @collection
+}
+
+type DistTag {
+  tag: String!
+  version: String!
+}
+
+"""
+The status of a package.
+
+Concurrent requests for package metadata, which may trigger fetching from
+npm, are possible. We need to ensure there's only one writing request via
+transactions that lock on the status field.
+
+Because packages have versions that update over a time, a package may have
+a pending mutation task from initial fetching, or updating by querying and
+fetching new version metadata.
+
+Packages may not exist, in which case we record that they're not found in
+order to avoid flooding npm with invalid requests.
+
+Errors while fetching packages are divided into two categories:
+ - Invalid packages for which we were able to fetch metadata, but something
+in it was incorrect. Hopefully this never happens, but is included for
+completeness.
+ - Errors, such as network failures. In these cases we should be able to
+retry fetching package metadata.
+
+TODO: we need time and possibly version associtated with the last impmort
+attempt.
+"""
+enum PackageStatus {
+  """
+  The package is being downloaded and indexed for the first time.
+  """
+  INITIALIZING
+
+  """
+  Packages may be read from, but there is a pending update task and
+  new versions of the package are being downloaded and indexed.
+  """
+  UPDATING
+
+  """
+  The package is indexed and read to be read.
+  """
+  READY
+
+  """
+  The package was not found on npm.
+  """
+  NOT_FOUND
+
+  """
+  The package metadata was invalid. This is not a recoverable error unless a
+  new package version is published.
+  """
+  INVALID
+
+  """
+  An other recoverable error occured, such as network failure.
+  """
+  ERROR
+}
+
+"""
+Information about a specific version of a package
+"""
+type PackageVersion {
+  version: String!
+
+  """
+  The dist tags assigned to this version
+  """
+  distTags: [String!]!
+
+  """
+  The time this version was written to the registry
+  """
+  lastUpdate: Date!
+
+  status: VersionStatus!
+
+  description: String!
+
+  """
+  The npm package type: 'module' or 'commonjs'.
+  """
+  type: String!
+
+  author: String!
+
+  """
+  The package publication time reported by npm
+  """
+  time: Date!
+
+  homepage: String
+
+  customElements(tagName: String): [CustomElement!]
+
+  customElementsManifest: String
+
+  problems: [ValidationProblem]
+}
+
+enum VersionStatus {
+  """
+  The version is being downloaded and indexed.
+  """
+  INITIALIZING
+
+  """
+  The version is indexed and read to be read.
+  """
+  READY
+
+  """
+  A recoverable error.
+  """
+  ERROR
+}
+
+type ValidationProblem {
+  code: String!
+  severity: String!
+  message: String!
+  filePath: String!
+  start: Int!
+  length: Int!
+}
+
+"""
+Holds important per-element data extracted from the exports of the
+package's custom elements manifest.
+"""
+type CustomElement {
+
+  """
+  The package name containing this element
+  """
+  package: String!
+
+  """
+  The package version containing this element
+  """
+  version: String!
+
+  """
+  The dist tags assigned to this version
+  """
+  distTags: [String!]!
+
+  author: String!
+
+  tagName: String
+
+  className: String
+
+  """
+  Reference to the custom element export.
+
+  Reference strings have the format: `{package-name}/{module-path}#{tag-name}`
+  """
+  customElementExport: String
+
+  """
+  Reference to the JavaScript class export for the custom element class, if it
+  exists.
+
+  Reference strings have the format: `{package-name}/{module-path}#{export-name}`
+  """
+  jsExport: String
+
+  """
+  Reference to the class declaration of the custom element class. This is
+  different than the jsExport, as it's possible for a custom element to not
+  export its class. The declaration might not be directly importable.
+
+  Reference strings have the format: `{package-name}/{module-path}#{identifier}`
+  """
+  declaration: String
+}
+
+scalar Date
+
+scalar JSON
+
+directive @collection on FIELD_DEFINITION
+
+directive @map on FIELD_DEFINITION

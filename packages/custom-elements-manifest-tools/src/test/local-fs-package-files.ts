@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import * as path from 'path';
+import {readFile} from 'fs/promises';
+
 import {PackageFiles, Package, Version} from '../lib/npm.js';
 
 export interface FileTree {
@@ -11,31 +14,37 @@ export interface FileTree {
 }
 
 /**
- * A local, in-memory implementation of the PackageFiles interface for
+ * A local filesystem implementation of the PackageFiles interface for
  * tests.
  */
-export class InMemoryPackageFiles implements PackageFiles {
+export class LocalFsPackageFiles implements PackageFiles {
+  path: string;
   packageName: string;
   version: string;
-  files: FileTree;
 
-  constructor(packageName: string, version: string, files: FileTree) {
+  constructor(path: string, packageName: string, version: string) {
+    this.path = path;
     this.packageName = packageName;
     this.version = version;
-    this.files = files;
   }
 
-  getPackageMetadata(packageName: string): Promise<Package> {
+  async getPackageMetadata(packageName: string): Promise<Package> {
     if (packageName !== this.packageName) {
       throw new Error(`Package not found ${packageName}`);
     }
-    const packageJsonSource = this.files['package.json'];
-    if (typeof packageJsonSource !== 'string') {
+    const packageJsonPath = path.resolve(this.path, 'package.json');
+
+    let packageJsonSource: string;
+    try {
+      packageJsonSource = await readFile(packageJsonPath, 'utf-8');
+    } catch (e) {
       throw new Error(`package.json not found`);
     }
+
     const packageJson = JSON.parse(packageJsonSource);
     const packument = JSON.parse(packageJsonSource);
-    // Add versions, dist-tags, and time to make an npm "packument"
+
+    // Add versions, dist-tags, and time and to make an npm "packument"
     // See: https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
     packument.versions = {
       [this.version]: packageJson,
@@ -52,14 +61,22 @@ export class InMemoryPackageFiles implements PackageFiles {
     return packument;
   }
 
-  getPackageVersionMetadata(
+  async getPackageVersionMetadata(
     packageName: string,
     version: string
   ): Promise<Version> {
     if (packageName !== this.packageName || version !== this.version) {
       throw new Error(`Package not found: ${packageName}@${version}`);
     }
-    const packageJsonSource = this.files['package.json'];
+
+    const packageJsonPath = path.resolve(this.path, 'package.json');
+    let packageJsonSource: string;
+    try {
+      packageJsonSource = await readFile(packageJsonPath, 'utf-8');
+    } catch (e) {
+      throw new Error(`package.json not found`);
+    }
+
     if (typeof packageJsonSource !== 'string') {
       throw new Error(`package.json not found`);
     }
@@ -78,18 +95,8 @@ export class InMemoryPackageFiles implements PackageFiles {
     if (version !== this.version) {
       throw new Error(`Invalid package version: ${version}`);
     }
-    const segments = filePath.split('/');
-    let file: FileTree | string | undefined = this.files;
-    while (
-      segments.length > 0 &&
-      typeof file !== 'string' &&
-      file !== undefined
-    ) {
-      file = file[segments.shift()!];
-    }
-    if (typeof file !== 'string') {
-      throw new Error(`File not found: ${filePath}`);
-    }
-    return file;
+    const fullPath = path.resolve(this.path, filePath);
+    const source = await readFile(fullPath, 'utf-8');
+    return source;
   }
 }

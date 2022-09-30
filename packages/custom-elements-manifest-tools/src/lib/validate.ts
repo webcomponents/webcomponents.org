@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import semver from 'semver';
@@ -33,17 +33,17 @@ export interface ValidationProblem {
 }
 
 export const errorCodeMessages = {
-  1001: 'JSON parse error',
-  2001: 'customElements field missing',
-  2002: 'Custom elements manifest not found',
-  2003: 'Unsupported custom elements manifest schema version',
+  '1001': 'JSON parse error',
+  '2001': 'customElements field missing',
+  '2002': 'Custom elements manifest not found',
+  '2003': 'Unsupported custom elements manifest schema version',
 } as const;
 export type ErrorCode = keyof typeof errorCodeMessages;
 export const errorCodes = {
-  JSON_parse_error: 1001,
-  customElements_field_missing: 2001,
-  custom_elements_manifest_not_found: 2002,
-  invalid_schema_version: 2003,
+  JSON_parse_error: '1001',
+  customElements_field_missing: '2001',
+  custom_elements_manifest_not_found: '2002',
+  invalid_schema_version: '2003',
 } as const;
 
 /**

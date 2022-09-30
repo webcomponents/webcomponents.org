@@ -1,0 +1,72 @@
+{
+  "name": "@webcomponents/catalog-api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Schema and interfaces for the @webcomponents/catalog-server",
+  "author": "Google LLC",
+  "homepage": "",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "wireit",
+    "build:ts": "wireit",
+    "build:graphql": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "command": "cp -r out/src/* . ; cp -r out/gen/* .",
+      "dependencies": [
+        "build:graphql",
+        "build:ts"
+      ],
+      "files": [
+        "out/"
+      ],
+      "output": [
+        "lib",
+        "index.{js,js.map,d.ts,d.ts.map}"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:ts": {
+      "command": "tsc --pretty",
+      "dependencies": [
+        "build:graphql"
+      ],
+      "files": [
+        "tsconfig.json",
+        "src/**/*.ts",
+        "gen/**/*.ts"
+      ],
+      "output": [
+        "out/",
+        "tsconfig.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:graphql": {
+      "command": "graphql-codegen -c codegen.yml",
+      "files": [
+        "codegen.yml",
+        "src/lib/schema.graphql"
+      ],
+      "output": [
+        "gen/lib/schema.ts"
+      ],
+      "clean": "if-file-deleted"
+    }
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^2.6.2",
+    "@graphql-codegen/typed-document-node": "^2.2.8",
+    "@graphql-codegen/typescript": "^2.4.8",
+    "@graphql-codegen/typescript-resolvers": "^2.6.1",
+    "uvu": "^0.5.6"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^8.3.6",
+    "custom-elements-manifest": "^2.0.0",
+    "graphql": "^16.3.0"
+  }
+}

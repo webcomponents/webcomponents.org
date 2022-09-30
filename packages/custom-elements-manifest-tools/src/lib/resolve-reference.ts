@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type {
@@ -35,13 +35,14 @@ export const resolveReference = (
     console.warn("Can't resolve cross-package reference", ref);
     return undefined;
   }
+  // TODO (justinfagnani): Use a normalizing path comparison instead of ===
   if (ref.module === undefined) {
     // Local reference. Local references refer to declarations in the local
-    // module scope.
+    // module scope, which may or may not be exported.
     return localModule.declarations?.find((d) => d.name === ref.name);
   } else {
     // Cross-module reference. A reference to a different module references
-    // an export
+    // an export or that module.
     const mod = getModule(pkg, ref.module);
     if (mod === undefined) {
       // Module not found
@@ -67,6 +68,12 @@ export const resolveReference = (
       return undefined;
     }
     const declaration = exprt.declaration;
+    // Protect against infinite recursion:
+    if (mod === localModule && declaration == ref) {
+      throw new Error(
+        `Detected cycle in reference: ${JSON.stringify(declaration)}`
+      );
+    }
     // Recurse to find the declaration with the new module as the local module.
     // There are two cases:
     //  - declaration is local to the new module (it's module property is

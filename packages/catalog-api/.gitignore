@@ -1,0 +1,7 @@
+/lib/
+/out/
+/gen/
+/node_modules/
+/test/
+/index.*
+/tsconfig.tsbuildinfo

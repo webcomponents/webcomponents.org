@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type {
@@ -10,6 +10,7 @@ import type {
   Module,
   Package,
 } from 'custom-elements-manifest/schema.js';
+import {isCustomElementDeclaration} from './predicates.js';
 import {resolveReference} from './resolve-reference.js';
 
 export type CustomElementInfo = {
@@ -41,7 +42,7 @@ export const getCustomElements = (
             packageName,
             packageVersion
           );
-          if (decl?.kind === 'class') {
+          if (decl !== undefined && isCustomElementDeclaration(decl)) {
             customElements.push({
               package: pkg,
               module: mod,

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "composite": true,
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+    "target": "es2021", 
+    "module": "esnext", 
+    "sourceMap": true,
+    "outDir": "./", 
+    "rootDir": "./src",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "moduleResolution": "node", 
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true 
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [],
+  "references": [
+    { "path": "../catalog-api" },
+    { "path": "../custom-elements-manifest-tools" }
+  ]
+}
