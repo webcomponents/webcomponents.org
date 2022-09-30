@@ -24,7 +24,7 @@ import {
   PackageStatus,
   PackageVersion,
   VersionStatus,
-  ValidationProblem
+  ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
@@ -184,7 +184,10 @@ export class FirestoreRepository implements Repository {
     await batch.commit();
   }
 
-  async getProblems(packageName: string, version: string): Promise<ValidationProblem[]> {
+  async getProblems(
+    packageName: string,
+    version: string
+  ): Promise<ValidationProblem[]> {
     const versionRef = getPackageVersionRef(packageName, version);
     const problemsRef = versionRef
       .collection('problems')
@@ -198,7 +201,9 @@ export class FirestoreRepository implements Repository {
    *
    * TODO: Currently only works for packages with a status of READY
    */
-  async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
+  async getPackageInfo(
+    packageName: string
+  ): Promise<Omit<PackageInfo, 'version'> | undefined> {
     const packageDocId = getPackageDocId(packageName);
     // console.log('packageInfo', packageName, packageDocId);
     const packageRef = db.collection('packages').doc(packageDocId);
@@ -209,14 +214,13 @@ export class FirestoreRepository implements Repository {
       const packageInfo = packageDoc.data()!;
       const status = packageInfo.status;
       switch (status) {
-        case PackageStatus.READY: {
+        case PackageStatus.READY:
+        case PackageStatus.UPDATING: {
           return packageInfo;
         }
         case PackageStatus.INITIALIZING:
-        case PackageStatus.INVALID:
         case PackageStatus.NOT_FOUND:
-        case PackageStatus.ERROR:
-        case PackageStatus.UPDATING: {
+        case PackageStatus.ERROR: {
           throw new Error(`Unhandled package status ${status}`);
         }
         default:
@@ -236,7 +240,7 @@ export class FirestoreRepository implements Repository {
   async getPackageVersion(
     packageName: string,
     version: string
-  ): Promise<PackageVersion | undefined> {
+  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
     const packageDocId = getPackageDocId(packageName);
     const packageRef = db
       .collection('packages')

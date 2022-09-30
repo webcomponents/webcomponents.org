@@ -9,10 +9,11 @@ type Query {
   Queries custom elements in the entire catalog, from the latest version of each
   package.
 
-  Eventually this will use some sort of ranking algorithm, otherwise the order
-  will just be defined by the database implementation.
+  Eventually this will have more query parameters, and use some sort of ranking
+  algorithm, otherwise the order will just be defined by the database
+  implementation.
   """
-  elements(tag: String = "latest", limit: Int): [CustomElement!]!
+  elements(distTag: String = "latest", limit: Int): [CustomElement!]!
 
   """
   Retrieves the custom element data for a single element.
@@ -20,7 +21,11 @@ type Query {
   NOT IMPLEMENTED
   DO_NOT_LAUNCH
   """
-  element(packageName: String!, elementName: String!, tag: String = "latest"): CustomElement
+  element(
+    packageName: String!
+    elementName: String!
+    tag: String = "latest"
+  ): CustomElement
 }
 
 type Mutation {
@@ -32,13 +37,17 @@ type Mutation {
 }
 
 """
-Information about an npm package that's either version-independent
-or related to the latest version of the package.
+Information about an npm package that's independent of a specific version.
 """
-type PackageInfo {
+union PackageInfo = ReadablePackageInfo | UnreadablePackageInfo
+
+"""
+A package that has been successfuly imported
+"""
+type ReadablePackageInfo {
   name: ID!
 
-  status: PackageStatus!
+  status: ReadablePackageStatus!
 
   lastUpdate: Date!
 
@@ -59,41 +68,29 @@ type PackageInfo {
   version(versionOrTag: String = "latest"): PackageVersion @collection
 }
 
+"""
+A package whose data is unreadable because it's importing for the first time
+or has a critical error that prevented it from being imported.
+"""
+type UnreadablePackageInfo {
+  name: ID!
+
+  status: UnreadablePackageStatus!
+
+  lastUpdate: Date!
+}
+
 type DistTag {
   tag: String!
   version: String!
 }
 
 """
-The status of a package.
+The status of a package that has been successfully imported.
 
-Concurrent requests for package metadata, which may trigger fetching from
-npm, are possible. We need to ensure there's only one writing request via
-transactions that lock on the status field.
-
-Because packages have versions that update over a time, a package may have
-a pending mutation task from initial fetching, or updating by querying and
-fetching new version metadata.
-
-Packages may not exist, in which case we record that they're not found in
-order to avoid flooding npm with invalid requests.
-
-Errors while fetching packages are divided into two categories:
- - Invalid packages for which we were able to fetch metadata, but something
-in it was incorrect. Hopefully this never happens, but is included for
-completeness.
- - Errors, such as network failures. In these cases we should be able to
-retry fetching package metadata.
-
-TODO: we need time and possibly version associtated with the last impmort
-attempt.
+A package may also has a status from the UnreadablePackageStatus enum.
 """
-enum PackageStatus {
-  """
-  The package is being downloaded and indexed for the first time.
-  """
-  INITIALIZING
-
+enum ReadablePackageStatus {
   """
   Packages may be read from, but there is a pending update task and
   new versions of the package are being downloaded and indexed.
@@ -104,6 +101,18 @@ enum PackageStatus {
   The package is indexed and read to be read.
   """
   READY
+}
+
+"""
+The status of a package that has not been successfully imported.
+
+A package may also has a status from the ReadablePackageStatus enum.
+"""
+enum UnreadablePackageStatus {
+  """
+  The package is being downloaded and indexed for the first time.
+  """
+  INITIALIZING
 
   """
   The package was not found on npm.
@@ -111,22 +120,20 @@ enum PackageStatus {
   NOT_FOUND
 
   """
-  The package metadata was invalid. This is not a recoverable error unless a
-  new package version is published.
-  """
-  INVALID
-
-  """
   An other recoverable error occured, such as network failure.
   """
   ERROR
 }
 
+union PackageVersion = ReadablePackageVersion | UnreadablePackageVersion
+
 """
 Information about a specific version of a package
 """
-type PackageVersion {
+type ReadablePackageVersion {
   version: String!
+
+  status: ReadableVersionStatus!
 
   """
   The dist tags assigned to this version
@@ -137,8 +144,6 @@ type PackageVersion {
   The time this version was written to the registry
   """
   lastUpdate: Date!
-
-  status: VersionStatus!
 
   description: String!
 
@@ -163,19 +168,38 @@ type PackageVersion {
   problems: [ValidationProblem]
 }
 
-enum VersionStatus {
+type UnreadablePackageVersion {
+  version: String!
+
+  status: UnreadableVersionStatus!
+
+  problems: [ValidationProblem]
+}
+
+enum ReadableVersionStatus {
+  """
+  The package version is indexed and read to be read.
+  """
+  READY
+
+  """
+  A non-recoverable error. The package was imported, but invalid in some way
+  that prevents it from being displayed in the catalog. Since package versions
+  are immutable, this version cannot be fixed. A new package version may
+  not have the error, however.
+  """
+  INVALID
+}
+
+enum UnreadableVersionStatus {
   """
   The version is being downloaded and indexed.
   """
   INITIALIZING
 
   """
-  The version is indexed and read to be read.
-  """
-  READY
-
-  """
-  A recoverable error.
+  A recoverable error, such as a network error while importing. A new import
+  might be able to fix the error.
   """
   ERROR
 }
@@ -194,7 +218,6 @@ Holds important per-element data extracted from the exports of the
 package's custom elements manifest.
 """
 type CustomElement {
-
   """
   The package name containing this element
   """

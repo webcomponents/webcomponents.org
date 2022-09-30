@@ -10,6 +10,9 @@ import {Catalog} from '../../lib/catalog.js';
 import {LocalFsPackageFiles} from '@webcomponents/custom-elements-manifest-tools/test/local-fs-package-files.js';
 import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import * as path from 'path';
+import {
+  VersionStatus,
+} from '@webcomponents/catalog-api/lib/schema.js';
 
 const test = suite('Custom element manifest utils tests');
 
@@ -49,6 +52,10 @@ test('Gets package version data from imported package', async () => {
   );
 
   assert.ok(result);
+  assert.equal(result.status, VersionStatus.READY);
+  if (result.status !== VersionStatus.READY) {
+    throw new Error();
+  }
   assert.equal(result.version, '0.0.0');
   // Assume that the manifest is byte-for-byte the same, which it is for now.
   // If this changes, use a deep comparison library

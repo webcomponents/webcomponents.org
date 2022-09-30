@@ -3,7 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "rootDirs": ["./src", "./gen"],
-    "outDir": "./out"
+    "outDir": "./out",
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts", "gen/**/*.ts"],
   "exclude": []
