@@ -1,0 +1,72 @@
+{
+  "name": "@webcomponents/internal-site-client",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Client JavaScript used on webcomponents.org",
+  "author": "Google LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "wireit",
+    "build:dev": "wireit",
+    "build:prod": "wireit",
+    "check": "wireit",
+    "check:types": "wireit",
+    "check:lit-analyzer": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "dependencies": [
+        "build:dev",
+        "build:prod",
+        "check:types"
+      ]
+    },
+    "build:dev": {
+      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:prod": {
+      "command": "esbuild --format=esm --target=es2022 --color --outdir=bundled --bundle --splitting --minify src/entrypoints/*.ts",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "bundled"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check": {
+      "dependencies": [
+        "check:types",
+        "check:lit-analyzer"
+      ]
+    },
+    "check:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "tsconfig.json",
+        "../../tsconfig.base.json",
+        "src/**/*.ts"
+      ],
+      "output": []
+    },
+    "check:lit-analyzer": {
+      "command": "lit-analyzer --strict --color --rules.no-unknown-tag-name=error --rules.no-missing-import=error --rules.no-missing-element-type-definition=error --rules.no-unknown-attribute=error --rules.no-unknown-property=error --rules.no-unknown-event=error --rules.no-unknown-slot=error \"src/**/*.ts\"",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "lit": "^2.3.1",
+    "lit-analyzer": "^1.2.1"
+  }
+}

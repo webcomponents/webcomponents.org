@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import {suite} from 'uvu';
@@ -11,7 +11,6 @@ import {LocalFsPackageFiles} from '@webcomponents/custom-elements-manifest-tools
 import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import * as path from 'path';
 import {
-  ReadablePackageVersion,
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 

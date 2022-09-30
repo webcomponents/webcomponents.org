@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type {Package} from 'custom-elements-manifest/schema.js';
