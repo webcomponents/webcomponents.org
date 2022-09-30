@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import {suite} from 'uvu';
@@ -40,7 +40,7 @@ test('Imports a package with no problems', async () => {
   assert.equal(problems!.length, 0);
 });
 
-test('Imports a package version with no problems', async () => {
+test('Gets package version data from imported package', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
   const myDirname = new URL(import.meta.url).pathname;

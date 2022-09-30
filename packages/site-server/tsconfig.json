@@ -1,11 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "rootDirs": ["./src", "./gen"],
-    "outDir": "./out",
+    "rootDir": "./src",
+    "noEmit": true,
     "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
-  "include": ["src/**/*.ts", "gen/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": []
 }

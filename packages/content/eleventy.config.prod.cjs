@@ -1,12 +1,12 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 module.exports = (eleventyConfig) => {
   eleventyConfig.addPassthroughCopy('site/assets');
-  eleventyConfig.addPassthroughCopy({'../components/lib': 'js'});
+  eleventyConfig.addPassthroughCopy({'../client/bundled': 'js'});
   return {
     dir: {
       input: 'site',

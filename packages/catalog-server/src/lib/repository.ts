@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type {
@@ -119,7 +119,9 @@ export interface Repository {
    * Gets a PackageInfo object from the database, not including the
    * published package versions.
    */
-  getPackageInfo(packageName: string): Promise<PackageInfo | undefined>;
+  getPackageInfo(
+    packageName: string
+  ): Promise<PackageInfo | undefined>;
 
   /**
    * Gets a PackageVersion object from the database, not including all the

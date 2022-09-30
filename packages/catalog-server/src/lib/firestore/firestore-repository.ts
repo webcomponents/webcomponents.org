@@ -1,10 +1,14 @@
 /**
  * @license
  * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
-import {FieldValue, Query, CollectionReference} from '@google-cloud/firestore';
+import {
+  FieldValue,
+  Query,
+  CollectionReference,
+} from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
@@ -197,9 +201,13 @@ export class FirestoreRepository implements Repository {
       );
       const packageVersionData = packageVersionDoc.data();
       if (packageVersionData === undefined) {
+        console.error(`Package version not found: ${packageName}@${version}`);
         throw new Error(`Package version not found: ${packageName}@${version}`);
       }
       if (packageVersionData.status !== VersionStatus.INITIALIZING) {
+        console.error(
+          `Unexpected package version status: ${packageVersionData.status}`
+        );
         throw new Error(
           `Unexpected package version status: ${packageVersionData.status}`
         );
@@ -323,6 +331,7 @@ export class FirestoreRepository implements Repository {
   async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
     const packageDoc = await this.getPackageRef(packageName).get();
     if (packageDoc.exists) {
+      // eslint-disable-next-line
       const packageInfo = packageDoc.data()!;
       const status = packageInfo.status;
       switch (status) {
@@ -330,7 +339,7 @@ export class FirestoreRepository implements Repository {
         // the package has been successfully imported.
         case PackageStatus.READY:
         case PackageStatus.UPDATING: {
-          return packageInfo;
+          return packageInfo as ReadablePackageInfo;
         }
         // These three statuses are "unreadable": they indicate that the
         // package has failed to import.

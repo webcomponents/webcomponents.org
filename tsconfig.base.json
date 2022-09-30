@@ -4,7 +4,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "incremental": true,
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
@@ -16,6 +15,6 @@
     "noPropertyAccessFromIndexSignature": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }

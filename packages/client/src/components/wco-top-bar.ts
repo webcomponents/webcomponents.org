@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2022 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import {html, css, LitElement} from 'lit';
@@ -27,5 +27,11 @@ export class WCOTopBar extends LitElement {
 
   render() {
     return html` webcomponents.org `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wco-top-bar': WCOTopBar;
   }
 }
