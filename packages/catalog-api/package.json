@@ -5,7 +5,7 @@
   "description": "Schema and interfaces for the @webcomponents/catalog-server",
   "author": "Google LLC",
   "homepage": "",
-  "license": "APACHE-2.0",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
