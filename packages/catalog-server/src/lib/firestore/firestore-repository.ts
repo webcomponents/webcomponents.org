@@ -4,11 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  FieldValue,
-  Query,
-  CollectionReference,
-} from '@google-cloud/firestore';
+import {FieldValue, Query, CollectionReference} from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
@@ -90,7 +86,7 @@ export class FirestoreRepository implements Repository {
       await t.update(packageRef, {
         status: PackageStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
-        description: packageInfo.description,
+        description: packageInfo.description ?? '',
         distTags: packageInfo.distTags,
       });
     });
@@ -225,7 +221,6 @@ export class FirestoreRepository implements Repository {
 
       // Store package data and mark version as ready
       // TODO: make converter handle denormalized data
-      console.log('Writing to DB A');
       t.set(versionRef, {
         name: packageName,
         version,
@@ -239,7 +234,6 @@ export class FirestoreRepository implements Repository {
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
-      console.log('  Wrote to DB A');
     });
     const packageVersion = await db.runTransaction(async (t) => {
       // There doesn't seem to be a way to get a WriteResult and therefore
@@ -378,8 +372,6 @@ export class FirestoreRepository implements Repository {
     packageName: string,
     versionOrTag: string
   ): Promise<PackageVersion | undefined> {
-    console.log('FirestoreRepository.getPackageVersion', packageName, versionOrTag);
-
     const versionNumber = clean(versionOrTag);
 
     if (versionNumber !== null) {
@@ -387,7 +379,7 @@ export class FirestoreRepository implements Repository {
       const versionRef = this.getPackageVersionRef(packageName, versionNumber);
       const versionDoc = await versionRef.get();
       return versionDoc.data();
-    } else {      
+    } else {
       // If version is not a valid semver it may be a dist-tag
 
       // First, filter out semver ranges, since npm doesn't allow semver
@@ -413,8 +405,6 @@ export class FirestoreRepository implements Repository {
     version: string,
     tagName?: string
   ): Promise<CustomElement[]> {
-    console.log('Firestore.getCustomElements', packageName, version, `:${tagName}`);
-
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef
       .collection('customElements')
