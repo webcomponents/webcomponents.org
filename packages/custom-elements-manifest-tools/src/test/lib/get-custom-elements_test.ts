@@ -87,6 +87,21 @@ test('Get elements from Shoelace', async () => {
   console.log('fileURLToPath(import.meta.url)', fileURLToPath(import.meta.url));
   console.log('process.cwd()', process.cwd());
 
+  const resolvedTestDataPath = path.resolve(
+    fileURLToPath(import.meta.url),
+    '..',
+    '..',
+    'test-data',
+  );
+
+  try {
+    const testDataDir = await fs.readdir(resolvedTestDataPath);
+    console.log('testDataDir', testDataDir);
+  } catch(e) {
+    console.error('testDataDir error');
+    console.error(e);
+  }
+
   const resolvedManifestPath = path.resolve(
     fileURLToPath(import.meta.url),
     '..',
