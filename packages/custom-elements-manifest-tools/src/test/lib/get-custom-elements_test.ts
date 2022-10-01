@@ -5,7 +5,9 @@
  */
 
 import {readFile} from 'fs/promises';
+import * as fs from 'fs/promises';
 import {fileURLToPath} from 'url';
+import * as path from 'path';
 
 import {suite} from 'uvu';
 import * as assert from 'uvu/assert';
@@ -80,9 +82,42 @@ test('Gets an element from a valid manifest, with a reference that includes the 
 });
 
 test('Get elements from Shoelace', async () => {
+  console.log('#### What is happening on CI? ####');
+  console.log('import.meta.url', import.meta.url);
+  console.log('fileURLToPath(import.meta.url)', fileURLToPath(import.meta.url));
+  console.log('process.cwd()', process.cwd());
+
+  const resolvedManifestPath = path.resolve(
+    fileURLToPath(import.meta.url),
+    '..',
+    '..',
+    'test-data',
+    'shoelace-2.0.0-beta.83.json'
+  );
+
   const manifestPath = fileURLToPath(
     new URL('../test-data/shoelace-2.0.0-beta.83.json', import.meta.url)
   );
+
+  console.log('manifestPath', manifestPath);
+  console.log('resolvedManifestPath', resolvedManifestPath);
+
+  try {
+    const stat = await fs.stat(manifestPath);
+    console.log('manifestPath stat', stat)
+  } catch (e) {
+    console.error('manifestPath stat error');
+    console.error(e);
+  }
+
+  try {
+    const resolvedStat = await fs.stat(resolvedManifestPath);
+    console.log('resolvedManifestPath stat', resolvedStat)
+  } catch (e) {
+    console.error('resolvedManifestPath stat error');
+    console.error(e);
+  }
+
   const manifestSource = await readFile(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestSource);
   const customElements = getCustomElements(
