@@ -8,6 +8,7 @@ import {readFile} from 'fs/promises';
 import * as fs from 'fs/promises';
 import {fileURLToPath} from 'url';
 import * as path from 'path';
+import { execSync } from 'node:child_process';
 
 import {suite} from 'uvu';
 import * as assert from 'uvu/assert';
@@ -83,6 +84,9 @@ test('Gets an element from a valid manifest, with a reference that includes the 
 
 test('Get elements from Shoelace', async () => {
   console.log('#### What is happening on CI? ####');
+  const p = execSync('ls -al test/test-data');
+  console.log(p.toString());
+  
   console.log('import.meta.url', import.meta.url);
   console.log('fileURLToPath(import.meta.url)', fileURLToPath(import.meta.url));
   console.log('process.cwd()', process.cwd());
