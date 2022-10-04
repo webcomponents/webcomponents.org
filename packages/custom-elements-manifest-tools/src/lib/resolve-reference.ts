@@ -30,13 +30,13 @@ export const resolveReference = (
   packageVersion: string
 ): Declaration | undefined => {
   // Check for local reference
-  if (ref.package !== undefined) {
+  if (ref.package !== undefined && ref.package !== packageName) {
     // We don't know how to resolve cross-package references yet
-    console.warn("Can't resolve cross-package reference", ref);
+    console.warn(`Can't resolve cross-package reference ${ref} (from package ${packageName})`);
     return undefined;
   }
   // TODO (justinfagnani): Use a normalizing path comparison instead of ===
-  if (ref.module === undefined) {
+  if (ref.module === undefined || ref.module === localModule.path) {
     // Local reference. Local references refer to declarations in the local
     // module scope, which may or may not be exported.
     return localModule.declarations?.find((d) => d.name === ref.name);

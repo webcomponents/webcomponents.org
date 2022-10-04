@@ -25,6 +25,7 @@
         "index.js.map",
         "lib/",
         "test/",
+        "!test/test-data/shoelace-2.0.0-beta.83.json",
         "tsconfig.tsbuildinfo"
       ],
       "clean": "if-file-deleted"
@@ -34,7 +35,9 @@
       "dependencies": [
         "build"
       ],
-      "files": [],
+      "files": [
+        "test/test-data/shoelace-2.0.0-beta.83.json"
+      ],
       "output": []
     }
   },

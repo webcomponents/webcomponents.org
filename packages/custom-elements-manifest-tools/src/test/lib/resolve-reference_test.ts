@@ -93,12 +93,13 @@ test('cross-module references must be exported', () => {
 });
 
 test('resolves a re-exported reference', () => {
-  const module1 = pkg.modules[0]!;
   const module2 = pkg.modules[1]!;
   const variableB = module2.declarations![0]!;
   const result = resolveReference(
     pkg,
-    module1,
+    // Using module2 so we resolve this from outside of module-1, which is
+    // re-exporting `b`
+    module2,
     {name: 'b', module: 'module-1.js'},
     'test-package',
     '1.0.0'
