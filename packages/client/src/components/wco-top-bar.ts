@@ -26,7 +26,7 @@ export class WCOTopBar extends LitElement {
   `;
 
   render() {
-    return html` webcomponents.org `;
+    return html`🚧 webcomponents.org `;
   }
 }
 

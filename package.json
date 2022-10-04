@@ -58,7 +58,7 @@
       ]
     },
     "serve:dev": {
-      "command": "wds --root-dir=./packages/content/_dev --node-resolve --watch --open",
+      "command": "node --enable-source-maps packages/site-server/lib/dev-server.js",
       "files": [],
       "output": [],
       "dependencies": [
@@ -75,7 +75,8 @@
     "build:dev": {
       "dependencies": [
         "./packages/client:build:dev",
-        "./packages/content:build:dev"
+        "./packages/content:build:dev",
+        "./packages/site-server:build"
       ]
     },
     "build-and-check:dev": {

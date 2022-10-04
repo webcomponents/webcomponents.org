@@ -3,8 +3,10 @@
   "compilerOptions": {
     "rootDir": "./src",
     "noEmit": true,
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo"
-  },
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+    "module": "esnext",
+    "moduleResolution": "node", 
+},
   "include": ["src/**/*.ts"],
   "exclude": []
 }
