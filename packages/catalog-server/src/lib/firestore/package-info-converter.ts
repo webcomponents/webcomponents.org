@@ -17,26 +17,37 @@ import {
   isReadablePackage,
   PackageInfo,
   ReadablePackageInfo,
+  ReadablePackageStatus,
+  UnreadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
+import { distTagListToMap } from '../npm.js';
 
-export const packageInfoConverter: FirestoreDataConverter<
-  Omit<PackageInfo, 'version'>
-> = {
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>
-  ): Omit<PackageInfo, 'version'> {
-    const distTags = snapshot.get('distTags');
-    const graphQLDistTags = Object.entries(distTags).map(
-      ([tag, version]) => ({tag, version} as DistTag)
-    );
-    return {
-      name: idToPackageName(snapshot.id),
-      lastUpdate: (snapshot.get('lastUpdate') as Timestamp).toDate(),
-      status: snapshot.get('status'),
-      description: snapshot.get('description'),
-      distTags: graphQLDistTags,
-      // `version` is left to a sub-collection query
-    } as ReadablePackageInfo;
+export const packageInfoConverter: FirestoreDataConverter<PackageInfo> = {
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): PackageInfo {
+    const name = idToPackageName(snapshot.id);
+    const status = snapshot.get('status');
+    const lastUpdate = (snapshot.get('lastUpdate') as Timestamp).toDate();
+
+    if (status === ReadablePackageStatus.READY || status === ReadablePackageStatus.UPDATING) {
+      const distTagsMap = snapshot.get('distTags');
+      const distTags = distTagsMap && Object.entries(distTagsMap).map(
+        ([tag, version]) => ({tag, version} as DistTag)
+      );
+      return {
+        name,
+        status,
+        lastUpdate,
+        description: snapshot.get('description'),
+        distTags,
+        // `version` is left to a sub-collection query
+      } as ReadablePackageInfo;  
+    } else {
+      return {
+        name,
+        status,
+        lastUpdate,
+      } as UnreadablePackageInfo;
+    }
   },
   toFirestore(packageInfo: WithFieldValue<PackageInfo>) {
     if (isReadablePackage(packageInfo as PackageInfo)) {
@@ -47,10 +58,7 @@ export const packageInfoConverter: FirestoreDataConverter<
         // FieldValue.serverTimestamp() here.
         lastUpdate: data.lastUpdate,
         description: data.description,
-        distTags: new Map(
-          // We don't support FieldValues in distTags, so cast away:
-          (data.distTags as DistTag[]).map((t) => [t.tag, t.version])
-        ),
+        distTags: distTagListToMap(data.distTags as Array<DistTag>),
       };
     } else {
       return {

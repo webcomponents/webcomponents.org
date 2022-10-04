@@ -4,15 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  FieldValue,
-  Query,
-  CollectionReference,
-} from '@google-cloud/firestore';
+import {FieldValue, Query, CollectionReference} from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import {referenceString} from '@webcomponents/custom-elements-manifest-tools/lib/reference-string.js';
+import clean from 'semver/functions/clean.js';
+import semverValidRange from 'semver/ranges/valid.js';
 
 import {getDistTagsForVersion} from '../npm.js';
 
@@ -23,6 +21,7 @@ import {
   PackageVersion,
   VersionStatus,
   ValidationProblem,
+  ReadablePackageVersion,
   ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
@@ -84,10 +83,11 @@ export class FirestoreRepository implements Repository {
       ) {
         throw new Error(`Unexpected package status: ${packageData.status}`);
       }
-      await t.set(packageRef, {
-        ...packageInfo,
+      await t.update(packageRef, {
         status: PackageStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
+        description: packageInfo.description ?? '',
+        distTags: packageInfo.distTags,
       });
     });
   }
@@ -192,10 +192,11 @@ export class FirestoreRepository implements Repository {
     version: string,
     packageMetadata: Package,
     customElementsManifestSource: string | undefined
-  ): Promise<void> {
+  ): Promise<ReadablePackageVersion> {
     const packageVersionMetadata = packageMetadata.versions[version]!;
+    const versionRef = this.getPackageVersionRef(packageName, version);
+
     await db.runTransaction(async (t) => {
-      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -219,23 +220,27 @@ export class FirestoreRepository implements Repository {
       const versionDistTags = getDistTagsForVersion(distTags, version);
 
       // Store package data and mark version as ready
-      await t.set(versionRef, {
+      t.set(versionRef, {
+        name: packageName,
+        version,
         status: VersionStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
-        // TODO (justinfagnani): augment PackageVersion type with denormalized
-        // fields:
-        // package: packageName,
-        version,
         description: packageVersionMetadata.description ?? '',
         type: packageType,
         distTags: versionDistTags,
         author,
-        // TODO (justinfagnani): Is this right? Add tests.
         time: new Date(packageTime),
         homepage: packageVersionMetadata.homepage ?? null,
         customElementsManifest: customElementsManifestSource ?? null,
       });
     });
+    const packageVersion = await db.runTransaction(async (t) => {
+      // There doesn't seem to be a way to get a WriteResult and therefore
+      // a writeTime inside a transaction, so we read from the database to
+      // get the server timestamp.
+      return (await t.get(versionRef)).data() as ReadablePackageVersion;
+    });
+    return packageVersion;
   }
 
   async endPackageVersionImportWithError(
@@ -364,13 +369,34 @@ export class FirestoreRepository implements Repository {
    */
   async getPackageVersion(
     packageName: string,
-    version: string
-  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined> {
-    const versionDoc = await this.getPackageVersionRef(
-      packageName,
-      version
-    ).get();
-    return versionDoc.data();
+    versionOrTag: string
+  ): Promise<PackageVersion | undefined> {
+    const versionNumber = clean(versionOrTag);
+
+    if (versionNumber !== null) {
+      // If version is valid semver we can build a document reference.
+      const versionRef = this.getPackageVersionRef(packageName, versionNumber);
+      const versionDoc = await versionRef.get();
+      return versionDoc.data();
+    } else {
+      // If version is not a valid semver it may be a dist-tag
+
+      // First, filter out semver ranges, since npm doesn't allow semver
+      // ranges to be dist tags
+      if (semverValidRange(versionOrTag)) {
+        return undefined;
+      }
+
+      // Now query for a version that's assigned this dist-tag
+      const result = await this.getPackageVersionCollectionRef(packageName)
+        .where('distTags', 'array-contains', versionOrTag)
+        .limit(1)
+        .get();
+      if (result.size !== 0) {
+        return result.docs[0]!.data();
+      }
+      return undefined;
+    }
   }
 
   async getCustomElements(
@@ -394,16 +420,19 @@ export class FirestoreRepository implements Repository {
 
   getPackageRef(packageName: string) {
     return db
-      .collection('packages' + this.namespace ? `-${this.namespace}` : '')
+      .collection('packages' + (this.namespace ? `-${this.namespace}` : ''))
       .doc(packageNameToId(packageName))
       .withConverter(packageInfoConverter);
   }
 
-  getPackageVersionRef(packageName: string, version: string) {
+  getPackageVersionCollectionRef(packageName: string) {
     return this.getPackageRef(packageName)
       .collection('versions')
-      .doc(version)
       .withConverter(packageVersionConverter);
+  }
+
+  getPackageVersionRef(packageName: string, version: string) {
+    return this.getPackageVersionCollectionRef(packageName).doc(version);
   }
 }
 

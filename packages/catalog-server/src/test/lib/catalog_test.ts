@@ -12,7 +12,6 @@ import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import * as path from 'path';
 import {
   isReadablePackageVersion,
-  ReadablePackageVersion,
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 
@@ -39,8 +38,9 @@ test('Imports a package with no problems', async () => {
   // TODO (justinfagnani): add assertion when we have the name
   // assert.equal((result as unknown as ReadablePackageVersion).name, 'test-1');
 
-  const {problems} = result as ReadablePackageVersion;
-  assert.equal(problems?.length, 0);
+  // TODO (justinfagnani): add assertion when we have catalog.getPackageVersionProblems
+  // const problems = await catalog.getPackageVersionProblems(packageName, version);
+  // assert.equal(problems?.length, 0);
 });
 
 test('Gets package version data from imported package', async () => {
@@ -74,8 +74,17 @@ test('Gets package version data from imported package', async () => {
   // Assume that the manifest is byte-for-byte the same, which it is for now.
   // If this changes, use a deep comparison library
   assert.equal(getResult.customElementsManifest, cemSource);
-  assert.equal(getResult.customElements?.length, 1);
-  assert.equal(getResult.problems?.length, 0);
+
+  const customElements = await catalog.getCustomElements(
+    packageName,
+    version,
+    undefined
+  );
+  assert.equal(customElements?.length, 1);
+
+  // TODO (justinfagnani): add assertion when we have catalog.getPackageVersionProblems
+  // const problems = await catalog.getPackageVersionProblems(packageName, version);
+  // assert.equal(problems?.length, 0);
 });
 
 // TODO: add a test the same as the first to make sure we handle a

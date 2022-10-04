@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {getDistTagsForVersion} from './npm.js';
+import {distTagMapToList, getDistTagsForVersion} from './npm.js';
 import {validatePackage} from '@webcomponents/custom-elements-manifest-tools/lib/validate.js';
 import {getCustomElements} from '@webcomponents/custom-elements-manifest-tools';
 import {
@@ -14,8 +14,11 @@ import {
 import {Repository} from './repository.js';
 import {
   PackageVersion,
-  ReadablePackageVersion,
   isReadablePackage,
+  ValidationProblem,
+  PackageInfo,
+  ReadablePackageInfo,
+  CustomElement,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Temporal,
@@ -66,7 +69,13 @@ export class Catalog {
   async importPackage(
     packageName: string,
     packageRefreshInterval = defaultPackageRefreshInterval
-  ) {
+  ): Promise<{
+    packageInfo?: PackageInfo;
+    packageVersion?: PackageVersion;
+    problems?: ValidationProblem[];
+  }> {
+    console.log('Catalog.importPackage');
+
     const currentPackageInfo = await this.#repository.getPackageInfo(
       packageName
     );
@@ -84,25 +93,27 @@ export class Catalog {
         Temporal.Duration.compare(timeSinceUpdate, packageRefreshInterval) ===
         -1
       ) {
-        return;
+        return {};
       }
       await this.#repository.startPackageUpdate(packageName);
     }
 
     // Fetch package metadata from npm:
+    console.log('Fetching package metadata...');
     let newPackage: Package | undefined;
     try {
       newPackage = await this.#files.getPackageMetadata(packageName);
     } catch (e) {
       await this.#repository.endPackageImportWithError(packageName);
-      return;
+      return {};
     }
+    console.log(' done');
 
     if (newPackage === undefined) {
       await this.#repository.endPackageImportWithNotFound(packageName);
       // TODO (justinfagnani): a crazy edge case would be a package that was
       // previously found, but is not found now. Update package versions?
-      return;
+      return {};
     }
 
     const newDistTags = newPackage['dist-tags'];
@@ -144,16 +155,43 @@ export class Catalog {
       }
 
       // Write the tags
+      console.log('Writing package dist tags...');
       await this.#repository.updateDistTags(
         packageName,
         [...versionsToUpdate],
         newDistTags
       );
+      console.log('  done');
     }
 
+    let importResult:
+      | {packageVersion?: PackageVersion; problems?: ValidationProblem[]}
+      | undefined = undefined;
+
     if (versionToImport !== undefined) {
-      await this.importPackageVersion(packageName, versionToImport);
+      importResult = await this.importPackageVersion(
+        packageName,
+        versionToImport
+      );
     }
+
+    console.log('Marking package ready...');
+    const newPackageInfo: ReadablePackageInfo = {
+      ...(currentPackageInfo as ReadablePackageInfo),
+      description: newPackage.description,
+      distTags: distTagMapToList(newDistTags),
+    };
+    await this.#repository.endPackageImportWithReady(
+      packageName,
+      newPackageInfo
+    );
+    console.log('  done');
+
+    return {
+      packageVersion: importResult?.packageVersion,
+      problems: importResult?.problems,
+      packageInfo: await this.getPackageInfo(packageName),
+    };
   }
 
   async importPackageVersion(packageName: string, version: string) {
@@ -179,6 +217,7 @@ export class Catalog {
     }
 
     if (manifestData === undefined) {
+      console.error(`manifestData not found`);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -195,6 +234,8 @@ export class Catalog {
     );
 
     if (customElements.length === 0) {
+      console.error(`No customElements found`);
+      console.log(manifestSource);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -207,6 +248,7 @@ export class Catalog {
     const packageMetadata = await packageMetadataPromise;
 
     if (packageMetadata === undefined) {
+      console.error(`packageMetadata not found`);
       console.log('Marking package version as errored...');
       await this.#repository.endPackageVersionImportWithError(
         packageName,
@@ -233,42 +275,37 @@ export class Catalog {
     console.log('  done');
 
     console.log('Marking package version as ready...');
-    await this.#repository.endPackageVersionImportWithReady(
-      packageName,
-      version,
-      packageMetadata,
-      manifestSource
-    );
-    console.log('  done');
-    return {problems};
+    const packageVersion =
+      await this.#repository.endPackageVersionImportWithReady(
+        packageName,
+        version,
+        packageMetadata,
+        manifestSource
+      );
+    console.log('  done marking package version as ready');
+    return {packageVersion, problems};
+  }
+
+  async getPackageInfo(packageName: string): Promise<PackageInfo | undefined> {
+    return this.#repository.getPackageInfo(packageName);
   }
 
   /**
-   * Returns the package version metadata, custom elements, and problems.
+   * Returns the package version metadata, without custom elements or problems.
    */
   async getPackageVersion(
     packageName: string,
     version: string
   ): Promise<PackageVersion | undefined> {
-    const [packageVersionData, customElements, problems] = await Promise.all([
-      this.#repository.getPackageVersion(packageName, version),
-      this.#repository.getCustomElements(packageName, version),
-      this.#repository.getProblems(packageName, version),
-    ]);
-    if (packageVersionData === undefined) {
-      return undefined;
-    }
+    console.log('Catalog.getPackageVersion', packageName, version);
+    return this.#repository.getPackageVersion(packageName, version);
+  }
 
-    // The packageVersionData we received from the repository doesn't have any
-    // custom elements or problems, so we assign them here:
-    (packageVersionData as Mutable<ReadablePackageVersion>).customElements =
-      customElements;
-    (packageVersionData as Mutable<PackageVersion>).problems = problems;
-
-    return packageVersionData as PackageVersion;
+  async getCustomElements(
+    packageName: string,
+    version: string,
+    tagName: string | undefined
+  ): Promise<Array<CustomElement>> {
+    return this.#repository.getCustomElements(packageName, version, tagName);
   }
 }
-
-type Mutable<T> = {
-  -readonly [K in keyof T]: T[K];
-};

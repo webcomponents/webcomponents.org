@@ -8,6 +8,8 @@ import type {
   CustomElement,
   PackageInfo,
   PackageVersion,
+  ReadablePackageInfo,
+  ReadablePackageVersion,
   ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema';
 import type {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
@@ -47,6 +49,11 @@ export interface Repository {
 
   endPackageImportWithError(packageName: string): Promise<void>;
 
+  endPackageImportWithReady(
+    packageName: string,
+    packageInfo: ReadablePackageInfo
+  ): Promise<void>;
+
   updateDistTags(
     packageName: string,
     versionsToUpdate: Array<string>,
@@ -72,7 +79,7 @@ export interface Repository {
     version: string,
     packageMetadata: Package,
     customElementsManifestSource: string | undefined
-  ): Promise<void>;
+  ): Promise<ReadablePackageVersion>;
 
   /**
    * Updates a PackageVersion to status: ERROR. Verifies that the PackageVersion
@@ -128,5 +135,5 @@ export interface Repository {
   getPackageVersion(
     packageName: string,
     version: string
-  ): Promise<Omit<PackageVersion, 'customElements' | 'problems'> | undefined>;
+  ): Promise<PackageVersion | undefined>;
 }

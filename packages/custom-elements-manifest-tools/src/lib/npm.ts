@@ -25,7 +25,7 @@ export interface PackageFiles {
  */
 export interface Package {
   name: string;
-  description: string;
+  description?: string;
   'dist-tags': {[tag: string]: string};
   versions: {[tag: string]: Version};
   time: {

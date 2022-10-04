@@ -4,3 +4,7 @@
 !/test/test-packages
 /tsconfig.tsbuildinfo
 *-debug.log
+
+index.js
+index.js.map
+index.d.ts
