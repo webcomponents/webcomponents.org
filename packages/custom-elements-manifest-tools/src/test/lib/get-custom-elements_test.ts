@@ -62,14 +62,22 @@ test('Gets an element from a valid manifest', () => {
 });
 
 test('Gets an element from a valid manifest, with a reference that includes the module', () => {
-  // This is the same test as before, bet the custom-element-definition reference
-  // includes the module path. This looks like a non-local reference, but it's local.
+  // This is the same test as before, but the custom-element-definition
+  // reference includes the module path. This looks like a non-local reference,
+  // but it's local.
+  // The intention with a reference is that by omitting the module you're
+  // referencing a local declaration - like a symbol inside the module itself -
+  // and if you include the module you're referencing an export, like an import
+  // from outside of the module would.
+  // But this distinction isn't as clear as it should be in the custom elements
+  // manifest spec. So we loosen it here to say that a reference from a module
+  // can always access declarations in that module, even if it include a module
+  // path.
   const newManifest = {
     ...manifest,
   };
   newManifest.modules[0]!.exports![1]!.declaration.module =
     newManifest.modules[0]!.path;
-  console.log(newManifest.modules[0]!.exports![1]!.declaration.module);
 
   const customElements = getCustomElements(manifest, 'test', '0.0.0');
   assert.equal(customElements.length, 1);
