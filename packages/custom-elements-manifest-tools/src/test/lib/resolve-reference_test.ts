@@ -23,7 +23,7 @@ const pkg: Package = {
         {
           kind: 'js',
           name: 'b',
-          declaration: {name: 'b', module: 'module-2.js'},
+          declaration: {name: 'b', module: '/module-2.js'},
         },
       ],
       declarations: [

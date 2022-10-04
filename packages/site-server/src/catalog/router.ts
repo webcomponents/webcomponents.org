@@ -5,6 +5,17 @@
  */
 
 import Router from '@koa/router';
+import {ApolloClient, InMemoryCache, gql} from '@apollo/client/core/index.js';
+import {renderElement} from './element-template.js';
+
+const CATALOG_PORT = process.env['CATALOG_PORT']
+  ? parseInt(process.env['CATALOG_PORT'])
+  : 8100;
+
+const client = new ApolloClient({
+  uri: `http://localhost:${CATALOG_PORT}/graphql`,
+  cache: new InMemoryCache(),
+});
 
 export const catalogRouter = new Router();
 
@@ -18,28 +29,64 @@ catalogRouter.get('/element/:path+', async (context) => {
   const packageName = isScoped
     ? elementPathSegments[0] + '/' + elementPathSegments[1]
     : elementPathSegments[0]!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  const elementName = elementPathSegments[isScoped ? 2 : 1];
-  
-  context.body = `
-    <!doctype html>
-    <html>
-      <body>
-        <h1>${escapeHTML(`<${elementName}>`)}</h1>
-        <h2>In ${escapeHTML(packageName)}</h2>
-      </body>
-    </html>
-  `;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const elementName = elementPathSegments[isScoped ? 2 : 1]!;
+
+  // TODO (justinfagnani): To make this type-safe, we need to write
+  // a query .graphql document and generate a TypedDocumentNode from it.
+  const result = await client.query({
+    query: gql`
+      {
+        package(packageName: "${packageName}") {
+          ... on ReadablePackageInfo {
+            name
+            description
+            version {
+              ... on ReadablePackageVersion {
+                version
+                description
+                customElements(tagName: "${elementName}") {
+                  tagName
+                  declaration
+                  customElementExport
+                  declaration
+                }
+                customElementsManifest
+              }
+            }
+          }
+        }
+      }
+    `,
+  });
+
+  if (result.errors !== undefined && result.errors.length > 0) {
+    throw new Error(result.errors.map((e) => e.message).join('\n'));
+  }
+  const {data} = result;
+  const packageVersion = data.package?.version;
+  if (packageVersion === undefined) {
+    throw new Error(`No such package version: ${packageName}`);
+  }
+  const customElementsManifest =
+    packageVersion.customElementsManifest !== undefined &&
+    JSON.parse(packageVersion.customElementsManifest);
+
+  const customElement = packageVersion.customElements?.[0];
+
+  if (customElement === undefined || customElement.tagName !== elementName) {
+    throw new Error('Internal error');
+  }
+
+  const content = renderElement({
+    packageName: packageName,
+    elementName: elementName,
+    declarationReference: customElement.declaration,
+    customElementExport: customElement.export,
+    manifest: customElementsManifest,
+  });
+
+  context.body = content;
   context.type = 'html';
   context.status = 200;
 });
-
-const replacements: Record<string, string> = {
-  '<': '&lt;',
-  '>': '&gt;',
-  '&': '&amp;',
-  "'": '&#39;',
-  '"': '&quot;',
-};
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const replacer = (s: string) => replacements[s]!;
-const escapeHTML = (html: string) => html.replaceAll(/[<>&'"]/g, replacer);

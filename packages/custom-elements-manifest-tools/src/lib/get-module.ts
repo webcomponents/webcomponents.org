@@ -7,14 +7,15 @@
 import type {Package} from 'custom-elements-manifest/schema.js';
 
 export const getModule = (pkg: Package, path: string) => {
-  if (path.startsWith('/')) {
-    path = path.substring(1);
-  }
+  path = normalizeModulePath(path);
   for (const mod of pkg.modules) {
-    // TODO: do we need to normalize paths?
-    if (mod.path === path) {
+    const modulePath = normalizeModulePath(mod.path);
+    if (modulePath === path) {
       return mod;
     }
   }
   return undefined;
 };
+
+export const normalizeModulePath = (path: string) =>
+  path.startsWith('/') ? path.substring(1) : path;
