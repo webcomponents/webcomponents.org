@@ -75,7 +75,7 @@
     "build:dev": {
       "dependencies": [
         "./packages/client:build:dev",
-        "./packages/site-server:build"
+        "./packages/content:build:dev"
       ]
     },
     "build-and-check:dev": {
