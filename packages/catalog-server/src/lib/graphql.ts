@@ -98,10 +98,11 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
         context,
         _info
       ) => {
+        // TODO (justinfagnani): we should get the package name from the
+        // PackageVersion object:
         // const packageName = packageVersion.name;
         const packageName = context.packageName;
         const version = packageVersion.version;
-        console.log(`Query.ReadablePackageVersion.customElements ${packageName} ${tagName}`);
         return catalog.getCustomElements(
           packageName,
           version,
@@ -111,7 +112,9 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
     },
     Mutation: {
       async importPackage(_parent, {packageName}: {packageName: string}) {
-        console.log('mutation deletePackage', packageName);
+        console.log('mutation importPackage', packageName);
+        // This mutation would be for an explicit call to import a package,
+        // rather than importing on-demand like in Query.package
         const {packageInfo} = await catalog.importPackage(packageName);
         return packageInfo ?? null;
       },
