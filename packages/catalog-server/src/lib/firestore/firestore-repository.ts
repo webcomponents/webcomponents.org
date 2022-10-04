@@ -220,7 +220,6 @@ export class FirestoreRepository implements Repository {
       const versionDistTags = getDistTagsForVersion(distTags, version);
 
       // Store package data and mark version as ready
-      // TODO: make converter handle denormalized data
       t.set(versionRef, {
         name: packageName,
         version,

@@ -59,10 +59,6 @@ export const packageInfoConverter: FirestoreDataConverter<PackageInfo> = {
         lastUpdate: data.lastUpdate,
         description: data.description,
         distTags: distTagListToMap(data.distTags as Array<DistTag>),
-        // new Map(
-        //   // We don't support FieldValues in distTags, so cast away:
-        //   (data.distTags as DistTag[]).map((t) => [t.tag, t.version])
-        // ),
       };
     } else {
       return {
