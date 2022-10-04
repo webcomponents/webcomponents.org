@@ -22,7 +22,7 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
   const schemaSource = await readFile(schemaPath, 'utf8');
 
   // Resolvers for our schema. See https://graphql.org/learn/execution/ for
-  // an explaination of the role of resolvers in performing GraphQL queries.
+  // an explanation of the role of resolvers in performing GraphQL queries.
   const resolvers: Resolvers = {
     Query: {
       async package(_parent, {packageName}: {packageName: string}): Promise<PackageInfo | null> {
