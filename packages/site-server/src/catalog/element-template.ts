@@ -27,7 +27,6 @@ export const renderElement = ({
   manifest: Package;
 }): string => {
   const declarationRef = parseReferenceString(declarationReference);
-  console.log({declarationRef});
   if (declarationRef.module === undefined) {
     return `
       <h1>Error</h1>
@@ -35,9 +34,6 @@ export const renderElement = ({
     `;
   }
   const module = getModule(manifest, declarationRef.module);
-  console.log('declaration', declarationReference);
-  console.log('module', module);
-  console.log('customElementExport', customElementExport);
 
   if (module === undefined) {
     return `
@@ -60,7 +56,7 @@ export const renderElement = ({
   }
 
   return `
-     <h1>${packageName}/${elementName}<h1>
+     <h1>${packageName}/${elementName}</h1>
      ${declaration.description}
      <h2>Usage</h2>
      <pre><code>
