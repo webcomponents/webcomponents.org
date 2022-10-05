@@ -7,8 +7,10 @@
 import {AddressInfo} from 'net';
 import {makeServer} from './lib/server.js';
 
+const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 8100;
+
 const app = await makeServer();
-const server = app.listen(8080, () => {
+const server = app.listen(PORT, () => {
   const port = (server.address() as AddressInfo).port;
   console.log(`Server started: http://localhost:${port}`);
 });

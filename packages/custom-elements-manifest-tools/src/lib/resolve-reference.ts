@@ -10,7 +10,7 @@ import type {
   Package,
   Reference,
 } from 'custom-elements-manifest/schema.js';
-import {getModule} from '../index.js';
+import {getModule, normalizeModulePath} from '../index.js';
 
 /**
  * Resolves a manifest reference from a local package and module into a
@@ -32,11 +32,15 @@ export const resolveReference = (
   // Check for local reference
   if (ref.package !== undefined && ref.package !== packageName) {
     // We don't know how to resolve cross-package references yet
-    console.warn(`Can't resolve cross-package reference ${ref} (from package ${packageName})`);
+    console.warn(
+      `Can't resolve cross-package reference ${ref} (from package ${packageName})`
+    );
     return undefined;
   }
-  // TODO (justinfagnani): Use a normalizing path comparison instead of ===
-  if (ref.module === undefined || ref.module === localModule.path) {
+  if (
+    ref.module === undefined ||
+    normalizeModulePath(ref.module) === normalizeModulePath(localModule.path)
+  ) {
     // Local reference. Local references refer to declarations in the local
     // module scope, which may or may not be exported.
     return localModule.declarations?.find((d) => d.name === ref.name);

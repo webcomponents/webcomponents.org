@@ -14,6 +14,9 @@
   "wireit": {
     "build": {
       "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
+      "dependencies": [
+        "../custom-elements-manifest-tools:build"
+      ],
       "files": [
         "src/**/*.ts"
       ],
@@ -39,6 +42,7 @@
     }
   },
   "dependencies": {
+    "@apollo/client": "^3.7.0",
     "@types/koa": "^2.13.5",
     "@types/koa-conditional-get": "^2.0.0",
     "@types/koa-etag": "^3.0.0",
