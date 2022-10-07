@@ -10,7 +10,7 @@ import {renderElement} from './element-template.js';
 
 const CATALOG_PORT = process.env['CATALOG_PORT']
   ? parseInt(process.env['CATALOG_PORT'])
-  : 8100;
+  : 6451;
 
 const client = new ApolloClient({
   uri: `http://localhost:${CATALOG_PORT}/graphql`,

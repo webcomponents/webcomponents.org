@@ -12,7 +12,7 @@ import Router from '@koa/router';
 import {fileURLToPath} from 'url';
 import {catalogRouter} from './catalog/router.js';
 
-const PORT = process.env['PORT'] || 8080;
+const PORT = process.env['PORT'] || 5451;
 const STATIC_ROOT = fileURLToPath(
   new URL('../../content/_site', import.meta.url)
 );

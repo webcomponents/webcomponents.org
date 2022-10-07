@@ -10,7 +10,7 @@ import Router from '@koa/router';
 import {catalogRouter} from './catalog/router.js';
 import {startDevServer} from '@web/dev-server';
 
-const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 8080;
+const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 5450;
 const STATIC_ROOT = fileURLToPath(
   new URL('../../content/_dev', import.meta.url)
 );
@@ -29,6 +29,6 @@ startDevServer({
       router.routes() as Middleware<DefaultState, DefaultContext, unknown>,
     ],
     watch: true,
-    nodeResolve: true
+    nodeResolve: true,
   },
 });
