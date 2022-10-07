@@ -17,7 +17,6 @@ export const renderElement = ({
   packageName,
   elementName,
   declarationReference,
-  customElementExport,
   manifest,
 }: {
   packageName: string;

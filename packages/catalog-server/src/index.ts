@@ -7,7 +7,7 @@
 import {AddressInfo} from 'net';
 import {makeServer} from './lib/server.js';
 
-const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 8100;
+const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 6451;
 
 const app = await makeServer();
 const server = app.listen(PORT, () => {

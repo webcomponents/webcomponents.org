@@ -65,7 +65,7 @@
     "uvu": "^0.5.6"
   },
   "dependencies": {
-    "@graphql-tools/schema": "^8.3.6",
+    "@graphql-tools/schema": "^9.0.4",
     "custom-elements-manifest": "^2.0.0",
     "graphql": "^16.3.0"
   }

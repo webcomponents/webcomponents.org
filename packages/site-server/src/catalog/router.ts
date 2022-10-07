@@ -8,12 +8,11 @@ import Router from '@koa/router';
 import {ApolloClient, InMemoryCache, gql} from '@apollo/client/core/index.js';
 import {renderElement} from './element-template.js';
 
-const CATALOG_PORT = process.env['CATALOG_PORT']
-  ? parseInt(process.env['CATALOG_PORT'])
-  : 8100;
+const CATALOG_GRAPHQL_URL =
+  process.env['CATALOG_GRAPHQL_URL'] || `http://localhost:6451/graphql`;
 
 const client = new ApolloClient({
-  uri: `http://localhost:${CATALOG_PORT}/graphql`,
+  uri: CATALOG_GRAPHQL_URL,
   cache: new InMemoryCache(),
 });
 
