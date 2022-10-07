@@ -18,7 +18,7 @@ import bodyParser from 'koa-bodyparser';
 import {makeExecutableCatalogSchema} from './graphql.js';
 import {Catalog} from './catalog.js';
 import {FirestoreRepository} from './firestore/firestore-repository.js';
-import {NpmAndUnpkgFiles} from './npm.js';
+import {NpmAndUnpkgFiles} from '@webcomponents/custom-elements-manifest-tools/lib/npm-and-unpkg-files.js';
 
 export const makeServer = async () => {
   const files = new NpmAndUnpkgFiles();

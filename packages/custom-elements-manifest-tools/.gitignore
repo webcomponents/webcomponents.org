@@ -1,4 +1,5 @@
 /lib/
+/scripts/
 /node_modules/
 /test/*
 !/test/test-data/
