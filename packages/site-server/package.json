@@ -35,7 +35,7 @@
       "output": []
     },
     "serve:dev": {
-      "command": "node --enable-source-maps ./dev-server.js",
+      "command": "node --enable-source-maps ./lib/dev-server.js",
       "dependencies": [
         "build"
       ]
