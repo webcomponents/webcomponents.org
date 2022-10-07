@@ -1,0 +1,36 @@
+# This file orchestrates a Docker environment for simulating as closely as
+# possible to the production Cloud Run environment locally.
+
+version: '3'
+
+services:
+  firestore-emulator:
+    build:
+      context: ../
+      dockerfile: docker/firestore-emulator/Dockerfile
+    ports:
+      - 8088:8088
+
+  catalog:
+    depends_on:
+      - firestore-emulator
+    build:
+      context: ../
+      dockerfile: docker/catalog/Dockerfile
+    environment:
+      - PORT=6452
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:8088
+    ports:
+      - 6452:6452
+
+  site:
+    depends_on:
+      - catalog
+    build:
+      context: ../
+      dockerfile: docker/site/Dockerfile
+    environment:
+      - PORT=5452
+      - CATALOG_GRAPHQL_URL=http://catalog:6452/graphql
+    ports:
+      - 5452:5452
