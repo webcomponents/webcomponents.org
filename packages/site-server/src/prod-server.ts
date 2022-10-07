@@ -8,7 +8,9 @@ import Koa from 'koa';
 import koaStatic from 'koa-static';
 import koaConditionalGet from 'koa-conditional-get';
 import koaEtag from 'koa-etag';
+import Router from '@koa/router';
 import {fileURLToPath} from 'url';
+import {catalogRouter} from './catalog/router.js';
 
 const PORT = process.env['PORT'] || 8080;
 const STATIC_ROOT = fileURLToPath(
@@ -18,6 +20,11 @@ const STATIC_ROOT = fileURLToPath(
 const app = new Koa();
 app.use(koaConditionalGet()); // Needed for etag
 app.use(koaEtag());
+
+const router = new Router();
+router.use('/catalog', catalogRouter.routes());
+app.use(router.routes());
+
 app.use(
   koaStatic(STATIC_ROOT, {
     // Serve pre-compressed .br and .gz files if available.
