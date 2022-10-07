@@ -55,7 +55,7 @@
       "output": [],
       "dependencies": [
         "./packages/site-server:build",
-        "./packages/content:build:prod"
+        "./packages/site-content:build:prod"
       ]
     },
     "serve:dev": {
@@ -68,15 +68,15 @@
     },
     "build:prod": {
       "dependencies": [
-        "./packages/client:build:prod",
-        "./packages/content:build:prod",
+        "./packages/site-client:build:prod",
+        "./packages/site-content:build:prod",
         "./packages/site-server:build"
       ]
     },
     "build:dev": {
       "dependencies": [
-        "./packages/client:build:dev",
-        "./packages/content:build:dev",
+        "./packages/site-client:build:dev",
+        "./packages/site-content:build:dev",
         "./packages/site-server:build"
       ]
     },
@@ -94,25 +94,25 @@
     },
     "check": {
       "dependencies": [
-        "./packages/client:check",
+        "./packages/site-client:check",
         "./packages/site-server:check",
         "check:lint",
         "check:format"
       ]
     },
     "check:lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache \"packages/{client,site-server}/src/**/*.ts\"",
+      "command": "eslint --color --cache --cache-location .eslintcache \"packages/{site-client,site-server}/src/**/*.ts\"",
       "files": [
         ".eslintrc.json",
-        "packages/{client,server}/src/**/*.ts"
+        "packages/{site-client,server}/src/**/*.ts"
       ],
       "output": []
     },
     "check:format": {
-      "command": "prettier \"./packages/{client,site-server}/src/**/*.ts\" --check --cache --cache-strategy=metadata",
+      "command": "prettier \"./packages/{site-client,site-server}/src/**/*.ts\" --check --cache --cache-strategy=metadata",
       "files": [
         ".prettierrc.json",
-        "packages/{client,site-server}/src/**/*.ts"
+        "packages/{site-client,site-server}/src/**/*.ts"
       ],
       "output": []
     }
