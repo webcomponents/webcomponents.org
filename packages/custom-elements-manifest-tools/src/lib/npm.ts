@@ -38,16 +38,16 @@ export interface Package {
 export interface Version {
   name: string;
   version: string;
-  description: string;
+  description?: string;
   dist: Dist;
   type?: 'module' | 'commonjs';
-  main: string;
+  main?: string;
   module?: string;
 
   author?: {name: string};
   homepage?: string;
 
-  repository: {
+  repository?: {
     type: 'git' | 'svn';
     url: string;
   };

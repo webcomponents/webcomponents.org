@@ -8,27 +8,8 @@ type Query {
   """
   Queries custom elements in the entire catalog, from the latest version of each
   package.
-
-  Eventually this will have more query parameters, and use some sort of ranking
-  algorithm, otherwise the order will just be defined by the database
-  implementation.
-
-  NOT IMPLEMENTED
-  DO_NOT_LAUNCH
   """
-  elements(distTag: String = "latest", limit: Int): [CustomElement!]!
-
-  """
-  Retrieves the custom element data for a single element.
-
-  NOT IMPLEMENTED
-  DO_NOT_LAUNCH
-  """
-  element(
-    packageName: String!
-    elementName: String!
-    tag: String = "latest"
-  ): CustomElement
+  elements(query: String, limit: Int): [CustomElement!]!
 }
 
 type Mutation {

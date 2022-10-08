@@ -13,7 +13,10 @@ import type {
   ValidationProblem,
 } from '@webcomponents/catalog-api/lib/schema';
 import type {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
-import type {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
+import type {
+  Package,
+  Version,
+} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 
 /**
  * Interface for a database that stores package and custom element data.
@@ -91,8 +94,7 @@ export interface Repository {
   ): Promise<void>;
 
   writeCustomElements(
-    packageName: string,
-    version: string,
+    packageVersionMetadata: Version,
     customElements: CustomElementInfo[],
     distTags: string[],
     author: string
@@ -105,7 +107,15 @@ export interface Repository {
     packageName: string,
     version: string,
     tagName?: string
-  ): Promise<CustomElement[]>;
+  ): Promise<Array<CustomElement>>;
+
+  queryElements({
+    query,
+    limit,
+  }: {
+    query?: string;
+    limit?: number;
+  }): Promise<Array<CustomElement>>;
 
   writeProblems(
     packageName: string,

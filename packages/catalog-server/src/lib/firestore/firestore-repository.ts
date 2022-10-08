@@ -4,13 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {FieldValue, Query, CollectionReference} from '@google-cloud/firestore';
+import {
+  FieldValue,
+  Query,
+  CollectionReference,
+  CollectionGroup,
+} from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
 import {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import {referenceString} from '@webcomponents/custom-elements-manifest-tools/lib/reference-string.js';
 import clean from 'semver/functions/clean.js';
 import semverValidRange from 'semver/ranges/valid.js';
+import natural from 'natural';
 
 import {distTagListToMap, getDistTagsForVersion} from '../npm.js';
 
@@ -24,7 +30,10 @@ import {
   ReadablePackageVersion,
   ReadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
-import {Package} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
+import {
+  Package,
+  Version,
+} from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
 import {Repository} from '../repository.js';
 import {
   packageInfoConverter,
@@ -281,26 +290,52 @@ export class FirestoreRepository implements Repository {
   }
 
   async writeCustomElements(
-    packageName: string,
-    version: string,
+    packageVersionMetadata: Version,
     customElements: CustomElementInfo[],
     distTags: string[],
     author: string
   ): Promise<void> {
     // Store custom elements data in subcollection
+    const {name: packageName, version, description} = packageVersionMetadata;
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef.collection('customElements');
     const isLatest = distTags.includes('latest');
     const batch = db.batch();
 
+    // Stem the package description
+    const packageDescriptionStems = natural.PorterStemmer.tokenizeAndStem(
+      description ?? ''
+    );
+
     for (const c of customElements) {
+      const tagName = c.export.name;
+      // Grab longer tag name parts for searching. We want "button" from
+      // md-button, etc.
+      const tagNameParts = tagName.split('-').filter((s) => s.length > 3);
+      const descriptionStems = natural.PorterStemmer.tokenizeAndStem(
+        c.declaration.description ?? ''
+      );
+      const summaryStems = natural.PorterStemmer.tokenizeAndStem(
+        c.declaration.summary ?? ''
+      );
+
+      // Combine and deduplicate terms
+      const searchTerms = [
+        ...new Set([
+          ...packageDescriptionStems,
+          ...descriptionStems,
+          ...summaryStems,
+          ...tagNameParts,
+        ]),
+      ];
+
       batch.create(customElementsRef.doc(), {
         package: packageName,
         version,
         distTags,
         isLatest,
         author,
-        tagName: c.export.name,
+        tagName,
         className: c.declaration.name,
         customElementExport: referenceString(
           packageName,
@@ -308,6 +343,7 @@ export class FirestoreRepository implements Repository {
           c.export.name
         ),
         declaration: referenceString(packageName, c.module, c.declaration.name),
+        searchTerms,
       });
     }
 
@@ -451,6 +487,32 @@ export class FirestoreRepository implements Repository {
     }
     const customElementsResults = await customElementsQuery.get();
     return customElementsResults.docs.map((d) => d.data());
+  }
+
+  async queryElements({
+    query,
+    limit,
+  }: {
+    query?: string;
+    limit?: number;
+  }): Promise<Array<CustomElement>> {
+    let dbQuery: Query<CustomElement> | CollectionGroup<CustomElement> = db
+      .collectionGroup('customElements')
+      .withConverter(customElementConverter)
+      .where('isLatest', '==', true)
+      .limit(limit ?? 25);
+
+    if (query !== undefined) {
+      // Split query
+      const queryTerms = natural.PorterStemmer.tokenizeAndStem(query);
+      if (queryTerms.length > 10) {
+        queryTerms.length = 10;
+      }
+      dbQuery = dbQuery.where('searchTerms', 'array-contains-any', queryTerms);
+    }
+
+    const result = await (await dbQuery.get()).docs.map((d) => d.data());
+    return result;
   }
 
   getPackageRef(packageName: string) {

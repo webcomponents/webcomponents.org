@@ -51,7 +51,7 @@ export class LocalFsPackageFiles implements PackageFiles {
       modified: now,
       // ...Object.fromEntries(this.publishedVersions.map((v) => [v, now])),
     };
-    let description!: string;
+    let description: string | undefined;
     let foundLatest = false;
     await Promise.all(
       this.publishedVersions.map(async (v) => {
