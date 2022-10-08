@@ -21,7 +21,7 @@
         "_site"
       ],
       "dependencies": [
-        "../client:build:prod"
+        "../site-client:build:prod"
       ]
     },
     "build:dev": {

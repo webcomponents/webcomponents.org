@@ -14,7 +14,7 @@ import {catalogRouter} from './catalog/router.js';
 
 const PORT = process.env['PORT'] || 5451;
 const STATIC_ROOT = fileURLToPath(
-  new URL('../../content/_site', import.meta.url)
+  new URL('../../site-content/_site', import.meta.url)
 );
 
 const app = new Koa();

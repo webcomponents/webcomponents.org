@@ -9,7 +9,7 @@ const pathlib = require('path');
 
 module.exports = (eleventyConfig) => {
   symlinkForce('../assets', '_dev/assets');
-  symlinkForce('../../client/lib/entrypoints', '_dev/js');
+  symlinkForce('../../site-client/lib/entrypoints', '_dev/js');
   return {
     dir: {
       input: 'site',

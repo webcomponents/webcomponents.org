@@ -12,7 +12,7 @@ import {startDevServer} from '@web/dev-server';
 
 const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 5450;
 const STATIC_ROOT = fileURLToPath(
-  new URL('../../content/_dev', import.meta.url)
+  new URL('../../site-content/_dev', import.meta.url)
 );
 
 console.log('Serving static files from', STATIC_ROOT);
