@@ -401,9 +401,26 @@ export class FirestoreRepository implements Repository {
 
   async getCustomElements(
     packageName: string,
-    version: string,
+    versionOrTag: string,
     tagName?: string
   ): Promise<CustomElement[]> {
+    const versionNumber = clean(versionOrTag);
+
+    let version: string;
+
+    if (versionNumber === null) {
+      // If version is not a valid semver, we look up a document to get the
+      // dist tag. This is temporary until we add a
+      // collectionGroup('collections') query with a distTag condition
+      const packageVersion = await this.getPackageVersion(
+        packageName,
+        versionOrTag
+      );
+      version = packageVersion!.version;
+    } else {
+      version = versionOrTag;
+    }
+
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef
       .collection('customElements')

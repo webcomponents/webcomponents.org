@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+import {readFile} from 'fs/promises';
+import {fileURLToPath} from 'url';
+
 import Koa from 'koa';
 import Router from '@koa/router';
 import {
@@ -19,6 +22,13 @@ import {makeExecutableCatalogSchema} from './graphql.js';
 import {Catalog} from './catalog.js';
 import {FirestoreRepository} from './firestore/firestore-repository.js';
 import {NpmAndUnpkgFiles} from '@webcomponents/custom-elements-manifest-tools/lib/npm-and-unpkg-files.js';
+
+import {
+  PackageVersion,
+  ValidationProblem,
+  PackageInfo,
+  CustomElement,
+} from '@webcomponents/catalog-api/lib/schema.js';
 
 export const makeServer = async () => {
   const files = new NpmAndUnpkgFiles();
@@ -83,6 +93,74 @@ export const makeServer = async () => {
     </p>
     <p>See the interactive query editor at <a href="/graphql">/graphql</a>.
   `;
+  });
+
+  router.get('/bootstrap-packages', async (context) => {
+    const bootstrapListFilePath = fileURLToPath(
+      new URL('../data/bootstrap-packages.json', import.meta.url)
+    );
+    const bootstrapListFile = await readFile(bootstrapListFilePath, 'utf-8');
+    const bootstrapList = JSON.parse(bootstrapListFile);
+    const packageNames = bootstrapList['packages'] as Array<string>;
+    const results = await Promise.all(
+      packageNames.map(
+        async (
+          packageName
+        ): Promise<
+          | {error: unknown; packageName: string}
+          | {
+              packageName: string;
+              elements: Array<CustomElement>;
+              packageInfo?: PackageInfo | undefined;
+              packageVersion?: PackageVersion | undefined;
+              problems?: ValidationProblem[] | undefined;
+            }
+        > => {
+          try {
+            const importResult = await catalog.importPackage(packageName);
+            const elements = await catalog.getCustomElements(
+              packageName,
+              'latest',
+              undefined
+            );
+            return {
+              packageName,
+              elements,
+              ...importResult,
+            };
+          } catch (error) {
+            return {
+              packageName,
+              error,
+            };
+          }
+        }
+      )
+    );
+    context.status = 200;
+    context.type = 'html';
+    context.body = `
+      <h1>Bootstrap Import Results</h1>
+      ${results
+        .map((result) => {
+          const {packageName} = result;
+          if ('error' in result) {
+            return `
+              <h3>${packageName}</h3>
+              <code><pre>${result.error}</pre></code>
+            `;
+          } else {
+            const {elements} = result;
+            return `
+              <h3>${packageName}</h3>
+              <p>Imported ${elements.length} element${
+                elements.length === 1 ? '' : 's'
+              }</p>
+          `;
+          }
+        })
+        .join('\n')}
+    `;
   });
 
   app.use(router.routes());
