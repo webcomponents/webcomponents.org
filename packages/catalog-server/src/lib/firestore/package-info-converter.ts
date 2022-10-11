@@ -20,7 +20,7 @@ import {
   ReadablePackageStatus,
   UnreadablePackageInfo,
 } from '@webcomponents/catalog-api/lib/schema.js';
-import { distTagListToMap } from '../npm.js';
+import {distTagListToMap, distTagMapToList} from '../npm.js';
 
 export const packageInfoConverter: FirestoreDataConverter<PackageInfo> = {
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): PackageInfo {
@@ -28,19 +28,18 @@ export const packageInfoConverter: FirestoreDataConverter<PackageInfo> = {
     const status = snapshot.get('status');
     const lastUpdate = (snapshot.get('lastUpdate') as Timestamp).toDate();
 
-    if (status === ReadablePackageStatus.READY || status === ReadablePackageStatus.UPDATING) {
-      const distTagsMap = snapshot.get('distTags');
-      const distTags = distTagsMap && Object.entries(distTagsMap).map(
-        ([tag, version]) => ({tag, version} as DistTag)
-      );
+    if (
+      status === ReadablePackageStatus.READY ||
+      status === ReadablePackageStatus.UPDATING
+    ) {
       return {
         name,
         status,
         lastUpdate,
         description: snapshot.get('description'),
-        distTags,
+        distTags: distTagMapToList(snapshot.get('distTags')),
         // `version` is left to a sub-collection query
-      } as ReadablePackageInfo;  
+      } as ReadablePackageInfo;
     } else {
       return {
         name,
