@@ -26,7 +26,7 @@ export const distTagMapToList = (distTags: {[tag: string]: string}) =>
   }));
 
 export const distTagListToMap = (
-  distTags: Array<{tag: string; version: string}>
+  distTags: ReadonlyArray<{readonly tag: string; readonly version: string}>
 ) => Object.fromEntries(distTags.map(({tag, version}) => [tag, version]));
 
 export const isValidSemver = (versionOrTag: string) =>

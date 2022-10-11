@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "foo.js",
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FooElement",
+          "declaration": {
+            "name": "FooElement"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "foo-element",
+          "declaration": {
+            "name": "FooElement"
+          }
+        }
+      ],
+      "declarations": [
+        {
+          "kind": "class",
+          "customElement": true,
+          "tagName": "my-element",
+          "name": "FooElement",
+          "superclass": {
+            "name": "HTMLElement"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -154,6 +154,12 @@ export class Catalog {
         }
       }
 
+      // Remove the version to import from versionsToUpdate, because it
+      // doesn't exist yet
+      if (versionToImport !== undefined) {
+        versionsToUpdate.delete(versionToImport);
+      }
+
       // Write the tags
       console.log('Writing package dist tags...');
       await this.#repository.updateDistTags(

@@ -12,7 +12,7 @@ import {referenceString} from '@webcomponents/custom-elements-manifest-tools/lib
 import clean from 'semver/functions/clean.js';
 import semverValidRange from 'semver/ranges/valid.js';
 
-import {getDistTagsForVersion} from '../npm.js';
+import {distTagListToMap, getDistTagsForVersion} from '../npm.js';
 
 import {
   CustomElement,
@@ -83,11 +83,15 @@ export class FirestoreRepository implements Repository {
       ) {
         throw new Error(`Unexpected package status: ${packageData.status}`);
       }
-      await t.update(packageRef, {
+      // Note: update() does not use the Firestore data converters, so
+      // specific field conversion, like dist tags, must be done here.
+      // We remove the converter to fix the types:
+      // https://github.com/googleapis/nodejs-firestore/issues/1745
+      await t.update(packageRef.withConverter(null), {
         status: PackageStatus.READY,
         lastUpdate: FieldValue.serverTimestamp(),
         description: packageInfo.description ?? '',
-        distTags: packageInfo.distTags,
+        distTags: distTagListToMap(packageInfo.distTags),
       });
     });
   }
@@ -145,11 +149,6 @@ export class FirestoreRepository implements Repository {
           const versionDistTags = getDistTagsForVersion(newDistTags, version);
           const versionRef = this.getPackageVersionRef(packageName, version);
 
-          // Updat the PackageVersion doc
-          await t.update(versionRef, {
-            distTags: versionDistTags,
-          });
-
           // Update all custom elements of the PackageVersion
           const customElementsRef = versionRef
             .collection('customElements')
@@ -160,6 +159,13 @@ export class FirestoreRepository implements Repository {
           // we can construct custom element refs without a query on the
           // collection first.
           const elements = await t.get(customElementsRef);
+
+          // Update the PackageVersion doc
+          await t.update(versionRef, {
+            distTags: versionDistTags,
+          });
+
+          // Update all elements
           await Promise.all(
             elements.docs.map(async (element) => {
               await t.update(element.ref, {

@@ -17,6 +17,7 @@
     "start": "wireit",
     "start:dev": "wireit",
     "test": "wireit",
+    "test:manual": "wireit",
     "emulators:start": "firebase emulators:start --project wc-catalog",
     "firebase": "firebase"
   },
@@ -52,6 +53,16 @@
     },
     "test": {
       "command": "firebase emulators:exec --project wc-catalog ./test.sh",
+      "dependencies": [
+        "build"
+      ],
+      "files": [
+        "test.sh"
+      ],
+      "output": []
+    },
+    "test:manual": {
+      "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:8088 uvu test \"_test\\.js$\"",
       "dependencies": [
         "build"
       ],
