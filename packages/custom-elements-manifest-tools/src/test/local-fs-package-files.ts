@@ -9,54 +9,80 @@ import {readFile} from 'fs/promises';
 
 import {PackageFiles, Package, Version} from '../lib/npm.js';
 
-export interface FileTree {
-  [name: string]: string | FileTree;
+export interface Config {
+  path: string;
+  packageName: string;
+  publishedVersions: Array<string>;
+  distTags: {[tag: string]: string};
 }
 
 /**
- * A local filesystem implementation of the PackageFiles interface for
- * tests.
+ * A local filesystem implementation of the PackageFiles interface for tests.
+ *
+ * Given a folder for a package, this class uses subfolders named with version
+ * numbers to hold the package.json and package files for each version. The
+ * currently published versions are given to the constructor. This allows tests
+ * to simulate a package being updated over time.
  */
 export class LocalFsPackageFiles implements PackageFiles {
   path: string;
   packageName: string;
-  version: string;
+  publishedVersions: Array<string>;
+  distTags: {[tag: string]: string};
 
-  constructor(path: string, packageName: string, version: string) {
-    this.path = path;
-    this.packageName = packageName;
-    this.version = version;
+  constructor(config: Config) {
+    this.path = config.path;
+    this.packageName = config.packageName;
+    this.publishedVersions = config.publishedVersions;
+    this.distTags = config.distTags;
   }
 
   async getPackageMetadata(packageName: string): Promise<Package> {
     if (packageName !== this.packageName) {
       throw new Error(`Package not found ${packageName}`);
     }
-    const packageJsonPath = path.resolve(this.path, 'package.json');
 
-    let packageJsonSource: string;
-    try {
-      packageJsonSource = await readFile(packageJsonPath, 'utf-8');
-    } catch (e) {
-      throw new Error(`package.json not found`);
-    }
-
-    const packageJson = JSON.parse(packageJsonSource);
-    const packument = JSON.parse(packageJsonSource);
-
-    // Add versions, dist-tags, and time and to make an npm "packument"
+    // Create a fake npm "packument"
     // See: https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
-    packument.versions = {
-      [this.version]: packageJson,
-    };
-    packument['dist-tags'] = {
-      latest: this.version,
-    };
+    const versions: Package['versions'] = {};
     const now = new Date().toString();
-    packument.time = {
+    const time: Package['time'] = {
       created: now,
       modified: now,
-      [this.version]: now,
+      // ...Object.fromEntries(this.publishedVersions.map((v) => [v, now])),
+    };
+    let description!: string;
+    let foundLatest = false;
+    await Promise.all(
+      this.publishedVersions.map(async (v) => {
+        const packageJsonPath = path.resolve(this.path, v, 'package.json');
+        let packageJsonSource: string;
+        try {
+          packageJsonSource = await readFile(packageJsonPath, 'utf-8');
+        } catch (e) {
+          throw new Error(`${packageJsonPath} not found`);
+        }
+        const packageJson = JSON.parse(packageJsonSource) as Version;
+        versions[v] = packageJson;
+        time[v] = now;
+        if (v === this.distTags['latest']) {
+          description = packageJson.description;
+          foundLatest = true;
+        }
+      })
+    );
+
+    if (!foundLatest) {
+      throw new Error('No latest tag given');
+    }
+
+    // TODO (justinfagnani): add author, license, maintainers, readme
+    const packument: Package = {
+      name: packageName,
+      description,
+      versions,
+      'dist-tags': this.distTags,
+      time,
     };
     return packument;
   }
@@ -65,11 +91,14 @@ export class LocalFsPackageFiles implements PackageFiles {
     packageName: string,
     version: string
   ): Promise<Version> {
-    if (packageName !== this.packageName || version !== this.version) {
+    if (
+      packageName !== this.packageName ||
+      !this.publishedVersions.includes(version)
+    ) {
       throw new Error(`Package not found: ${packageName}@${version}`);
     }
 
-    const packageJsonPath = path.resolve(this.path, 'package.json');
+    const packageJsonPath = path.resolve(this.path, version, 'package.json');
     let packageJsonSource: string;
     try {
       packageJsonSource = await readFile(packageJsonPath, 'utf-8');
@@ -92,10 +121,10 @@ export class LocalFsPackageFiles implements PackageFiles {
     if (packageName !== this.packageName) {
       throw new Error(`Invalid package name: ${packageName}`);
     }
-    if (version !== this.version) {
+    if (!this.publishedVersions.includes(version)) {
       throw new Error(`Invalid package version: ${version}`);
     }
-    const fullPath = path.resolve(this.path, filePath);
+    const fullPath = path.resolve(this.path, version, filePath);
     const source = await readFile(fullPath, 'utf-8');
     return source;
   }

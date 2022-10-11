@@ -14,19 +14,26 @@ import {
   isReadablePackageVersion,
   VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
+import {fileURLToPath} from 'url';
 
 const test = suite('Catalog tests');
+
+const testPackage1Path = fileURLToPath(
+  new URL('../test-packages/test-1/', import.meta.url)
+);
 
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
-  const myDirname = new URL(import.meta.url).pathname;
-  const files = new LocalFsPackageFiles(
-    path.resolve(myDirname, '../../test-packages/test-1'),
+  const files = new LocalFsPackageFiles({
+    path: testPackage1Path,
     packageName,
-    version
-  );
-  const repository = new FirestoreRepository();
+    publishedVersions: ['0.0.0'],
+    distTags: {
+      latest: '0.0.0',
+    },
+  });
+  const repository = new FirestoreRepository('catalog-test-1');
   const catalog = new Catalog({files, repository});
   await catalog.importPackage(packageName);
 
@@ -46,13 +53,15 @@ test('Imports a package with no problems', async () => {
 test('Gets package version data from imported package', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
-  const myDirname = new URL(import.meta.url).pathname;
-  const files = new LocalFsPackageFiles(
-    path.resolve(myDirname, '../../test-packages/test-1'),
+  const files = new LocalFsPackageFiles({
+    path: testPackage1Path,
     packageName,
-    version
-  );
-  const repository = new FirestoreRepository('package-version-tests');
+    publishedVersions: ['0.0.0'],
+    distTags: {
+      latest: '0.0.0',
+    },
+  });
+  const repository = new FirestoreRepository('catalog-test-2');
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackageVersion(packageName, version);
   const {problems} = importResult;
