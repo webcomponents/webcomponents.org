@@ -7,11 +7,23 @@
       body {
         margin: 0;
       }
+      body[dsd-pending] {
+        display: none;
+      }
     </style>
   </head>
-  <body>
-    <wco-top-bar></wco-top-bar>
+  <body dsd-pending>
+    <script>
+      if (HTMLTemplateElement.prototype.hasOwnProperty('shadowRoot')) {
+        document.body.removeAttribute('dsd-pending');
+      }
+    </script>
+
+    <wco-top-bar>
+    </wco-top-bar>
     <h2>🚧 Under construction! 🚧</h2>
+
+    <script type="module" src="./js/declarative-shadow-dom-polyfill.js"></script>
     <script type="module" src="./js/homepage.js"></script>
   </body>
 </html>

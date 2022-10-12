@@ -37,6 +37,7 @@
     }
   },
   "dependencies": {
-    "@11ty/eleventy": "^1.0.2"
+    "@11ty/eleventy": "^1.0.2",
+    "@lit-labs/eleventy-plugin-lit": "^0.2.3"
   }
 }
