@@ -39,6 +39,7 @@ export const packageVersionConverter: FirestoreDataConverter<PackageVersion> = {
         customElementsManifest: packageVersion.customElementsManifest,
         description: packageVersion.description,
         distTags: packageVersion.distTags,
+        isLatest: packageVersion.distTags.includes('latest'),
         homepage: packageVersion.homepage,
         lastUpdate: packageVersion.lastUpdate,
         status: packageVersion.status,
