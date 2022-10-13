@@ -160,16 +160,22 @@ export class FirestoreRepository implements Repository {
           // collection first.
           const elements = await t.get(customElementsRef);
 
+          const isLatest = versionDistTags.includes('latest');
+
           // Update the PackageVersion doc
-          await t.update(versionRef, {
+          // We remove the converter to fix the types:
+          // https://github.com/googleapis/nodejs-firestore/issues/1745
+          await t.update(versionRef.withConverter(null), {
             distTags: versionDistTags,
+            isLatest,
           });
 
           // Update all elements
           await Promise.all(
             elements.docs.map(async (element) => {
-              await t.update(element.ref, {
+              await t.update(element.ref.withConverter(null), {
                 distTags: versionDistTags,
+                isLatest,
               });
             })
           );
@@ -284,6 +290,7 @@ export class FirestoreRepository implements Repository {
     // Store custom elements data in subcollection
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef.collection('customElements');
+    const isLatest = distTags.includes('latest');
     const batch = db.batch();
 
     for (const c of customElements) {
@@ -291,6 +298,7 @@ export class FirestoreRepository implements Repository {
         package: packageName,
         version,
         distTags,
+        isLatest,
         author,
         tagName: c.export.name,
         className: c.declaration.name,
@@ -394,10 +402,14 @@ export class FirestoreRepository implements Repository {
       }
 
       // Now query for a version that's assigned this dist-tag
-      const result = await this.getPackageVersionCollectionRef(packageName)
-        .where('distTags', 'array-contains', versionOrTag)
-        .limit(1)
-        .get();
+      let query: CollectionReference<PackageVersion> | Query<PackageVersion> =
+        this.getPackageVersionCollectionRef(packageName);
+      if (versionOrTag === 'latest') {
+        query = query.where('isLatest', '==', true);
+      } else {
+        query = query.where('distTags', 'array-contains', versionOrTag);
+      }
+      const result = await query.limit(1).get();
       if (result.size !== 0) {
         return result.docs[0]!.data();
       }
