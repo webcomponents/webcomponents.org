@@ -325,7 +325,10 @@ export class FirestoreRepository implements Repository {
           ...descriptionStems,
           ...summaryStems,
           ...tagNameParts,
-          tagName
+          tagName,
+          // TODO (justinfagnani): tokenizing the package name is temporary
+          // until we don't tokenize the *entire* query
+          ...natural.PorterStemmer.tokenizeAndStem(packageName),
         ]),
       ];
 
@@ -508,6 +511,7 @@ export class FirestoreRepository implements Repository {
       if (queryTerms.length > 10) {
         queryTerms.length = 10;
       }
+      console.log('queryTerms', queryTerms);
       dbQuery = dbQuery.where('searchTerms', 'array-contains-any', queryTerms);
     }
 

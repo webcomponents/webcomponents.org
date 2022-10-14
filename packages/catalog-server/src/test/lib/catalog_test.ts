@@ -31,7 +31,6 @@ const TEST_SEQUENCE_ONE = 'test-data-1';
 // Other tests than can run independently
 const TEST_SEQUENCE_TWO = 'test-data-2';
 
-
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
@@ -106,20 +105,35 @@ test('Full text search', async () => {
   const catalog = new Catalog({files, repository});
 
   // Use a term in the package description - it should match all elements
-  const resultOne = await catalog.queryElements({
-    query: 'cool',
-    limit: 10
-  });
-  assert.ok(resultOne);
-  assert.equal(resultOne.length, 2);
+  let result = await catalog.queryElements({query: 'cool'});
+  assert.equal(result.length, 2);
 
   // Use a term in an element description
-  const resultTwo = await catalog.queryElements({
-    query: 'incredible',
-    limit: 10
-  });
-  assert.ok(resultTwo);
-  assert.equal(resultTwo.length, 1);
+  result = await catalog.queryElements({query: 'incredible'});
+  assert.equal(result.length, 1);
+
+  // Use a term not found
+  result = await catalog.queryElements({query: 'jandgslwijd'});
+  assert.equal(result.length, 0);
+
+  // Use an element name
+  result = await catalog.queryElements({query: '"foo-element"'});
+  // TODO (justinfagnani): this isn't what we want. We really just want
+  // The element <foo-element> to be returned, but the tokenizer we're
+  // using is splitting "foo-element" into ["foo", "element"] and "element"
+  // is matching against bar-element's search terms.
+  // If we keep our own search index, we'll want to use or write a tokenizer
+  // that preserves quoted sections for exact matches:
+  // http://naturalnode.github.io/natural/Tokenizers.html
+  assert.equal(result.length, 2);
+
+  // Use part of an element name
+  result = await catalog.queryElements({query: 'element'});
+  assert.equal(result.length, 2);
+
+  // Use a package name
+  result = await catalog.queryElements({query: 'test-1'});
+  assert.equal(result.length, 2);
 });
 
 test('Gets package version data from imported package', async () => {
