@@ -17,8 +17,12 @@ export const handleCatalogRoute = async (
 ) => {
   context.body = renderPage({
     title: `Web Components Catalog`,
+    scripts: [
+      './js/catalog.js'
+    ],
     content: `
     <h1>Catalog</h1>
+    <wco-catalog-search></wco-catalog-search>
   `,
   });
   context.type = 'html';
