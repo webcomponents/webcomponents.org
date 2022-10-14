@@ -290,13 +290,12 @@ export class FirestoreRepository implements Repository {
   }
 
   async writeCustomElements(
-    packageVersionMetadata: Version,
+    {name: packageName, version, description}: Version,
     customElements: CustomElementInfo[],
     distTags: string[],
     author: string
   ): Promise<void> {
     // Store custom elements data in subcollection
-    const {name: packageName, version, description} = packageVersionMetadata;
     const versionRef = this.getPackageVersionRef(packageName, version);
     const customElementsRef = versionRef.collection('customElements');
     const isLatest = distTags.includes('latest');
@@ -326,6 +325,7 @@ export class FirestoreRepository implements Repository {
           ...descriptionStems,
           ...summaryStems,
           ...tagNameParts,
+          tagName
         ]),
       ];
 

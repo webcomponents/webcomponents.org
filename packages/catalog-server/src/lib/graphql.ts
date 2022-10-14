@@ -63,7 +63,6 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
         }
       },
       async elements(_parent, {query, limit}): Promise<Array<CustomElement>> {
-        console.log('query elements', {query, limit});
         return catalog.queryElements({
           query: query ?? undefined,
           limit: limit ?? 25,
