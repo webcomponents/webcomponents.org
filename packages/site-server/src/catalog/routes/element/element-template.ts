@@ -11,7 +11,7 @@ import {
   resolveReference,
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
-import {escapeHTML} from './escape-html.js';
+import {escapeHTML} from '../../escape-html.js';
 
 export const renderElement = ({
   packageName,
