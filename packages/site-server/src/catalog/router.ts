@@ -6,6 +6,7 @@
 
 import Router from '@koa/router';
 import {ApolloClient, InMemoryCache, gql} from '@apollo/client/core/index.js';
+import {renderPage} from '../templates/base.js';
 import {renderElement} from './element-template.js';
 
 const CATALOG_GRAPHQL_URL =
@@ -85,7 +86,7 @@ catalogRouter.get('/element/:path+', async (context) => {
     manifest: customElementsManifest,
   });
 
-  context.body = content;
+  context.body = renderPage({title: `${packageName}/${elementName}`, content});
   context.type = 'html';
   context.status = 200;
 });

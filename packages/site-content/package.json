@@ -15,7 +15,8 @@
       "command": "eleventy --config=eleventy.config.prod.cjs",
       "files": [
         "eleventy.config.prod.cjs",
-        "site"
+        "site",
+        "../site-server/lib/templates/**/*.js"
       ],
       "output": [
         "_site"
@@ -29,7 +30,8 @@
       "files": [
         "eleventy.config.dev.cjs",
         "site",
-        "!site/assets"
+        "!site/assets",
+        "../site-server/lib/templates/**/*.js"
       ],
       "output": [
         "_dev"
@@ -37,6 +39,7 @@
     }
   },
   "dependencies": {
-    "@11ty/eleventy": "^1.0.2"
+    "@11ty/eleventy": "^1.0.2",
+    "@webcomponents/internal-site-server": "^0.0.0"
   }
 }
