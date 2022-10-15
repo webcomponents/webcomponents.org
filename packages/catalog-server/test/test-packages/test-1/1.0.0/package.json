@@ -1,5 +1,6 @@
 {
   "name": "test-1",
   "version": "1.0.0",
+  "description": "A set of cool elements",
   "customElements": "custom-elements.json"
 }

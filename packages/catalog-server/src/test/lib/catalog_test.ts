@@ -25,6 +25,12 @@ const testPackage1Path = fileURLToPath(
   new URL('../test-packages/test-1/', import.meta.url)
 );
 
+// A set of import, fetch, search tests that use the same data
+const TEST_SEQUENCE_ONE = 'test-data-1';
+
+// Other tests than can run independently
+const TEST_SEQUENCE_TWO = 'test-data-2';
+
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
   const version = '0.0.0';
@@ -36,7 +42,7 @@ test('Imports a package with no problems', async () => {
       latest: '0.0.0',
     },
   });
-  const repository = new FirestoreRepository('catalog-test-1');
+  const repository = new FirestoreRepository(TEST_SEQUENCE_ONE);
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackage(packageName);
 
@@ -73,7 +79,7 @@ test('A second import does nothing', async () => {
     },
   });
   // This must use the same namespace as in the previous test
-  const repository = new FirestoreRepository('catalog-test-1');
+  const repository = new FirestoreRepository(TEST_SEQUENCE_ONE);
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackage(packageName);
 
@@ -82,6 +88,52 @@ test('A second import does nothing', async () => {
   assert.equal(importResult.packageInfo, undefined);
   assert.equal(importResult.packageVersion, undefined);
   assert.equal(importResult.problems, undefined);
+});
+
+test('Full text search', async () => {
+  const packageName = 'test-1';
+  const files = new LocalFsPackageFiles({
+    path: testPackage1Path,
+    packageName,
+    publishedVersions: ['0.0.0'],
+    distTags: {
+      latest: '0.0.0',
+    },
+  });
+  // This must use the same namespace as in the previous test
+  const repository = new FirestoreRepository(TEST_SEQUENCE_ONE);
+  const catalog = new Catalog({files, repository});
+
+  // Use a term in the package description - it should match all elements
+  let result = await catalog.queryElements({query: 'cool'});
+  assert.equal(result.length, 2);
+
+  // Use a term in an element description
+  result = await catalog.queryElements({query: 'incredible'});
+  assert.equal(result.length, 1);
+
+  // Use a term not found
+  result = await catalog.queryElements({query: 'jandgslwijd'});
+  assert.equal(result.length, 0);
+
+  // Use an element name
+  result = await catalog.queryElements({query: '"foo-element"'});
+  // TODO (justinfagnani): this isn't what we want. We really just want
+  // The element <foo-element> to be returned, but the tokenizer we're
+  // using is splitting "foo-element" into ["foo", "element"] and "element"
+  // is matching against bar-element's search terms.
+  // If we keep our own search index, we'll want to use or write a tokenizer
+  // that preserves quoted sections for exact matches:
+  // http://naturalnode.github.io/natural/Tokenizers.html
+  assert.equal(result.length, 2);
+
+  // Use part of an element name
+  result = await catalog.queryElements({query: 'element'});
+  assert.equal(result.length, 2);
+
+  // Use a package name
+  result = await catalog.queryElements({query: 'test-1'});
+  assert.equal(result.length, 2);
 });
 
 test('Gets package version data from imported package', async () => {
@@ -95,7 +147,7 @@ test('Gets package version data from imported package', async () => {
       latest: '0.0.0',
     },
   });
-  const repository = new FirestoreRepository('catalog-test-2');
+  const repository = new FirestoreRepository(TEST_SEQUENCE_TWO);
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackageVersion(packageName, version);
   const {problems} = importResult;
@@ -123,7 +175,7 @@ test('Gets package version data from imported package', async () => {
     version,
     undefined
   );
-  assert.equal(customElements?.length, 1);
+  assert.equal(customElements?.length, 2);
 
   // TODO (justinfagnani): add assertion when we have catalog.getPackageVersionProblems
   // const problems = await catalog.getPackageVersionProblems(packageName, version);
@@ -142,11 +194,11 @@ test('Updates a package', async () => {
   });
 
   // This must use the same namespace as in the first (import) test
-  const repository = new FirestoreRepository('catalog-test-1');
+  const repository = new FirestoreRepository(TEST_SEQUENCE_ONE);
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackage(
     packageName,
-    Temporal.Duration.from({minutes: 0})
+    Temporal.Duration.from({nanoseconds: 1})
   );
 
   assert.ok(importResult.packageInfo);

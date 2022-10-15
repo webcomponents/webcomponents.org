@@ -7,7 +7,13 @@
 import {readFile} from 'fs/promises';
 import {createRequire} from 'module';
 import {makeExecutableSchema} from '@graphql-tools/schema';
-import {isReadablePackage, isReadablePackageVersion, PackageInfo, Resolvers} from '@webcomponents/catalog-api/lib/schema.js';
+import {
+  CustomElement,
+  isReadablePackage,
+  isReadablePackageVersion,
+  PackageInfo,
+  Resolvers,
+} from '@webcomponents/catalog-api/lib/schema.js';
 import {Catalog} from './catalog.js';
 
 const require = createRequire(import.meta.url);
@@ -25,14 +31,17 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
   // an explanation of the role of resolvers in performing GraphQL queries.
   const resolvers: Resolvers = {
     Query: {
-      async package(_parent, {packageName}: {packageName: string}): Promise<PackageInfo | null> {
+      async package(
+        _parent,
+        {packageName}: {packageName: string}
+      ): Promise<PackageInfo | null> {
         console.log('query package', packageName);
         const packageInfo = await catalog.getPackageInfo(packageName);
         if (packageInfo === undefined) {
           console.log(`package ${packageName} not found in db, importing`);
           let result;
           try {
-             result = await catalog.importPackage(packageName);
+            result = await catalog.importPackage(packageName);
           } catch (e) {
             console.error(e);
             throw e;
@@ -52,6 +61,12 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
           console.log(`package ${packageName} found in db and not readable`);
           return null;
         }
+      },
+      async elements(_parent, {query, limit}): Promise<Array<CustomElement>> {
+        return catalog.queryElements({
+          query: query ?? undefined,
+          limit: limit ?? 25,
+        });
       },
     },
     PackageInfo: {
@@ -75,7 +90,10 @@ export const makeExecutableCatalogSchema = async (catalog: Catalog) => {
           distTags?.find((distTag) => distTag.tag === versionOrTag)?.version ??
           versionOrTag;
 
-        const packageVersion = await catalog.getPackageVersion(packageInfo.name, version);
+        const packageVersion = await catalog.getPackageVersion(
+          packageInfo.name,
+          version
+        );
         if (packageVersion === undefined) {
           throw new Error(`tag ${packageInfo.name}@${versionOrTag} not found`);
         }

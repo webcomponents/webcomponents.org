@@ -272,8 +272,7 @@ export class Catalog {
 
     console.log('Writing custom elements...');
     await this.#repository.writeCustomElements(
-      packageName,
-      version,
+      packageVersionMetadata,
       customElements,
       versionDistTags,
       author
@@ -307,11 +306,21 @@ export class Catalog {
     return this.#repository.getPackageVersion(packageName, version);
   }
 
+  /**
+   * Gets the custom elements for a package
+   */
   async getCustomElements(
     packageName: string,
     version: string,
     tagName: string | undefined
   ): Promise<Array<CustomElement>> {
     return this.#repository.getCustomElements(packageName, version, tagName);
+  }
+
+  async queryElements({query, limit}: {query?: string; limit?: number}) {
+    // TODO (justinfagnani): The catalog should parse out GitHub-style search
+    // operators (like "author:yogibear") and pass structured + text queries
+    // to the repository
+    return this.#repository.queryElements({query, limit});
   }
 }

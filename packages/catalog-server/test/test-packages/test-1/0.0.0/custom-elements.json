@@ -1,5 +1,6 @@
 {
   "schemaVersion": "1.0.0",
+  "description": "A set of cool elements",
   "modules": [
     {
       "kind": "javascript-module",
@@ -18,14 +19,39 @@
           "declaration": {
             "name": "FooElement"
           }
+        },
+        {
+          "kind": "js",
+          "name": "BarElement",
+          "declaration": {
+            "name": "BarElement"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "bar-element",
+          "declaration": {
+            "name": "BarElement"
+          }
         }
       ],
       "declarations": [
         {
           "kind": "class",
           "customElement": true,
-          "tagName": "my-element",
+          "tagName": "foo-element",
           "name": "FooElement",
+          "description": "A incredible element",
+          "superclass": {
+            "name": "HTMLElement"
+          }
+        },
+        {
+          "kind": "class",
+          "customElement": true,
+          "tagName": "bar-element",
+          "name": "BarElement",
+          "description": "An amazing element",
           "superclass": {
             "name": "HTMLElement"
           }
