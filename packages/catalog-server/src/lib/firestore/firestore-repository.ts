@@ -511,7 +511,6 @@ export class FirestoreRepository implements Repository {
       if (queryTerms.length > 10) {
         queryTerms.length = 10;
       }
-      console.log('queryTerms', queryTerms);
       dbQuery = dbQuery.where('searchTerms', 'array-contains-any', queryTerms);
     }
 
