@@ -8,6 +8,7 @@ import {readFile} from 'fs/promises';
 import {fileURLToPath} from 'url';
 
 import Koa from 'koa';
+import cors from '@koa/cors';
 import Router from '@koa/router';
 import {
   getGraphQLParameters,
@@ -163,6 +164,7 @@ export const makeServer = async () => {
     `;
   });
 
+  app.use(cors());
   app.use(router.routes());
   app.use(router.allowedMethods());
   return app;
