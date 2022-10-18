@@ -48,6 +48,42 @@ const pkg: Package = {
         },
       ],
     },
+    {
+      kind: 'javascript-module',
+      path: 'x-foo.js',
+      declarations: [],
+      exports: [
+        {
+          kind: 'custom-element-definition',
+          name: 'x-foo',
+          declaration: {
+            name: 'XFoo',
+            module: '/src/components/x-foo.js',
+          },
+        },
+      ],
+    },
+    {
+      kind: 'javascript-module',
+      path: 'src/components/x-foo.js',
+      declarations: [
+        {
+          kind: 'class',
+          name: 'XFoo',
+          customElement: true,
+        },
+      ],
+      exports: [
+        {
+          kind: 'js',
+          name: 'XFoo',
+          declaration: {
+            name: 'XFoo',
+            module: 'src/components/x-foo.js',
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -118,6 +154,21 @@ test('cross-package references are unsupported', () => {
     '1.0.0'
   );
   assert.equal(result, undefined);
+});
+
+test(`resolves a custom element defintion to it's declaration`, () => {
+  const definitionModule = pkg.modules.find((m) => m.path === 'x-foo.js')!;
+  const elementExport = definitionModule.exports![0];
+  const declarationReference = elementExport!.declaration;
+  const result = resolveReference(
+    pkg,
+    definitionModule,
+    declarationReference,
+    'test-package',
+    '1.0.0'
+  );
+  console.log('result', result);
+  assert.ok(result);
 });
 
 test.run();
