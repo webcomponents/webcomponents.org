@@ -23,6 +23,11 @@ export const renderPage = (data: {
       href="https://fonts.googleapis.com/css?family=Material+Icons&display=block"
       rel="stylesheet"
     />
+    <!-- TODO (justinfagnani): only add this in dev. In prod we should have
+         compiled any process access out. DO_NOT_LAUNCH -->
+    <script>
+      window.process = {env: {NODE_ENV: 'development'}};
+    </script>
     ${(data.scripts ?? [])
       .map((s) => `<script type="module" src="${s}"></script>`)
       .join('\n')}
