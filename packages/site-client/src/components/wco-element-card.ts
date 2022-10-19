@@ -74,7 +74,7 @@ export class WCOElementCard extends LitElement {
     const packageName = this.element.package;
     const tagName = this.element.tagName ?? '';
 
-    // Generate one or two-letter initials starting after what we assyme is
+    // Generate one or two-letter initials starting after what we assume is
     // the tagname prefix. This is a stand-in for icons, which aren't
     // represented in the CE manifest yet.
     const tagNameParts = tagName.split('-');
