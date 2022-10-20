@@ -31,8 +31,6 @@ export const renderPage = (data: {
         margin: 0;
         --mdc-typography-font-family: 'Open Sans', Arial, Helvetica, sans-serif;
         font-family: var(--mdc-typography-font-family);
-        font-size: 14px;
-        line-height: 1.5;
         min-height: 100vh;
       }
       @media (max-width: 500px), (max-height: 500px) {
@@ -45,6 +43,7 @@ export const renderPage = (data: {
     <title>${escapeHTML(data.title)}</title>
   </head>
   <body>
+    <wco-top-bar></wco-top-bar>
     ${data.content}
   </body>
 </html>
