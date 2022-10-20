@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {Module, Reference} from 'custom-elements-manifest/schema.js';
+import type {Reference} from 'custom-elements-manifest/schema.js';
 
 /**
  * Serializes a reference to a string, as used in the GraphQL API of the
@@ -15,10 +15,13 @@ import type {Module, Reference} from 'custom-elements-manifest/schema.js';
  */
 export const referenceString = (
   packageName: string,
-  mod: Module,
+  modulePath: string,
   name: string
 ) => {
-  return `${packageName}/${mod.path}#${name}`;
+  if (modulePath.startsWith('/')) {
+    modulePath = modulePath.substring(1);
+  }
+  return `${packageName}/${modulePath}#${name}`;
 };
 
 /**

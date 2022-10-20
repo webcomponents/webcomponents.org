@@ -9,6 +9,7 @@ import type {
   CustomElementExport,
   Module,
   Package,
+  Reference,
 } from 'custom-elements-manifest/schema.js';
 import {isCustomElementDeclaration} from './predicates.js';
 import {resolveReference} from './resolve-reference.js';
@@ -18,6 +19,7 @@ export type CustomElementInfo = {
   module: Module;
   export: CustomElementExport;
   declaration: CustomElementDeclaration;
+  declarationReference: Reference;
 };
 
 /**
@@ -48,6 +50,7 @@ export const getCustomElements = (
               module: mod,
               export: e,
               declaration: decl,
+              declarationReference: e.declaration,
             });
           } else {
             // This is some kind of manifest error, should we warn?

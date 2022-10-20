@@ -31,7 +31,7 @@
       "clean": "if-file-deleted"
     },
     "test": {
-      "command": "NODE_OPTIONS='--enable-source-maps' uvu test \"resolve-reference_test\\.js$\"",
+      "command": "NODE_OPTIONS='--enable-source-maps' uvu test \"_test\\.js$\"",
       "dependencies": [
         "build"
       ],

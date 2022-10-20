@@ -51,7 +51,11 @@ export const renderElement = ({
   console.log('elementDeclaration', declaration);
 
   if (declaration === undefined || declaration.kind !== 'class') {
-    return `<h1>Error</h1>`;
+    console.log('tried to resolve', module.path, declarationRef);
+    return `
+      <h1>Error</h1>
+      <h2>Element declaration not found</h2>
+    `;
   }
 
   return `
