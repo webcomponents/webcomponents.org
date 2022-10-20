@@ -342,14 +342,17 @@ export class FirestoreRepository implements Repository {
         className: c.declaration.name,
         customElementExport: referenceString(
           packageName,
-          c.module,
+          c.module.path,
           c.export.name
         ),
-        declaration: referenceString(packageName, c.module, c.declaration.name),
+        declaration: referenceString(
+          packageName,
+          c.declarationReference.module ?? c.module.path,
+          c.declaration.name
+        ),
         searchTerms,
       });
     }
-
     await batch.commit();
   }
 

@@ -18,11 +18,19 @@ import {
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {fileURLToPath} from 'url';
 import {Temporal} from '@js-temporal/polyfill';
+import {
+  getModule,
+  parseReferenceString,
+  resolveReference,
+} from '@webcomponents/custom-elements-manifest-tools';
 
 const test = suite('Catalog tests');
 
 const testPackage1Path = fileURLToPath(
   new URL('../test-packages/test-1/', import.meta.url)
+);
+const testPackage2Path = fileURLToPath(
+  new URL('../test-packages/test-2/', import.meta.url)
 );
 
 // A set of import, fetch, search tests that use the same data
@@ -30,6 +38,7 @@ const TEST_SEQUENCE_ONE = 'test-data-1';
 
 // Other tests than can run independently
 const TEST_SEQUENCE_TWO = 'test-data-2';
+const TEST_SEQUENCE_THREE = 'test-data-3';
 
 test('Imports a package with no problems', async () => {
   const packageName = 'test-1';
@@ -221,6 +230,59 @@ test('Updates a package', async () => {
   // Make sure we can get the new version with 'latest'
   const result = await catalog.getPackageVersion(packageName, 'latest');
   assert.equal(isReadablePackageVersion(result), true);
+});
+
+test('Imports a package with separate define and implementation modules', async () => {
+  const packageName = 'test-2';
+  const version = '1.0.0';
+  const files = new LocalFsPackageFiles({
+    path: testPackage2Path,
+    packageName,
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  await catalog.importPackage(packageName);
+
+  const packageVersion = (await catalog.getPackageVersion(
+    packageName,
+    version
+  )) as ReadablePackageVersion;
+
+  const customElements = await catalog.getCustomElements(
+    packageName,
+    version,
+    undefined
+  );
+
+  assert.ok(packageVersion.customElementsManifest);
+  const manifest =
+    packageVersion.customElementsManifest !== undefined &&
+    JSON.parse(packageVersion.customElementsManifest);
+
+  assert.ok(customElements);
+  const fooElement = customElements.find((c) => c.tagName === 'foo-element');
+  assert.ok(fooElement);
+  assert.ok(fooElement.declaration);
+
+  const declarationRefString = fooElement.declaration;
+  const declarationRef = parseReferenceString(declarationRefString);
+  assert.ok(declarationRef.module);
+
+  const module = getModule(manifest, declarationRef.module);
+  assert.ok(module);
+
+  const declaration = resolveReference(
+    manifest,
+    module,
+    declarationRef,
+    packageName,
+    ''
+  );
+  assert.ok(declaration);
 });
 
 test.run();

@@ -101,4 +101,22 @@ test('Get elements from Shoelace', async () => {
   assert.equal(customElements.length, 54);
 });
 
+test('Get elements from @liton/burron', async () => {
+  const manifestPath = fileURLToPath(
+    new URL('../test-data/lion-button-0.18.1.json', import.meta.url)
+  );
+  const manifestSource = await readFile(manifestPath, 'utf-8');
+  const manifest = JSON.parse(manifestSource);
+  const customElements = getCustomElements(
+    manifest,
+    '@lion/button',
+    '0.18.1'
+  );
+  assert.equal(customElements.length, 3);
+
+  const element = customElements.find((e) => e.export.name === 'lion-button-submit');
+  assert.ok(element);
+  assert.ok(element.declaration);
+});
+
 test.run();
