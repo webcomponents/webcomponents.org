@@ -7,6 +7,7 @@
 import Router from '@koa/router';
 import {renderPage} from '../../../templates/base.js';
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
+import {Readable} from 'stream';
 
 export const handleCatalogRoute = async (
   context: ParameterizedContext<
@@ -15,16 +16,16 @@ export const handleCatalogRoute = async (
     unknown
   >
 ) => {
-  context.body = renderPage({
+  context.body = Readable.from(renderPage({
     title: `Web Components Catalog`,
     scripts: [
-      './js/catalog.js'
+      '/js/catalog.js'
     ],
     content: `
     <h1>Catalog</h1>
     <wco-catalog-search></wco-catalog-search>
   `,
-  });
+  }));
   context.type = 'html';
   context.status = 200;
 };
