@@ -1,0 +1,1325 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "define.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "define.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "index.d.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButton",
+          "declaration": {
+            "name": "LionButton",
+            "module": "\"./src/LionButton.js\""
+          }
+        },
+        {
+          "kind": "js",
+          "name": "LionButtonReset",
+          "declaration": {
+            "name": "LionButtonReset",
+            "module": "\"./src/LionButtonReset.js\""
+          }
+        },
+        {
+          "kind": "js",
+          "name": "LionButtonSubmit",
+          "declaration": {
+            "name": "LionButtonSubmit",
+            "module": "\"./src/LionButtonSubmit.js\""
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "index.js",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButton",
+          "declaration": {
+            "name": "LionButton",
+            "module": "./src/LionButton.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "LionButtonReset",
+          "declaration": {
+            "name": "LionButtonReset",
+            "module": "./src/LionButtonReset.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "LionButtonSubmit",
+          "declaration": {
+            "name": "LionButtonSubmit",
+            "module": "./src/LionButtonSubmit.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button-reset.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button-reset.js",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "lion-button-reset",
+          "declaration": {
+            "name": "LionButtonReset",
+            "module": "/src/LionButtonReset.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button-submit.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button-submit.js",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "lion-button-submit",
+          "declaration": {
+            "name": "LionButtonSubmit",
+            "module": "/src/LionButtonSubmit.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "lion-button.js",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "lion-button",
+          "declaration": {
+            "name": "LionButton",
+            "module": "/src/LionButton.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButton.d.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Use LionButton (or LionButtonReset|LionButtonSubmit) when there is a need to extend HTMLButtonElement.\nIt allows to create complex shadow DOM for buttons needing this. Think of:\n- a material Design button that needs a JS controlled ripple\n- a LionSelectRich invoker that needs a complex shadow DOM structure\n(for styling/maintainability purposes)\n- a specialized button (for instance a primary button or icon button in a Design System) that\nneeds a simple api: `<my-button>text</my-button>` is always better than\n`<button class=\"my-button\"><div class=\"my-button__container\">text</div><button>`\n\nIn other cases, whenever you can, still use native HTMLButtonElement (`<button>`).\n\nNote that LionButton is meant for buttons with type=\"button\". It's cleaner and more\nlightweight than LionButtonReset and LionButtonSubmit, which should only be considered when native\n`<form>` support is needed:\n- When type=\"reset|submit\" should be supported, use LionButtonReset.\n- When implicit form submission should be supported on top, use LionButtonSubmit.",
+          "name": "LionButton",
+          "members": [
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__setupEvents",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "__mousedownHandler",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "__keydownHandler",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "__keyupHandler",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ]
+            }
+          ],
+          "superclass": {
+            "name": "LionButton_base",
+            "module": "src/LionButton.d.ts"
+          },
+          "tagName": "lion-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButton",
+          "declaration": {
+            "name": "LionButton",
+            "module": "src/LionButton.d.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButton.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Use LionButton (or LionButtonReset|LionButtonSubmit) when there is a need to extend HTMLButtonElement.\nIt allows to create complex shadow DOM for buttons needing this. Think of:\n- a material Design button that needs a JS controlled ripple\n- a LionSelectRich invoker that needs a complex shadow DOM structure\n(for styling/maintainability purposes)\n- a specialized button (for instance a primary button or icon button in a Design System) that\nneeds a simple api: `<my-button>text</my-button>` is always better than\n`<button class=\"my-button\"><div class=\"my-button__container\">text</div><button>`\n\nIn other cases, whenever you can, still use native HTMLButtonElement (`<button>`).\n\nNote that LionButton is meant for buttons with type=\"button\". It's cleaner and more\nlightweight than LionButtonReset and LionButtonSubmit, which should only be considered when native\n`<form>` support is needed:\n- When type=\"reset|submit\" should be supported, use LionButtonReset.\n- When implicit form submission should be supported on top, use LionButtonSubmit.",
+          "name": "LionButton",
+          "members": [
+            {
+              "kind": "method",
+              "name": "__setupEvents",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "__mousedownHandler",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "__keydownHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "__keyupHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "default": "'button'",
+              "privacy": "public",
+              "attribute": "type",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "active",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "default": "`button-${Math.random().toString(36).substr(2, 10)}`"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "active",
+              "fieldName": "active"
+            },
+            {
+              "name": "type",
+              "fieldName": "type"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "DisabledWithTabIndexMixin",
+              "package": "@lion/core"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "@lion/core"
+          },
+          "tagName": "lion-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButton",
+          "declaration": {
+            "name": "LionButton",
+            "module": "src/LionButton.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButtonReset.d.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "This adds functionality for form buttons (type 'submit' and 'reset').\nIt allows to submit or reset a <form> by spawning a click on a temporrary native button inside\nthe form.\nUse LionButtonSubmit when implicit form submission should be supported as well.\n\nFunctionality in this button is not purely for type=\"reset\", also for type=\"submit\".\nFor mainainability purposes the submit functionality is part of LionButtonReset\n(it needs the same logic).\nLionButtonReset could therefore actually be considered as 'LionButtonForm' (without the\nimplicit form submission logic), but LionButtonReset is an easier to grasp name for\nApplication Developers: for reset buttons, always use LionButtonReset, for submit\nbuttons always use LionButtonSubmit.",
+          "name": "LionButtonReset",
+          "members": [
+            {
+              "kind": "field",
+              "name": "__submitAndResetHelperButton",
+              "type": {
+                "text": "HTMLButtonElement"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__preventEventLeakage",
+              "privacy": "private",
+              "description": "Prevents that someone who listens outside or on form catches the click event",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_setupSubmitAndResetHelperOnConnected",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_form",
+              "type": {
+                "text": "HTMLFormElement|null"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_teardownSubmitAndResetHelperOnDisconnected",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__clickDelegationHandler",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Delegate click, by flashing a native button as a direct child\nof the form, and firing click on this button. This will fire the form submit\nwithout side effects caused by the click bubbling back up to lion-button."
+            },
+            {
+              "kind": "field",
+              "name": "__setupDelegationInConstructor",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "__setupEvents",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__mousedownHandler",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keydownHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keyupHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "default": "'button'",
+              "privacy": "public",
+              "attribute": "type",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "active",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "default": "`button-${Math.random().toString(36).substr(2, 10)}`",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ],
+          "superclass": {
+            "name": "LionButton",
+            "module": "/src/LionButton.js"
+          },
+          "tagName": "lion-button-reset",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "active",
+              "fieldName": "active",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "name": "type",
+              "fieldName": "type",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonReset",
+          "declaration": {
+            "name": "LionButtonReset",
+            "module": "src/LionButtonReset.d.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButtonReset.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "This adds functionality for form buttons (type 'submit' and 'reset').\nIt allows to submit or reset a <form> by spawning a click on a temporrary native button inside\nthe form.\nUse LionButtonSubmit when implicit form submission should be supported as well.\n\nFunctionality in this button is not purely for type=\"reset\", also for type=\"submit\".\nFor mainainability purposes the submit functionality is part of LionButtonReset\n(it needs the same logic).\nLionButtonReset could therefore actually be considered as 'LionButtonForm' (without the\nimplicit form submission logic), but LionButtonReset is an easier to grasp name for\nApplication Developers: for reset buttons, always use LionButtonReset, for submit\nbuttons always use LionButtonSubmit.",
+          "name": "LionButtonReset",
+          "members": [
+            {
+              "kind": "method",
+              "name": "__preventEventLeakage",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Prevents that someone who listens outside or on form catches the click event",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_setupSubmitAndResetHelperOnConnected",
+              "privacy": "protected"
+            },
+            {
+              "kind": "method",
+              "name": "_teardownSubmitAndResetHelperOnDisconnected",
+              "privacy": "protected"
+            },
+            {
+              "kind": "method",
+              "name": "__clickDelegationHandler",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Delegate click, by flashing a native button as a direct child\nof the form, and firing click on this button. This will fire the form submit\nwithout side effects caused by the click bubbling back up to lion-button.",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupDelegationInConstructor",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "default": "'reset'",
+              "privacy": "public",
+              "attribute": "type",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__submitAndResetHelperButton",
+              "type": {
+                "text": "HTMLButtonElement"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupEvents",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__mousedownHandler",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keydownHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keyupHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "active",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "default": "`button-${Math.random().toString(36).substr(2, 10)}`",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ],
+          "superclass": {
+            "name": "LionButton",
+            "module": "/src/LionButton.js"
+          },
+          "tagName": "lion-button-reset",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "active",
+              "fieldName": "active",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "name": "type",
+              "fieldName": "type",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonReset",
+          "declaration": {
+            "name": "LionButtonReset",
+            "module": "src/LionButtonReset.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButtonSubmit.d.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Contains all the funcionaility of LionButton and LionButtonReset. On top of that it\nsupports implicit form submission.\n\nUse when:\n- the Application Developer should be able to switch types between 'submit'|'reset'|'button'\n(this is similar to how native HTMLButtonElement works)\n- a submit button with native form support is needed",
+          "name": "LionButtonSubmit",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_nativeButtonNode",
+              "type": {
+                "text": "HTMLButtonElement|null"
+              },
+              "privacy": "protected"
+            },
+            {
+              "kind": "field",
+              "name": "__implicitSubmitHelperButton",
+              "type": {
+                "text": "HTMLButtonElement|null"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__preventEventLeakage",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Prevents that someone who listens outside or on form catches the click event",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_setupSubmitAndResetHelperOnConnected",
+              "privacy": "protected",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_teardownSubmitAndResetHelperOnDisconnected",
+              "privacy": "protected",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__clickDelegationHandler",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Delegate click, by flashing a native button as a direct child\nof the form, and firing click on this button. This will fire the form submit\nwithout side effects caused by the click bubbling back up to lion-button.",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupDelegationInConstructor",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "default": "'reset'",
+              "privacy": "public",
+              "attribute": "type",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__submitAndResetHelperButton",
+              "type": {
+                "text": "HTMLButtonElement"
+              },
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupEvents",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__mousedownHandler",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keydownHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keyupHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "active",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "default": "`button-${Math.random().toString(36).substr(2, 10)}`",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ],
+          "superclass": {
+            "name": "LionButtonReset",
+            "module": "/src/LionButtonReset.js"
+          },
+          "tagName": "lion-button-submit",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "active",
+              "fieldName": "active",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "name": "type",
+              "fieldName": "type",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonSubmit",
+          "declaration": {
+            "name": "LionButtonSubmit",
+            "module": "src/LionButtonSubmit.d.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/LionButtonSubmit.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Contains all the funcionaility of LionButton and LionButtonReset. On top of that it\nsupports implicit form submission.\n\nUse when:\n- the Application Developer should be able to switch types between 'submit'|'reset'|'button'\n(this is similar to how native HTMLButtonElement works)\n- a submit button with native form support is needed",
+          "name": "LionButtonSubmit",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_nativeButtonNode",
+              "type": {
+                "text": "HTMLButtonElement|null"
+              },
+              "privacy": "protected"
+            },
+            {
+              "kind": "method",
+              "name": "_setupSubmitAndResetHelperOnConnected",
+              "privacy": "protected",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_teardownSubmitAndResetHelperOnDisconnected",
+              "privacy": "protected",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "default": "'submit'",
+              "privacy": "public",
+              "attribute": "type",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__implicitSubmitHelperButton",
+              "type": {
+                "text": "HTMLButtonElement|null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "method",
+              "name": "__preventEventLeakage",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Prevents that someone who listens outside or on form catches the click event",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__clickDelegationHandler",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Delegate click, by flashing a native button as a direct child\nof the form, and firing click on this button. This will fire the form submit\nwithout side effects caused by the click bubbling back up to lion-button.",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupDelegationInConstructor",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__submitAndResetHelperButton",
+              "type": {
+                "text": "HTMLButtonElement"
+              },
+              "inheritedFrom": {
+                "name": "LionButtonReset",
+                "module": "src/LionButtonReset.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__setupEvents",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__mousedownHandler",
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keydownHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "__keyupHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "privacy": "private",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "active",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "active",
+              "reflects": true,
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_buttonId",
+              "default": "`button-${Math.random().toString(36).substr(2, 10)}`",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ],
+          "superclass": {
+            "name": "LionButtonReset",
+            "module": "/src/LionButtonReset.js"
+          },
+          "tagName": "lion-button-submit",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "active",
+              "fieldName": "active",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            },
+            {
+              "name": "type",
+              "fieldName": "type",
+              "inheritedFrom": {
+                "name": "LionButton",
+                "module": "src/LionButton.js"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonSubmit",
+          "declaration": {
+            "name": "LionButtonSubmit",
+            "module": "src/LionButtonSubmit.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test/demos.screenshots-test.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test/demos.screenshots-test.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test/lion-button.test.d.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test-suites/LionButton.suite.d.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "LionButtonSuite",
+          "return": {
+            "type": {
+              "text": "void"
+            }
+          },
+          "parameters": [
+            {
+              "name": "{ klass }",
+              "optional": true,
+              "type": {
+                "text": "{\n    klass?: typeof LionButton | undefined;\n}"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonSuite",
+          "declaration": {
+            "name": "LionButtonSuite",
+            "module": "test-suites/LionButton.suite.d.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test-suites/LionButtonReset.suite.d.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "LionButtonResetSuite",
+          "return": {
+            "type": {
+              "text": "void"
+            }
+          },
+          "parameters": [
+            {
+              "name": "{ klass }",
+              "optional": true,
+              "type": {
+                "text": "{\n    klass?: typeof LionButtonReset | undefined;\n}"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonResetSuite",
+          "declaration": {
+            "name": "LionButtonResetSuite",
+            "module": "test-suites/LionButtonReset.suite.d.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "test-suites/LionButtonSubmit.suite.d.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "LionButtonSubmitSuite",
+          "return": {
+            "type": {
+              "text": "void"
+            }
+          },
+          "parameters": [
+            {
+              "name": "{ klass }",
+              "optional": true,
+              "type": {
+                "text": "{\n    klass?: typeof LionButtonSubmit | undefined;\n}"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "LionButtonSubmitSuite",
+          "declaration": {
+            "name": "LionButtonSubmitSuite",
+            "module": "test-suites/LionButtonSubmit.suite.d.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

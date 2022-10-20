@@ -50,7 +50,10 @@ export const renderElement = ({
   );
 
   if (declaration === undefined || declaration.kind !== 'class') {
-    return html`<h1>Error</h1>`;
+    return html`
+      <h1>Error</h1>
+      <h2>Element declaration not found</h2>
+    `;
   }
 
   return html`
