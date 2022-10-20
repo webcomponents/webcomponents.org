@@ -3,13 +3,14 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
+import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
 import Router from '@koa/router';
 import {gql} from '@apollo/client/core/index.js';
 import {renderPage} from '../../../templates/base.js';
 import {renderElement} from './element-template.js';
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
-import { client } from '../../graphql.js';
+import {client} from '../../graphql.js';
+import {Readable} from 'stream';
 
 export const handleElementRoute = async (
   context: ParameterizedContext<
@@ -76,15 +77,18 @@ export const handleElementRoute = async (
     throw new Error('Internal error');
   }
 
-  const content = renderElement({
-    packageName: packageName,
-    elementName: elementName,
-    declarationReference: customElement.declaration,
-    customElementExport: customElement.export,
-    manifest: customElementsManifest,
-  });
-
-  context.body = renderPage({title: `${packageName}/${elementName}`, content});
+  context.body = Readable.from(renderPage({
+    title: `${packageName}/${elementName}`,
+    content: render(
+      renderElement({
+        packageName: packageName,
+        elementName: elementName,
+        declarationReference: customElement.declaration,
+        customElementExport: customElement.export,
+        manifest: customElementsManifest,
+      })
+    ),
+  }));
   context.type = 'html';
   context.status = 200;
 };
