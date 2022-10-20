@@ -9,6 +9,6 @@ module.exports = {
     const {renderPage} = await import(
       '@webcomponents/internal-site-server/lib/templates/base.js'
     );
-    return renderPage(data);
+    return [...renderPage(data)].join('');
   },
 };

@@ -5,12 +5,12 @@
  */
 import {escapeHTML} from '../catalog/escape-html.js';
 
-export const renderPage = (data: {
+export function* renderPage(data: {
   scripts?: Array<string>;
   title?: string;
-  content?: string;
-}) => {
-  return `<!doctype html>
+  content: string | Iterable<string>;
+}) {
+  yield `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -27,11 +27,15 @@ export const renderPage = (data: {
          compiled any process access out. DO_NOT_LAUNCH -->
     <script>
       window.process = {env: {NODE_ENV: 'development'}};
-    </script>
-    ${(data.scripts ?? [])
-      .map((s) => `<script type="module" src="${s}"></script>`)
-      .join('\n')}
-    <style>
+    </script>`;
+
+  if (data.scripts !== undefined) {
+    yield* data.scripts.map(
+      (s) => `<script type="module" src="${s}"></script>`
+    );
+  }
+
+  yield `<style>
       body {
         margin: 0;
         --mdc-typography-font-family: 'Open Sans', Arial, Helvetica, sans-serif;
@@ -48,9 +52,14 @@ export const renderPage = (data: {
     <title>${escapeHTML(data.title)}</title>
   </head>
   <body>
-    <wco-top-bar></wco-top-bar>
-    ${data.content}
+    <wco-top-bar></wco-top-bar>`;
+  if (typeof data.content === 'string') {
+    yield data.content;
+  } else {
+    yield* data.content;
+  }
+  yield `
   </body>
 </html>
 `;
-};
+}
