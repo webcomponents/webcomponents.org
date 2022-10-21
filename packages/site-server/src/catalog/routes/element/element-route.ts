@@ -3,14 +3,16 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
-import Router from '@koa/router';
-import {gql} from '@apollo/client/core/index.js';
-import {renderPage} from '../../../templates/base.js';
-import {renderElement} from './element-template.js';
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
-import {client} from '../../graphql.js';
 import {Readable} from 'stream';
+import {gql} from '@apollo/client/core/index.js';
+import Router from '@koa/router';
+import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
+import '@webcomponents/internal-site-client/lib/entrypoints/element.js';
+
+import {renderPage} from '../../../templates/base.js';
+import {client} from '../../graphql.js';
+import {renderElement} from './element-template.js';
 
 export const handleElementRoute = async (
   context: ParameterizedContext<
