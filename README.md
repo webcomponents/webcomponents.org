@@ -38,7 +38,7 @@ Using Docker locally gives you the most realistic simulation of a production
 environment:
 
 ```sh
-npm run serve:docker
+npm run start:docker
 ```
 
 ## Ports
