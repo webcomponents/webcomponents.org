@@ -81,6 +81,7 @@ export const handleElementRoute = async (
   context.body = Readable.from(renderPage({
     title: `${packageName}/${elementName}`,
     scripts: [
+      '/js/hydrate.js',
       '/js/element.js'
     ],
     content: render(
