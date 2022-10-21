@@ -4,5 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../components/wco-catalog-search.js';
-import '../components/wco-top-bar.js';
+import '../components/wco-catalog-page.js';
