@@ -3,15 +3,19 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+
+// This must be imported before lit
+import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
+
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
+import {html} from 'lit';
 import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
-import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
 
+import '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 import {renderPage} from '../../../templates/base.js';
 import {client} from '../../graphql.js';
-import {renderElement} from './element-template.js';
 
 export const handleElementRoute = async (
   context: ParameterizedContext<
@@ -78,22 +82,26 @@ export const handleElementRoute = async (
     throw new Error('Internal error');
   }
 
-  context.body = Readable.from(renderPage({
-    title: `${packageName}/${elementName}`,
-    scripts: [
-      '/js/hydrate.js',
-      '/js/element.js'
-    ],
-    content: render(
-      renderElement({
-        packageName: packageName,
-        elementName: elementName,
-        declarationReference: customElement.declaration,
-        customElementExport: customElement.export,
-        manifest: customElementsManifest,
-      })
-    ),
-  }));
+  const elementData = {
+    packageName: packageName,
+    elementName: elementName,
+    declarationReference: customElement.declaration,
+    customElementExport: customElement.customElementExport,
+    manifest: customElementsManifest,
+  };
+
   context.type = 'html';
   context.status = 200;
+  context.body = Readable.from(
+    renderPage({
+      title: `${packageName}/${elementName}`,
+      scripts: ['/js/hydrate.js', '/js/element.js'],
+      // TODO (justinfagnani): If we want to hydrate, we need to serialize the
+      // initial data and embed in the response
+      content: render(
+        html`<wco-element-page .elementData=${elementData}></wco-element-page>`,
+        {deferHydration: true}
+      ),
+    })
+  );
 };

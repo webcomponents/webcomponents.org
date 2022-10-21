@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../components/wco-top-bar.js';
+import '../components/wco-element-page.js';
