@@ -8,12 +8,11 @@
 import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
 
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
-import {html} from 'lit';
 import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
 
-import '@webcomponents/internal-site-client/lib/entrypoints/element.js';
+import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 import {renderPage} from '../../../templates/base.js';
 import {client} from '../../graphql.js';
 
@@ -96,12 +95,11 @@ export const handleElementRoute = async (
     renderPage({
       title: `${packageName}/${elementName}`,
       scripts: ['/js/hydrate.js', '/js/element.js'],
-      // TODO (justinfagnani): If we want to hydrate, we need to serialize the
-      // initial data and embed in the response
-      content: render(
-        html`<wco-element-page .elementData=${elementData}></wco-element-page>`,
-        {deferHydration: true}
-      ),
+      initScript: '/js/element-hydrate.js',
+      content: render(renderElementPage(elementData), {deferHydration: true}),
+      initialData: [
+        elementData
+      ],
     })
   );
 };

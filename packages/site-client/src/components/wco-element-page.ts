@@ -41,7 +41,7 @@ export class WCOElementPage extends LitElement {
     }
   `;
 
-  @property()
+  @property({attribute: false})
   elementData?: ElementData;
 
   render() {
