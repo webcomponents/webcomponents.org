@@ -11,8 +11,6 @@
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
-    "serve:dev": "wireit",
-    "serve:prod": "wireit",
     "serve:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
     "watch:dev": "npm run build:dev && (npm run serve:dev > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:dev --watch)",
     "watch:prod": "npm run build:prod && (npm run serve:prod & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
@@ -47,23 +45,6 @@
       "dependencies": [
         "./packages/custom-elements-manifest-tools:test",
         "./packages/catalog-server:test"
-      ]
-    },
-    "serve:prod": {
-      "command": "node packages/site-server/lib/prod-server.js",
-      "files": [],
-      "output": [],
-      "dependencies": [
-        "./packages/site-server:build",
-        "./packages/site-content:build:prod"
-      ]
-    },
-    "serve:dev": {
-      "command": "node --enable-source-maps packages/site-server/lib/dev-server.js",
-      "files": [],
-      "output": [],
-      "dependencies": [
-        "build:dev"
       ]
     },
     "build:prod": {

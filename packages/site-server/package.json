@@ -9,7 +9,8 @@
   "scripts": {
     "build": "wireit",
     "check": "wireit",
-    "serve:dev": "wireit"
+    "serve:dev": "wireit",
+    "serve:prod": "wireit"
   },
   "wireit": {
     "build": {
@@ -36,6 +37,12 @@
     },
     "serve:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
+      "dependencies": [
+        "build"
+      ]
+    },
+    "serve:prod": {
+      "command": "node --enable-source-maps ./lib/prod-server.js",
       "dependencies": [
         "build"
       ]
