@@ -9,6 +9,16 @@ module.exports = {
     const {renderPage} = await import(
       '@webcomponents/internal-site-server/lib/templates/base.js'
     );
-    return [...renderPage(data)].join('');
+    // TODO (justinfagnani): move the top-bar to a real template or
+    // back into the base template when we enable 11ty / Lit SSR integration
+    return [
+      ...renderPage({
+        ...data,
+        content: `
+    <wco-top-bar></wco-top-bar>
+    ${data.content}
+    `,
+      }),
+    ].join('');
   },
 };

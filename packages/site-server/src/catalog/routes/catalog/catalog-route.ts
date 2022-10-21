@@ -22,6 +22,7 @@ export const handleCatalogRoute = async (
       '/js/catalog.js'
     ],
     content: `
+    <wco-top-bar></wco-top-bar>
     <h1>Catalog</h1>
     <wco-catalog-search></wco-catalog-search>
   `,

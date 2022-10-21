@@ -8,7 +8,6 @@ import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
 import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
-import '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 
 import {renderPage} from '../../../templates/base.js';
 import {client} from '../../graphql.js';

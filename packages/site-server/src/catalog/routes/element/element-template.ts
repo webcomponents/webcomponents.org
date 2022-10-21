@@ -12,6 +12,7 @@ import {
   resolveReference,
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
+import '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 
 export const renderElement = ({
   packageName,
@@ -57,6 +58,7 @@ export const renderElement = ({
   }
 
   return html`
+    <wco-top-bar></wco-top-bar>
     <h1>${packageName}/${elementName}</h1>
     ${declaration.description}
     <h2>Usage</h2>
