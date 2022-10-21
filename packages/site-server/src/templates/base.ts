@@ -9,6 +9,8 @@ export function* renderPage(data: {
   scripts?: Array<string>;
   title?: string;
   content: string | Iterable<string>;
+  initialData?: object;
+  initScript?: string;
 }) {
   yield `<!doctype html>
 <html lang="en">
@@ -58,6 +60,17 @@ export function* renderPage(data: {
   } else {
     yield* data.content;
   }
+
+  if (data.initialData !== undefined) {
+    yield `<script>window.__ssrData = ${JSON.stringify(
+      data.initialData
+    ).replace(/</g, '\\u003c')}</script>`;
+  }
+
+  if (data.initScript !== undefined) {
+    yield `<script type="module" src="${data.initScript}"></script>`;
+  }
+
   yield `
   </body>
 </html>
