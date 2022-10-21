@@ -88,6 +88,7 @@
     "@types/natural": "^5.1.1",
     "@webcomponents/catalog-api": "0.0.0",
     "@webcomponents/custom-elements-manifest-tools": "0.0.0",
+    "@webcomponents/internal-site-client": "0.0.0",
     "custom-elements-manifest": "^2.0.0",
     "firebase": "^9.6.10",
     "firebase-admin": "^11.0.0",
