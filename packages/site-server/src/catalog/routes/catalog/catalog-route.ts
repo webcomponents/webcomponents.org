@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// This must be imported before lit
+import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
+
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import {html} from 'lit';
 import {Readable} from 'stream';
 import Router from '@koa/router';
-import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
 
 import '@webcomponents/internal-site-client/lib/entrypoints/catalog.js';
 import {renderPage} from '../../../templates/base.js';
