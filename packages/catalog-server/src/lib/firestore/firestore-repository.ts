@@ -333,6 +333,7 @@ export class FirestoreRepository implements Repository {
       ];
 
       batch.create(customElementsRef.doc(), {
+        namespace: this.namespace,
         package: packageName,
         version,
         distTags,
@@ -506,6 +507,7 @@ export class FirestoreRepository implements Repository {
       .collectionGroup('customElements')
       .withConverter(customElementConverter)
       .where('isLatest', '==', true)
+      .where('namespace', '==', this.namespace)
       .limit(limit ?? 25);
 
     if (query !== undefined) {
