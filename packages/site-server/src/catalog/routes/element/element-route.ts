@@ -79,6 +79,9 @@ export const handleElementRoute = async (
 
   context.body = Readable.from(renderPage({
     title: `${packageName}/${elementName}`,
+    scripts: [
+      '/js/element.js'
+    ],
     content: render(
       renderElement({
         packageName: packageName,
