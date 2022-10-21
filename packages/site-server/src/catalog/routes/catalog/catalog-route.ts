@@ -26,11 +26,7 @@ export const handleCatalogRoute = async (
     renderPage({
       title: `Web Components Catalog`,
       scripts: ['/js/hydrate.js', '/js/catalog.js'],
-      content: render(html`
-        <wco-top-bar></wco-top-bar>
-        <h1>Catalog</h1>
-        <wco-catalog-search></wco-catalog-search>
-      `),
+      content: render(html`<wco-catalog-page></wco-catalog-page>`),
     })
   );
   context.type = 'html';
