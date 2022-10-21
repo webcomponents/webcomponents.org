@@ -52,7 +52,7 @@ export function* renderPage(data: {
     <title>${escapeHTML(data.title)}</title>
   </head>
   <body>
-    <wco-top-bar></wco-top-bar>`;
+`;
   if (typeof data.content === 'string') {
     yield data.content;
   } else {
