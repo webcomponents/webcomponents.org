@@ -38,7 +38,9 @@
       "dependencies": [
         "./packages/custom-elements-manifest-tools:build",
         "./packages/catalog-api:build",
-        "./packages/catalog-server:build"
+        "./packages/catalog-server:build",
+        "./packages/site-content:build",
+        "./packages/site-client:build"
       ]
     },
     "test": {
