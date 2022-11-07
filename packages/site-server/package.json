@@ -56,7 +56,11 @@
         "../../tsconfig.base.json",
         "src/**/*.ts"
       ],
-      "output": []
+      "output": [],
+      "dependencies": [
+        "../site-client:build:types",
+        "../site-content:build:templates:types"
+      ]
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",

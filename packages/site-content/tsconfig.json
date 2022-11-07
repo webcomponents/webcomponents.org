@@ -2,11 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "templates/src",
-    "noEmit": true,
+    "outDir": "templates/lib",
     "tsBuildInfoFile": "tsconfig.tsbuildinfo",
     "module": "esnext",
     "moduleResolution": "node",
-},
+    "emitDeclarationOnly": true
+  },
   "include": ["templates/src/**/*.ts"],
   "exclude": []
 }
