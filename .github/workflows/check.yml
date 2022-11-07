@@ -1,0 +1,24 @@
+name: Check
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - uses: google/wireit@setup-github-actions-caching/v1
+
+      - name: NPM install
+        run: npm ci
+
+      - name: Check
+        run: npm run check
