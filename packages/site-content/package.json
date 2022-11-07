@@ -8,21 +8,23 @@
   "type": "module",
   "scripts": {
     "build:prod": "wireit",
-    "build:dev": "wireit"
+    "build:dev": "wireit",
+    "build:templates": "wireit",
+    "check": "wireit",
+    "check:templates:types": "wireit"
   },
   "wireit": {
     "build:prod": {
       "command": "eleventy --config=eleventy.config.prod.cjs",
       "files": [
         "eleventy.config.prod.cjs",
-        "site",
-        "../site-server/lib/templates/**/*.js"
+        "site"
       ],
       "output": [
         "_site"
       ],
       "dependencies": [
-        "../site-server:build",
+        "build:templates",
         "../site-client:build:prod"
       ]
     },
@@ -31,15 +33,36 @@
       "files": [
         "eleventy.config.dev.cjs",
         "site",
-        "!site/assets",
-        "../site-server/lib/templates/**/*.js"
+        "!site/assets"
       ],
       "output": [
         "_dev"
       ],
       "dependencies": [
-        "../site-server:build"
+        "build:templates"
       ]
+    },
+    "build:templates": {
+      "command": "find templates/src -name \"*.ts\" | xargs esbuild --color --outdir=templates/lib",
+      "files": [
+        "templates/src/**/*.ts"
+      ],
+      "output": [
+        "templates/lib"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check": {
+      "dependencies": ["check:templates:types"]
+    },
+    "check:templates:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "tsconfig.json",
+        "../../tsconfig.base.json",
+        "templates/src/**/*.ts"
+      ],
+      "output": []
     }
   },
   "dependencies": {

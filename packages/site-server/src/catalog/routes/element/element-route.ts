@@ -13,7 +13,7 @@ import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
 
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
-import {renderPage} from '../../../templates/base.js';
+import {renderPage} from '@webcomponents/internal-site-content/templates/lib/base.js';
 import {client} from '../../graphql.js';
 
 export const handleElementRoute = async (

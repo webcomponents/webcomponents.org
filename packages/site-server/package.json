@@ -18,7 +18,8 @@
       "dependencies": [
         "../site-client:build:dev",
         "../custom-elements-manifest-tools:build",
-        "../site-client:build"
+        "../site-client:build",
+        "../site-content:build:templates"
       ],
       "files": [
         "src/**/*.ts"
