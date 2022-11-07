@@ -25,10 +25,10 @@ export class WCOTopBar extends LitElement {
       font-weight: 500;
       color: #222;
     }
-    
+
     #title {
       font-size: 1.5rem;
-      letter-spacing: .05em;
+      letter-spacing: 0.05em;
       text-transform: lowercase;
     }
 
@@ -56,7 +56,7 @@ export class WCOTopBar extends LitElement {
       font-size: 1.25rem;
     }
 
-    nav > a {      
+    nav > a {
       display: flex;
       align-items: center;
       height: 100%;
@@ -68,7 +68,6 @@ export class WCOTopBar extends LitElement {
     nav > a:hover {
       background: #00000008;
     }
-
   `;
 
   render() {

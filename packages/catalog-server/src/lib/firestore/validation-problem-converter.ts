@@ -9,9 +9,7 @@ import {
   FirestoreDataConverter,
   QueryDocumentSnapshot,
 } from '@google-cloud/firestore';
-import type {
-  ValidationProblem
-} from '@webcomponents/catalog-api/lib/schema.js';
+import type {ValidationProblem} from '@webcomponents/catalog-api/lib/schema.js';
 
 export const validationProblemConverter: FirestoreDataConverter<ValidationProblem> =
   {

@@ -97,9 +97,7 @@ export const handleElementRoute = async (
       scripts: ['/js/hydrate.js', '/js/element.js'],
       initScript: '/js/element-hydrate.js',
       content: render(renderElementPage(elementData), {deferHydration: true}),
-      initialData: [
-        elementData
-      ],
+      initialData: [elementData],
     })
   );
 };
