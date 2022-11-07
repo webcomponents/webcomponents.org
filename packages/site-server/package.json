@@ -8,17 +8,37 @@
   "type": "module",
   "scripts": {
     "build": "wireit",
+    "build:dev": "wireit",
+    "build:prod": "wireit",
+    "build:server": "wireit",
     "check": "wireit",
     "start:dev": "wireit",
     "start:prod": "wireit"
   },
   "wireit": {
     "build": {
+      "dependencies": [
+        "build:dev",
+        "build:prod"
+      ]
+    },
+    "build:dev": {
+      "dependencies": [
+        "build:server",
+        "../site-content:build:dev"
+      ]
+    },
+    "build:prod": {
+      "dependencies": [
+        "build:server",
+        "../site-content:build:prod"
+      ]
+    },
+    "build:server": {
       "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
       "dependencies": [
         "../site-client:build:dev",
         "../custom-elements-manifest-tools:build",
-        "../site-client:build",
         "../site-content:build:templates"
       ],
       "files": [
@@ -41,13 +61,13 @@
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
       "dependencies": [
-        "build"
+        "build:dev"
       ]
     },
     "start:prod": {
       "command": "node --enable-source-maps ./lib/prod-server.js",
       "dependencies": [
-        "build"
+        "build:prod"
       ]
     }
   },
