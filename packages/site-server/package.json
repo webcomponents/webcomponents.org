@@ -16,6 +16,7 @@
     "build": {
       "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
       "dependencies": [
+        "../site-client:build:dev",
         "../custom-elements-manifest-tools:build",
         "../site-client:build"
       ],

@@ -30,6 +30,10 @@
       "output": [
         "lib"
       ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
+      ],
       "clean": "if-file-deleted"
     },
     "build:prod": {
@@ -39,6 +43,10 @@
       ],
       "output": [
         "bundled"
+      ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
       ],
       "clean": "if-file-deleted"
     },
