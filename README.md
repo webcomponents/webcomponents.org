@@ -20,17 +20,26 @@ This monorepo contains several npm packages:
 ## Quick Start
 
 1. Install dependencies:
+
    ```bash
    npm ci
    ```
+
 2. Run tests:
+
    ```bash
    npm test
    ```
+
 3. Start everything in development mode and watch for changes:
+
    ```bash
    npm run watch:dev
    ```
+
+4. Visit [`http://localhost:6451/bootstrap-packages`](http://localhost:6451/bootstrap-packages) to bootstrap the database with a default set of elements.
+
+5. Visit [`http://localhost:5450/catalog`](http://localhost:5450/catalog) and search for "button" to see example elements.
 
 ## Docker
 
