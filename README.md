@@ -29,7 +29,7 @@ This monorepo contains several npm packages:
    ```
 3. Start everything in development mode and watch for changes:
    ```bash
-   npm watch:dev
+   npm run watch:dev
    ```
 
 ## Docker
