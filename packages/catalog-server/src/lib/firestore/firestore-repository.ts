@@ -52,10 +52,10 @@ export class FirestoreRepository implements Repository {
    * A namespace suffix to apply to the 'packages' collection to support
    * multi-tenant-like separation of the database. Used for testing.
    */
-  private readonly namespace?: string;
+  private readonly namespace: string | null;
 
   constructor(namespace?: string) {
-    this.namespace = namespace;
+    this.namespace = namespace ?? null;
   }
 
   async startPackageImport(packageName: string): Promise<void> {
