@@ -46,13 +46,13 @@
       ]
     },
     "start:dev": {
-      "command": "FIRESTORE_EMULATOR_HOST=localhost:8088 npm start",
+      "command": "FIRESTORE_EMULATOR_HOST=localhost:7450 npm start",
       "dependencies": [
         "build"
       ]
     },
     "test": {
-      "command": "NODE_OPTIONS=--enable-source-maps FIRESTORE_EMULATOR_HOST=localhost:8088 uvu test \"_test\\.js$\"",
+      "command": "NODE_OPTIONS=--enable-source-maps FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"_test\\.js$\"",
       "dependencies": [
         "build",
         "emulators:start"
@@ -70,7 +70,7 @@
       ]
     },
     "test:manual": {
-      "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:8088 uvu test \"_test\\.js$\"",
+      "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"_test\\.js$\"",
       "dependencies": [
         "build"
       ],

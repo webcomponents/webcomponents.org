@@ -4,7 +4,7 @@
       "port": 9099
     },
     "firestore": {
-      "port": 8088,
+      "port": 7450,
       "host": "0.0.0.0"
     },
     "ui": {

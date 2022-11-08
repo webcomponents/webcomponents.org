@@ -9,7 +9,7 @@ services:
       context: ../
       dockerfile: docker/firestore-emulator/Dockerfile
     ports:
-      - 8088:8088
+      - 7450:7450
 
   catalog:
     depends_on:
@@ -19,7 +19,7 @@ services:
       dockerfile: docker/catalog/Dockerfile
     environment:
       - PORT=6452
-      - FIRESTORE_EMULATOR_HOST=firestore-emulator:8088
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:7450
     ports:
       - 6452:6452
 
