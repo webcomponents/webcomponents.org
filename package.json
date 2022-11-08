@@ -39,12 +39,14 @@
     "start-and-check:dev": {
       "dependencies": [
         "./packages/site-server:start:dev",
+        "./packages/catalog-server:start:dev",
         "check"
       ]
     },
     "start-and-check:prod": {
       "dependencies": [
         "./packages/site-server:start:prod",
+        "./packages/catalog-server:start:dev",
         "check"
       ]
     },

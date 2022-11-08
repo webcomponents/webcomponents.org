@@ -41,14 +41,17 @@
     },
     "start": {
       "command": "node --enable-source-maps index.js",
+      "service": true,
       "dependencies": [
         "build"
       ]
     },
     "start:dev": {
       "command": "FIRESTORE_EMULATOR_HOST=localhost:7450 npm start",
+      "service": true,
       "dependencies": [
-        "build"
+        "build",
+        "emulators:start"
       ]
     },
     "test": {
