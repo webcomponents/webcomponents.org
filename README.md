@@ -34,7 +34,7 @@ This monorepo contains several npm packages:
 3. Start everything in development mode and watch for changes:
 
    ```bash
-   npm run watch:dev
+   npm start --watch
    ```
 
 4. Visit [`http://localhost:6451/bootstrap-packages`](http://localhost:6451/bootstrap-packages) to bootstrap the database with a default set of elements.

@@ -11,11 +11,9 @@
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
+    "start": "wireit",
+    "start:prod": "wireit",
     "start:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
-    "watch:dev": "npm run start-and-check:dev --watch",
-    "watch:prod": "npm run start-and-check:prod --watch",
-    "start-and-check:dev": "wireit",
-    "start-and-check:prod": "wireit",
     "check": "wireit",
     "check:lint": "wireit",
     "build-and-check:dev": "wireit",
@@ -36,14 +34,14 @@
     "wireit": "^0.7.3-pre.3"
   },
   "wireit": {
-    "start-and-check:dev": {
+    "start": {
       "dependencies": [
         "./packages/site-server:start:dev",
         "./packages/catalog-server:start:dev",
         "check"
       ]
     },
-    "start-and-check:prod": {
+    "start:prod": {
       "dependencies": [
         "./packages/site-server:start:prod",
         "./packages/catalog-server:start:dev",
