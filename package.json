@@ -12,8 +12,10 @@
     "build:dev": "wireit",
     "build:prod": "wireit",
     "start:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
-    "watch:dev": "npm run build:dev && (npm run start:dev > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:dev --watch)",
-    "watch:prod": "npm run build:prod && (npm run start:prod & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
+    "watch:dev": "npm run start-and-check:dev --watch",
+    "watch:prod": "npm run start-and-check:prod --watch",
+    "start-and-check:dev": "wireit",
+    "start-and-check:prod": "wireit",
     "check": "wireit",
     "check:lint": "wireit",
     "build-and-check:dev": "wireit",
@@ -34,6 +36,18 @@
     "wireit": "^0.7.3-pre.3"
   },
   "wireit": {
+    "start-and-check:dev": {
+      "dependencies": [
+        "./packages/site-server:start:dev",
+        "check"
+      ]
+    },
+    "start-and-check:prod": {
+      "dependencies": [
+        "./packages/site-server:start:prod",
+        "check"
+      ]
+    },
     "build": {
       "dependencies": [
         "./packages/custom-elements-manifest-tools:build",

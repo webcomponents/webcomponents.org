@@ -64,12 +64,14 @@
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
+      "service": true,
       "dependencies": [
         "build:dev"
       ]
     },
     "start:prod": {
       "command": "node --enable-source-maps ./lib/prod-server.js",
+      "service": true,
       "dependencies": [
         "build:prod"
       ]
