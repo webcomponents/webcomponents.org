@@ -11,9 +11,9 @@
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
+    "start": "wireit",
+    "start:prod": "wireit",
     "start:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
-    "watch:dev": "npm run build:dev && (npm run start:dev > /dev/null 2>&1 & WIREIT_FAILURES=continue npm run build-and-check:dev --watch)",
-    "watch:prod": "npm run build:prod && (npm run start:prod & WIREIT_FAILURES=continue npm run build-and-check:prod --watch)",
     "check": "wireit",
     "check:lint": "wireit",
     "build-and-check:dev": "wireit",
@@ -31,14 +31,30 @@
     "eslint-plugin-no-only-tests": "^3.0.0",
     "prettier": "^2.7.1",
     "typescript": "~4.8.2",
-    "wireit": "^0.7.2"
+    "wireit": "^0.7.3-pre.3"
   },
   "wireit": {
+    "start": {
+      "dependencies": [
+        "./packages/site-server:start:dev",
+        "./packages/catalog-server:start:dev",
+        "check"
+      ]
+    },
+    "start:prod": {
+      "dependencies": [
+        "./packages/site-server:start:prod",
+        "./packages/catalog-server:start:dev",
+        "check"
+      ]
+    },
     "build": {
       "dependencies": [
         "./packages/custom-elements-manifest-tools:build",
         "./packages/catalog-api:build",
-        "./packages/catalog-server:build"
+        "./packages/catalog-server:build",
+        "./packages/site-content:build",
+        "./packages/site-client:build"
       ]
     },
     "test": {

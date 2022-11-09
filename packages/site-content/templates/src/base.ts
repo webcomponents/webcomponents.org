@@ -3,7 +3,7 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-import {escapeHTML} from '../catalog/escape-html.js';
+import {escapeHTML} from './escape-html.js';
 
 export function* renderPage(data: {
   scripts?: Array<string>;

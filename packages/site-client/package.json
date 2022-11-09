@@ -10,6 +10,7 @@
     "build": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
+    "build:types": "wireit",
     "check": "wireit",
     "check:types": "wireit",
     "check:lit-analyzer": "wireit"
@@ -19,7 +20,7 @@
       "dependencies": [
         "build:dev",
         "build:prod",
-        "check:types"
+        "build:types"
       ]
     },
     "build:dev": {
@@ -28,7 +29,11 @@
         "src/**/*.ts"
       ],
       "output": [
-        "lib"
+        "lib/**/*.js"
+      ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
       ],
       "clean": "if-file-deleted"
     },
@@ -40,6 +45,25 @@
       "output": [
         "bundled"
       ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib/**/*.d.ts",
+        "tsconfig.tsbuildinfo"
+      ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
+      ],
       "clean": "if-file-deleted"
     },
     "check": {
@@ -49,13 +73,9 @@
       ]
     },
     "check:types": {
-      "command": "tsc --pretty",
-      "files": [
-        "tsconfig.json",
-        "../../tsconfig.base.json",
-        "src/**/*.ts"
-      ],
-      "output": []
+      "dependencies": [
+        "build:types"
+      ]
     },
     "check:lit-analyzer": {
       "command": "lit-analyzer --strict --color --rules.no-unknown-tag-name=error --rules.no-missing-import=error --rules.no-missing-element-type-definition=error --rules.no-unknown-attribute=error --rules.no-unknown-property=error --rules.no-unknown-event=error --rules.no-unknown-slot=error \"src/**/*.ts\"",

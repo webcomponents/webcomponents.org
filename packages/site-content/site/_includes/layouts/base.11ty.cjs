@@ -6,9 +6,7 @@
 
 module.exports = {
   async render(data) {
-    const {renderPage} = await import(
-      '@webcomponents/internal-site-server/lib/templates/base.js'
-    );
+    const {renderPage} = await import('../../../templates/lib/base.js');
     // TODO (justinfagnani): move the top-bar to a real template or
     // back into the base template when we enable 11ty / Lit SSR integration
     return [

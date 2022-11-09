@@ -7,21 +7,34 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
+    "build": "wireit",
     "build:prod": "wireit",
-    "build:dev": "wireit"
+    "build:dev": "wireit",
+    "build:templates": "wireit",
+    "build:templates:types": "wireit",
+    "check": "wireit",
+    "check:templates:types": "wireit"
   },
   "wireit": {
+    "build": {
+      "dependencies": [
+        "build:prod",
+        "build:dev",
+        "build:templates",
+        "build:templates:types"
+      ]
+    },
     "build:prod": {
       "command": "eleventy --config=eleventy.config.prod.cjs",
       "files": [
         "eleventy.config.prod.cjs",
-        "site",
-        "../site-server/lib/templates/**/*.js"
+        "site"
       ],
       "output": [
         "_site"
       ],
       "dependencies": [
+        "build:templates",
         "../site-client:build:prod"
       ]
     },
@@ -30,11 +43,48 @@
       "files": [
         "eleventy.config.dev.cjs",
         "site",
-        "!site/assets",
-        "../site-server/lib/templates/**/*.js"
+        "!site/assets"
       ],
       "output": [
         "_dev"
+      ],
+      "dependencies": [
+        "build:templates"
+      ]
+    },
+    "build:templates": {
+      "command": "find templates/src -name \"*.ts\" | xargs esbuild --color --outdir=templates/lib",
+      "files": [
+        "templates/src/**/*.ts"
+      ],
+      "output": [
+        "templates/lib/**/*.js"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:templates:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "templates/src/**/*.ts"
+      ],
+      "output": [
+        "templates/lib/**/*.d.ts",
+        "tsconfig.tsbuildinfo"
+      ],
+      "dependencies": [
+        "../catalog-api:build",
+        "../custom-elements-manifest-tools:build"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check": {
+      "dependencies": [
+        "check:templates:types"
+      ]
+    },
+    "check:templates:types": {
+      "dependencies": [
+        "build:templates:types"
       ]
     }
   },

@@ -1,12 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./lib",
+    "rootDir": "templates/src",
+    "outDir": "templates/lib",
     "tsBuildInfoFile": "tsconfig.tsbuildinfo",
-    "useDefineForClassFields": false,
+    "module": "esnext",
+    "moduleResolution": "node",
     "emitDeclarationOnly": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["templates/src/**/*.ts"],
   "exclude": []
 }

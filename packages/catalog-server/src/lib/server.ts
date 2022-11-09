@@ -155,8 +155,8 @@ export const makeServer = async () => {
             return `
               <h3>${packageName}</h3>
               <p>Imported ${elements.length} element${
-                elements.length === 1 ? '' : 's'
-              }</p>
+              elements.length === 1 ? '' : 's'
+            }</p>
           `;
           }
         })

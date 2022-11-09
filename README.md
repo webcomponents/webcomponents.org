@@ -20,17 +20,26 @@ This monorepo contains several npm packages:
 ## Quick Start
 
 1. Install dependencies:
+
    ```bash
    npm ci
    ```
+
 2. Run tests:
+
    ```bash
    npm test
    ```
+
 3. Start everything in development mode and watch for changes:
+
    ```bash
-   npm watch:dev
+   npm start --watch
    ```
+
+4. Visit [`http://localhost:6451/bootstrap-packages`](http://localhost:6451/bootstrap-packages) to bootstrap the database with a default set of elements.
+
+5. Visit [`http://localhost:5450/catalog`](http://localhost:5450/catalog) and search for "button" to see example elements.
 
 ## Docker
 
@@ -50,3 +59,4 @@ We use the following port scheme for consistency and to prevent collisions:
 - [`localhost:5452`](http://localhost:5452): site-server in docker
 - [`localhost:6451`](http://localhost:6451): catalog-server
 - [`localhost:6452`](http://localhost:6452): catalog-server in docker
+- [`localhost:7450`](http://localhost:7450): firestore-emulator

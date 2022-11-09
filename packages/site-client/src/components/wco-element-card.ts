@@ -65,7 +65,7 @@ export class WCOElementCard extends LitElement {
   `;
 
   @property()
-  private element?: CustomElement;
+  element?: CustomElement;
 
   render() {
     if (this.element === undefined) {

@@ -13,7 +13,7 @@ import {Readable} from 'stream';
 import Router from '@koa/router';
 
 import '@webcomponents/internal-site-client/lib/entrypoints/catalog.js';
-import {renderPage} from '../../../templates/base.js';
+import {renderPage} from '@webcomponents/internal-site-content/templates/lib/base.js';
 
 export const handleCatalogRoute = async (
   context: ParameterizedContext<
