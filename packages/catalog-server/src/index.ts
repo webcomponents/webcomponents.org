@@ -5,7 +5,7 @@
  */
 
 import {AddressInfo} from 'net';
-import {makeServer} from './lib/server.js';
+import {makeServer} from './lib/server/server.js';
 
 const PORT = process.env['PORT'] ? parseInt(process.env['PORT']) : 6451;
 
