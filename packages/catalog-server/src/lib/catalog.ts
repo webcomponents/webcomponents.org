@@ -42,6 +42,11 @@ const toTemporalInstant = (date: Date) => {
  */
 const defaultPackageRefreshInterval = Temporal.Duration.from({minutes: 5});
 
+/**
+ * The default amount of time between automated bulk updates of packages.
+ */
+const defaultPackageUpdateInterval = Temporal.Duration.from({hours: 6});
+
 export interface CatalogInit {
   repository: Repository;
   files: PackageFiles;
@@ -77,7 +82,7 @@ export class Catalog {
     packageVersion?: PackageVersion;
     problems?: ValidationProblem[];
   }> {
-    console.log('Catalog.importPackage');
+    console.log('Catalog.importPackage', packageName);
 
     const currentPackageInfo = await this.#repository.getPackageInfo(
       packageName
@@ -346,5 +351,18 @@ export class Catalog {
     // operators (like "author:yogibear") and pass structured + text queries
     // to the repository
     return this.#repository.queryElements({query, limit});
+  }
+
+  async getPackagesToUpdate(notUpdatedSince?: Temporal.Instant) {
+    if (notUpdatedSince === undefined) {
+      const now = Temporal.Now.instant();
+      notUpdatedSince = now.subtract(defaultPackageUpdateInterval);
+    }
+
+    const packages = await this.#repository.getPackagesToUpdate(
+      notUpdatedSince,
+      100
+    );
+    return packages;
   }
 }

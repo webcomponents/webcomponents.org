@@ -15,6 +15,7 @@ import {
   CollectionReference,
   CollectionGroup,
   UpdateData,
+  Timestamp,
 } from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
@@ -55,6 +56,7 @@ import {
 } from './package-version-converter.js';
 import {customElementConverter} from './custom-element-converter.js';
 import {validationProblemConverter} from './validation-problem-converter.js';
+import type {Temporal} from '@js-temporal/polyfill';
 
 const projectId = process.env['GCP_PROJECT_ID'] || 'wc-catalog';
 firebase.initializeApp({projectId});
@@ -577,11 +579,35 @@ export class FirestoreRepository implements Repository {
     return result;
   }
 
-  getPackageRef(packageName: string) {
+  async getPackagesToUpdate(
+    notUpdatedSince: Temporal.Instant,
+    limit = 100
+  ): Promise<Array<PackageInfo>> {
+    const date = new Date(notUpdatedSince.epochMilliseconds);
+    const notUpdatedSinceTimestamp = Timestamp.fromDate(date);
+
+    // Only query 'READY', 'ERROR', and 'NOT_FOUND' packages.
+    // INITIALIZING and UPDATING packages are being updated, possibly by the
+    // batch update task calling this method.
+    // ERROR and NOT_FOUND are "recoverable" errors, so we should try to import
+    // them again.
+    const result = await this.getPackageCollectionRef()
+      .where('status', 'in', ['READY', 'ERROR', 'NOT_FOUND'])
+      .where('lastUpdate', '<', notUpdatedSinceTimestamp)
+      .limit(limit)
+      .get();
+    const packages = result.docs.map((d) => d.data());
+    return packages;
+  }
+
+  getPackageCollectionRef() {
     return db
       .collection('packages' + (this.namespace ? `-${this.namespace}` : ''))
-      .doc(packageNameToId(packageName))
       .withConverter(packageInfoConverter);
+  }
+
+  getPackageRef(packageName: string) {
+    return this.getPackageCollectionRef().doc(packageNameToId(packageName));
   }
 
   getPackageVersionCollectionRef(packageName: string) {

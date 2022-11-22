@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2022 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
@@ -17,6 +17,7 @@ import {NpmAndUnpkgFiles} from '@webcomponents/custom-elements-manifest-tools/li
 
 import {makeGraphQLRoute} from './routes/graphql.js';
 import {makeBootstrapPackagesRoute} from './routes/bootstrap-packages.js';
+import {makeUpdatePackagesRoute} from './routes/update-packages.js';
 
 export const makeServer = async () => {
   const files = new NpmAndUnpkgFiles();
@@ -31,6 +32,8 @@ export const makeServer = async () => {
   router.all('/graphql', makeGraphQLRoute(schema));
 
   router.get('/bootstrap-packages', makeBootstrapPackagesRoute(catalog));
+
+  router.get('/update-packages', makeUpdatePackagesRoute(catalog));
 
   router.get('/', async (ctx) => {
     ctx.status = 200;
