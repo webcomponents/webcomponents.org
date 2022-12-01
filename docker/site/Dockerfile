@@ -1,6 +1,6 @@
 # Official lightweight Node.js image
 # https://hub.docker.com/_/node
-FROM node:18.10-slim
+FROM node:18.12-slim
 
 # Arbitrary but conventional working directory
 WORKDIR /usr/src/app
