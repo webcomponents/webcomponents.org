@@ -9,7 +9,6 @@
  * This module contains utilities for interacting with the npm registry and
  * downloading custom element manifests from it.
  */
-import fetch from 'node-fetch';
 import npmFetch from 'npm-registry-fetch';
 import {PackageFiles, Package, Version} from './npm.js';
 
