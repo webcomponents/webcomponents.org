@@ -11,6 +11,7 @@
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
+    "build:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans --no-start",
     "start": "wireit",
     "start:prod": "wireit",
     "start:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
