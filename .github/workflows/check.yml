@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      WIREIT_FAILURES: continue
 
     steps:
       - uses: actions/checkout@v3
