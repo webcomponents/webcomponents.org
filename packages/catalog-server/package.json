@@ -82,19 +82,20 @@
     }
   },
   "devDependencies": {
+    "@types/koa__cors": "^3.3.0",
+    "@types/koa__router": "^12.0.0",
+    "@types/koa-bodyparser": "^4.3.8",
+    "@types/natural": "^5.1.1",
     "@types/node": "^18.0.6",
-    "@types/npm-registry-fetch": "^8.0.0",
     "@types/source-map-support": "^0.5.3",
     "firebase-tools": "^11.3.0"
   },
   "dependencies": {
     "@google-cloud/firestore": "^6.0.0",
     "@js-temporal/polyfill": "^0.4.2",
+    "@koa/cors": "^4.0.0",
     "@koa/router": "^12.0.0",
     "@lit-labs/ssr": "^2.2.3",
-    "@types/koa__router": "^12.0.0",
-    "@types/koa-bodyparser": "^4.3.8",
-    "@types/natural": "^5.1.1",
     "@webcomponents/catalog-api": "0.0.0",
     "@webcomponents/custom-elements-manifest-tools": "0.0.0",
     "@webcomponents/internal-site-client": "0.0.0",
@@ -105,8 +106,6 @@
     "koa-bodyparser": "^4.3.0",
     "lit": "^2.4.0",
     "natural": "^5.2.3",
-    "node-fetch": "^3.2.3",
-    "npm-registry-fetch": "^13.1.0",
     "semver": "^7.3.7"
   }
 }

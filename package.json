@@ -11,6 +11,7 @@
     "test": "wireit",
     "build:dev": "wireit",
     "build:prod": "wireit",
+    "build:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans --no-start",
     "start": "wireit",
     "start:prod": "wireit",
     "start:docker": "docker-compose -f docker/docker-compose.yml up --build --remove-orphans",
@@ -30,8 +31,8 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-no-only-tests": "^3.0.0",
     "prettier": "^2.7.1",
-    "typescript": "~4.8.2",
-    "wireit": "^0.8.0"
+    "typescript": "~4.9.3",
+    "wireit": "^0.9.0"
   },
   "wireit": {
     "start": {

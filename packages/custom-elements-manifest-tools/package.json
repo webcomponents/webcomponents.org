@@ -44,12 +44,14 @@
     }
   },
   "devDependencies": {
+    "@types/npm-registry-fetch": "^8.0.0",
     "@types/semver": "^7.3.12",
     "uvu": "^0.5.6"
   },
   "dependencies": {
     "custom-elements-manifest": "^2.0.0",
     "jsonc-parser": "^3.2.0",
+    "npm-registry-fetch": "^14.0.2",
     "semver": "^7.3.7"
   }
 }
