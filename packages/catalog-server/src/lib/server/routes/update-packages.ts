@@ -9,6 +9,9 @@ const maxImportDuration = Temporal.Duration.from({minutes: 5});
 
 export const makeUpdatePackagesRoute =
   (catalog: Catalog) => async (context: Koa.Context) => {
+    // TODO (justinfagnani): DO_NOT_LAUNCH check that the request is from one
+    // of our service accounts
+
     const startInstant = Temporal.Now.instant();
     // If the `force` query parameter is present we force updating of all
     // packages by setting the `notUpdatedSince` parameter to `startInstant` so

@@ -21,9 +21,19 @@ The Stack is updated to be more familiar to modern JavaScript developers, includ
   * GraphQL SDL
   * graphql-codegen to generate TypeScript interfaces
 
-## Catalog
+## Catalog Server
 
-The catalog is a standalone backend service with a GraphQL API that is accessed by the site's frontend server.
+The catalog server is a standalone backend service with a GraphQL API that is accessed by the site's frontend server.
+
+## Access Control
+
+The server is intended to eventually have a public-facing GraphQL service. It also has admin functionality such as HTTP endpoints for updating the packages in the catalog that need to be reachable by scheduling services (such as [Google Cloud Scheduler](https://cloud.google.com/scheduler) or [Google Cloud Tasks](https://cloud.google.com/tasks)). These admin endpoints are attractive for denial-of-service attacks because they initiate expensive bulk I/O and database operations.
+
+The admin endpoints must have restricted access control and not be public. For now, the easiest way to do this without a third service (a separate admin service) is to restrict access to the whole catalog server service which also implements the admin endpoints. Later, the catalog server can be refactored to contain only a public API and the admin endpoints moved to a separate service.
+
+Access control to the catalog service can be implemented in Google Cloud Run by setting up a service account to make requests and limiting the service to non-public visibility, [as documented here](https://cloud.google.com/run/docs/authenticating/service-to-service).
+
+As the article says, this should be environment agnostic, so it works outside of Google Cloud - though each environment will have it's own way of setting the access control of the catalog service.
 
 ### Custom Elements Manifest
 
