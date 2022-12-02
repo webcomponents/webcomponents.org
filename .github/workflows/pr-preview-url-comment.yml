@@ -1,0 +1,35 @@
+# GitHub Action that creates a comment displaying the preview URL for each PR.
+name: PR Preview URL Comment
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  preview-url-comment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # https://github.com/peter-evans/create-or-update-comment
+      - name: Post comment
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            A live preview of this PR will be available at the URL below and will update on each commit. =
+            The build takes ~5-10 minutes, and will 404 until finished.
+
+            https://pr${{ github.event.number }}---site-khswqo4xea-wl.a.run.app/
+
+            > **Warning**
+            > Until our Cloud Run project is public, only authorized users can view the above URL.
+            > The easiest way to view it authenticated is to run the following proxy command and visit http://localhost:5453
+            >
+            > ```
+            > (gcloud beta run services proxy --project=webcomponents-org-test --region=us-west2 --tag=pr${{ github.event.number }} --port=5453 site \
+            > & gcloud beta run services proxy --project=webcomponents-org-test --region=us-west2 --tag=pr${{ github.event.number }} --port=6453 catalog)
+            > ```
+          reactions: eyes
