@@ -57,6 +57,8 @@ We use the following port scheme for consistency and to prevent collisions:
 - [`localhost:5450`](http://localhost:5450): site-server in dev mode
 - [`localhost:5451`](http://localhost:5451): site-server in prod mode
 - [`localhost:5452`](http://localhost:5452): site-server in docker
+- [`localhost:5452`](http://localhost:5453): site-server gcloud proxy
 - [`localhost:6451`](http://localhost:6451): catalog-server
 - [`localhost:6452`](http://localhost:6452): catalog-server in docker
+- [`localhost:6452`](http://localhost:6453): catalog-server gcloud proxy
 - [`localhost:7450`](http://localhost:7450): firestore-emulator
