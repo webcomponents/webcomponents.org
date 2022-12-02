@@ -1,0 +1,85 @@
+# Cloud Build config for PR branch auto deployment of webcomponents.org.
+
+timeout: 10m
+
+options:
+  # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds#machinetype
+  machineType: N1_HIGHCPU_8
+  dynamic_substitutions: true
+
+substitutions:
+  _REGION: us-west2
+  _TAG: pr${_PR_NUMBER}
+  _IMAGE_URL_CATALOG: us.gcr.io/${PROJECT_ID}/pr/catalog:${SHORT_SHA}
+  _IMAGE_URL_SITE: us.gcr.io/${PROJECT_ID}/pr/site:${SHORT_SHA}
+  _IMAGE_CACHE_TTL: 168h # 1 week
+  _CATALOG_GRAPHQL_URL: https://${_TAG}---catalog-khswqo4xea-wl.a.run.app
+
+steps:
+  # Build catalog Docker image.
+  - id: build-catalog
+    waitFor: ['-'] # Start immediately
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --dockerfile=./docker/catalog/Dockerfile
+      - --destination=${_IMAGE_URL_CATALOG}
+      - --cache=true
+      - --cache-ttl=${_IMAGE_CACHE_TTL}
+
+  # Build site Docker image.
+  - id: build-site
+    waitFor: ['-'] # Start immediately
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --dockerfile=./docker/site/Dockerfile
+      - --destination=${_IMAGE_URL_SITE}
+      - --cache=true
+      - --cache-ttl=${_IMAGE_CACHE_TTL}
+
+  # Create catalog Cloud Run revision.
+  - id: deploy-catalog
+    waitFor:
+      - build-catalog
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - beta
+      - run
+      - deploy
+      - catalog
+      - --region=${_REGION}
+      - --platform=managed
+      - --image=${_IMAGE_URL_CATALOG}
+      - --quiet
+      - --no-traffic
+      - --tag=${_TAG}
+      - --memory=1Gi
+      - --cpu=1
+      - --concurrency=default # Unlimited
+      - --min-instances=0
+      - --max-instances=1
+      - --update-env-vars=GCP_PROJECT_ID=${PROJECT_ID}
+
+  # Create site Cloud Run revision.
+  - id: deploy-site
+    waitFor:
+      - build-site
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - beta
+      - run
+      - deploy
+      - site
+      - --region=${_REGION}
+      - --platform=managed
+      - --image=${_IMAGE_URL_SITE}
+      - --quiet
+      - --no-traffic
+      - --tag=${_TAG}
+      - --memory=1Gi
+      - --cpu=1
+      - --concurrency=default # Unlimited
+      - --min-instances=0
+      - --max-instances=1
+      - --update-env-vars=CATALOG_GRAPHQL_URL=${_CATALOG_GRAPHQL_URL}
