@@ -43,7 +43,7 @@ import {packageVersionConverter} from './package-version-converter.js';
 import {customElementConverter} from './custom-element-converter.js';
 import {validationProblemConverter} from './validation-problem-converter.js';
 
-const projectId = 'wc-catalog';
+const projectId = process.env['GCP_PROJECT_ID'] || 'wc-catalog';
 firebase.initializeApp({projectId});
 export const db = new Firestore({projectId});
 
