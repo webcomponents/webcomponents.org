@@ -22,6 +22,9 @@ export const handleCatalogRoute = async (
     unknown
   >
 ) => {
+  // URL isn't exactly a Location, but it's close enough for read-only uses
+  window.location = new URL(context.URL.href) as unknown as Location;
+
   context.body = Readable.from(
     renderPage({
       title: `Web Components Catalog`,
