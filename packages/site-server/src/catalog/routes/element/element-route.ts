@@ -89,6 +89,9 @@ export const handleElementRoute = async (
     manifest: customElementsManifest,
   };
 
+  // URL isn't exactly a Location, but it's close enough for read-only uses
+  window.location = new URL(context.URL.href) as unknown as Location;
+
   context.type = 'html';
   context.status = 200;
   context.body = Readable.from(

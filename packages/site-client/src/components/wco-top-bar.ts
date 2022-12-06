@@ -6,6 +6,9 @@
 
 import {html, css, LitElement} from 'lit';
 import {customElement} from 'lit/decorators.js';
+import {classMap} from 'lit/directives/class-map.js';
+
+const pathStartsWith = (s: string) => window.location.pathname.startsWith(s);
 
 @customElement('wco-top-bar')
 export class WCOTopBar extends LitElement {
@@ -68,16 +71,44 @@ export class WCOTopBar extends LitElement {
     nav > a:hover {
       background: #00000008;
     }
+
+    nav > a.active {
+      color: blue;
+    }
   `;
 
   render() {
     return html`
       <span id="title"><span id="logo">WC</span> WebComponents.org</span>
       <nav>
-        <a href="/catalog">Catalog</a>
-        <a href="/docs">Docs</a>
-        <a href="/articles">Articles</a>
-        <a href="/community">Community</a>
+        <a
+          class="${classMap({
+            active: pathStartsWith('/catalog'),
+          })}"
+          href="/catalog"
+          >Catalog</a
+        >
+        <a
+          class="${classMap({
+            active: pathStartsWith('/docs'),
+          })}"
+          href="/docs"
+          >Docs</a
+        >
+        <a
+          class="${classMap({
+            active: pathStartsWith('/articles'),
+          })}"
+          href="/articles"
+          >Articles</a
+        >
+        <a
+          class="${classMap({
+            active: pathStartsWith('/community'),
+          })}"
+          href="/community"
+          >Community</a
+        >
       </nav>
     `;
   }
