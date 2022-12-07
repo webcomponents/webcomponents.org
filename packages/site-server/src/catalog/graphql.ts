@@ -31,7 +31,13 @@ const link = new HttpLink({
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
-    const headers = await authClient.getRequestHeaders();
+    const authHeaders = await authClient.getRequestHeaders();
+    console.log('CATALOG_GRAPHQL_URL', CATALOG_GRAPHQL_URL);
+    console.log('GoogleAuth request headers', authHeaders);
+    const headers = {
+      ...(init?.headers ?? {}),
+      ...authHeaders,
+    };
     return fetch(input, {...(init ?? {}), headers});
   },
 });
