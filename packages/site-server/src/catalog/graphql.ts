@@ -28,6 +28,7 @@ const auth = new GoogleAuth({
 });
 // const authClient = await auth.getClient();
 const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
+console.log('CATALOG_GRAPHQL_URL', CATALOG_GRAPHQL_URL);
 
 const link = new HttpLink({
   uri: CATALOG_GRAPHQL_URL + '/graphql',
@@ -35,8 +36,7 @@ const link = new HttpLink({
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
-    const authHeaders = await authClient.getRequestHeaders();
-    console.log('CATALOG_GRAPHQL_URL', CATALOG_GRAPHQL_URL);
+    const authHeaders = await authClient.getRequestHeaders(CATALOG_GRAPHQL_URL);
     console.log('GoogleAuth request headers', authHeaders);
     const headers = {
       ...(init?.headers ?? {}),
