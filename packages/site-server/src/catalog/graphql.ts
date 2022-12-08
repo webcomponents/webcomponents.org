@@ -27,9 +27,7 @@ console.log(`K_REVISION ${process.env['K_REVISION']}`);
 // See:
 // - https://github.com/googleapis/google-auth-library-nodejs#application-default-credentials
 // - https://cloud.google.com/docs/authentication/provide-credentials-adc#attached-sa
-const auth = new GoogleAuth({
-  scopes: 'https://www.googleapis.com/auth/cloud-platform',
-});
+const auth = new GoogleAuth();
 // const authClient = await auth.getClient();
 
 const link = new HttpLink({
