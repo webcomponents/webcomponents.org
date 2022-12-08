@@ -31,14 +31,14 @@ const auth = new GoogleAuth({
   scopes: 'https://www.googleapis.com/auth/cloud-platform',
 });
 // const authClient = await auth.getClient();
-const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
 
 const link = new HttpLink({
-  uri: CATALOG_GRAPHQL_URL + '/graphql',
+  uri: CATALOG_GRAPHQL_URL + 'graphql',
   async fetch(
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
+    const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
     const authHeaders = await authClient.getRequestHeaders(CATALOG_GRAPHQL_URL);
     const headers = {
       ...(init?.headers ?? {}),
@@ -46,13 +46,16 @@ const link = new HttpLink({
     };
     console.log('audience', CATALOG_GRAPHQL_URL);
     console.log('input', input);
+    console.log('init', init);
     console.log('request headers', headers);
 
     // DEBUG:
     if (typeof input === 'string') {
-      authClient.request({url: input});
+      console.log('calling with authClient.request');
+      authClient.request({url: input, method: 'POST'});
     } else if (input instanceof URL) {
-      authClient.request({url: input.href});
+      console.log('calling with authClient.request');
+      authClient.request({url: input.href, method: 'POST'});
     }
 
     return fetch(input, {...(init ?? {}), headers});
