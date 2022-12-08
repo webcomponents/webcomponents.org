@@ -11,8 +11,12 @@ import {
 } from '@apollo/client/core/index.js';
 import {GoogleAuth} from 'google-auth-library';
 
-const CATALOG_GRAPHQL_URL =
+let CATALOG_GRAPHQL_URL =
   process.env['CATALOG_GRAPHQL_URL'] || `http://localhost:6451`;
+
+if (!CATALOG_GRAPHQL_URL.endsWith('/')) {
+  CATALOG_GRAPHQL_URL = CATALOG_GRAPHQL_URL + '/';
+}
 
 console.log(`K_SERVICE ${process.env['K_SERVICE']}`);
 console.log(`K_REVISION ${process.env['K_REVISION']}`);
@@ -28,7 +32,6 @@ const auth = new GoogleAuth({
 });
 // const authClient = await auth.getClient();
 const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
-console.log('CATALOG_GRAPHQL_URL', CATALOG_GRAPHQL_URL);
 
 const link = new HttpLink({
   uri: CATALOG_GRAPHQL_URL + '/graphql',
@@ -37,11 +40,21 @@ const link = new HttpLink({
     init?: RequestInit | undefined
   ): Promise<Response> {
     const authHeaders = await authClient.getRequestHeaders(CATALOG_GRAPHQL_URL);
-    console.log('GoogleAuth request headers', authHeaders);
     const headers = {
       ...(init?.headers ?? {}),
       ...authHeaders,
     };
+    console.log('audience', CATALOG_GRAPHQL_URL);
+    console.log('input', input);
+    console.log('request headers', headers);
+
+    // DEBUG:
+    if (typeof input === 'string') {
+      authClient.request({url: input});
+    } else if (input instanceof URL) {
+      authClient.request({url: input.href});
+    }
+
     return fetch(input, {...(init ?? {}), headers});
   },
 });
