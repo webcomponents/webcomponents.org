@@ -73,7 +73,8 @@
       ],
       "dependencies": [
         "../catalog-api:build",
-        "../custom-elements-manifest-tools:build"
+        "../custom-elements-manifest-tools:build",
+        "../site-client:build"
       ],
       "clean": "if-file-deleted"
     },
