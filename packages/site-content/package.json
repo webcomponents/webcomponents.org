@@ -54,6 +54,9 @@
     },
     "build:templates": {
       "command": "find templates/src -name \"*.ts\" | xargs esbuild --color --outdir=templates/lib",
+      "dependencies": [
+        "../site-client:build"
+      ],
       "files": [
         "templates/src/**/*.ts"
       ],
