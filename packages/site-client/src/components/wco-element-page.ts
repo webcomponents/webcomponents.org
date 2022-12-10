@@ -15,8 +15,6 @@ import {
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
 
-import './wco-top-bar.js';
-
 export interface ElementData {
   packageName: string;
   elementName: string;
@@ -46,10 +44,7 @@ export class WCOElementPage extends LitElement {
 
   render() {
     if (this.elementData === undefined) {
-      return html`
-        <wco-top-bar></wco-top-bar>
-        <div class="full-screen-error">No element to display</div>
-      `;
+      return html` <div class="full-screen-error">No element to display</div> `;
     }
     const {
       packageName,
@@ -71,7 +66,6 @@ export class WCOElementPage extends LitElement {
 
     if (declaration === undefined || declaration.kind !== 'class') {
       return html`
-        <wco-top-bar></wco-top-bar>
         <div class="full-screen-error">Could not find element declaration</div>
       `;
     }
@@ -80,7 +74,6 @@ export class WCOElementPage extends LitElement {
     const methods = declaration.members?.filter((m) => m.kind === 'method');
 
     return html`
-      <wco-top-bar></wco-top-bar>
       <h1>${packageName}/${elementName}</h1>
       <h3>${declaration.summary}</h3>
 
