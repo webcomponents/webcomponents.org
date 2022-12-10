@@ -5,7 +5,7 @@
  */
 
 import {hydrate} from 'lit/experimental-hydrate.js';
-import {renderBody} from '@webcomponents/internal-site-content/templates/lib/body.js';
+import {renderBody} from '../templates/body.js';
 import {renderElementPage} from './element.js';
 
 const data = (

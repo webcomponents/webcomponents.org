@@ -12,7 +12,7 @@ import {
 
 import type {TemplateResult} from 'lit';
 import type {DirectiveResult} from 'lit/directive.js';
-import {renderBody} from './body.js';
+import {renderBody} from '@webcomponents/internal-site-client/lib/templates/body.js';
 
 import {escapeHTML} from './escape-html.js';
 export {unsafeHTML} from 'lit/directives/unsafe-html.js';
