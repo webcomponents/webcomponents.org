@@ -90,6 +90,7 @@
   },
   "dependencies": {
     "@11ty/eleventy": "^1.0.2",
+    "@webcomponents/internal-site-client": "^0.0.0",
     "@webcomponents/internal-site-server": "^0.0.0"
   }
 }
