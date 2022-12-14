@@ -3,5 +3,4 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import '../components/wco-top-bar.js';
+import 'lit/experimental-hydrate-support.js';

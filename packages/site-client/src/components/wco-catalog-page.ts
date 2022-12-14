@@ -6,7 +6,6 @@
 
 import {html, css, LitElement} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import './wco-top-bar.js';
 import './wco-catalog-search.js';
 
 @customElement('wco-catalog-page')
@@ -19,7 +18,6 @@ export class WCOCatalogPage extends LitElement {
 
   render() {
     return html`
-      <wco-top-bar></wco-top-bar>
       <h1>Catalog</h1>
       <wco-catalog-search></wco-catalog-search>
     `;
