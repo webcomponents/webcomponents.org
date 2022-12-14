@@ -53,11 +53,12 @@
       "command": "tsc --pretty",
       "files": [
         "tsconfig.json",
-        "tsconfig.tsbuildinfo",
         "../../tsconfig.base.json",
         "src/**/*.ts"
       ],
-      "output": [],
+      "output": [
+        "tsconfig.tsbuildinfo"
+      ],
       "dependencies": [
         "../site-client:build:types",
         "../site-content:build:templates:types"
