@@ -19,6 +19,7 @@
     "test": "wireit",
     "test:manual": "wireit",
     "emulators:start": "wireit",
+    "emulators:export": "wireit",
     "firebase": "firebase"
   },
   "wireit": {
@@ -64,13 +65,21 @@
       "output": []
     },
     "emulators:start": {
-      "command": "firebase emulators:start --project wc-catalog",
+      "command": "firebase emulators:start --project wc-catalog --import firebase-data",
       "service": true,
       "files": [
         "firebase.json",
         "firestore.indexes.json",
         "firestore.rules"
-      ]
+      ],
+      "env": {
+        "IMPORT": {
+          "external": true
+        }
+      }
+    },
+    "emulators:export": {
+      "command": "firebase emulators:export --project wc-catalog -f firebase-data"
     },
     "test:manual": {
       "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"_test\\.js$\"",
