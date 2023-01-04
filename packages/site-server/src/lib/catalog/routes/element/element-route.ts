@@ -27,7 +27,18 @@ export const handleElementRoute = async (
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const elementPath = params['path']!;
   const elementPathSegments = elementPath.split('/');
+
   const isScoped = elementPathSegments[0]?.startsWith('@');
+
+  if (
+    (isScoped && elementPathSegments.length !== 3) ||
+    (!isScoped && elementPathSegments.length !== 2)
+  ) {
+    context.status = 404;
+    context.body = `Not Found`;
+    return;
+  }
+
   const packageName = isScoped
     ? elementPathSegments[0] + '/' + elementPathSegments[1]
     : elementPathSegments[0]!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
