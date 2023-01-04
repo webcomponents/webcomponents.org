@@ -10,7 +10,7 @@ import koaConditionalGet from 'koa-conditional-get';
 import koaEtag from 'koa-etag';
 import Router from '@koa/router';
 import {fileURLToPath} from 'url';
-import {catalogRouter} from './catalog/router.js';
+import {catalogRouter} from './lib/catalog/router.js';
 
 const PORT = process.env['PORT'] || 5451;
 const STATIC_ROOT = fileURLToPath(
