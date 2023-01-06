@@ -56,7 +56,7 @@
       ]
     },
     "test": {
-      "command": "NODE_OPTIONS=--enable-source-maps FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"_test\\.js$\"",
+      "command": "NODE_OPTIONS=--enable-source-maps FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"catalog_test\\.js$\"",
       "dependencies": [
         "build",
         "emulators:start"

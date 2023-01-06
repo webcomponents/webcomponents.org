@@ -1,0 +1,6 @@
+{
+  "name": "mainfest-not-found",
+  "version": "1.0.0",
+  "description": "Some generic package",
+  "customElements": "custom-elements.json"
+}

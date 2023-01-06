@@ -9,6 +9,7 @@ import {
   Query,
   CollectionReference,
   CollectionGroup,
+  UpdateData,
 } from '@google-cloud/firestore';
 import {Firestore} from '@google-cloud/firestore';
 import firebase from 'firebase-admin';
@@ -29,6 +30,7 @@ import {
   ValidationProblem,
   ReadablePackageVersion,
   ReadablePackageInfo,
+  UnreadablePackageStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Package,
@@ -105,7 +107,10 @@ export class FirestoreRepository implements Repository {
     });
   }
 
-  async endPackageImportWithNotFound(packageName: string): Promise<void> {
+  async endPackageImportWithError(
+    packageName: string,
+    status: UnreadablePackageStatus
+  ): Promise<PackageInfo> {
     const packageRef = this.getPackageRef(packageName);
     await db.runTransaction(async (t) => {
       const packageDoc = await t.get(packageRef);
@@ -116,31 +121,20 @@ export class FirestoreRepository implements Repository {
       if (packageData.status !== PackageStatus.INITIALIZING) {
         throw new Error(`Unexpected package status: ${packageData.status}`);
       }
-      await t.set(packageRef, {
+      t.set(packageRef, {
         name: packageName,
-        status: PackageStatus.NOT_FOUND,
+        status,
         lastUpdate: FieldValue.serverTimestamp(),
       });
     });
-  }
-
-  async endPackageImportWithError(packageName: string): Promise<void> {
-    const packageRef = this.getPackageRef(packageName);
-    await db.runTransaction(async (t) => {
-      const packageDoc = await t.get(packageRef);
-      const packageData = packageDoc.data();
-      if (packageData === undefined) {
-        throw new Error(`Package not found: ${packageName}`);
-      }
-      if (packageData.status !== PackageStatus.INITIALIZING) {
-        throw new Error(`Unexpected package status: ${packageData.status}`);
-      }
-      await t.set(packageRef, {
-        name: packageName,
-        status: PackageStatus.ERROR,
-        lastUpdate: FieldValue.serverTimestamp(),
-      });
+    const packageInfo = await db.runTransaction(async (t) => {
+      // There doesn't seem to be a way to get a WriteResult and therefore
+      // a writeTime inside a transaction, so we read from the database to
+      // get the server timestamp.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return (await t.get(packageRef)).data()!;
     });
+    return packageInfo;
   }
 
   /**
@@ -266,10 +260,11 @@ export class FirestoreRepository implements Repository {
 
   async endPackageVersionImportWithError(
     packageName: string,
-    version: string
-  ): Promise<void> {
+    version: string,
+    status: VersionStatus
+  ): Promise<PackageVersion> {
+    const versionRef = this.getPackageVersionRef(packageName, version);
     await db.runTransaction(async (t) => {
-      const versionRef = this.getPackageVersionRef(packageName, version);
       const packageVersionDoc = await t.get(
         versionRef.withConverter(packageVersionConverter)
       );
@@ -282,11 +277,21 @@ export class FirestoreRepository implements Repository {
           `Unexpected package version status: ${packageVersionData.status}`
         );
       }
-      await t.update(versionRef, {
-        status: VersionStatus.ERROR,
+      // TODO (justinfagnani): figure out why we need the cast, since
+      // UpdateData<T> should allow a Partial<T>
+      t.update(versionRef, {
+        status,
         lastUpdate: FieldValue.serverTimestamp(),
-      });
+      } as UpdateData<PackageVersion> as PackageVersion);
     });
+    const packageVersion = await db.runTransaction(async (t) => {
+      // There doesn't seem to be a way to get a WriteResult and therefore
+      // a writeTime inside a transaction, so we read from the database to
+      // get the server timestamp.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return (await t.get(versionRef)).data()!;
+    });
+    return packageVersion;
   }
 
   async writeCustomElements(
@@ -477,7 +482,10 @@ export class FirestoreRepository implements Repository {
         packageName,
         versionOrTag
       );
-      version = packageVersion!.version;
+      if (packageVersion === undefined) {
+        return [];
+      }
+      version = packageVersion.version;
     } else {
       version = versionOrTag;
     }

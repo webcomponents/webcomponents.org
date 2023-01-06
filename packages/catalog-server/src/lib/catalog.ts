@@ -8,6 +8,7 @@ import {distTagMapToList, getDistTagsForVersion} from './npm.js';
 import {validatePackage} from '@webcomponents/custom-elements-manifest-tools/lib/validate.js';
 import {getCustomElements} from '@webcomponents/custom-elements-manifest-tools';
 import {
+  HttpError,
   Package,
   PackageFiles,
 } from '@webcomponents/custom-elements-manifest-tools/lib/npm.js';
@@ -19,6 +20,8 @@ import {
   PackageInfo,
   ReadablePackageInfo,
   CustomElement,
+  UnreadablePackageStatus,
+  VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Temporal,
@@ -100,20 +103,31 @@ export class Catalog {
 
     // Fetch package metadata from npm:
     console.log('Fetching package metadata...');
-    let newPackage: Package | undefined;
+    let newPackage: Package;
     try {
       newPackage = await this.#files.getPackageMetadata(packageName);
     } catch (e) {
-      await this.#repository.endPackageImportWithError(packageName);
-      return {};
+      console.error('Error fetching package metadata');
+      console.error(e);
+      let status: UnreadablePackageStatus = UnreadablePackageStatus.ERROR;
+      if ((e as HttpError).statusCode === 404) {
+        status = UnreadablePackageStatus.NOT_FOUND;
+      }
+      const packageInfo = await this.#repository.endPackageImportWithError(
+        packageName,
+        status
+      );
+      return {packageInfo};
+    } finally {
+      console.log(' done');
     }
-    console.log(' done');
 
     if (newPackage === undefined) {
-      await this.#repository.endPackageImportWithNotFound(packageName);
-      // TODO (justinfagnani): a crazy edge case would be a package that was
-      // previously found, but is not found now. Update package versions?
-      return {};
+      throw new Error(`Internal error importing package ${packageName}`);
+      // await this.#repository.endPackageImportWithNotFound(packageName);
+      // // TODO (justinfagnani): a crazy edge case would be a package that was
+      // // previously found, but is not found now. Update package versions?
+      // return {};
     }
 
     const newDistTags = newPackage['dist-tags'];
@@ -176,7 +190,7 @@ export class Catalog {
 
     if (versionToImport !== undefined) {
       importResult = await this.importPackageVersion(
-        packageName,
+        newPackage,
         versionToImport
       );
     }
@@ -200,21 +214,43 @@ export class Catalog {
     };
   }
 
-  async importPackageVersion(packageName: string, version: string) {
+  async importPackageVersion(packageOrName: string | Package, version: string) {
+    const packageName =
+      typeof packageOrName === 'string' ? packageOrName : packageOrName.name;
+
     console.log('Marking package version as importing...');
     await this.#repository.startPackageVersionImport(packageName, version);
     console.log('  done');
+
+    let packageMetadata: Package;
+
+    if (typeof packageOrName === 'string') {
+      try {
+        packageMetadata = await this.#files.getPackageMetadata(packageName);
+      } catch (e) {
+        console.error(`Error fetching packageMetadata`);
+        console.error(e);
+        console.log('Marking package version as errored...');
+        // We mark this as a recoverable error, since another attempt might
+        // be able to fetch the package and therefore this package version.
+        const packageVersion =
+          await this.#repository.endPackageVersionImportWithError(
+            packageName,
+            version,
+            VersionStatus.ERROR
+          );
+        console.log('  done');
+        return {packageVersion};
+      }
+    } else {
+      packageMetadata = packageOrName;
+    }
 
     const {manifestData, manifestSource, problems} = await validatePackage({
       packageName,
       version,
       files: this.#files,
     });
-
-    // TODO (justinfagnani): If we're calling this from importPackage(), we'll
-    // already have package metadata, so either use that rather making another
-    // call, or cache the manifests in PackageFiles.
-    const packageMetadataPromise = this.#files.getPackageMetadata(packageName);
 
     if (problems.length > 0) {
       console.log('Writing problems...');
@@ -224,13 +260,15 @@ export class Catalog {
 
     if (manifestData === undefined) {
       console.error(`manifestData not found`);
-      console.log('Marking package version as errored...');
-      await this.#repository.endPackageVersionImportWithError(
-        packageName,
-        version
-      );
+      console.log('Marking package version as INVALID...');
+      const packageVersion =
+        await this.#repository.endPackageVersionImportWithError(
+          packageName,
+          version,
+          VersionStatus.INVALID
+        );
       console.log('  done');
-      return {problems};
+      return {packageVersion, problems};
     }
 
     const customElements = getCustomElements(
@@ -241,27 +279,15 @@ export class Catalog {
 
     if (customElements.length === 0) {
       console.error(`No customElements found`);
-      console.log(manifestSource);
-      console.log('Marking package version as errored...');
-      await this.#repository.endPackageVersionImportWithError(
-        packageName,
-        version
-      );
+      console.log('Marking package version as INVALID...');
+      const packageVersion =
+        await this.#repository.endPackageVersionImportWithError(
+          packageName,
+          version,
+          VersionStatus.INVALID
+        );
       console.log('  done');
-      return {problems};
-    }
-
-    const packageMetadata = await packageMetadataPromise;
-
-    if (packageMetadata === undefined) {
-      console.error(`packageMetadata not found`);
-      console.log('Marking package version as errored...');
-      await this.#repository.endPackageVersionImportWithError(
-        packageName,
-        version
-      );
-      console.log('  done');
-      return {problems};
+      return {packageVersion, problems};
     }
 
     // eslint-disable-next-line

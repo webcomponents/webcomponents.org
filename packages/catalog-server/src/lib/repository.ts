@@ -10,7 +10,9 @@ import type {
   PackageVersion,
   ReadablePackageInfo,
   ReadablePackageVersion,
+  UnreadablePackageStatus,
   ValidationProblem,
+  VersionStatus,
 } from '@webcomponents/catalog-api/lib/schema';
 import type {CustomElementInfo} from '@webcomponents/custom-elements-manifest-tools';
 import type {
@@ -48,9 +50,10 @@ export interface Repository {
 
   startPackageUpdate(packageName: string): Promise<void>;
 
-  endPackageImportWithNotFound(packageName: string): Promise<void>;
-
-  endPackageImportWithError(packageName: string): Promise<void>;
+  endPackageImportWithError(
+    packageName: string,
+    status: UnreadablePackageStatus
+  ): Promise<PackageInfo>;
 
   endPackageImportWithReady(
     packageName: string,
@@ -85,13 +88,14 @@ export interface Repository {
   ): Promise<ReadablePackageVersion>;
 
   /**
-   * Updates a PackageVersion to status: ERROR. Verifies that the PackageVersion
-   * was in INITIALIZING status before the update.
+   * Updates a PackageVersion to the given status, which should be ERROR or INVALID.
+   * Verifies that the PackageVersion was in INITIALIZING status before the update.
    */
   endPackageVersionImportWithError(
     packageName: string,
-    version: string
-  ): Promise<void>;
+    version: string,
+    status: VersionStatus
+  ): Promise<PackageVersion>;
 
   writeCustomElements(
     packageVersionMetadata: Version,
