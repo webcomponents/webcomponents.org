@@ -123,11 +123,9 @@ export class Catalog {
     }
 
     if (newPackage === undefined) {
+      // TODO (justinfagnani): a crazy edge case would be a package that was
+      // previously found, but is not found now. Update package versions?
       throw new Error(`Internal error importing package ${packageName}`);
-      // await this.#repository.endPackageImportWithNotFound(packageName);
-      // // TODO (justinfagnani): a crazy edge case would be a package that was
-      // // previously found, but is not found now. Update package versions?
-      // return {};
     }
 
     const newDistTags = newPackage['dist-tags'];
