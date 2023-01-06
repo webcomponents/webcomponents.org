@@ -358,7 +358,7 @@ test('Imports a non-existent package', async () => {
   assert.equal(importResult.packageInfo?.status, PackageStatus.NOT_FOUND);
 });
 
-test.only('Imports a large manifest', async () => {
+test('Imports a large manifest', async () => {
   const packageName = 'large-manifest';
   const packagePath = fileURLToPath(
     new URL('../test-packages/large-manifest/', import.meta.url)
