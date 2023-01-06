@@ -358,4 +358,42 @@ test('Imports a non-existent package', async () => {
   assert.equal(importResult.packageInfo?.status, PackageStatus.NOT_FOUND);
 });
 
+test.only('Imports a large manifest', async () => {
+  const packageName = 'large-manifest';
+  const packagePath = fileURLToPath(
+    new URL('../test-packages/large-manifest/', import.meta.url)
+  );
+
+  const files = new LocalFsPackageFiles({
+    path: packagePath,
+    packageName,
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackage(packageName);
+
+  assert.equal(importResult.problems ?? [], []);
+  assert.equal(importResult.packageInfo?.status, PackageStatus.READY);
+
+  assert.ok(importResult.packageVersion);
+  assert.equal(importResult.packageVersion.status, VersionStatus.READY);
+  const manifest = (importResult.packageVersion as ReadablePackageVersion)
+    .customElementsManifest;
+  assert.ok(manifest);
+  const parsedManifest = JSON.parse(manifest);
+  assert.equal(parsedManifest.schemaVersion, '1.0.0');
+
+  // Check that getting the version through getPackageVersion() decompresses
+  const packageVersion2 = await catalog.getPackageVersion(packageName, '1.0.0');
+  const manifest2 = (packageVersion2 as ReadablePackageVersion)
+    .customElementsManifest;
+  assert.ok(manifest2);
+  const parsedManifest2 = JSON.parse(manifest2);
+  assert.equal(parsedManifest2.schemaVersion, '1.0.0');
+});
+
 test.run();

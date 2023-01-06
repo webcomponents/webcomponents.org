@@ -5,6 +5,11 @@
  */
 
 import {
+  brotliCompress as brotliCompressCallbackStyle,
+  brotliDecompress as brotliDecompressCallbackStyle,
+} from 'node:zlib';
+import {promisify} from 'node:util';
+import {
   FieldValue,
   Query,
   CollectionReference,
@@ -31,6 +36,7 @@ import {
   ReadablePackageVersion,
   ReadablePackageInfo,
   UnreadablePackageStatus,
+  UnreadablePackageVersion,
 } from '@webcomponents/catalog-api/lib/schema.js';
 import {
   Package,
@@ -41,13 +47,21 @@ import {
   packageInfoConverter,
   packageNameToId,
 } from './package-info-converter.js';
-import {packageVersionConverter} from './package-version-converter.js';
+import {
+  CompressedPackageVersion,
+  isReadableCompressedPackageVersion,
+  packageVersionConverter,
+  ReadableCompressedPackageVersion,
+} from './package-version-converter.js';
 import {customElementConverter} from './custom-element-converter.js';
 import {validationProblemConverter} from './validation-problem-converter.js';
 
 const projectId = process.env['GCP_PROJECT_ID'] || 'wc-catalog';
 firebase.initializeApp({projectId});
 export const db = new Firestore({projectId});
+
+const brotliCompress = promisify(brotliCompressCallbackStyle);
+const brotliDecompress = promisify(brotliDecompressCallbackStyle);
 
 export class FirestoreRepository implements Repository {
   /**
@@ -234,8 +248,13 @@ export class FirestoreRepository implements Repository {
       const distTags = packageMetadata['dist-tags'];
       const versionDistTags = getDistTagsForVersion(distTags, version);
 
+      const compressedManifest =
+        customElementsManifestSource &&
+        (await brotliCompress(customElementsManifestSource)).toString('base64');
+
       // Store package data and mark version as ready
       t.set(versionRef, {
+        __typename: 'ReadableCompressedPackageVersion',
         name: packageName,
         version,
         status: VersionStatus.READY,
@@ -246,14 +265,23 @@ export class FirestoreRepository implements Repository {
         author,
         time: new Date(packageTime),
         homepage: packageVersionMetadata.homepage ?? null,
-        customElementsManifest: customElementsManifestSource ?? null,
+        customElementsManifestCompressed: compressedManifest,
       });
     });
     const packageVersion = await db.runTransaction(async (t) => {
       // There doesn't seem to be a way to get a WriteResult and therefore
       // a writeTime inside a transaction, so we read from the database to
       // get the server timestamp.
-      return (await t.get(versionRef)).data() as ReadablePackageVersion;
+      const packageVersionCompressed = (await t.get(versionRef)).data()!;
+      if (isReadableCompressedPackageVersion(packageVersionCompressed)) {
+        return decompressPackageVersion(
+          packageVersionCompressed,
+          versionRef.id
+        );
+      }
+      throw new Error(
+        `Internal error: expected package version ${versionRef.id} to be readable`
+      );
     });
     return packageVersion;
   }
@@ -282,14 +310,14 @@ export class FirestoreRepository implements Repository {
       t.update(versionRef, {
         status,
         lastUpdate: FieldValue.serverTimestamp(),
-      } as UpdateData<PackageVersion> as PackageVersion);
+      } as UpdateData<UnreadablePackageVersion> as UnreadablePackageVersion);
     });
     const packageVersion = await db.runTransaction(async (t) => {
       // There doesn't seem to be a way to get a WriteResult and therefore
       // a writeTime inside a transaction, so we read from the database to
       // get the server timestamp.
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return (await t.get(versionRef)).data()!;
+      return (await t.get(versionRef)).data() as UnreadablePackageVersion;
     });
     return packageVersion;
   }
@@ -439,7 +467,14 @@ export class FirestoreRepository implements Repository {
       // If version is valid semver we can build a document reference.
       const versionRef = this.getPackageVersionRef(packageName, versionNumber);
       const versionDoc = await versionRef.get();
-      return versionDoc.data();
+      const packageVersion = versionDoc.data();
+      if (
+        packageVersion &&
+        isReadableCompressedPackageVersion(packageVersion)
+      ) {
+        return decompressPackageVersion(packageVersion, versionRef.id);
+      }
+      return packageVersion;
     } else {
       // If version is not a valid semver it may be a dist-tag
 
@@ -450,7 +485,9 @@ export class FirestoreRepository implements Repository {
       }
 
       // Now query for a version that's assigned this dist-tag
-      let query: CollectionReference<PackageVersion> | Query<PackageVersion> =
+      let query:
+        | CollectionReference<CompressedPackageVersion>
+        | Query<CompressedPackageVersion> =
         this.getPackageVersionCollectionRef(packageName);
       if (versionOrTag === 'latest') {
         query = query.where('isLatest', '==', true);
@@ -459,7 +496,16 @@ export class FirestoreRepository implements Repository {
       }
       const result = await query.limit(1).get();
       if (result.size !== 0) {
-        return result.docs[0]!.data();
+        const doc = result.docs[0]!;
+        const packageVersion = doc.data();
+        // Decompress the custom elements manifest.
+        // Note: We'd like to do this in the packageVersionConverter Firestore
+        // converter so that we don't have to remember to compress/decompress
+        // at every read and write operation, but we can't because we also want
+        // this to be an async operation and not block the main thread.
+        if (isReadableCompressedPackageVersion(packageVersion)) {
+          return decompressPackageVersion(packageVersion, doc.id);
+        }
       }
       return undefined;
     }
@@ -548,6 +594,28 @@ export class FirestoreRepository implements Repository {
     return this.getPackageVersionCollectionRef(packageName).doc(version);
   }
 }
+
+export const decompressPackageVersion = async (
+  packageVersion: ReadableCompressedPackageVersion,
+  id: string
+): Promise<ReadablePackageVersion> => {
+  const manifestCompressed = packageVersion.customElementsManifestCompressed;
+  try {
+    const customElementsManifest =
+      manifestCompressed &&
+      (
+        await brotliDecompress(Buffer.from(manifestCompressed, 'base64'))
+      ).toString();
+    return {
+      ...packageVersion,
+      __typename: undefined,
+      customElementsManifest,
+    };
+  } catch (e) {
+    console.error(`Filed to decompress manifest for package version ${id}`);
+    throw e;
+  }
+};
 
 // /**
 //  * Generates a type representing a Firestore document from a GraphQL schema
