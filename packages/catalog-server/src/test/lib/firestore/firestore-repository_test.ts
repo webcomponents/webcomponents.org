@@ -14,6 +14,7 @@ import {
   Package,
 } from 'custom-elements-manifest';
 import {suite} from 'uvu';
+// eslint-disable-next-line import/extensions
 import * as assert from 'uvu/assert';
 
 import {FirestoreRepository} from '../../../lib/firestore/firestore-repository.js';

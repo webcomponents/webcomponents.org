@@ -5,6 +5,7 @@
  */
 
 import {suite} from 'uvu';
+// eslint-disable-next-line import/extensions
 import * as assert from 'uvu/assert';
 import {Catalog} from '../../lib/catalog.js';
 import {LocalFsPackageFiles} from '@webcomponents/custom-elements-manifest-tools/test/local-fs-package-files.js';
