@@ -7,6 +7,7 @@
 import {html, css, LitElement, CSSResultGroup} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import './wco-top-bar.js';
+import './wco-footer.js';
 
 /**
  * The base class for all pages. Includes a top bar and <main> element.
@@ -29,6 +30,7 @@ export class WCOPage extends LitElement {
     return html`
       <wco-top-bar></wco-top-bar>
       <main>${this.renderMain()}</main>
+      <wco-footer></wco-footer>
     `;
   }
 
