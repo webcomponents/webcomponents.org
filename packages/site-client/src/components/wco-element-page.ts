@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {html, css, LitElement} from 'lit';
+import {html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {WCOPage} from './wco-page.js';
 
 import type {Package, Reference} from 'custom-elements-manifest/schema.js';
 import {
@@ -24,27 +25,30 @@ export interface ElementData {
 }
 
 @customElement('wco-element-page')
-export class WCOElementPage extends LitElement {
-  static styles = css`
-    :host {
-      display: flex;
-      flex-direction: column;
-    }
+export class WCOElementPage extends WCOPage {
+  static styles = [
+    WCOPage.styles,
+    css`
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
 
-    .full-screen-error {
-      display: flex;
-      flex: 1;
-      align-items: center;
-      justify-items: center;
-    }
-  `;
+      .full-screen-error {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-items: center;
+      }
+    `,
+  ];
 
   @property({attribute: false})
   elementData?: ElementData;
 
   render() {
     if (this.elementData === undefined) {
-      return html` <div class="full-screen-error">No element to display</div> `;
+      return html`<div class="full-screen-error">No element to display</div>`;
     }
     const {
       packageName,
@@ -65,9 +69,9 @@ export class WCOElementPage extends LitElement {
         : resolveReference(manifest, module, declarationRef, packageName, '');
 
     if (declaration === undefined || declaration.kind !== 'class') {
-      return html`
-        <div class="full-screen-error">Could not find element declaration</div>
-      `;
+      return html`<div class="full-screen-error">
+        Could not find element declaration
+      </div>`;
     }
 
     const fields = declaration.members?.filter((m) => m.kind === 'field');
