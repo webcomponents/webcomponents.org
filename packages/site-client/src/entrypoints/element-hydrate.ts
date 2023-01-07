@@ -5,7 +5,6 @@
  */
 
 import {hydrate} from 'lit/experimental-hydrate.js';
-import {renderBody} from '../templates/body.js';
 import {renderElementPage} from './element.js';
 
 const data = (
@@ -16,4 +15,4 @@ const data = (
 // We could also remove the attribute manually, or not use deferhydration, but
 // instead manually assign the data into the <wco-element-page> element, and
 // time imports so that automatic element hydration happend after.
-hydrate(renderBody(renderElementPage(...data)), document.body);
+hydrate(renderElementPage(...data), document.body);

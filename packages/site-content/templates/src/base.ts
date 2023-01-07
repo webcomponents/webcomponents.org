@@ -12,10 +12,10 @@ import {
 
 import type {TemplateResult} from 'lit';
 import type {DirectiveResult} from 'lit/directive.js';
-import {renderBody} from '@webcomponents/internal-site-client/lib/templates/body.js';
 
 import {escapeHTML} from './escape-html.js';
 export {unsafeHTML} from 'lit/directives/unsafe-html.js';
+export {html} from 'lit';
 
 export function* renderPage(
   data: {
@@ -70,7 +70,7 @@ export function* renderPage(
   </head>
   <body>
 `;
-  yield* render(renderBody(data.content), options);
+  yield* render(data.content, options);
 
   if (data.initialData !== undefined) {
     yield `<script>window.__ssrData = ${JSON.stringify(
