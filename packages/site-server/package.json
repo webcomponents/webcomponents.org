@@ -13,7 +13,8 @@
     "build:server": "wireit",
     "check": "wireit",
     "start:dev": "wireit",
-    "start:prod": "wireit"
+    "start:prod": "wireit",
+    "test": "wireit"
   },
   "wireit": {
     "build": {
@@ -35,7 +36,7 @@
       ]
     },
     "build:server": {
-      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
+      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=.",
       "dependencies": [
         "../site-client:build:dev",
         "../custom-elements-manifest-tools:build",
@@ -66,7 +67,12 @@
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
-      "service": true,
+      "service": {
+        "readyWhen": {
+          "lineMatches": "Web Dev Server started"
+        }
+      },
+      "files": [],
       "dependencies": [
         "build:dev"
       ]
@@ -74,8 +80,15 @@
     "start:prod": {
       "command": "node --enable-source-maps ./lib/prod-server.js",
       "service": true,
+      "files": [],
       "dependencies": [
         "build:prod"
+      ]
+    },
+    "test": {
+      "command": "NODE_OPTIONS=--enable-source-maps uvu test \"_test\\.js$\"",
+      "dependencies": [
+        "start:dev"
       ]
     }
   },
@@ -96,5 +109,8 @@
     "koa-conditional-get": "^3.0.0",
     "koa-etag": "^4.0.0",
     "koa-static": "^5.0.0"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.6"
   }
 }

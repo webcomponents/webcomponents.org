@@ -6,6 +6,7 @@
 
 import type {Package} from 'custom-elements-manifest/schema.js';
 import {suite} from 'uvu';
+// eslint-disable-next-line import/extensions
 import * as assert from 'uvu/assert';
 import {resolveReference} from '../../lib/resolve-reference.js';
 
