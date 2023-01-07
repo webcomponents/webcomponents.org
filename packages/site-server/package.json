@@ -67,9 +67,10 @@
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
-      "service": true,
-      "readyWhen": {
-        "lineMatches": "^Web Dev Server started"
+      "service": {
+        "readyWhen": {
+          "lineMatches": "Web Dev Server started"
+        }
       },
       "files": [],
       "dependencies": [
