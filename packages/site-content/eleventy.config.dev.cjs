@@ -6,8 +6,10 @@
 
 const fs = require('fs');
 const pathlib = require('path');
+const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
 
 module.exports = (eleventyConfig) => {
+  eleventyConfig.addPlugin(eleventyNavigationPlugin);
   symlinkForce('../assets', '_dev/assets');
   symlinkForce('../../site-client/lib/entrypoints', '_dev/js');
   return {
