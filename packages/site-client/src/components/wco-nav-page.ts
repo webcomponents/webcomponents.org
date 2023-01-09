@@ -42,7 +42,7 @@ export class WCONavPage extends WCOPage {
   protected override renderMain() {
     console.log('WCONavPage renderMain');
     return html`
-      <nav id="main-outline">[Docs Outline]</nav>
+      <nav id="main-outline"><slot name="outline"></slot></nav>
       <article>${this.renderContent()}</article>
       <nav id="right-nav">[Page ToC]</nav>
     `;

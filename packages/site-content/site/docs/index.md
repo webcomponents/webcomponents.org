@@ -1,5 +1,8 @@
 ---
 title: 'Web Components | Docs'
+eleventyNavigation:
+  key: Introduction
+  order: 1
 ---
 # Introduction to Web Components
 
