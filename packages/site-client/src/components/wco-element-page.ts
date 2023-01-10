@@ -46,7 +46,7 @@ export class WCOElementPage extends WCOPage {
   @property({attribute: false})
   elementData?: ElementData;
 
-  render() {
+  renderMain() {
     if (this.elementData === undefined) {
       return html`<div class="full-screen-error">No element to display</div>`;
     }
