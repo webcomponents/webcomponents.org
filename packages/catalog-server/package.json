@@ -112,7 +112,7 @@
     "firebase-admin": "^11.0.0",
     "graphql-helix": "^1.13.0",
     "koa-bodyparser": "^4.3.0",
-    "lit": "^2.4.0",
+    "lit": "^2.6.0",
     "natural": "^5.2.3",
     "semver": "^7.3.7"
   }

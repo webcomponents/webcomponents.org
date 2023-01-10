@@ -8,7 +8,7 @@ import {hydrate} from 'lit/experimental-hydrate.js';
 import {renderElementPage} from './element.js';
 
 const data = (
-  window as unknown as {__ssrData: Parameters<typeof renderElementPage>}
+  globalThis as unknown as {__ssrData: Parameters<typeof renderElementPage>}
 ).__ssrData;
 
 // We need to hydrate the whole page to remove any defer-hydration attributes.

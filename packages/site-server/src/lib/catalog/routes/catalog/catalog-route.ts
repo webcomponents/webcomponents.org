@@ -20,8 +20,9 @@ export const handleCatalogRoute = async (
     unknown
   >
 ) => {
-  // URL isn't exactly a Location, but it's close enough for read-only uses
-  window.location = new URL(context.URL.href) as unknown as Location;
+  // Set location because wco-nav-bar reads pathname from it. URL isn't
+  // exactly a Location, but it's close enough for read-only uses
+  globalThis.location = new URL(context.URL.href) as unknown as Location;
 
   context.body = Readable.from(
     renderPage({

@@ -5,10 +5,7 @@
  */
 
 // This must be imported before lit
-import {
-  render,
-  RenderInfo,
-} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
+import {render, RenderInfo} from '@lit-labs/ssr';
 
 import type {TemplateResult} from 'lit';
 import type {DirectiveResult} from 'lit/directive.js';
