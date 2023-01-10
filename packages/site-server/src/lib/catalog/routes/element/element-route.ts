@@ -11,9 +11,18 @@ import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
+import {marked} from 'marked';
 
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 import {client} from '../../graphql.js';
+
+import type {ElementData} from '@webcomponents/internal-site-client/lib/components/wco-element-page.js';
+
+import {
+  getModule,
+  parseReferenceString,
+  resolveReference,
+} from '@webcomponents/custom-elements-manifest-tools';
 
 export const handleElementRoute = async (
   context: ParameterizedContext<
@@ -91,12 +100,32 @@ export const handleElementRoute = async (
     throw new Error('Internal error');
   }
 
-  const elementData = {
+  const declarationRef = parseReferenceString(customElement.declaration);
+  const module =
+    declarationRef.module === undefined
+      ? undefined
+      : getModule(customElementsManifest, declarationRef.module);
+  const declaration =
+    module === undefined
+      ? undefined
+      : resolveReference(
+          customElementsManifest,
+          module,
+          declarationRef,
+          packageName,
+          ''
+        );
+  const elementDescriptionHtml = declaration?.description
+    ? marked(declaration?.description)
+    : '';
+
+  const elementData: ElementData = {
     packageName: packageName,
     elementName: elementName,
     declarationReference: customElement.declaration,
     customElementExport: customElement.customElementExport,
     manifest: customElementsManifest,
+    elementDescriptionHtml,
   };
 
   // Set location because wco-nav-bar reads pathname from it. URL isn't
