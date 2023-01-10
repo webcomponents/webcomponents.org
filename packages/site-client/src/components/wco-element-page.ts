@@ -6,6 +6,7 @@
 
 import {html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import {WCOPage} from './wco-page.js';
 
 import type {Package, Reference} from 'custom-elements-manifest/schema.js';
@@ -22,6 +23,7 @@ export interface ElementData {
   declarationReference: string;
   customElementExport: string;
   manifest: Package;
+  elementDescriptionHtml: string;
 }
 
 @customElement('wco-element-page')
@@ -40,6 +42,10 @@ export class WCOElementPage extends WCOPage {
         align-items: center;
         justify-items: center;
       }
+
+      main {
+        padding: 25px;
+      }
     `,
   ];
 
@@ -56,6 +62,7 @@ export class WCOElementPage extends WCOPage {
       declarationReference,
       customElementExport,
       manifest,
+      elementDescriptionHtml,
     } = this.elementData;
     const ceExportRef = parseReferenceString(customElementExport);
     const declarationRef = parseReferenceString(declarationReference);
@@ -81,7 +88,7 @@ export class WCOElementPage extends WCOPage {
       <h1>${packageName}/${elementName}</h1>
       <h3>${declaration.summary}</h3>
 
-      <p>${declaration.description}</p>
+      <p>${unsafeHTML(elementDescriptionHtml)}</p>
 
       <h2>Usage</h2>
       <pre><code>
