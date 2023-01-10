@@ -8,7 +8,8 @@ import {html, css, LitElement} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
 
-const pathStartsWith = (s: string) => window.location.pathname.startsWith(s);
+const pathStartsWith = (s: string) =>
+  globalThis.location.pathname.startsWith(s);
 
 @customElement('wco-top-bar')
 export class WCOTopBar extends LitElement {

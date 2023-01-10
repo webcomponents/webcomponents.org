@@ -67,7 +67,9 @@ export class WCOCatalogSearch extends LitElement {
   protected firstUpdated() {
     // TODO (justinfagnani): we may want to use a router (and write the search
     // to the URL) but this is easy for now.
-    const urlQuery = new URLSearchParams(window.location.search).get('query');
+    const urlQuery = new URLSearchParams(globalThis.location.search).get(
+      'query'
+    );
     if (urlQuery) {
       this._search.value = urlQuery;
       this._onChange();
