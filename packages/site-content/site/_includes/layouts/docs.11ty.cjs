@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+const {navToHTML} = require('./nav.cjs');
+
 module.exports = {
   async render(data) {
     const {renderPage, html, unsafeHTML} = await import(
@@ -19,17 +21,17 @@ module.exports = {
 
     const navigationEntries = this.eleventyNavigation(data.collections.all);
 
-    // TODO: use custom navigation HTML generation so that we can leave out
-    // links for section items.
-    // See https://github.com/lit/lit.dev/blob/main/packages/lit-dev-content/site/_includes/docs-nav.html
-    const navigationHTML = this.eleventyNavigationToHtml(navigationEntries);
+    const navigationHTML = navToHTML(
+      navigationEntries,
+      {slot: 'outline'},
+      data.page
+    );
 
     return [
       ...renderPage({
         ...data,
         content: html`<wco-nav-page>
-          <div slot="outline">${unsafeHTML(navigationHTML)}</div>
-          ${unsafeHTML(data.content)}
+          ${unsafeHTML(navigationHTML)} ${unsafeHTML(data.content)}
         </wco-nav-page>`,
       }),
     ].join('');
