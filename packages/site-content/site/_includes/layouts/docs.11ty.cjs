@@ -21,9 +21,6 @@ module.exports = {
 
     const navigationEntries = this.eleventyNavigation(data.collections.all);
 
-    // TODO: use custom navigation HTML generation so that we can leave out
-    // links for section items.
-    // See https://github.com/lit/lit.dev/blob/main/packages/lit-dev-content/site/_includes/docs-nav.html
     const navigationHTML = navToHTML(
       navigationEntries,
       {slot: 'outline'},
