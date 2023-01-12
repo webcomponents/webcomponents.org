@@ -4,15 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {hydrate} from 'lit/experimental-hydrate.js';
-import {renderDocsPage} from './docs.js';
+import {NavEntry} from '../components/wco-nav-page.js';
 
-const data = (
-  globalThis as unknown as {__ssrData: Parameters<typeof renderDocsPage>}
-).__ssrData;
+const data = (globalThis as unknown as {__ssrData: [NavEntry[]]}).__ssrData;
 
-// We need to hydrate the whole page to remove any defer-hydration attributes.
-// We could also remove the attribute manually, or not use deferhydration, but
-// instead manually assign the data into the <wco-docs-page> element, and time
-// imports so that automatic element hydration happend after.
-hydrate(renderDocsPage(...data), document.body);
+const navEntries = data[0];
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const el = document.querySelector('wco-docs-page')!;
+el.navEntries = navEntries;
+el.removeAttribute('defer-hydration');
