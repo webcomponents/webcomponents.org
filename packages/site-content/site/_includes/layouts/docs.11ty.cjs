@@ -26,8 +26,8 @@ module.exports = {
       ...renderPage(
         {
           ...data,
-          content: renderDocsPage(navEntries),
-          initialData: [navEntries],
+          content: renderDocsPage(data.content, navEntries),
+          initialData: [data.content, navEntries],
           initScript: '/js/docs-hydrate.js',
         },
         {
