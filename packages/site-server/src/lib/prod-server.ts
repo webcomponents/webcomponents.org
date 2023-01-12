@@ -24,7 +24,7 @@ app.use(koaEtag());
 
 const router = new Router();
 router.use('/catalog', catalogRouter.routes());
-router.use('/test', async ({response: res}) => {
+router.get('/test', async ({response: res}) => {
   const auth = new GoogleAuth();
   const catalogUrl = 'https://catalog-khswqo4xea-wl.a.run.app';
   const client = await auth.getIdTokenClient(catalogUrl);
