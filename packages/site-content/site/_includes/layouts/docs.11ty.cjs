@@ -12,7 +12,7 @@ module.exports = {
       '../../../templates/lib/base.js'
     );
     await import(
-      '@webcomponents/internal-site-client/lib/components/wco-nav-page.js'
+      '@webcomponents/internal-site-client/lib/components/wco-docs-page.js'
     );
 
     // Set location because wco-nav-bar reads pathname from it. URL isn't
@@ -30,9 +30,9 @@ module.exports = {
     return [
       ...renderPage({
         ...data,
-        content: html`<wco-nav-page>
+        content: html`<wco-docs-page>
           ${unsafeHTML(navigationHTML)} ${unsafeHTML(data.content)}
-        </wco-nav-page>`,
+        </wco-docs-page>`,
       }),
     ].join('');
   },
