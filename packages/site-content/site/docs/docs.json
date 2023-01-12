@@ -1,6 +1,4 @@
 {
   "layout": "layouts/docs.11ty.cjs",
-  "scripts": [
-    "../js/homepage.js"
-  ]
+  "scripts": ["/js/docs.js"]
 }
