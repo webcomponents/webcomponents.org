@@ -31,15 +31,16 @@ const auth = new GoogleAuth();
 // const authClient = await auth.getClient();
 
 const link = new HttpLink({
-  uri: CATALOG_GRAPHQL_URL + 'graphql',
+  uri: CATALOG_GRAPHQL_URL,
+  // + 'graphql',
   async fetch(
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
     const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
-    const authHeaders = await authClient.getRequestHeaders(CATALOG_GRAPHQL_URL);
+    const authHeaders = await authClient.getRequestHeaders();
     const headers = {
-      ...(init?.headers ?? {}),
+      // ...(init?.headers ?? {}),
       ...authHeaders,
     };
     console.log('audience', CATALOG_GRAPHQL_URL);
@@ -48,15 +49,18 @@ const link = new HttpLink({
     console.log('request headers', headers);
 
     // DEBUG:
-    if (typeof input === 'string') {
-      console.log('calling with authClient.request');
-      authClient.request({url: input, method: 'POST'});
-    } else if (input instanceof URL) {
-      console.log('calling with authClient.request');
-      authClient.request({url: input.href, method: 'POST'});
-    }
+    // if (typeof input === 'string') {
+    //   console.log('calling with authClient.request');
+    //   authClient.request({url: input, method: 'POST'});
+    // } else if (input instanceof URL) {
+    //   console.log('calling with authClient.request');
+    //   authClient.request({url: input.href, method: 'POST'});
+    // }
 
-    return fetch(input, {...(init ?? {}), headers});
+    return fetch(input, {
+      // ...(init ?? {}),
+      headers,
+    });
   },
 });
 
