@@ -4,36 +4,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const {navToHTML} = require('./nav.cjs');
-
 module.exports = {
   async render(data) {
-    const {renderPage, html, unsafeHTML} = await import(
-      '../../../templates/lib/base.js'
-    );
+    const {renderPage} = await import('../../../templates/lib/base.js');
     await import(
       '@webcomponents/internal-site-client/lib/components/wco-nav-page.js'
+    );
+    const {renderDocsPage} = await import(
+      '@webcomponents/internal-site-client/lib/entrypoints/docs.js'
     );
 
     // Set location because wco-nav-bar reads pathname from it. URL isn't
     // exactly a Location, but it's close enough for read-only uses
-    globalThis.location = new URL('http://localhost:5450/docs/');
-
-    const navigationEntries = this.eleventyNavigation(data.collections.all);
-
-    const navigationHTML = navToHTML(
-      navigationEntries,
-      {slot: 'outline'},
-      data.page
+    globalThis.location = new URL(
+      `http://localhost:5450${data.page.url || '/'}`
     );
 
+    const navEntries = this.eleventyNavigation(data.collections.all);
+
     return [
-      ...renderPage({
-        ...data,
-        content: html`<wco-nav-page>
-          ${unsafeHTML(navigationHTML)} ${unsafeHTML(data.content)}
-        </wco-nav-page>`,
-      }),
+      ...renderPage(
+        {
+          ...data,
+          content: renderDocsPage(data.content, navEntries),
+          initialData: [navEntries],
+          initScript: '/js/docs-hydrate.js',
+        },
+        {
+          // We need to defer elements from hydrating so that we can
+          // manually provide data to the element in docs-hydrate.js
+          deferHydration: true,
+        }
+      ),
     ].join('');
   },
 };

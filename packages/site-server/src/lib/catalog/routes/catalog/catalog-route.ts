@@ -27,7 +27,7 @@ export const handleCatalogRoute = async (
   context.body = Readable.from(
     renderPage({
       title: `Web Components Catalog`,
-      scripts: ['/js/hydrate.js', '/js/catalog.js'],
+      scripts: ['/js/catalog.js'],
       content: html`<wco-catalog-page></wco-catalog-page>`,
     })
   );
