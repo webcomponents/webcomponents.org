@@ -19,6 +19,7 @@
     "test": "wireit",
     "test:manual": "wireit",
     "emulators:start": "wireit",
+    "emulators:export": "wireit",
     "firebase": "firebase"
   },
   "wireit": {
@@ -64,13 +65,21 @@
       "output": []
     },
     "emulators:start": {
-      "command": "firebase emulators:start --project wc-catalog",
+      "command": "firebase emulators:start --project wc-catalog --import firebase-data",
       "service": true,
       "files": [
         "firebase.json",
         "firestore.indexes.json",
         "firestore.rules"
-      ]
+      ],
+      "env": {
+        "IMPORT": {
+          "external": true
+        }
+      }
+    },
+    "emulators:export": {
+      "command": "firebase emulators:export --project wc-catalog -f firebase-data"
     },
     "test:manual": {
       "command": "NODE_OPTIONS='--enable-source-maps' FIRESTORE_EMULATOR_HOST=localhost:7450 uvu test \"_test\\.js$\"",
@@ -85,7 +94,6 @@
     "@types/koa__cors": "^3.3.0",
     "@types/koa__router": "^12.0.0",
     "@types/koa-bodyparser": "^4.3.8",
-    "@types/natural": "^5.1.1",
     "@types/node": "^18.0.6",
     "@types/source-map-support": "^0.5.3",
     "firebase-tools": "^11.3.0"
@@ -103,8 +111,8 @@
     "firebase-admin": "^11.0.0",
     "graphql-helix": "^1.13.0",
     "koa-bodyparser": "^4.3.0",
-    "lit": "^2.4.0",
-    "natural": "^5.2.3",
+    "lit": "^2.6.0",
+    "natural": "^6.1.2",
     "semver": "^7.3.7"
   }
 }

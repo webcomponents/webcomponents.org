@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {html, css, LitElement} from 'lit';
+import {html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import {WCOPage} from './wco-page.js';
 
 import type {Package, Reference} from 'custom-elements-manifest/schema.js';
 import {
@@ -15,41 +17,44 @@ import {
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
 
-import './wco-top-bar.js';
-
 export interface ElementData {
   packageName: string;
   elementName: string;
   declarationReference: string;
   customElementExport: string;
   manifest: Package;
+  elementDescriptionHtml: string;
 }
 
 @customElement('wco-element-page')
-export class WCOElementPage extends LitElement {
-  static styles = css`
-    :host {
-      display: flex;
-      flex-direction: column;
-    }
+export class WCOElementPage extends WCOPage {
+  static styles = [
+    WCOPage.styles,
+    css`
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
 
-    .full-screen-error {
-      display: flex;
-      flex: 1;
-      align-items: center;
-      justify-items: center;
-    }
-  `;
+      .full-screen-error {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-items: center;
+      }
+
+      main {
+        padding: 25px;
+      }
+    `,
+  ];
 
   @property({attribute: false})
   elementData?: ElementData;
 
-  render() {
+  renderMain() {
     if (this.elementData === undefined) {
-      return html`
-        <wco-top-bar></wco-top-bar>
-        <div class="full-screen-error">No element to display</div>
-      `;
+      return html`<div class="full-screen-error">No element to display</div>`;
     }
     const {
       packageName,
@@ -57,6 +62,7 @@ export class WCOElementPage extends LitElement {
       declarationReference,
       customElementExport,
       manifest,
+      elementDescriptionHtml,
     } = this.elementData;
     const ceExportRef = parseReferenceString(customElementExport);
     const declarationRef = parseReferenceString(declarationReference);
@@ -70,21 +76,19 @@ export class WCOElementPage extends LitElement {
         : resolveReference(manifest, module, declarationRef, packageName, '');
 
     if (declaration === undefined || declaration.kind !== 'class') {
-      return html`
-        <wco-top-bar></wco-top-bar>
-        <div class="full-screen-error">Could not find element declaration</div>
-      `;
+      return html`<div class="full-screen-error">
+        Could not find element declaration
+      </div>`;
     }
 
     const fields = declaration.members?.filter((m) => m.kind === 'field');
     const methods = declaration.members?.filter((m) => m.kind === 'method');
 
     return html`
-      <wco-top-bar></wco-top-bar>
       <h1>${packageName}/${elementName}</h1>
       <h3>${declaration.summary}</h3>
 
-      <p>${declaration.description}</p>
+      <p>${unsafeHTML(elementDescriptionHtml)}</p>
 
       <h2>Usage</h2>
       <pre><code>

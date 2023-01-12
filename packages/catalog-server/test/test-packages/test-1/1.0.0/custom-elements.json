@@ -39,7 +39,7 @@
         {
           "kind": "class",
           "customElement": true,
-          "tagName": "bar-element",
+          "tagName": "foo-element",
           "name": "FooElement",
           "superclass": {
             "name": "HTMLElement"

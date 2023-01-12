@@ -1,0 +1,6 @@
+{
+  "name": "large-manifest",
+  "version": "1.0.0",
+  "description": "A lot of API",
+  "customElements": "custom-elements.json"
+}

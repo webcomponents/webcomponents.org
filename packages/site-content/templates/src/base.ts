@@ -3,15 +3,27 @@
  * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-import {escapeHTML} from './escape-html.js';
 
-export function* renderPage(data: {
-  scripts?: Array<string>;
-  title?: string;
-  content: string | Iterable<string>;
-  initialData?: object;
-  initScript?: string;
-}) {
+// This must be imported before lit
+import {render, RenderInfo} from '@lit-labs/ssr';
+
+import type {TemplateResult} from 'lit';
+import type {DirectiveResult} from 'lit/directive.js';
+
+import {escapeHTML} from './escape-html.js';
+export {unsafeHTML} from 'lit/directives/unsafe-html.js';
+export {html} from 'lit';
+
+export function* renderPage(
+  data: {
+    scripts?: Array<string>;
+    title?: string;
+    content: TemplateResult | DirectiveResult;
+    initialData?: object;
+    initScript?: string;
+  },
+  options?: Partial<RenderInfo>
+) {
   yield `<!doctype html>
 <html lang="en">
   <head>
@@ -55,11 +67,7 @@ export function* renderPage(data: {
   </head>
   <body>
 `;
-  if (typeof data.content === 'string') {
-    yield data.content;
-  } else {
-    yield* data.content;
-  }
+  yield* render(data.content, options);
 
   if (data.initialData !== undefined) {
     yield `<script>window.__ssrData = ${JSON.stringify(

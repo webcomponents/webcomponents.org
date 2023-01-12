@@ -4,17 +4,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {} from 'npm-registry-fetch';
+
 /**
  * Interface for retrieving npm package metadata and files.
  */
 export interface PackageFiles {
-  getPackageMetadata(packageName: string): Promise<Package | undefined>;
-  // TODO: include undefined
+  /**
+   * Fetch package metadata from the npm registry.
+   *
+   * The response must be compatible with the npm registry Package Metadata
+   * API: https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
+   * 
+   * If a package is not found, the returned Promise must reject with an
+   * HttpError with status 404.
+   */
+  getPackageMetadata(packageName: string): Promise<Package>;
+
   getPackageVersionMetadata(
     packageName: string,
     version: string
   ): Promise<Version>;
+
   getFile(packageName: string, version: string, path: string): Promise<string>;
+}
+
+export interface HttpError extends Error {
+  statusCode: number;
 }
 
 /**

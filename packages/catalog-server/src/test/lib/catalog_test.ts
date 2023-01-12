@@ -5,6 +5,7 @@
  */
 
 import {suite} from 'uvu';
+// eslint-disable-next-line import/extensions
 import * as assert from 'uvu/assert';
 import {Catalog} from '../../lib/catalog.js';
 import {LocalFsPackageFiles} from '@webcomponents/custom-elements-manifest-tools/test/local-fs-package-files.js';
@@ -12,6 +13,7 @@ import {FirestoreRepository} from '../../lib/firestore/firestore-repository.js';
 import {
   isReadablePackage,
   isReadablePackageVersion,
+  PackageStatus,
   ReadablePackageInfo,
   ReadablePackageVersion,
   VersionStatus,
@@ -160,7 +162,7 @@ test('Gets package version data from imported package', async () => {
   const catalog = new Catalog({files, repository});
   const importResult = await catalog.importPackageVersion(packageName, version);
   const {problems} = importResult;
-  assert.equal(problems.length, 0);
+  assert.equal(problems?.length, 0, 'problems.length');
 
   const getResult = await catalog.getPackageVersion(packageName, version);
   const cemSource = await files.getFile(
@@ -283,6 +285,115 @@ test('Imports a package with separate define and implementation modules', async 
     ''
   );
   assert.ok(declaration);
+});
+
+test('Imports a package with no custom elements manifest', async () => {
+  const packageName = 'no-elements';
+  const packagePath = fileURLToPath(
+    new URL('../test-packages/no-elements/', import.meta.url)
+  );
+  const files = new LocalFsPackageFiles({
+    path: packagePath,
+    packageName,
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackage(packageName);
+
+  assert.equal(importResult.problems?.length, 1);
+  // The package is "readable" in that the latest version was imported,
+  // but the latest version will be invalid
+  assert.equal(importResult.packageInfo?.status, PackageStatus.READY);
+  assert.ok(importResult.packageVersion);
+  assert.equal(importResult.packageVersion?.status, VersionStatus.INVALID);
+});
+
+test('Imports a package with missing custom elements manifest', async () => {
+  const packageName = 'manifest-not-found';
+  const packagePath = fileURLToPath(
+    new URL('../test-packages/manifest-not-found/', import.meta.url)
+  );
+  const files = new LocalFsPackageFiles({
+    path: packagePath,
+    packageName,
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackage(packageName);
+
+  assert.equal(importResult.problems?.length, 1, 'problems.length');
+  // The package is "readable" in that the latest version was imported,
+  // but the latest version will be invalid
+  assert.equal(importResult.packageInfo?.status, PackageStatus.READY);
+  assert.ok(importResult.packageVersion);
+  assert.equal(importResult.packageVersion?.status, VersionStatus.INVALID);
+});
+
+test('Imports a non-existent package', async () => {
+  const packageName = 'not-found';
+  const files = new LocalFsPackageFiles({
+    path: 'some-other-package',
+    // This will cause getPackageMetadata('not-found') to 404
+    packageName: 'some-other-package',
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackage(packageName);
+
+  // We don't create a ValidationProblem for a not found package, since
+  // it would repeat the information of the status.
+  assert.equal(importResult.problems, undefined);
+  assert.equal(importResult.packageInfo?.status, PackageStatus.NOT_FOUND);
+});
+
+test('Imports a large manifest', async () => {
+  const packageName = 'large-manifest';
+  const packagePath = fileURLToPath(
+    new URL('../test-packages/large-manifest/', import.meta.url)
+  );
+
+  const files = new LocalFsPackageFiles({
+    path: packagePath,
+    packageName,
+    publishedVersions: ['1.0.0'],
+    distTags: {
+      latest: '1.0.0',
+    },
+  });
+  const repository = new FirestoreRepository(TEST_SEQUENCE_THREE);
+  const catalog = new Catalog({files, repository});
+  const importResult = await catalog.importPackage(packageName);
+
+  assert.equal(importResult.problems ?? [], []);
+  assert.equal(importResult.packageInfo?.status, PackageStatus.READY);
+
+  assert.ok(importResult.packageVersion);
+  assert.equal(importResult.packageVersion.status, VersionStatus.READY);
+  const manifest = (importResult.packageVersion as ReadablePackageVersion)
+    .customElementsManifest;
+  assert.ok(manifest);
+  const parsedManifest = JSON.parse(manifest);
+  assert.equal(parsedManifest.schemaVersion, '1.0.0');
+
+  // Check that getting the version through getPackageVersion() decompresses
+  const packageVersion2 = await catalog.getPackageVersion(packageName, '1.0.0');
+  const manifest2 = (packageVersion2 as ReadablePackageVersion)
+    .customElementsManifest;
+  assert.ok(manifest2);
+  const parsedManifest2 = JSON.parse(manifest2);
+  assert.equal(parsedManifest2.schemaVersion, '1.0.0');
 });
 
 test.run();

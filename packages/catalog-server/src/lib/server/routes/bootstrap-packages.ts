@@ -27,7 +27,7 @@ export const makeBootstrapPackagesRoute =
         async (
           packageName
         ): Promise<
-          | {error: unknown; packageName: string}
+          | {error: Error; packageName: string}
           | {
               packageName: string;
               elements: Array<CustomElement>;
@@ -51,7 +51,7 @@ export const makeBootstrapPackagesRoute =
           } catch (error) {
             return {
               packageName,
-              error,
+              error: error as Error,
             };
           }
         }
@@ -67,7 +67,7 @@ export const makeBootstrapPackagesRoute =
         if ('error' in result) {
           return `
             <h3>${packageName}</h3>
-            <code><pre>${result.error}</pre></code>
+            <code><pre>${result.error}\n${result.error.stack ?? ''}</pre></code>
           `;
         } else {
           const {elements} = result;

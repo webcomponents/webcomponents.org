@@ -5,6 +5,7 @@
  */
 
 import {suite} from 'uvu';
+// eslint-disable-next-line import/extensions
 import * as assert from 'uvu/assert';
 
 import {errorCodes, validatePackage} from '../../lib/validate.js';

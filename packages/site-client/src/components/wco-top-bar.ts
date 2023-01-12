@@ -8,7 +8,8 @@ import {html, css, LitElement} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
 
-const pathStartsWith = (s: string) => window.location.pathname.startsWith(s);
+const pathStartsWith = (s: string) =>
+  globalThis.location.pathname.startsWith(s);
 
 @customElement('wco-top-bar')
 export class WCOTopBar extends LitElement {
@@ -75,11 +76,18 @@ export class WCOTopBar extends LitElement {
     nav > a.active {
       color: blue;
     }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
   `;
 
   render() {
     return html`
-      <span id="title"><span id="logo">WC</span> WebComponents.org</span>
+      <a href="/"
+        ><span id="title"><span id="logo">WC</span> WebComponents.org</span></a
+      >
       <nav>
         <a
           class="${classMap({

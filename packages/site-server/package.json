@@ -13,7 +13,8 @@
     "build:server": "wireit",
     "check": "wireit",
     "start:dev": "wireit",
-    "start:prod": "wireit"
+    "start:prod": "wireit",
+    "test": "wireit"
   },
   "wireit": {
     "build": {
@@ -35,7 +36,7 @@
       ]
     },
     "build:server": {
-      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=lib",
+      "command": "find src -name \"*.ts\" | xargs esbuild --format=esm --target=es2022 --color --outdir=.",
       "dependencies": [
         "../site-client:build:dev",
         "../custom-elements-manifest-tools:build",
@@ -56,7 +57,9 @@
         "../../tsconfig.base.json",
         "src/**/*.ts"
       ],
-      "output": [],
+      "output": [
+        "tsconfig.tsbuildinfo"
+      ],
       "dependencies": [
         "../site-client:build:types",
         "../site-content:build:templates:types"
@@ -64,7 +67,12 @@
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
-      "service": true,
+      "service": {
+        "readyWhen": {
+          "lineMatches": "Web Dev Server started"
+        }
+      },
+      "files": [],
       "dependencies": [
         "build:dev"
       ]
@@ -72,8 +80,15 @@
     "start:prod": {
       "command": "node --enable-source-maps ./lib/prod-server.js",
       "service": true,
+      "files": [],
       "dependencies": [
         "build:prod"
+      ]
+    },
+    "test": {
+      "command": "NODE_OPTIONS=--enable-source-maps uvu test \"_test\\.js$\"",
+      "dependencies": [
+        "start:dev"
       ]
     }
   },
@@ -81,18 +96,24 @@
     "@apollo/client": "^3.7.0",
     "@koa/cors": "^4.0.0",
     "@koa/router": "^12.0.0",
-    "@lit-labs/ssr": "^2.2.3",
+    "@lit-labs/ssr": "^3.0.0",
     "@types/koa": "^2.13.5",
     "@types/koa__cors": "^3.3.0",
     "@types/koa__router": "^12.0.0",
     "@types/koa-conditional-get": "^2.0.0",
     "@types/koa-etag": "^3.0.0",
     "@types/koa-static": "^4.0.2",
+    "@types/marked": "^4.0.8",
     "@web/dev-server": "^0.1.34",
+    "@webcomponents/internal-site-content": "^0.0.0",
     "google-auth-library": "^8.7.0",
     "koa": "^2.13.4",
     "koa-conditional-get": "^3.0.0",
     "koa-etag": "^4.0.0",
-    "koa-static": "^5.0.0"
+    "koa-static": "^5.0.0",
+    "marked": "^4.2.5"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.6"
   }
 }

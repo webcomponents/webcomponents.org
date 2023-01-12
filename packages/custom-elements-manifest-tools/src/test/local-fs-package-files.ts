@@ -16,6 +16,15 @@ export interface Config {
   distTags: {[tag: string]: string};
 }
 
+class HttpError extends Error {
+  statusCode: number;
+
+  constructor(statusCode: number, message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.statusCode = statusCode;
+  }
+}
+
 /**
  * A local filesystem implementation of the PackageFiles interface for tests.
  *
@@ -39,7 +48,7 @@ export class LocalFsPackageFiles implements PackageFiles {
 
   async getPackageMetadata(packageName: string): Promise<Package> {
     if (packageName !== this.packageName) {
-      throw new Error(`Package not found ${packageName}`);
+      throw new HttpError(404, `Package not found ${packageName}`);
     }
 
     // Create a fake npm "packument"

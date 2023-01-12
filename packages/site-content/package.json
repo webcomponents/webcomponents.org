@@ -54,6 +54,9 @@
     },
     "build:templates": {
       "command": "find templates/src -name \"*.ts\" | xargs esbuild --color --outdir=templates/lib",
+      "dependencies": [
+        "../site-client:build"
+      ],
       "files": [
         "templates/src/**/*.ts"
       ],
@@ -73,7 +76,8 @@
       ],
       "dependencies": [
         "../catalog-api:build",
-        "../custom-elements-manifest-tools:build"
+        "../custom-elements-manifest-tools:build",
+        "../site-client:build"
       ],
       "clean": "if-file-deleted"
     },
@@ -90,6 +94,8 @@
   },
   "dependencies": {
     "@11ty/eleventy": "^1.0.2",
+    "@11ty/eleventy-navigation": "^0.3.5",
+    "@webcomponents/internal-site-client": "^0.0.0",
     "@webcomponents/internal-site-server": "^0.0.0"
   }
 }

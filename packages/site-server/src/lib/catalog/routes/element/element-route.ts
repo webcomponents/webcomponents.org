@@ -5,16 +5,24 @@
  */
 
 // This must be imported before lit
-import {render} from '@lit-labs/ssr/lib/render-with-global-dom-shim.js';
+import {renderPage} from '@webcomponents/internal-site-content/templates/lib/base.js';
 
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
+import {marked} from 'marked';
 
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
-import {renderPage} from '@webcomponents/internal-site-content/templates/lib/base.js';
 import {client} from '../../graphql.js';
+
+import type {ElementData} from '@webcomponents/internal-site-client/lib/components/wco-element-page.js';
+
+import {
+  getModule,
+  parseReferenceString,
+  resolveReference,
+} from '@webcomponents/custom-elements-manifest-tools';
 
 export const handleElementRoute = async (
   context: ParameterizedContext<
@@ -28,7 +36,18 @@ export const handleElementRoute = async (
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const elementPath = params['path']!;
   const elementPathSegments = elementPath.split('/');
+
   const isScoped = elementPathSegments[0]?.startsWith('@');
+
+  if (
+    (isScoped && elementPathSegments.length !== 3) ||
+    (!isScoped && elementPathSegments.length !== 2)
+  ) {
+    context.status = 404;
+    context.body = `Not Found`;
+    return;
+  }
+
   const packageName = isScoped
     ? elementPathSegments[0] + '/' + elementPathSegments[1]
     : elementPathSegments[0]!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -81,26 +100,54 @@ export const handleElementRoute = async (
     throw new Error('Internal error');
   }
 
-  const elementData = {
+  const declarationRef = parseReferenceString(customElement.declaration);
+  const module =
+    declarationRef.module === undefined
+      ? undefined
+      : getModule(customElementsManifest, declarationRef.module);
+  const declaration =
+    module === undefined
+      ? undefined
+      : resolveReference(
+          customElementsManifest,
+          module,
+          declarationRef,
+          packageName,
+          ''
+        );
+  const elementDescriptionHtml = declaration?.description
+    ? marked(declaration?.description)
+    : '';
+
+  const elementData: ElementData = {
     packageName: packageName,
     elementName: elementName,
     declarationReference: customElement.declaration,
     customElementExport: customElement.customElementExport,
     manifest: customElementsManifest,
+    elementDescriptionHtml,
   };
 
-  // URL isn't exactly a Location, but it's close enough for read-only uses
-  window.location = new URL(context.URL.href) as unknown as Location;
+  // Set location because wco-nav-bar reads pathname from it. URL isn't
+  // exactly a Location, but it's close enough for read-only uses
+  globalThis.location = new URL(context.URL.href) as unknown as Location;
 
   context.type = 'html';
   context.status = 200;
   context.body = Readable.from(
-    renderPage({
-      title: `${packageName}/${elementName}`,
-      scripts: ['/js/hydrate.js', '/js/element.js'],
-      initScript: '/js/element-hydrate.js',
-      content: render(renderElementPage(elementData), {deferHydration: true}),
-      initialData: [elementData],
-    })
+    renderPage(
+      {
+        title: `${packageName}/${elementName}`,
+        scripts: ['/js/hydrate.js', '/js/element.js'],
+        initScript: '/js/element-hydrate.js',
+        content: renderElementPage(elementData),
+        initialData: [elementData],
+      },
+      {
+        // We need to defer elements from hydrating so that we can
+        // manually provide data to the element in element-hydrate.js
+        deferHydration: true,
+      }
+    )
   );
 };
