@@ -110,7 +110,8 @@
     "koa-conditional-get": "^3.0.0",
     "koa-etag": "^4.0.0",
     "koa-static": "^5.0.0",
-    "marked": "^4.2.5"
+    "marked": "^4.2.5",
+    "google-auth-library": "^8.7.0"
   },
   "devDependencies": {
     "uvu": "^0.5.6"

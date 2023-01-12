@@ -11,6 +11,7 @@ import koaEtag from 'koa-etag';
 import Router from '@koa/router';
 import {fileURLToPath} from 'url';
 import {catalogRouter} from './catalog/router.js';
+import {GoogleAuth} from 'google-auth-library';
 
 const PORT = process.env['PORT'] || 5451;
 const STATIC_ROOT = fileURLToPath(
@@ -23,6 +24,21 @@ app.use(koaEtag());
 
 const router = new Router();
 router.use('/catalog', catalogRouter.routes());
+router.use('/test', async ({response: res}) => {
+  const auth = new GoogleAuth();
+  const catalogUrl = 'https://catalog-khswqo4xea-wl.a.run.app';
+  const client = await auth.getIdTokenClient(catalogUrl);
+  try {
+    // const response = await client.request({url: serviceAUrl});
+    // res.end(response.data);
+    const headers = await client.getRequestHeaders();
+    const response = await fetch(catalogUrl, {headers});
+    const text = await response.text();
+    res.body = text;
+  } catch (e) {
+    res.body = `Error: ${(e as Error).stack}`;
+  }
+});
 app.use(router.routes());
 
 app.use(
