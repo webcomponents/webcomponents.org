@@ -11,28 +11,28 @@ import {
 } from '@apollo/client/core/index.js';
 import {GoogleAuth} from 'google-auth-library';
 
-let CATALOG_GRAPHQL_URL =
-  process.env['CATALOG_GRAPHQL_URL'] || `http://localhost:6451/graphql`;
+let CATALOG_SERVER_URL =
+  process.env['CATALOG_SERVER_URL'] || `http://localhost:6451/`;
 
-if (!CATALOG_GRAPHQL_URL.endsWith('/')) {
-  CATALOG_GRAPHQL_URL = CATALOG_GRAPHQL_URL + '/';
+if (!CATALOG_SERVER_URL.endsWith('/')) {
+  CATALOG_SERVER_URL = CATALOG_SERVER_URL + '/';
 }
 
 const auth = new GoogleAuth();
 
 const link = new HttpLink({
-  uri: CATALOG_GRAPHQL_URL + 'graphql',
+  uri: CATALOG_SERVER_URL + 'graphql',
   async fetch(
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
-    const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
+    const authClient = await auth.getIdTokenClient(CATALOG_SERVER_URL);
     const authHeaders = await authClient.getRequestHeaders();
     const headers = {
       ...(init?.headers ?? {}),
       ...authHeaders,
     };
-    console.log('audience', CATALOG_GRAPHQL_URL);
+    console.log('audience', CATALOG_SERVER_URL);
     console.log('input', input);
     console.log('init', init);
     console.log('request headers', headers);

@@ -13,7 +13,7 @@ substitutions:
   _IMAGE_URL_CATALOG: us.gcr.io/${PROJECT_ID}/pr/catalog:${SHORT_SHA}
   _IMAGE_URL_SITE: us.gcr.io/${PROJECT_ID}/pr/site:${SHORT_SHA}
   _IMAGE_CACHE_TTL: 168h # 1 week
-  _CATALOG_GRAPHQL_URL: https://${_TAG}---catalog-khswqo4xea-wl.a.run.app
+  _CATALOG_SERVER_URL: https://${_TAG}---catalog-khswqo4xea-wl.a.run.app
 
 steps:
   # Build catalog Docker image.
@@ -82,4 +82,4 @@ steps:
       - --concurrency=default # Unlimited
       - --min-instances=0
       - --max-instances=1
-      - --update-env-vars=CATALOG_GRAPHQL_URL=${_CATALOG_GRAPHQL_URL}
+      - --update-env-vars=CATALOG_SERVER_URL=${_CATALOG_SERVER_URL}
