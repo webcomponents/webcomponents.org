@@ -11,12 +11,12 @@ import {
 } from '@apollo/client/core/index.js';
 import {GoogleAuth} from 'google-auth-library';
 
-let CATALOG_GRAPHQL_URL =
+const CATALOG_GRAPHQL_URL =
   process.env['CATALOG_GRAPHQL_URL'] || `http://localhost:6451`;
 
-if (!CATALOG_GRAPHQL_URL.endsWith('/')) {
-  CATALOG_GRAPHQL_URL = CATALOG_GRAPHQL_URL + '/';
-}
+// if (!CATALOG_GRAPHQL_URL.endsWith('/')) {
+//   CATALOG_GRAPHQL_URL = CATALOG_GRAPHQL_URL + '/';
+// }
 
 console.log(`K_SERVICE ${process.env['K_SERVICE']}`);
 console.log(`K_REVISION ${process.env['K_REVISION']}`);
@@ -37,6 +37,22 @@ const link = new HttpLink({
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
+    {
+      const auth = new GoogleAuth();
+      const catalogUrl = CATALOG_GRAPHQL_URL;
+      const client = await auth.getIdTokenClient(catalogUrl);
+      try {
+        // const response = await client.request({url: serviceAUrl});
+        // res.end(response.data);
+        const headers = await client.getRequestHeaders();
+        const response = await fetch(catalogUrl, {headers});
+        const text = await response.text();
+        console.log('XXX RESPONSE', text);
+      } catch (e) {
+        console.log(`XXX Error: ${(e as Error).stack}`);
+      }
+    }
+
     const authClient = await auth.getIdTokenClient(CATALOG_GRAPHQL_URL);
     const authHeaders = await authClient.getRequestHeaders();
     const headers = {
