@@ -26,20 +26,9 @@ const link = new HttpLink({
     input: RequestInfo | URL,
     init?: RequestInit | undefined
   ): Promise<Response> {
-    {
-      const auth = new GoogleAuth();
-      const catalogUrl = 'https://catalog-khswqo4xea-wl.a.run.app';
-      const client = await auth.getIdTokenClient(catalogUrl);
-      try {
-        const headers = await client.getRequestHeaders();
-        const response = await fetch(catalogUrl, {headers});
-        const text = await response.text();
-        console.log('YYY', text);
-      } catch (e) {
-        console.log(`YYY Error: ${(e as Error).stack}`);
-      }
-    }
-    const authClient = await auth.getIdTokenClient(CATALOG_SERVER_URL);
+    const authClient = await auth.getIdTokenClient(
+      'https://catalog-khswqo4xea-wl.a.run.app'
+    );
     const authHeaders = await authClient.getRequestHeaders();
     const headers = {
       ...(init?.headers ?? {}),
