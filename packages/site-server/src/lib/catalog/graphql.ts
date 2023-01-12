@@ -28,7 +28,7 @@ const link = new HttpLink({
   ): Promise<Response> {
     {
       const auth = new GoogleAuth();
-      const catalogUrl = CATALOG_SERVER_URL;
+      const catalogUrl = 'https://catalog-khswqo4xea-wl.a.run.app';
       const client = await auth.getIdTokenClient(catalogUrl);
       try {
         const headers = await client.getRequestHeaders();
