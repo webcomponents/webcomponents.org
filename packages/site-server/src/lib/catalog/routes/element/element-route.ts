@@ -138,7 +138,7 @@ export const handleElementRoute = async (
     renderPage(
       {
         title: `${packageName}/${elementName}`,
-        scripts: ['/js/hydrate-support.js', '/js/element.js'],
+        scripts: ['/js/element.js'],
         initScript: '/js/element-hydrate.js',
         content: renderElementPage(elementData),
         initialData: [elementData],
