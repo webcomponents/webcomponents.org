@@ -28,7 +28,7 @@ module.exports = {
           ...data,
           content: renderDocsPage(data.content, navEntries),
           initialData: [navEntries],
-          initScript: '/js/docs-hydrate.js',
+          initScript: '/js/docs/boot.js',
         },
         {
           // We need to defer elements from hydrating so that we can
