@@ -120,6 +120,9 @@ export class WCOElementPage extends WCOPage {
     const fields = declaration.members?.filter((m) => m.kind === 'field');
     const methods = declaration.members?.filter((m) => m.kind === 'method');
 
+    // TODO (justinfagnani): We need a better way to make a summary from a
+    // description, that's possibly markdown, word, and sentence boundary
+    // aware.
     const summary =
       declaration.summary ?? declaration.description?.substring(0, 140) ?? '';
 
@@ -129,6 +132,7 @@ export class WCOElementPage extends WCOPage {
         <div id="meta-container">
           <span id="package-meta"
             >${packageName}<select>
+              <!-- TODO (justinfagnani): get actual version and dist tag data -->
               <option>x.x.x</option>
             </select></span
           >
