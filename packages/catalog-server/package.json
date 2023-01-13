@@ -49,7 +49,11 @@
     },
     "start:dev": {
       "command": "FIRESTORE_EMULATOR_HOST=localhost:7450 npm start",
-      "service": true,
+      "service": {
+        "readyWhen": {
+          "lineMatches": "Server started"
+        }
+      },
       "dependencies": [
         "build",
         "emulators:start"
@@ -66,7 +70,11 @@
     },
     "emulators:start": {
       "command": "firebase emulators:start --project wc-catalog --import firebase-data",
-      "service": true,
+      "service": {
+        "readyWhen": {
+          "lineMatches": "All emulators ready"
+        }
+      },
       "files": [
         "firebase.json",
         "firestore.indexes.json",

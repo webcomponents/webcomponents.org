@@ -6,27 +6,9 @@
 
 import {html, css, LitElement} from 'lit';
 import {customElement, query, state} from 'lit/decorators.js';
-import {gql, createClient, defaultExchanges} from '@urql/core';
 import type {CustomElement} from '@webcomponents/catalog-api/lib/schema.js';
 
 import './wco-element-card.js';
-
-const client = createClient({
-  // TODO (justinfagnani): get this URL from server
-  url: 'http://localhost:6451/graphql',
-  exchanges: defaultExchanges,
-});
-
-const elementsQuery = gql`
-  query Elements($query: String) {
-    elements(query: $query, limit: 16) {
-      tagName
-      package
-      version
-      className
-    }
-  }
-`;
 
 @customElement('wco-catalog-search')
 export class WCOCatalogSearch extends LitElement {
@@ -78,10 +60,9 @@ export class WCOCatalogSearch extends LitElement {
 
   async _onChange() {
     const searchText = this._search.value;
-    const result = await client
-      .query(elementsQuery, {query: searchText})
-      .toPromise();
-    this._elements = result.data?.elements;
+    const response = await fetch(`/catalog/search?query=${searchText}`);
+    const result = await response.json();
+    this._elements = result.elements;
   }
 }
 
