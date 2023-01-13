@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import 'lit/experimental-hydrate-support.js';
 import {hydrate} from 'lit/experimental-hydrate.js';
 import {renderElementPage} from './shell.js';
 

@@ -13,7 +13,7 @@ import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
 import {marked} from 'marked';
 
-import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
+import {renderElementPage} from '@webcomponents/internal-site-client/lib/pages/element/shell.js';
 import {client} from '../../graphql.js';
 
 import type {ElementData} from '@webcomponents/internal-site-client/lib/pages/element/wco-element-page.js';
@@ -138,7 +138,6 @@ export const handleElementRoute = async (
     renderPage(
       {
         title: `${packageName}/${elementName}`,
-        scripts: ['/js/element.js'],
         initScript: '/js/element-hydrate.js',
         content: renderElementPage(elementData),
         initialData: [elementData],

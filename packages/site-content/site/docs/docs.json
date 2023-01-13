@@ -1,4 +1,3 @@
 {
-  "layout": "layouts/docs.11ty.cjs",
-  "scripts": ["/js/docs.js"]
+  "layout": "layouts/docs.11ty.cjs"
 }

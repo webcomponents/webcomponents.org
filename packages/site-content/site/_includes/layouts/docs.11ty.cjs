@@ -11,7 +11,7 @@ module.exports = {
       '@webcomponents/internal-site-client/lib/shared/wco-nav-page.js'
     );
     const {renderDocsPage} = await import(
-      '@webcomponents/internal-site-client/lib/entrypoints/docs.js'
+      '@webcomponents/internal-site-client/lib/pages/docs/shell.js'
     );
 
     // Set location because wco-nav-bar reads pathname from it. URL isn't

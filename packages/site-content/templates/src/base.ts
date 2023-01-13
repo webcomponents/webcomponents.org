@@ -37,7 +37,6 @@ export function* renderPage(
       href="https://fonts.googleapis.com/css?family=Material+Icons&display=block"
       rel="stylesheet"
     />
-    <script type="module" src="/js/hydrate-support.js"></script>
     <!-- TODO (justinfagnani): only add this in dev. In prod we should have
          compiled any process access out. DO_NOT_LAUNCH -->
     <script>
