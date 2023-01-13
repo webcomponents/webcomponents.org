@@ -98,7 +98,8 @@
     "test": {
       "command": "NODE_OPTIONS=--enable-source-maps uvu test \"_test\\.js$\"",
       "dependencies": [
-        "start:dev"
+        "start:dev",
+        "../catalog-server:start:dev"
       ]
     }
   },

@@ -86,9 +86,7 @@
     }
   },
   "dependencies": {
-    "@urql/core": "^3.0.4",
     "@webcomponents/catalog-api": "^0.0.0",
-    "graphql": "^16.6.0",
     "lit": "^2.6.0",
     "lit-analyzer": "^1.2.1"
   }
