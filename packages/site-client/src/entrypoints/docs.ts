@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../components/wco-docs-page.js';
-import type {NavEntry} from '../components/wco-docs-page.js';
+import '../pages/docs/wco-docs-page.js';
+import type {NavEntry} from '../pages/docs/wco-docs-page.js';
 import {html} from 'lit';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 

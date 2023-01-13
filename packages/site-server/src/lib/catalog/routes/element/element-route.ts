@@ -16,7 +16,7 @@ import {marked} from 'marked';
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/entrypoints/element.js';
 import {client} from '../../graphql.js';
 
-import type {ElementData} from '@webcomponents/internal-site-client/lib/components/wco-element-page.js';
+import type {ElementData} from '@webcomponents/internal-site-client/lib/pages/element/wco-element-page.js';
 
 import {
   getModule,
