@@ -43,12 +43,6 @@ export function* renderPage(
       window.process = {env: {NODE_ENV: 'development'}};
     </script>`;
 
-  if (data.scripts !== undefined) {
-    yield* data.scripts.map(
-      (s) => `<script type="module" src="${s}"></script>`
-    );
-  }
-
   yield `<style>
       body {
         margin: 0;
