@@ -7,7 +7,6 @@
 import {html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
-import {WCOPage} from './wco-page.js';
 
 import type {Package, Reference} from 'custom-elements-manifest/schema.js';
 import {
@@ -16,6 +15,7 @@ import {
   resolveReference,
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
+import {WCOPage} from './wco-page.js';
 
 export interface ElementData {
   packageName: string;
@@ -31,11 +31,6 @@ export class WCOElementPage extends WCOPage {
   static styles = [
     WCOPage.styles,
     css`
-      :host {
-        display: flex;
-        flex-direction: column;
-      }
-
       .full-screen-error {
         display: flex;
         flex: 1;
@@ -44,7 +39,48 @@ export class WCOElementPage extends WCOPage {
       }
 
       main {
+        display: grid;
+        max-width: var(--content-width);
         padding: 25px;
+        gap: 1em;
+        grid-template-areas:
+          'a a'
+          'b c';
+      }
+
+      main > * {
+        border: solid 1px gray;
+        border-radius: 9px;
+      }
+
+      header {
+        display: flex;
+        grid-area: a;
+        gap: 1em;
+        padding: 1em;
+      }
+
+      #logo {
+        aspect-ratio: 4/3;
+        height: 160px;
+        background: blue;
+        border-radius: 5px;
+      }
+
+      header h3 {
+        text-overflow: ellipsis;
+        height: 1em;
+      }
+
+      #side-bar {
+        grid-area: b;
+        min-width: 200px;
+        padding: 1em;
+      }
+
+      #content {
+        grid-area: c;
+        padding: 1em;
       }
     `,
   ];
@@ -52,7 +88,7 @@ export class WCOElementPage extends WCOPage {
   @property({attribute: false})
   elementData?: ElementData;
 
-  renderMain() {
+  renderContent() {
     if (this.elementData === undefined) {
       return html`<div class="full-screen-error">No element to display</div>`;
     }
@@ -84,26 +120,50 @@ export class WCOElementPage extends WCOPage {
     const fields = declaration.members?.filter((m) => m.kind === 'field');
     const methods = declaration.members?.filter((m) => m.kind === 'method');
 
+    // TODO (justinfagnani): We need a better way to make a summary from a
+    // description, that's possibly markdown, word, and sentence boundary
+    // aware.
+    const summary =
+      declaration.summary ?? declaration.description?.substring(0, 140) ?? '';
+
     return html`
-      <h1>${packageName}/${elementName}</h1>
-      <h3>${declaration.summary}</h3>
+      <header>
+        <div id="logo-container"><div id="logo"></div></div>
+        <div id="meta-container">
+          <span id="package-meta"
+            >${packageName}<select>
+              <!-- TODO (justinfagnani): get actual version and dist tag data -->
+              <option>x.x.x</option>
+            </select></span
+          >
+          <h1>&lt;${elementName}&gt;</h1>
+          <h3>${summary}</h3>
+        </div>
+      </header>
+      <div id="side-bar">
+        <h3 id="author">[Author]</h3>
+        <div>[Package Stats]</div>
+        <h3>Install</h3>
+        <code>npm install ${packageName}</code>
+      </div>
+      <div id="content">
+        <p>${unsafeHTML(elementDescriptionHtml)}</p>
 
-      <p>${unsafeHTML(elementDescriptionHtml)}</p>
+        <h2>Usage</h2>
+        <pre><code>
+  import '${getElementImportSpecifier(packageName, ceExportRef)}';
+      </code></pre>
 
-      <h2>Usage</h2>
-      <pre><code>
-import '${getElementImportSpecifier(packageName, ceExportRef)}';
-     </code></pre>
+        <h2>Fields</h2>
+        <ul>
+          ${fields?.map((f) => html`<li>${f.name}: ${f.description}</li>`)}
+        </ul>
 
-      <h2>Fields</h2>
-      <ul>
-        ${fields?.map((f) => html`<li>${f.name}: ${f.description}</li>`)}
-      </ul>
-
-      <h2>Methods</h2>
-      <ul>
-        ${methods?.map((m) => html`<li>${m.name}: ${m.description}</li>`)}
-      </ul>
+        <h2>Methods</h2>
+        <ul>
+          ${methods?.map((m) => html`<li>${m.name}: ${m.description}</li>`)}
+        </ul>
+      </div>
     `;
   }
 }

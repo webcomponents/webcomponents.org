@@ -19,10 +19,17 @@ export class WCOPage extends LitElement {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      align-items: center;
+
+      --content-width: 1200px;
     }
 
     main {
       flex: 1;
+    }
+
+    wco-footer {
+      width: 100%;
     }
   `;
 
