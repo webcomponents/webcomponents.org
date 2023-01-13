@@ -30,9 +30,9 @@ RUN npm run build:prod -w packages/site-content
 # Kaniko doesn't include ARG values in its layer cache keys
 # (https://github.com/GoogleContainerTools/kaniko/pull/1085).
 ARG PORT
-ARG CATALOG_SERVER_URL
+ARG CATALOG_GRAPHQL_URL
 RUN echo "PORT=$PORT" >> env \
-  && echo "CATALOG_SERVER_URL=$CATALOG_SERVER_URL" >> env
+  && echo "CATALOG_GRAPHQL_URL=$CATALOG_GRAPHQL_URL" >> env
 
 # Launch the server
 CMD [ "node", "packages/site-server/lib/prod-server.js" ]

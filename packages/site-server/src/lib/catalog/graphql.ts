@@ -11,42 +11,39 @@ import {
 } from '@apollo/client/core/index.js';
 import {GoogleAuth} from 'google-auth-library';
 
-let CATALOG_SERVER_URL =
-  process.env['CATALOG_SERVER_URL'] || `http://localhost:6451/`;
-
-if (!CATALOG_SERVER_URL.endsWith('/')) {
-  CATALOG_SERVER_URL = CATALOG_SERVER_URL + '/';
+const CATALOG_GRAPHQL_URL = process.env['CATALOG_GRAPHQL_URL'];
+if (!CATALOG_GRAPHQL_URL) {
+  throw new Error('CATALOG_GRAPHQL_URL must be set');
 }
 
-const auth = new GoogleAuth();
-
-const link = new HttpLink({
-  uri: CATALOG_SERVER_URL + 'graphql',
-  async fetch(
+let linkFetch: typeof fetch | undefined = undefined;
+if (process.env['CLOUD_RUN_JOB']) {
+  const CATALOG_SERVER_AUTH_ID = process.env['CATALOG_SERVER_AUTH_ID'];
+  if (!CATALOG_SERVER_AUTH_ID) {
+    throw new Error('CATALOG_SERVER_AUTH_ID must be set');
+  }
+  const auth = new GoogleAuth();
+  linkFetch = async (
     input: RequestInfo | URL,
     init?: RequestInit | undefined
-  ): Promise<Response> {
-    const authClient = await auth.getIdTokenClient(
-      'https://catalog-khswqo4xea-wl.a.run.app'
-    );
+  ): Promise<Response> => {
+    const authClient = await auth.getIdTokenClient(CATALOG_SERVER_AUTH_ID);
     const authHeaders = await authClient.getRequestHeaders();
     const headers = {
       ...(init?.headers ?? {}),
       ...authHeaders,
     };
-    console.log('audience', CATALOG_SERVER_URL);
-    console.log('input', input);
-    console.log('init', init);
-    console.log('request headers', headers);
-
     return fetch(input, {
       ...(init ?? {}),
       headers,
     });
-  },
-});
+  };
+}
 
 export const client = new ApolloClient({
-  link,
+  link: new HttpLink({
+    uri: CATALOG_GRAPHQL_URL,
+    fetch: linkFetch,
+  }),
   cache: new InMemoryCache(),
 });

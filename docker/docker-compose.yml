@@ -31,6 +31,6 @@ services:
       dockerfile: docker/site/Dockerfile
     environment:
       - PORT=5452
-      - CATALOG_SERVER_URL=http://catalog:6452/graphql
+      - CATALOG_GRAPHQL_URL=http://catalog:6452/graphql
     ports:
       - 5452:5452
