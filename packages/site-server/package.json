@@ -67,6 +67,9 @@
     },
     "start:dev": {
       "command": "node --enable-source-maps ./lib/dev-server.js",
+      "env": {
+        "CATALOG_GRAPHQL_URL": "http://localhost:6451/graphql"
+      },
       "service": {
         "readyWhen": {
           "lineMatches": "Web Dev Server started"
@@ -79,7 +82,14 @@
     },
     "start:prod": {
       "command": "node --enable-source-maps ./lib/prod-server.js",
-      "service": true,
+      "env": {
+        "CATALOG_GRAPHQL_URL": "http://localhost:6451/graphql"
+      },
+      "service": {
+        "readyWhen": {
+          "lineMatches": "serving"
+        }
+      },
       "files": [],
       "dependencies": [
         "build:prod"
@@ -106,6 +116,7 @@
     "@types/marked": "^4.0.8",
     "@web/dev-server": "^0.1.34",
     "@webcomponents/internal-site-content": "^0.0.0",
+    "google-auth-library": "^8.7.0",
     "koa": "^2.13.4",
     "koa-conditional-get": "^3.0.0",
     "koa-etag": "^4.0.0",

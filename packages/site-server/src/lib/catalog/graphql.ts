@@ -4,12 +4,50 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {ApolloClient, InMemoryCache} from '@apollo/client/core/index.js';
+import {
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+} from '@apollo/client/core/index.js';
+import {GoogleAuth} from 'google-auth-library';
 
-const CATALOG_GRAPHQL_URL =
-  process.env['CATALOG_GRAPHQL_URL'] || `http://localhost:6451/graphql`;
+const CATALOG_GRAPHQL_URL = process.env['CATALOG_GRAPHQL_URL'];
+if (!CATALOG_GRAPHQL_URL) {
+  throw new Error('CATALOG_GRAPHQL_URL must be set');
+}
+
+let linkFetch: typeof fetch | undefined = undefined;
+if (process.env['K_SERVICE']) {
+  // We're on Cloud Run, as opposed to local, so our cross-service requests need
+  // to be authenticated. The K_SERVICE environment variable is set by Cloud
+  // Run, see
+  // https://cloud.google.com/run/docs/reference/container-contract#env-vars.
+  const CATALOG_SERVER_AUTH_ID = process.env['CATALOG_SERVER_AUTH_ID'];
+  if (!CATALOG_SERVER_AUTH_ID) {
+    throw new Error('CATALOG_SERVER_AUTH_ID must be set');
+  }
+  const auth = new GoogleAuth();
+  linkFetch = async (
+    input: RequestInfo | URL,
+    init?: RequestInit | undefined
+  ): Promise<Response> => {
+    const authClient = await auth.getIdTokenClient(CATALOG_SERVER_AUTH_ID);
+    const authHeaders = await authClient.getRequestHeaders();
+    const headers = {
+      ...(init?.headers ?? {}),
+      ...authHeaders,
+    };
+    return fetch(input, {
+      ...(init ?? {}),
+      headers,
+    });
+  };
+}
 
 export const client = new ApolloClient({
-  uri: CATALOG_GRAPHQL_URL,
+  link: new HttpLink({
+    uri: CATALOG_GRAPHQL_URL,
+    fetch: linkFetch,
+  }),
   cache: new InMemoryCache(),
 });
