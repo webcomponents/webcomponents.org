@@ -7,7 +7,7 @@
 import {html} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import './wco-catalog-search.js';
-import {WCOPage} from './wco-page.js';
+import {WCOPage} from '../shared/wco-page.js';
 
 @customElement('wco-catalog-page')
 export class WCOCatalogPage extends WCOPage {

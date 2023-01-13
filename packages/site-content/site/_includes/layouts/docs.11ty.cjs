@@ -8,7 +8,7 @@ module.exports = {
   async render(data) {
     const {renderPage} = await import('../../../templates/lib/base.js');
     await import(
-      '@webcomponents/internal-site-client/lib/components/wco-nav-page.js'
+      '@webcomponents/internal-site-client/lib/shared/wco-nav-page.js'
     );
     const {renderDocsPage} = await import(
       '@webcomponents/internal-site-client/lib/entrypoints/docs.js'

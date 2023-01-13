@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {NavEntry} from '../components/wco-nav-page.js';
+import {NavEntry} from '../shared/wco-nav-page.js';
 
 const data = (globalThis as unknown as {__ssrData: [NavEntry[]]}).__ssrData;
 
