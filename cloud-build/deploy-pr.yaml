@@ -14,7 +14,7 @@ substitutions:
   _IMAGE_URL_SITE: us.gcr.io/${PROJECT_ID}/pr/site:${SHORT_SHA}
   _IMAGE_CACHE_TTL: 168h # 1 week
   _CATALOG_SERVER_AUTH_ID: https://catalog-khswqo4xea-wl.a.run.app
-  _CATALOG_GRAPHQL_URL: https://${_TAG}---catalog-khswqo4xea-wl.a.run.app
+  _CATALOG_GRAPHQL_URL: https://${_TAG}---catalog-khswqo4xea-wl.a.run.app/graphql
 
 steps:
   # Build catalog Docker image.
