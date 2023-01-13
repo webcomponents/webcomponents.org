@@ -17,7 +17,11 @@ if (!CATALOG_GRAPHQL_URL) {
 }
 
 let linkFetch: typeof fetch | undefined = undefined;
-if (process.env['CLOUD_RUN_JOB']) {
+if (process.env['K_SERVICE']) {
+  // We're on Cloud Run, as opposed to local, so our cross-service requests need
+  // to be authenticated. The K_SERVICE environment variable is set by Cloud
+  // Run, see
+  // https://cloud.google.com/run/docs/reference/container-contract#env-vars.
   const CATALOG_SERVER_AUTH_ID = process.env['CATALOG_SERVER_AUTH_ID'];
   if (!CATALOG_SERVER_AUTH_ID) {
     throw new Error('CATALOG_SERVER_AUTH_ID must be set');
