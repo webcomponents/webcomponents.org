@@ -5,7 +5,7 @@
   "description": "The static content for webcomponents.org",
   "author": "Google LLC",
   "license": "Apache-2.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "wireit",
     "build:prod": "wireit",
@@ -19,9 +19,9 @@
       ]
     },
     "build:prod": {
-      "command": "eleventy --config=eleventy.config.prod.cjs",
+      "command": "eleventy --config=eleventy.config.prod.js",
       "files": [
-        "eleventy.config.prod.cjs",
+        "eleventy.config.prod.js",
         "site"
       ],
       "output": [
@@ -33,9 +33,9 @@
       ]
     },
     "build:dev": {
-      "command": "eleventy --config=eleventy.config.dev.cjs",
+      "command": "eleventy --config=eleventy.config.dev.js",
       "files": [
-        "eleventy.config.dev.cjs",
+        "eleventy.config.dev.js",
         "site",
         "!site/assets"
       ],
