@@ -7,7 +7,7 @@
 module.exports = {
   async render(data) {
     const {renderPage, html, unsafeHTML} = await import(
-      '../../../templates/lib/base.js'
+      '../../../../site-templates/lib/base.js'
     );
     await import(
       '@webcomponents/internal-site-client/lib/pages/home/wco-home-page.js'

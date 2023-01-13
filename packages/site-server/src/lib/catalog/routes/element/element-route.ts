@@ -5,7 +5,7 @@
  */
 
 // This must be imported before lit
-import {renderPage} from '@webcomponents/internal-site-content/templates/lib/base.js';
+import {renderPage} from '@webcomponents/internal-site-templates/lib/base.js';
 
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import {Readable} from 'stream';

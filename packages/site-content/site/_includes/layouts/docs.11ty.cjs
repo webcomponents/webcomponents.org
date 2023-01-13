@@ -6,7 +6,7 @@
 
 module.exports = {
   async render(data) {
-    const {renderPage} = await import('../../../templates/lib/base.js');
+    const {renderPage} = await import('../../../../site-templates/lib/base.js');
     const {renderDocsPage} = await import(
       '@webcomponents/internal-site-client/lib/pages/docs/shell.js'
     );

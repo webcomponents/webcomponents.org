@@ -1,0 +1,55 @@
+{
+  "name": "@webcomponents/internal-site-templates",
+  "private": true,
+  "version": "0.0.0",
+  "description": "HTML templates for webcomponents.org shared between Eleventy and the server",
+  "author": "Google LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "wireit",
+    "build:js": "wireit",
+    "build:types": "wireit",
+    "check": "wireit",
+    "check:types": "wireit"
+  },
+  "wireit": {
+    "build": {
+      "dependencies": [
+        "build:js",
+        "build:types"
+      ]
+    },
+    "build:js": {
+      "command": "find src -name \"*.ts\" | xargs esbuild --color --outdir=lib",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib/**/*.js"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:types": {
+      "command": "tsc --pretty",
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        "lib/**/*.d.ts",
+        "tsconfig.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "check": {
+      "dependencies": [
+        "check:types"
+      ]
+    },
+    "check:types": {
+      "dependencies": [
+        "build:types"
+      ]
+    }
+  }
+}
