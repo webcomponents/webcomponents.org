@@ -1,15 +1,7 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2022 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../pages/docs/wco-docs-page.js';
-import type {NavEntry} from '../pages/docs/wco-docs-page.js';
-import {html} from 'lit';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
-
-export const renderDocsPage = (content: string, navEntries: NavEntry[]) =>
-  html`<wco-docs-page .navEntries=${navEntries}
-    >${unsafeHTML(content)}</wco-docs-page
-  >`;
+export * from '../pages/docs/shell.js';
