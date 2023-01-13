@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export * from '../pages/home/boot.js';
+import './wco-catalog-page.js';
