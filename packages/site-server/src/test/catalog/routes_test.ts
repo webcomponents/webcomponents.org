@@ -20,13 +20,22 @@ test('Returns 404 for malformed element page URL', async () => {
   assert.equal((await request('/catalog/element/@lion/button')).status, 404);
 
   // Missing element name on non-scoped package:
-  assert.equal((await request('/catalog/element/chessboard-element')).status, 404);
+  assert.equal(
+    (await request('/catalog/element/chessboard-element')).status,
+    404
+  );
 
   // Extra path segments on scoped package:
-  assert.equal((await request('/catalog/element/@lion/button/a/b')).status, 404);
+  assert.equal(
+    (await request('/catalog/element/@lion/button/a/b')).status,
+    404
+  );
 
   // Extra path segments on non-scoped package:
-  assert.equal((await request('/catalog/element/chessboard-element/a/b')).status, 404);
+  assert.equal(
+    (await request('/catalog/element/chessboard-element/a/b')).status,
+    404
+  );
 });
 
 test.run();
