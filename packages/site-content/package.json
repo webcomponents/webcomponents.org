@@ -43,7 +43,8 @@
         "_dev"
       ],
       "dependencies": [
-        "../site-templates:build:js"
+        "../site-templates:build:js",
+        "../site-client:build:dev"
       ]
     }
   },
