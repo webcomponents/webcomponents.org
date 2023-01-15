@@ -8,6 +8,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "wireit",
+    "build:config": "wireit",
     "build:prod": "wireit",
     "build:dev": "wireit"
   },
@@ -18,24 +19,40 @@
         "build:dev"
       ]
     },
-    "build:prod": {
-      "command": "eleventy --config=eleventy.config.prod.js",
+    "build:config": {
+      "command": "tsc --pretty",
       "files": [
-        "eleventy.config.prod.js",
+        "src/",
+        "tsconfig.json",
+        "../../tsconfig.base.json"
+      ],
+      "output": [
+        "lib/",
+        "tsconfig.tsbuildinfo"
+      ],
+      "dependencies": [
+        "../site-templates:build:types",
+        "../site-client:build:types"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:prod": {
+      "command": "eleventy --config=lib/eleventy.config.prod.js",
+      "files": [
         "site"
       ],
       "output": [
         "_site"
       ],
       "dependencies": [
+        "build:config",
         "../site-templates:build:js",
         "../site-client:build:prod"
       ]
     },
     "build:dev": {
-      "command": "eleventy --config=eleventy.config.dev.js",
+      "command": "eleventy --config=lib/eleventy.config.dev.js",
       "files": [
-        "eleventy.config.dev.js",
         "site",
         "!site/assets"
       ],
@@ -43,6 +60,7 @@
         "_dev"
       ],
       "dependencies": [
+        "build:config",
         "../site-templates:build:js",
         "../site-client:build:dev"
       ]
