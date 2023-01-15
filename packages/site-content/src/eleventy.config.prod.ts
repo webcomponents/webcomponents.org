@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
+import eleventyNavigationPlugin from '@11ty/eleventy-navigation';
+import type {EleventyConfig, EleventyConfigResult} from '@11ty/eleventy';
 
-module.exports = (eleventyConfig) => {
+module.exports = (eleventyConfig: EleventyConfig): EleventyConfigResult => {
   eleventyConfig.addPlugin(eleventyNavigationPlugin);
   eleventyConfig.addPassthroughCopy('site/assets');
   eleventyConfig.addPassthroughCopy({'../site-client/bundled': 'js'});

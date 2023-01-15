@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const fs = require('fs');
-const pathlib = require('path');
-const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
+import fs from 'fs';
+import pathlib from 'path';
+import eleventyNavigationPlugin from '@11ty/eleventy-navigation';
+import type {EleventyConfig, EleventyConfigResult} from '@11ty/eleventy';
 
-module.exports = (eleventyConfig) => {
+module.exports = (eleventyConfig: EleventyConfig): EleventyConfigResult => {
   eleventyConfig.addPlugin(eleventyNavigationPlugin);
   symlinkForce('../assets', '_dev/assets');
   symlinkForce('../../site-client/lib/pages', '_dev/js');
@@ -29,11 +30,11 @@ module.exports = (eleventyConfig) => {
  * (which doesn't clean output first), we won't get an error because the symlink
  * already exists.
  */
-function symlinkForce(target, path) {
+function symlinkForce(target: string, path: string) {
   try {
     fs.unlinkSync(path);
   } catch (e) {
-    if (e.code !== 'ENOENT') {
+    if ((e as {code?: string}).code !== 'ENOENT') {
       throw e;
     }
   }
