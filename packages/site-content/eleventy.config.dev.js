@@ -11,7 +11,7 @@ const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
 module.exports = (eleventyConfig) => {
   eleventyConfig.addPlugin(eleventyNavigationPlugin);
   symlinkForce('../assets', '_dev/assets');
-  symlinkForce('../../site-client/lib/entrypoints', '_dev/js');
+  symlinkForce('../../site-client/lib/pages', '_dev/js');
   return {
     dir: {
       input: 'site',

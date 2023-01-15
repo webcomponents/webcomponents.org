@@ -4,4 +4,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../components/wco-catalog-page.js';
+import 'lit/experimental-hydrate-support.js';
+import './wco-home-page.js';

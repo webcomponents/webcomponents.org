@@ -38,7 +38,7 @@
       "clean": "if-file-deleted"
     },
     "build:prod": {
-      "command": "esbuild --color --outdir=bundled --format=esm --bundle --splitting --minify src/entrypoints/*.ts",
+      "command": "esbuild --color --outdir=bundled --format=esm --bundle --splitting --minify src/pages/*/boot.ts",
       "files": [
         "src/**/*.ts"
       ],

@@ -6,8 +6,8 @@
 
 import {css} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {WCOPage} from './wco-page.js';
-import './wco-top-bar.js';
+import {WCOPage} from '../../shared/wco-page.js';
+import '../../shared/wco-top-bar.js';
 
 @customElement('wco-home-page')
 export class WCOHomePage extends WCOPage {

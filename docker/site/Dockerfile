@@ -12,6 +12,7 @@ COPY packages/catalog-api/package.json packages/catalog-api/
 COPY packages/site-server/package.json packages/site-server/
 COPY packages/site-client/package.json packages/site-client/
 COPY packages/site-content/package.json packages/site-content/
+COPY packages/site-templates/package.json packages/site-templates/
 RUN npm ci
 
 # Build the server
@@ -21,10 +22,8 @@ COPY packages/catalog-api packages/catalog-api
 COPY packages/site-server packages/site-server
 COPY packages/site-client packages/site-client
 COPY packages/site-content packages/site-content
+COPY packages/site-templates packages/site-templates
 RUN npm run build -w packages/site-server
-
-# Build static assets
-RUN npm run build:prod -w packages/site-content
 
 # External configuration parameters. Note we write these to a file because
 # Kaniko doesn't include ARG values in its layer cache keys

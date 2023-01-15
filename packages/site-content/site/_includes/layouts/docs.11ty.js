@@ -6,12 +6,9 @@
 
 module.exports = {
   async render(data) {
-    const {renderPage} = await import('../../../templates/lib/base.js');
-    await import(
-      '@webcomponents/internal-site-client/lib/components/wco-nav-page.js'
-    );
+    const {renderPage} = await import('../../../../site-templates/lib/base.js');
     const {renderDocsPage} = await import(
-      '@webcomponents/internal-site-client/lib/entrypoints/docs.js'
+      '@webcomponents/internal-site-client/lib/pages/docs/shell.js'
     );
 
     // Set location because wco-nav-bar reads pathname from it. URL isn't
@@ -28,7 +25,7 @@ module.exports = {
           ...data,
           content: renderDocsPage(data.content, navEntries),
           initialData: [navEntries],
-          initScript: '/js/docs-hydrate.js',
+          initScript: '/js/docs/boot.js',
         },
         {
           // We need to defer elements from hydrating so that we can

@@ -7,10 +7,10 @@
 module.exports = {
   async render(data) {
     const {renderPage, html, unsafeHTML} = await import(
-      '../../../templates/lib/base.js'
+      '../../../../site-templates/lib/base.js'
     );
     await import(
-      '@webcomponents/internal-site-client/lib/components/wco-home-page.js'
+      '@webcomponents/internal-site-client/lib/pages/home/wco-home-page.js'
     );
     // Set location because wco-nav-bar reads pathname from it. URL isn't
     // exactly a Location, but it's close enough for read-only uses

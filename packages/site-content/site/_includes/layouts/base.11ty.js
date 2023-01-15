@@ -7,7 +7,7 @@
 module.exports = {
   async render(data) {
     const {renderPage, unsafeHTML} = await import(
-      '../../../templates/lib/base.js'
+      '../../../../site-templates/lib/base.js'
     );
     return [
       ...renderPage({

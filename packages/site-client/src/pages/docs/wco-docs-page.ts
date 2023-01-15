@@ -5,9 +5,9 @@
  */
 
 import {customElement} from 'lit/decorators.js';
-import {WCONavPage} from './wco-nav-page.js';
+import {WCONavPage} from '../../shared/wco-nav-page.js';
 
-export type {NavEntry} from './wco-nav-page.js';
+export type {NavEntry} from '../../shared/wco-nav-page.js';
 
 @customElement('wco-docs-page')
 export class WCODocsPage extends WCONavPage {}

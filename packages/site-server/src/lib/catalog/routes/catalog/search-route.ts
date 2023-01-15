@@ -9,8 +9,6 @@ import Router from '@koa/router';
 import {client} from '../../graphql.js';
 import {gql} from '@apollo/client/core/index.js';
 
-import '@webcomponents/internal-site-client/lib/entrypoints/catalog.js';
-
 const elementsQuery = gql`
   query Elements($query: String) {
     elements(query: $query, limit: 16) {

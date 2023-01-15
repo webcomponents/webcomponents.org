@@ -15,7 +15,7 @@ import {
   resolveReference,
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
-import {WCOPage} from './wco-page.js';
+import {WCOPage} from '../../shared/wco-page.js';
 
 export interface ElementData {
   packageName: string;

@@ -5,3 +5,4 @@
  */
 
 import 'lit/experimental-hydrate-support.js';
+import './wco-catalog-page.js';
