@@ -35,6 +35,7 @@
     "@lion/switch",
     "@lion/tabs",
     "@lion/textarea",
-    "@lion/tooltip"
+    "@lion/tooltip",
+    "media-chrome"
   ]
 }
