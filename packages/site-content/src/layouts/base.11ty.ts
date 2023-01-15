@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {EleventyContext, EleventyPageData} from '@11ty/eleventy';
+
 module.exports = {
-  async render(data) {
+  async render(this: EleventyContext, data: EleventyPageData): Promise<string> {
     const {renderPage, unsafeHTML} = await import(
-      '../../../../site-templates/lib/base.js'
+      '../../../site-templates/lib/base.js'
     );
     return [
       ...renderPage({
