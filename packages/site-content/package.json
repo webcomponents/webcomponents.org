@@ -27,7 +27,8 @@
         "../../tsconfig.base.json"
       ],
       "output": [
-        "lib/",
+        "layouts/",
+        "eleventy.config.*",
         "tsconfig.tsbuildinfo"
       ],
       "dependencies": [
@@ -37,7 +38,7 @@
       "clean": "if-file-deleted"
     },
     "build:prod": {
-      "command": "eleventy --config=lib/eleventy.config.prod.js",
+      "command": "eleventy --config=eleventy.config.prod.js",
       "files": [
         "site"
       ],
@@ -51,7 +52,7 @@
       ]
     },
     "build:dev": {
-      "command": "eleventy --config=lib/eleventy.config.dev.js",
+      "command": "eleventy --config=eleventy.config.dev.js",
       "files": [
         "site",
         "!site/assets"

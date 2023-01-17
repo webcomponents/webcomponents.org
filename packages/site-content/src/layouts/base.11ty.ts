@@ -9,7 +9,7 @@ import type {EleventyContext, EleventyPageData} from '@11ty/eleventy';
 module.exports = {
   async render(this: EleventyContext, data: EleventyPageData): Promise<string> {
     const {renderPage, unsafeHTML} = await import(
-      '../../../site-templates/lib/base.js'
+      '@webcomponents/internal-site-templates/lib/base.js'
     );
     return [
       ...renderPage({

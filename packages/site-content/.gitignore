@@ -1,3 +1,4 @@
 /_site/
 /_dev/
-/lib/
+/layouts/
+eleventy.config.*

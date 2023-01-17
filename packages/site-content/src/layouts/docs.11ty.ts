@@ -8,7 +8,9 @@ import type {EleventyContext, EleventyPageData} from '@11ty/eleventy';
 
 module.exports = {
   async render(this: EleventyContext, data: EleventyPageData): Promise<string> {
-    const {renderPage} = await import('../../../site-templates/lib/base.js');
+    const {renderPage} = await import(
+      '@webcomponents/internal-site-templates/lib/base.js'
+    );
     const {renderDocsPage} = await import(
       '@webcomponents/internal-site-client/lib/pages/docs/shell.js'
     );
