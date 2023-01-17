@@ -4,8 +4,7 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "tsBuildInfoFile": "tsconfig.tsbuildinfo",
-    "module": "CommonJS",
-    "skipLibCheck": false
+    "module": "CommonJS"
   },
   "include": ["src/**/*.ts"],
   "exclude": []
