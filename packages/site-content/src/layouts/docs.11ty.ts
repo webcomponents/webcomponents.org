@@ -4,9 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {EleventyContext, EleventyPageData} from '@11ty/eleventy';
+
 module.exports = {
-  async render(data) {
-    const {renderPage} = await import('../../../../site-templates/lib/base.js');
+  async render(this: EleventyContext, data: EleventyPageData): Promise<string> {
+    const {renderPage} = await import(
+      '@webcomponents/internal-site-templates/lib/base.js'
+    );
     const {renderDocsPage} = await import(
       '@webcomponents/internal-site-client/lib/pages/docs/shell.js'
     );
@@ -15,7 +19,7 @@ module.exports = {
     // exactly a Location, but it's close enough for read-only uses
     globalThis.location = new URL(
       `http://localhost:5450${data.page.url || '/'}`
-    );
+    ) as object as Location;
 
     const navEntries = this.eleventyNavigation(data.collections.all);
 
@@ -29,7 +33,7 @@ module.exports = {
         },
         {
           // We need to defer elements from hydrating so that we can
-          // manually provide data to the element in docs-hydrate.js
+          // manually provide data to the element in docs/boot.js
           deferHydration: true,
         }
       ),

@@ -33,6 +33,8 @@
     "build:types": {
       "command": "tsc --pretty",
       "files": [
+        "tsconfig.json",
+        "../../tsconfig.base.json",
         "src/**/*.ts"
       ],
       "output": [
