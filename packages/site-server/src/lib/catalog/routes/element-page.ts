@@ -14,7 +14,7 @@ import Router from '@koa/router';
 import {marked} from 'marked';
 
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/pages/element/shell.js';
-import {client} from '../../graphql.js';
+import {client} from '../graphql.js';
 
 import type {ElementData} from '@webcomponents/internal-site-client/lib/pages/element/wco-element-page.js';
 

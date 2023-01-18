@@ -6,7 +6,7 @@
 
 import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import Router from '@koa/router';
-import {client} from '../../graphql.js';
+import {client} from '../graphql.js';
 import {gql} from '@apollo/client/core/index.js';
 
 const elementsQuery = gql`

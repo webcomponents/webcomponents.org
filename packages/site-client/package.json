@@ -86,6 +86,7 @@
     }
   },
   "dependencies": {
+    "@lit-labs/task": "^2.0.0",
     "@webcomponents/catalog-api": "^0.0.0",
     "lit": "^2.6.0",
     "lit-analyzer": "^1.2.1"
