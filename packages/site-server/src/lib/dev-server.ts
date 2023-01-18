@@ -29,6 +29,8 @@ startDevServer({
       router.routes() as Middleware<DefaultState, DefaultContext, unknown>,
     ],
     watch: true,
-    nodeResolve: true,
+    nodeResolve: {
+      exportConditions: ['development'],
+    },
   },
 });

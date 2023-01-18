@@ -34,4 +34,13 @@ test('Finds a button', async () => {
   assert.ok(result.elements.length > 2);
 });
 
+test('Search page SSRs', async () => {
+  const response = await request('/catalog');
+  assert.equal(response.status, 200);
+  const result = await response.text();
+
+  // If the page SSR's, we'll have declarative shadow roots in it.
+  assert.match(result, '<template shadowroot="open">');
+});
+
 test.run();
