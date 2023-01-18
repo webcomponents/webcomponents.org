@@ -31,6 +31,6 @@ startDevServer({
     watch: true,
     nodeResolve: {
       exportConditions: ['development'],
-    },    
+    },
   },
 });
