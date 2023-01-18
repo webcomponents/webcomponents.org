@@ -5,14 +5,11 @@
  */
 
 import Router from '@koa/router';
-import {handleCatalogRoute} from './routes/catalog/catalog-route.js';
-import {handleCatalogSearchRoute} from './routes/catalog/search-route.js';
-import {handleElementRoute} from './routes/element/element-route.js';
-// import cors from '@koa/cors';
+import {handleCatalogRoute} from './routes/catalog-route.js';
+import {handleCatalogSearchRoute} from './routes/search-route.js';
+import {handleElementRoute} from './routes/element-route.js';
 
 export const catalogRouter = new Router();
-
-// catalogRouter.use(cors());
 
 catalogRouter.get('/', handleCatalogRoute);
 
