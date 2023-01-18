@@ -14,6 +14,15 @@ import {escapeHTML} from './escape-html.js';
 export {unsafeHTML} from 'lit/directives/unsafe-html.js';
 export {html} from 'lit';
 
+// These are needed to load MWC components
+// See https://github.com/material-components/material-web/issues/3733
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).FormData = class FormData {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).FormDataEvent = class FormDataEvent extends Event {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).HTMLInputElement = class HTMLInputElement {};
+
 export function* renderPage(
   data: {
     scripts?: Array<string>;
