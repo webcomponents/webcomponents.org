@@ -18,6 +18,7 @@ import {
 } from '@lit-labs/ssr/lib/element-renderer.js';
 
 import '@webcomponents/internal-site-client/lib/pages/catalog/wco-catalog-page.js';
+import {RenderInfo, RenderResult} from '@lit-labs/ssr';
 
 const excludeElements = (
   renderer: ElementRendererConstructor,
@@ -33,6 +34,33 @@ const excludeElements = (
         return false;
       }
       return renderer.matchesClass(ceClass, tagName, attributes);
+    }
+
+    connectedCallback() {
+      // do nothing
+    }
+
+    attributeChangedCallback(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _name: string,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _old: string | null,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _value: string | null
+    ) {
+      // do nothing
+    }
+
+    get shadowRootOptions() {
+      return {mode: 'open' as const};
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    renderShadow(_renderInfo: RenderInfo): RenderResult | undefined {
+      return undefined;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    renderLight(_renderInfo: RenderInfo): RenderResult | undefined {
+      return undefined;
     }
   };
 };
