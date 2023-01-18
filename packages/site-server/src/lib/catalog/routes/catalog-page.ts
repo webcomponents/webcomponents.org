@@ -12,56 +12,43 @@ import {Readable} from 'stream';
 import Router from '@koa/router';
 
 import {LitElementRenderer} from '@lit-labs/ssr/lib/lit-element-renderer.js';
-import {
-  ElementRenderer,
-  ElementRendererConstructor,
-} from '@lit-labs/ssr/lib/element-renderer.js';
+import {ElementRenderer} from '@lit-labs/ssr/lib/element-renderer.js';
 
 import '@webcomponents/internal-site-client/lib/pages/catalog/wco-catalog-page.js';
-import {RenderInfo, RenderResult} from '@lit-labs/ssr';
 
+type Interface<T> = {
+  [P in keyof T]: T[P];
+};
+
+// TODO (justinfagnani): Update Lit SSR to use this type for
+// ElementRendererConstructor
+export type ElementRendererConstructor = (new (
+  tagName: string
+) => Interface<ElementRenderer>) &
+  typeof ElementRenderer;
+
+// Excludes the given tag names from being handled by the given renderer.
+// Returns a subclass of the renderer that returns `false` for matches()
+// for any element in the list of tag names.
 const excludeElements = (
   renderer: ElementRendererConstructor,
-  tagNames: Array<string>
+  excludedTagNames: Array<string>
 ) => {
-  return class ExcludeElementRenderer extends ElementRenderer {
+  return class ExcludeElementRenderer extends renderer {
     static matchesClass(
       ceClass: typeof HTMLElement,
       tagName: string,
       attributes: Map<string, string>
     ) {
-      if (tagNames.includes(tagName)) {
-        return false;
-      }
-      return renderer.matchesClass(ceClass, tagName, attributes);
+      return excludedTagNames.includes(tagName)
+        ? false
+        : super.matchesClass(ceClass, tagName, attributes);
     }
 
-    connectedCallback() {
-      // do nothing
-    }
-
-    attributeChangedCallback(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _name: string,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _old: string | null,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _value: string | null
-    ) {
-      // do nothing
-    }
-
-    get shadowRootOptions() {
-      return {mode: 'open' as const};
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    renderShadow(_renderInfo: RenderInfo): RenderResult | undefined {
-      return undefined;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    renderLight(_renderInfo: RenderInfo): RenderResult | undefined {
-      return undefined;
-    }
+    // This tells SSR to not render a shadow root.
+    // renderShadow _can_ be undefined in lit-html's render-value.ts
+    // We should make it optional in ElementRenderer.
+    renderShadow = undefined as unknown as ElementRenderer['renderShadow'];
   };
 };
 
