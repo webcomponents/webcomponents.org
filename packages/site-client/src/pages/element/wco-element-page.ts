@@ -6,7 +6,6 @@
 
 import {html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import type {Package, Reference} from 'custom-elements-manifest/schema.js';
 import {
@@ -16,6 +15,7 @@ import {
   normalizeModulePath,
 } from '@webcomponents/custom-elements-manifest-tools';
 import {WCOPage} from '../../shared/wco-page.js';
+import '../../shared/cem/cem-class-declaration.js';
 
 export interface ElementData {
   packageName: string;
@@ -80,13 +80,19 @@ export class WCOElementPage extends WCOPage {
 
       #content {
         grid-area: c;
-        padding: 1em;
       }
     `,
   ];
 
   @property({attribute: false})
   elementData?: ElementData;
+
+  // TODO(kschaaf) Use context to provide reference resolver
+  // @provide({context: cemReferenceResolver})
+  // referenceResolver = (ref: Reference) => {
+  //   const {package: pkg, module, name} = ref;
+  //   return `#${pkg}${module === undefined ? '' : `/${module}`}:${name}`;
+  // };
 
   renderContent() {
     if (this.elementData === undefined) {
@@ -98,7 +104,6 @@ export class WCOElementPage extends WCOPage {
       declarationReference,
       customElementExport,
       manifest,
-      elementDescriptionHtml,
     } = this.elementData;
     const ceExportRef = parseReferenceString(customElementExport);
     const declarationRef = parseReferenceString(declarationReference);
@@ -116,9 +121,6 @@ export class WCOElementPage extends WCOPage {
         Could not find element declaration
       </div>`;
     }
-
-    const fields = declaration.members?.filter((m) => m.kind === 'field');
-    const methods = declaration.members?.filter((m) => m.kind === 'method');
 
     // TODO (justinfagnani): We need a better way to make a summary from a
     // description, that's possibly markdown, word, and sentence boundary
@@ -146,24 +148,15 @@ export class WCOElementPage extends WCOPage {
         <h3>Install</h3>
         <code>npm install ${packageName}</code>
       </div>
-      <div id="content">
-        <p>${unsafeHTML(elementDescriptionHtml)}</p>
-
-        <h2>Usage</h2>
-        <pre><code>
-  import '${getElementImportSpecifier(packageName, ceExportRef)}';
-      </code></pre>
-
-        <h2>Fields</h2>
-        <ul>
-          ${fields?.map((f) => html`<li>${f.name}: ${f.description}</li>`)}
-        </ul>
-
-        <h2>Methods</h2>
-        <ul>
-          ${methods?.map((m) => html`<li>${m.name}: ${m.description}</li>`)}
-        </ul>
-      </div>
+      <cem-class-declaration id="content" .declaration=${declaration}>
+        <div slot="usage">
+          <h4>Usage</h4>
+          <pre><code>import '${getElementImportSpecifier(
+            packageName,
+            ceExportRef
+          )}';</code></pre>
+        </div>
+      </cem-class-declaration>
     `;
   }
 }

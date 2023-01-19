@@ -86,8 +86,11 @@
     }
   },
   "dependencies": {
+    "@types/marked": "^4.0.8",
     "@webcomponents/catalog-api": "^0.0.0",
+    "custom-elements-manifest": "^2.0.0",
     "lit": "^2.6.0",
-    "lit-analyzer": "^1.2.1"
+    "lit-analyzer": "^1.2.1",
+    "marked": "^4.2.5"
   }
 }
