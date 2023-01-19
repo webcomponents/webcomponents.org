@@ -9,7 +9,7 @@ jobs:
   add-issue-to-project:
     # Don't run on forks. Issues on forks aren't relevant, and secrets aren't
     # available anyway.
-    if: github.repository == 'lit/lit'
+    if: github.repository == 'webcomponents/webcomponents.org'
 
     runs-on: ubuntu-latest
     steps:
