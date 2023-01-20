@@ -1,0 +1,32 @@
+# GitHub action that automatically adds newly filed issues to the Lit project.
+#
+# We can't do this directly with the GitHub API, because that's not supported
+# (see https://github.com/orgs/community/discussions/6212). So instead, the Lit
+# repo contains a GitHub Action that is triggered by a webhook, and uses browser
+# automation to add the issue through the GitHub UI. We trigger that workflow
+# here.
+
+name: Add issue to Lit project board
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-issue-to-lit-project:
+    # Don't run on forks. Issues on forks aren't relevant, and secrets aren't
+    # available anyway.
+    if: github.repository == 'webcomponents/webcomponents.org'
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to Lit project board
+        env:
+          GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
+          ISSUE_URL: ${{ github.event.issue.url }}
+        run: |
+          curl https://api.github.com/repos/lit/lit/dispatches \
+            -X POST
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            --data '{"event_type":"external_issue_opened","client_payload":{"issue_url":"$ISSUE_URL"}}'
