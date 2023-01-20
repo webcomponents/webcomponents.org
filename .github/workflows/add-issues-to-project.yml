@@ -50,6 +50,7 @@ jobs:
       - name: Add area to item
         env:
           GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
+          PROJECT_ID: PVT_kwDOARoh9s4AAixo          
           # Field and value IDs can be found by running the following query at
           # https://docs.github.com/en/graphql/overview/explorer
           #
@@ -89,10 +90,10 @@ jobs:
           VALUE_ID: 9a4cb01d # webcomponents.org
         run: |
           gh api graphql -f query='
-            mutation ($project_id: ID!, $item_id: ID!, $field_id: ID!, $value_id: ID!) {
+            mutation ($project_id: ID!, $item_id: ID!, $field_id: ID!, $value_id: String!) {
               updateProjectV2ItemFieldValue(
                 input: {projectId: $project_id, itemId: $item_id, fieldId: $field_id, value: {singleSelectOptionId: $value_id}}
               ) {
                 clientMutationId
               }
-            }' -f project_id=$PROJECT_ID -f item_id=$ITEM_ID
+            }' -f project_id=$PROJECT_ID -f item_id=$ITEM_ID -f field_id=$FIELD_ID -f value_id=$VALUE_ID
