@@ -13,28 +13,20 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      # Finds the global entity ID for the project and adds it to an environment variable
-      # for the next step to consume.
-      - name: Get project ID
-        env:
-          GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
-          ORGANIZATION: lit
-          PROJECT_NUMBER: 4
-        run: |
-          gh api graphql -f query='
-            query($organization: String!, $project_number: Int!) {
-              organization(login: $organization){
-                projectV2(number: $project_number) {
-                  id
-                }
-              }
-            }' -f organization=$ORGANIZATION -F project_number=$PROJECT_NUMBER > project_data.json
-
-          echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
-
       - name: Add issue to project
         env:
           GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
+          # The project ID can be found by running the following query at
+          # https://docs.github.com/en/graphql/overview/explorer
+          #
+          # {
+          #   organization(login: "lit") {
+          #     projectV2(number: 4) {
+          #       id
+          #     }
+          #   }
+          # }
+          PROJECT_ID: PVT_kwDOARoh9s4AAixo
           # Note: issue.url is the REST API url, but we want issue.html_url
           # which is the regular public URL.
           ISSUE_URL: ${{ github.event.issue.html_url }}
@@ -48,7 +40,59 @@ jobs:
             mutation($project_id:ID!, $issue_url:String!) {
               addProjectV2DraftIssue(input: {projectId: $project_id, title: $issue_url}) {
                 projectItem {
-                  databaseId
+                  id
                 }
               }
-            }' -f project_id=$PROJECT_ID -f issue_url=$ISSUE_URL
+            }' -f project_id=$PROJECT_ID -f issue_url=$ISSUE_URL > item.json
+
+          echo 'ITEM_ID='$(jq '.data.addProjectV2DraftIssue.projectItem.id' item.json) >> $GITHUB_ENV
+
+      - name: Add area to item
+        env:
+          GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
+          # Field and value IDs can be found by running the following query at
+          # https://docs.github.com/en/graphql/overview/explorer
+          #
+          # {
+          #   node(id: "PVT_kwDOARoh9s4AAixo") {
+          #     ... on ProjectV2 {
+          #       fields(first: 100) {
+          #         nodes {
+          #           ... on ProjectV2Field {
+          #             id
+          #             name
+          #           }
+          #           ... on ProjectV2IterationField {
+          #             id
+          #             name
+          #             configuration {
+          #               iterations {
+          #                 startDate
+          #                 id
+          #               }
+          #             }
+          #           }
+          #           ... on ProjectV2SingleSelectField {
+          #             id
+          #             name
+          #             options {
+          #               id
+          #               name
+          #             }
+          #           }
+          #         }
+          #       }
+          #     }
+          #   }
+          # }
+          FIELD_ID: PVTSSF_lADOARoh9s4AAixozgASjcA # Area
+          VALUE_ID: 9a4cb01d # webcomponents.org
+        run: |
+          gh api graphql -f query='
+            mutation ($project_id: ID!, $item_id: ID!, $field_id: ID!, $value_id: ID!) {
+              updateProjectV2ItemFieldValue(
+                input: {projectId: $project_id, itemId: $item_id, fieldId: $field_id, value: {singleSelectOptionId: $value_id}}
+              ) {
+                clientMutationId
+              }
+            }' -f project_id=$PROJECT_ID -f item_id=$ITEM_ID
