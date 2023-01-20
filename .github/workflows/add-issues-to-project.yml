@@ -35,7 +35,14 @@ jobs:
       - name: Add issue to project
         env:
           GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
-          ISSUE_URL: ${{ github.event.issue.url }}
+          # Note: issue.url is the REST API url, but we want issue.html_url
+          # which is the regular public URL.
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        # The addProjectV2ItemById API refuses to add an issue to a project
+        # unless the issue is in the same org as the project -- even though it's
+        # possible to do so through the UI. However, it turns out if you set the
+        # URL as the title using the addProjectV2DraftIssue API, that does the
+        # right thing!
         run: |
           gh api graphql -f query='
             mutation($project_id:ID!, $issue_url:String!) {
