@@ -35,13 +35,13 @@ jobs:
       - name: Add issue to project
         env:
           GITHUB_TOKEN: ${{ secrets.LIT_ROBOT_AUTOMATION_PAT }}
-          ISSUE_ID: ${{ github.event.issue.node_id }}
+          ISSUE_URL: ${{ github.event.issue.url }}
         run: |
           gh api graphql -f query='
-            mutation($project_id:ID!, $issue_id:ID!) {
-              addProjectV2ItemById(input: {projectId: $project_id, contentId: $issue_id}) {
-                item {
-                  id
+            mutation($project_id:ID!, $issue_url:String!) {
+              addProjectV2DraftIssue(input: {projectId: $project_id, title: $issue_url}) {
+                projectItem {
+                  databaseId
                 }
               }
-            }' -f project_id=$PROJECT_ID -f issue_id=$ISSUE_ID
+            }' -f project_id=$PROJECT_ID -f issue_url=$ISSUE_URL
