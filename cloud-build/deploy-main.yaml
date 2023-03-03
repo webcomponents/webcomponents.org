@@ -58,7 +58,7 @@ steps:
       - --cpu=1
       - --concurrency=200
       - --min-instances=1
-      - --max-instances=1000
+      - --max-instances=4
       - --update-env-vars=GCP_PROJECT_ID=${PROJECT_ID}
 
   # Create site Cloud Run revision.
@@ -82,7 +82,7 @@ steps:
       - --cpu=1
       - --concurrency=200
       - --min-instances=1
-      - --max-instances=1000
+      - --max-instances=4
       - --update-env-vars=CATALOG_GRAPHQL_URL=${_CATALOG_GRAPHQL_URL},CATALOG_SERVER_AUTH_ID=${_CATALOG_SERVER_AUTH_ID}
 
   # Route traffic to new catalog revision.
