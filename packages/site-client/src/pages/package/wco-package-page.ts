@@ -24,12 +24,6 @@ export class WCOPackagePage extends WCOPage {
   static styles = [
     WCOPage.styles,
     css`
-      .full-screen-error {
-        display: flex;
-        flex: 1;
-        align-items: center;
-        justify-items: center;
-      }
       h1 {
         display: inline-block;
       }
@@ -49,7 +43,7 @@ export class WCOPackagePage extends WCOPage {
 
   renderContent() {
     if (this.packageData === undefined) {
-      return html`<div class="full-screen-error">No package to display</div>`;
+      return this.fullScreenError('No package to display');
     }
 
     return html`

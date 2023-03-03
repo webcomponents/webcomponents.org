@@ -31,13 +31,6 @@ export class WCOElementPage extends WCOPage {
   static styles = [
     WCOPage.styles,
     css`
-      .full-screen-error {
-        display: flex;
-        flex: 1;
-        align-items: center;
-        justify-items: center;
-      }
-
       main {
         display: grid;
         max-width: var(--content-width);
@@ -90,7 +83,7 @@ export class WCOElementPage extends WCOPage {
 
   renderContent() {
     if (this.elementData === undefined) {
-      return html`<div class="full-screen-error">No element to display</div>`;
+      return this.fullScreenError('No element to display');
     }
     const {
       packageName,

@@ -61,6 +61,7 @@ export const handlePackageRoute = async (
   const {data} = result;
   const packageVersion = data.package?.version;
   if (packageVersion === undefined) {
+    // TODO: 404
     throw new Error(`No such package version: ${packageName}`);
   }
 
