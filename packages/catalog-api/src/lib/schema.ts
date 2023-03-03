@@ -20,13 +20,13 @@ export const PackageStatus = {
   ...ReadablePackageStatus,
   ...UnreadablePackageStatus,
 } as const;
-export type PackageStatus = typeof PackageStatus[keyof typeof PackageStatus];
+export type PackageStatus = (typeof PackageStatus)[keyof typeof PackageStatus];
 
 export const VersionStatus = {
   ...ReadableVersionStatus,
   ...UnreadableVersionStatus,
 } as const;
-export type VersionStatus = typeof VersionStatus[keyof typeof VersionStatus];
+export type VersionStatus = (typeof VersionStatus)[keyof typeof VersionStatus];
 
 export const isReadablePackage = (
   p: PackageInfo | undefined

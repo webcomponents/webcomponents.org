@@ -15,7 +15,7 @@ export interface PackageFiles {
    *
    * The response must be compatible with the npm registry Package Metadata
    * API: https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md
-   * 
+   *
    * If a package is not found, the returned Promise must reject with an
    * HttpError with status 404.
    */
