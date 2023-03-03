@@ -8,6 +8,7 @@ import Router from '@koa/router';
 import {handleCatalogRoute} from './routes/catalog/catalog-route.js';
 import {handleCatalogSearchRoute} from './routes/catalog/search-route.js';
 import {handleElementRoute} from './routes/element/element-route.js';
+import {handlePackageRoute} from './routes/package/package-route.js';
 // import cors from '@koa/cors';
 
 export const catalogRouter = new Router();
@@ -19,3 +20,5 @@ catalogRouter.get('/', handleCatalogRoute);
 catalogRouter.get('/search', handleCatalogSearchRoute);
 
 catalogRouter.get('/element/:path+', handleElementRoute);
+
+catalogRouter.get('/package/:name+', handlePackageRoute);

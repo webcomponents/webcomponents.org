@@ -31,6 +31,13 @@ export class WCOPage extends LitElement {
     wco-footer {
       width: 100%;
     }
+
+    .full-screen-error {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-items: center;
+    }
   `;
 
   render() {
@@ -47,6 +54,10 @@ export class WCOPage extends LitElement {
 
   protected renderContent() {
     return html`<slot></slot>`;
+  }
+
+  protected fullScreenError(message: unknown) {
+    return html`<div class="full-screen-error">${message}</div>`;
   }
 }
 
