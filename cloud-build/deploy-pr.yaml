@@ -8,7 +8,7 @@ options:
   dynamic_substitutions: true
 
 substitutions:
-  _REGION: us-west2
+  _REGION: us-central1
   _TAG: pr${_PR_NUMBER}
   _IMAGE_URL_CATALOG: us.gcr.io/${PROJECT_ID}/pr/catalog:${SHORT_SHA}
   _IMAGE_URL_SITE: us.gcr.io/${PROJECT_ID}/pr/site:${SHORT_SHA}
