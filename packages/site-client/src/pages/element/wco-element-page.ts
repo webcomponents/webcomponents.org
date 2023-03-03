@@ -131,7 +131,8 @@ export class WCOElementPage extends WCOPage {
         <div id="logo-container"><div id="logo"></div></div>
         <div id="meta-container">
           <span id="package-meta"
-            >${packageName}<select>
+            ><a href="/catalog/package/${packageName}">${packageName}</a
+            ><select>
               <!-- TODO (justinfagnani): get actual version and dist tag data -->
               <option>x.x.x</option>
             </select></span
