@@ -22,14 +22,5 @@ jobs:
             A live preview of this PR will be available at the URL below and will update on each commit. =
             The build takes ~5-10 minutes, and will 404 until finished.
 
-            https://pr${{ github.event.number }}---site-khswqo4xea-wl.a.run.app/
-
-            > **Warning**
-            > Until our Cloud Run project is public, only authorized users can view the above URL.
-            > The easiest way to view it authenticated is to run the following proxy command and visit http://localhost:5453
-            >
-            > ```
-            > (gcloud beta run services proxy --project=webcomponents-org-test --region=us-west2 --tag=pr${{ github.event.number }} --port=5453 site \
-            > & gcloud beta run services proxy --project=webcomponents-org-test --region=us-west2 --tag=pr${{ github.event.number }} --port=6453 catalog)
-            > ```
+            https://pr${{ github.event.number }}---site-24wnpwhcla-uc.a.run.app/
           reactions: eyes
