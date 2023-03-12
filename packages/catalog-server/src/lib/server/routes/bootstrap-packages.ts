@@ -22,6 +22,10 @@ export const makeBootstrapPackagesRoute =
     const bootstrapListFile = await readFile(bootstrapListFilePath, 'utf-8');
     const bootstrapList = JSON.parse(bootstrapListFile);
     const packageNames = bootstrapList['packages'] as Array<string>;
+
+    // TODO (justinfagnani): rather than import the packages directly, add them
+    // to the DB in a non-imported state, then kick off the standard update
+    // workflow, which will import them all.
     const results = await Promise.all(
       packageNames.map(
         async (

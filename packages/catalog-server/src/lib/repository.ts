@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {Temporal} from '@js-temporal/polyfill';
 import type {
   CustomElement,
   PackageInfo,
@@ -150,4 +151,12 @@ export interface Repository {
     packageName: string,
     version: string
   ): Promise<PackageVersion | undefined>;
+
+  /**
+   * Returns packages that have not been updated since the date given.
+   */
+  getPackagesToUpdate(
+    notUpdatedSince: Temporal.Instant,
+    limit: number
+  ): Promise<Array<PackageInfo>>;
 }
