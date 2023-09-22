@@ -121,6 +121,6 @@
     "koa-bodyparser": "^4.3.0",
     "lit": "^2.6.0",
     "natural": "^6.1.2",
-    "semver": "^7.3.7"
+    "semver": "^7.5.2"
   }
 }
