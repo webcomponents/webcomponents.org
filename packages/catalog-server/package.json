@@ -109,7 +109,7 @@
   "dependencies": {
     "@google-cloud/firestore": "^6.0.0",
     "@js-temporal/polyfill": "^0.4.2",
-    "@koa/cors": "^4.0.0",
+    "@koa/cors": "^5.0.0",
     "@koa/router": "^12.0.0",
     "@webcomponents/catalog-api": "0.0.0",
     "@webcomponents/custom-elements-manifest-tools": "0.0.0",
