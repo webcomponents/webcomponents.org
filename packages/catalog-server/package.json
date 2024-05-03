@@ -104,7 +104,7 @@
     "@types/koa-bodyparser": "^4.3.8",
     "@types/node": "^18.0.6",
     "@types/source-map-support": "^0.5.3",
-    "firebase-tools": "^11.3.0"
+    "firebase-tools": "^13.6.0"
   },
   "dependencies": {
     "@google-cloud/firestore": "^6.0.0",
