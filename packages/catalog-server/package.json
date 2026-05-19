@@ -104,10 +104,10 @@
     "@types/koa-bodyparser": "^4.3.8",
     "@types/node": "^18.0.6",
     "@types/source-map-support": "^0.5.3",
-    "firebase-tools": "^11.3.0"
+    "firebase-tools": "^15.18.0"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^6.0.0",
+    "@google-cloud/firestore": "^7.11.6",
     "@js-temporal/polyfill": "^0.4.2",
     "@koa/cors": "^4.0.0",
     "@koa/router": "^12.0.0",
@@ -115,8 +115,8 @@
     "@webcomponents/custom-elements-manifest-tools": "0.0.0",
     "@webcomponents/internal-site-client": "0.0.0",
     "custom-elements-manifest": "^2.0.0",
-    "firebase": "^9.6.10",
-    "firebase-admin": "^11.0.0",
+    "firebase": "^12.13.0",
+    "firebase-admin": "^13.10.0",
     "graphql-helix": "^1.13.0",
     "koa-bodyparser": "^4.3.0",
     "lit": "^2.6.0",
