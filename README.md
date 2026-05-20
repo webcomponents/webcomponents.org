@@ -15,7 +15,7 @@ This monorepo contains several npm packages:
 - `@webcomponents/custom-elements-manifest-tools`: Tools for working with Custom Element Manifests
 - `@webcomponents/internal-site-content`: An HTML client served by the frontend server
 - `@webcomponents/internal-site-client`: JavaScript for the site
-- `@webcomponents/internal-site-server`: A frontend server that serves the user-facing webcompoents.org site
+- `@webcomponents/internal-site-server`: A frontend server that serves the user-facing webcomponents.org site
 
 ## Quick Start
 
