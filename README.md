@@ -62,3 +62,5 @@ We use the following port scheme for consistency and to prevent collisions:
 - [`localhost:6452`](http://localhost:6452): catalog-server in docker
 - [`localhost:6452`](http://localhost:6453): catalog-server gcloud proxy
 - [`localhost:7450`](http://localhost:7450): firestore-emulator
+
+<!-- audit marker for non-draft auto-merge permission verification -->
