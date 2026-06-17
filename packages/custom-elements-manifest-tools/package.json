@@ -51,7 +51,7 @@
   "dependencies": {
     "custom-elements-manifest": "^2.0.0",
     "jsonc-parser": "^3.2.0",
-    "npm-registry-fetch": "^14.0.2",
+    "npm-registry-fetch": "^20.0.1",
     "semver": "^7.3.7"
   }
 }
