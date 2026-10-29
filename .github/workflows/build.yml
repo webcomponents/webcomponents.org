@@ -9,15 +9,13 @@ jobs:
       WIREIT_FAILURES: continue
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
           cache-dependency-path: package-lock.json
-
-      - uses: google/wireit@setup-github-actions-caching/v1
 
       - name: NPM install
         run: npm ci
@@ -29,14 +27,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
-
-      - name: setup-docker
-        uses: docker-practice/actions-setup-docker@1.0.11
 
       - name: Build Docker
         run: npm run build:docker
