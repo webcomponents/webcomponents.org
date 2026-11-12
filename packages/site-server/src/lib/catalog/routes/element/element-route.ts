@@ -11,10 +11,10 @@ import {DefaultContext, DefaultState, ParameterizedContext} from 'koa';
 import {Readable} from 'stream';
 import {gql} from '@apollo/client/core/index.js';
 import Router from '@koa/router';
-import {marked} from 'marked';
 
 import {renderElementPage} from '@webcomponents/internal-site-client/lib/pages/element/shell.js';
 import {client} from '../../graphql.js';
+import {renderUntrustedMarkdown} from '../../markdown.js';
 
 import type {ElementData} from '@webcomponents/internal-site-client/lib/pages/element/wco-element-page.js';
 
@@ -115,9 +115,9 @@ export const handleElementRoute = async (
           packageName,
           ''
         );
-  const elementDescriptionHtml = declaration?.description
-    ? marked(declaration?.description)
-    : '';
+  const elementDescriptionHtml = renderUntrustedMarkdown(
+    declaration?.description
+  );
 
   const elementData: ElementData = {
     packageName: packageName,
