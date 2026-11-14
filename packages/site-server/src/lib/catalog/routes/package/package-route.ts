@@ -15,7 +15,7 @@ import Router from '@koa/router';
 import {renderPackagePage} from '@webcomponents/internal-site-client/lib/pages/package/shell.js';
 import {client} from '../../graphql.js';
 import {PackageData} from '@webcomponents/internal-site-client/lib/pages/package/wco-package-page.js';
-import {marked} from 'marked';
+import {renderUntrustedMarkdown} from '../../markdown.js';
 
 export const handlePackageRoute = async (
   context: ParameterizedContext<
@@ -71,7 +71,7 @@ export const handlePackageRoute = async (
 
   const responseData: PackageData = {
     name: packageName,
-    description: marked(data.package.description ?? ''),
+    description: renderUntrustedMarkdown(data.package.description),
     version: packageVersion.version,
     elements: packageVersion.customElements,
   };
